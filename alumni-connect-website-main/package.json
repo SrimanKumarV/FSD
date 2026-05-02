@@ -1,0 +1,33 @@
+{
+  "name": "alumnex-connect",
+  "version": "1.0.0",
+  "description": "Student-Alumni Connect Platform for mentorship, career guidance, and networking",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "start": "cd backend && npm start"
+  },
+  "keywords": [
+    "alumni",
+    "student",
+    "mentorship",
+    "networking",
+    "mern",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Alumnex Connect Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.1"
+  }
+}

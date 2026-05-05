@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const http = require('http');
 const socketIo = require('socket.io');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +49,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Database connection
+// Uses the MONGODB_URI from your .env or Render environment variables
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/alumnex-connect', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -55,7 +57,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/alumnex-c
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
+// --- API ROUTES ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/mentorship', require('./routes/mentorship'));
@@ -70,6 +72,12 @@ app.use('/api/notifications', require('./routes/notifications'));
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);
 
+// --- ROOT WELCOME ROUTE ---
+// This is now placed ABOVE the 404 handler so it actually works.
+app.get('/', (req, res) => {
+  res.send('Alumni Portal Server is up and running!');
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -77,6 +85,7 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
+// This matches everything else. It must stay at the very bottom.
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });

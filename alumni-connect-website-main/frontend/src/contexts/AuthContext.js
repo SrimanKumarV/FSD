@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 // Create context
@@ -98,13 +98,11 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Set up axios defaults
+  // Sync token to localStorage
   useEffect(() => {
     if (state.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
       localStorage.setItem('token', state.token);
     } else {
-      delete axios.defaults.headers.common['Authorization'];
       localStorage.removeItem('token');
     }
   }, [state.token]);
@@ -114,7 +112,7 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       if (state.token) {
         try {
-          const response = await axios.get('/api/auth/me');
+          const response = await api.get('/auth/me');
           dispatch({
             type: AUTH_ACTIONS.LOGIN_SUCCESS,
             payload: {
@@ -139,7 +137,7 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       
-      const response = await axios.post('/api/auth/login', {
+      const response = await api.post('/auth/login', {
         email,
         password
       });
@@ -169,7 +167,7 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.REGISTER_START });
       
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       
       const { user, token, message } = response.data;
       
@@ -213,7 +211,7 @@ export const AuthProvider = ({ children }) => {
   // Change password
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      const response = await axios.post('/api/auth/change-password', {
+      const response = await api.post('/auth/change-password', {
         currentPassword,
         newPassword
       });
@@ -230,7 +228,7 @@ export const AuthProvider = ({ children }) => {
   // Forgot password
   const forgotPassword = async (email) => {
     try {
-      const response = await axios.post('/api/auth/forgot-password', { email });
+      const response = await api.post('/auth/forgot-password', { email });
       toast.success(response.data.message);
       return { success: true };
     } catch (error) {
@@ -243,7 +241,7 @@ export const AuthProvider = ({ children }) => {
   // Reset password
   const resetPassword = async (token, newPassword) => {
     try {
-      const response = await axios.post('/api/auth/reset-password', {
+      const response = await api.post('/auth/reset-password', {
         token,
         newPassword
       });
@@ -260,7 +258,7 @@ export const AuthProvider = ({ children }) => {
   // Verify email
   const verifyEmail = async (token) => {
     try {
-      const response = await axios.post('/api/auth/verify-email', { token });
+      const response = await api.post('/auth/verify-email', { token });
       toast.success(response.data.message);
       return { success: true };
     } catch (error) {
@@ -273,7 +271,7 @@ export const AuthProvider = ({ children }) => {
   // Resend verification email
   const resendVerification = async () => {
     try {
-      const response = await axios.post('/api/auth/resend-verification');
+      const response = await api.post('/auth/resend-verification');
       toast.success(response.data.message);
       return { success: true };
     } catch (error) {

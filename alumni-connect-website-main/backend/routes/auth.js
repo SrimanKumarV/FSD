@@ -101,6 +101,7 @@ router.post('/github', async (req, res) => {
     });
 
     const tokenData = await tokenResponse.json();
+    console.log('GitHub Token Response:', tokenData);
     
     if (tokenData.error) {
       throw new Error(tokenData.error_description || 'Failed to get GitHub token');
@@ -108,15 +109,22 @@ router.post('/github', async (req, res) => {
 
     const accessToken = tokenData.access_token;
 
+    if (!accessToken) {
+      throw new Error('Access token missing from GitHub response');
+    }
+
     // 2. Fetch user profile
     const userResponse = await fetch('https://api.github.com/user', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json'
+        Accept: 'application/json',
+        'User-Agent': 'Alumni-Connect-App'
       }
     });
     
     if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error('GitHub User API Error:', errorText);
       throw new Error('Failed to fetch user info from GitHub');
     }
     
@@ -126,7 +134,8 @@ router.post('/github', async (req, res) => {
     const emailResponse = await fetch('https://api.github.com/user/emails', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json'
+        Accept: 'application/json',
+        'User-Agent': 'Alumni-Connect-App'
       }
     });
     

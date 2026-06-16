@@ -34,10 +34,13 @@ const Login = () => {
     flow: 'implicit'
   });
 
+  const hasProcessedCode = React.useRef(false);
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-    if (code) {
+    if (code && !hasProcessedCode.current) {
+      hasProcessedCode.current = true;
       handleGithubCallback(code);
     }
   }, []);

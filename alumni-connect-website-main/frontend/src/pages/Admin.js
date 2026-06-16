@@ -26,7 +26,8 @@ import {
   MessageSquare,
   Briefcase,
   Trophy,
-  Clock
+  Clock,
+  Bell
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -509,11 +510,109 @@ const ContentModerationTab = () => {
 
 // System Settings Tab Component
 const SystemSettingsTab = () => {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [type, setType] = useState('announcement');
+  const [recipients, setRecipients] = useState('all');
+
+  const sendNotificationMutation = useMutation(
+    (data) => api.post('/admin/notifications', data),
+    {
+      onSuccess: () => {
+        toast.success('System notification sent successfully!');
+        setTitle('');
+        setContent('');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to send notification');
+      }
+    }
+  );
+
+  const handleSendNotification = (e) => {
+    e.preventDefault();
+    if (!title || !content) {
+      toast.error('Title and content are required');
+      return;
+    }
+    sendNotificationMutation.mutate({ title, content, type, recipients });
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">System Settings</h3>
-        <p className="text-gray-600">System configuration options will be implemented here.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Send System Announcement</h3>
+        <p className="text-gray-600 mb-6 text-sm">Send a notification and email to users across the platform.</p>
+        
+        <form onSubmit={handleSendNotification} className="space-y-4 max-w-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="announcement">Announcement</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="update">Update</option>
+                <option value="warning">Warning</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Recipients</label>
+              <select
+                value={recipients}
+                onChange={(e) => setRecipients(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="all">All Users</option>
+                <option value="alumni">Alumni Only</option>
+                <option value="students">Students Only</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="E.g., Scheduled Maintenance"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={4}
+              placeholder="Write your announcement here..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              required
+            />
+          </div>
+          
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={sendNotificationMutation.isLoading}
+              className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              {sendNotificationMutation.isLoading ? 'Sending...' : 'Send Announcement'}
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 opacity-50">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Other Settings</h3>
+        <p className="text-gray-600 text-sm">System configuration options will be implemented here.</p>
       </div>
     </div>
   );

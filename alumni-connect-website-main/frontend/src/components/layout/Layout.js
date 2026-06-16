@@ -16,10 +16,13 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  Settings
+  Settings,
+  Check,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +30,13 @@ const Layout = ({ children }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { user, logout, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    formatNotificationTime 
+  } = useNotifications();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -176,7 +186,9 @@ const Layout = ({ children }) => {
                   className="p-2 text-gray-400 hover:text-primary-500 dark:text-gray-500 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl relative transition-all duration-300"
                 >
                   <Bell className="w-6 h-6" />
-                  <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900"></span>
+                  )}
                 </button>
                 
                 <AnimatePresence>
@@ -185,15 +197,63 @@ const Layout = ({ children }) => {
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-80 glass-card py-2 z-50 rounded-2xl"
+                      className="absolute right-0 mt-2 w-80 sm:w-96 glass-card py-2 z-50 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800"
                     >
-                      <div className="px-4 py-2 border-b border-gray-200/50 dark:border-gray-700/50">
+                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={() => markAllAsRead()}
+                            className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center"
+                          >
+                            <Check className="w-3 h-3 mr-1" />
+                            Mark all read
+                          </button>
+                        )}
                       </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        <div className="px-4 py-3 text-sm text-gray-500">
-                          No new notifications
-                        </div>
+                      <div className="max-h-[28rem] overflow-y-auto">
+                        {(!notifications || notifications.length === 0) ? (
+                          <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400 flex flex-col items-center">
+                            <Bell className="w-8 h-8 mb-2 text-gray-300 dark:text-gray-600" />
+                            No new notifications
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {notifications.map((notification) => (
+                              <div 
+                                key={notification._id}
+                                className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${!notification.isRead ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}
+                                onClick={() => {
+                                  if (!notification.isRead) markAsRead(notification._id);
+                                }}
+                              >
+                                <div className="flex gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <p className={`text-sm text-gray-900 dark:text-white ${!notification.isRead ? 'font-semibold' : 'font-medium'}`}>
+                                      {notification.title}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">
+                                      {notification.content}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                      {formatNotificationTime(notification.createdAt)}
+                                    </p>
+                                  </div>
+                                  {!notification.isRead && (
+                                    <div className="flex-shrink-0 self-center">
+                                      <span className="w-2 h-2 bg-primary-500 rounded-full inline-block"></span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800 text-center">
+                        <button className="text-xs text-primary-600 hover:text-primary-700 font-medium" onClick={() => setNotificationsOpen(false)}>
+                          View all notifications
+                        </button>
                       </div>
                     </motion.div>
                   )}

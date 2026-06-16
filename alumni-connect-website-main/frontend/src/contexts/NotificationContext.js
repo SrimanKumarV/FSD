@@ -31,7 +31,7 @@ export const NotificationProvider = ({ children }) => {
       refetchInterval: 30000, // Refetch every 30 seconds
       onSuccess: (data) => {
         setNotifications(data.notifications || []);
-        setUnreadCount(data.notifications?.filter(n => !n.read).length || 0);
+        setUnreadCount(data.notifications?.filter(n => !n.isRead).length || 0);
       }
     }
   );
@@ -91,7 +91,7 @@ export const NotificationProvider = ({ children }) => {
         )
       );
       
-      if (updatedNotification.read) {
+      if (updatedNotification.isRead) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     });

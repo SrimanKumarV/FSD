@@ -8,6 +8,7 @@ const Event = require('../models/Event');
 const ForumPost = require('../models/ForumPost');
 const Contest = require('../models/Contest');
 const Notification = require('../models/Notification');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Get admin dashboard statistics
 // @route   GET /api/admin/dashboard
@@ -553,19 +554,19 @@ router.post('/notifications', [protect, admin], [
 
     switch (recipients) {
       case 'all':
-        targetUsers = await User.find({ isActive: true }).select('_id');
+        targetUsers = await User.find({ isActive: true }).select('_id email name');
         break;
       case 'alumni':
-        targetUsers = await User.find({ role: 'alumni', isActive: true }).select('_id');
+        targetUsers = await User.find({ role: 'alumni', isActive: true }).select('_id email name');
         break;
       case 'students':
-        targetUsers = await User.find({ role: 'student', isActive: true }).select('_id');
+        targetUsers = await User.find({ role: 'student', isActive: true }).select('_id email name');
         break;
       case 'specific':
         if (!specificUsers || specificUsers.length === 0) {
           return res.status(400).json({ message: 'Specific users required when recipient type is specific' });
         }
-        targetUsers = await User.find({ _id: { $in: specificUsers }, isActive: true }).select('_id');
+        targetUsers = await User.find({ _id: { $in: specificUsers }, isActive: true }).select('_id email name');
         break;
     }
 
@@ -577,7 +578,7 @@ router.post('/notifications', [protect, admin], [
     const notifications = targetUsers.map(user => ({
       recipient: user._id,
       sender: req.user.id,
-      type: 'system_notification',
+      type: 'system-announcement',
       title,
       content,
       priority,
@@ -585,6 +586,30 @@ router.post('/notifications', [protect, admin], [
     }));
 
     await Notification.createBulkNotifications(notifications);
+
+    // Send emails asynchronously without blocking the request
+    targetUsers.forEach(user => {
+      if (user.email) {
+        sendEmail({
+          email: user.email,
+          subject: title,
+          message: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
+              <p>Hello ${user.name || 'User'},</p>
+              <p>You have a new notification from the admin team:</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
+                <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
+              </div>
+              <p>Log in to <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">your portal</a> to view more details.</p>
+              <br/>
+              <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
+            </div>
+          `
+        });
+      }
+    });
 
     res.json({ 
       message: `System notification sent to ${targetUsers.length} users`,

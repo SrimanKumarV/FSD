@@ -5,13 +5,34 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleGoogleLoginSuccess = async (tokenResponse) => {
+    try {
+      setIsLoading(true);
+      const result = await loginWithGoogle(tokenResponse.credential || tokenResponse.access_token);
+      if (result.success) {
+        navigate(from, { replace: true });
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleLoginSuccess,
+    onError: () => toast.error('Google Login Failed'),
+    flow: 'implicit'
+  });
 
   // Get the intended destination from location state or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
@@ -243,8 +264,9 @@ const Login = () => {
           <div className="mt-6 grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() => toast('Google Sign-In needs API Key setup!', { icon: '🚧' })}
-              className="w-full inline-flex justify-center py-2.5 px-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+              onClick={() => googleLogin()}
+              disabled={isLoading}
+              className="w-full inline-flex justify-center py-2.5 px-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-50"
             >
               <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24">
                 <path

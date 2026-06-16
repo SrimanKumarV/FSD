@@ -6,13 +6,74 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const sendEmail = require('../utils/sendEmail');
+const { OAuth2Client } = require('google-auth-library');
 
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
+
+// @route   POST /api/auth/google
+// @desc    Login or Register with Google
+// @access  Public
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    
+    // useGoogleLogin returns an access_token, so we fetch user info directly from Google
+    const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+      headers: { Authorization: `Bearer ${credential}` }
+    });
+    
+    if (!googleResponse.ok) {
+      throw new Error('Failed to fetch user info from Google');
+    }
+    
+    const payload = await googleResponse.json();
+    const { email, name, picture, sub } = payload;
+    
+    // Check if user exists
+    let user = await User.findOne({ email });
+    
+    let isNewUser = false;
+    if (!user) {
+      // Create new student user by default
+      user = new User({
+        name,
+        email,
+        password: await bcrypt.hash(sub + process.env.JWT_SECRET, 10), // Random secure password
+        role: 'student',
+        photo: picture,
+        studentInfo: {}
+      });
+      await user.save();
+      isNewUser = true;
+    } else if (!user.photo && picture) {
+      // Update photo if missing
+      user.photo = picture;
+      await user.save();
+    }
+    
+    // Generate token
+    const token = generateToken(user._id);
+    const userResponse = user.getPublicProfile();
+    
+    res.json({
+      success: true,
+      token,
+      user: userResponse,
+      isNewUser,
+      message: isNewUser ? 'Google account linked! Welcome to Alumnex.' : 'Login successful'
+    });
+    
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(401).json({ message: 'Invalid Google token' });
+  }
+});
 
 // @route   POST /api/auth/register
 // @desc    Register a new user

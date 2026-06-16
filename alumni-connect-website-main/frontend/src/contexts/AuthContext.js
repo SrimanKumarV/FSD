@@ -162,6 +162,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Google Login function
+  const loginWithGoogle = async (credential) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      
+      const response = await api.post('/auth/google', {
+        credential
+      });
+
+      const { user, token, isNewUser, message } = response.data;
+      
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user, token }
+      });
+
+      toast.success(message || 'Google Login successful!');
+      return { success: true, isNewUser };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Google Login failed';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: message
+      });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
   // Register function
   const register = async (userData) => {
     try {
@@ -362,6 +391,7 @@ export const AuthProvider = ({ children }) => {
     
     // Actions
     login,
+    loginWithGoogle,
     register,
     logout,
     updateUser,

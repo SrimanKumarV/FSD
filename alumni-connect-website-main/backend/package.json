@@ -17,6 +17,7 @@
     "express": "^4.22.1",
     "express-rate-limit": "^6.10.0",
     "express-validator": "^7.0.1",
+    "google-auth-library": "^10.7.0",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongod": "^2.0.0",

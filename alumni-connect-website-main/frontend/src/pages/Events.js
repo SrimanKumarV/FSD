@@ -15,8 +15,16 @@ import {
   ExternalLink,
   Eye,
   TrendingUp,
-  CalendarDays
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List
 } from 'lucide-react';
+import { 
+  format, addMonths, subMonths, startOfMonth, endOfMonth, 
+  startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays 
+} from 'date-fns';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
@@ -39,7 +47,8 @@ const Events = () => {
   const [sortBy, setSortBy] = useState('upcoming');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [viewMode, setViewMode] = useState('calendar'); // grid, list, or calendar
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     fetchEvents();
@@ -162,6 +171,96 @@ const Events = () => {
     return new Date(event.startDate) > new Date();
   };
 
+  // Calendar View Component
+  const CalendarView = ({ events, onSelectEvent }) => {
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart);
+    const endDate = endOfWeek(monthEnd);
+
+    const dateFormat = "MMMM yyyy";
+    const days = [];
+    let day = startDate;
+    let formattedDate = "";
+
+    while (day <= endDate) {
+      for (let i = 0; i < 7; i++) {
+        formattedDate = format(day, "d");
+        const cloneDay = day;
+        
+        const dayEvents = events.filter(e => isSameDay(new Date(e.startDate), cloneDay));
+
+        days.push(
+          <div
+            key={day.toString()}
+            className={`min-h-[120px] p-2 border-r border-b border-gray-200/50 dark:border-gray-700/50 ${
+              !isSameMonth(day, monthStart)
+                ? "bg-gray-50/50 dark:bg-gray-800/20 text-gray-400"
+                : "bg-white dark:bg-gray-800/80 text-gray-900 dark:text-gray-100"
+            } hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
+          >
+            <div className="flex justify-end mb-1">
+              <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${
+                isSameDay(day, new Date()) ? "bg-primary-600 text-white shadow-md shadow-primary-500/30" : ""
+              }`}>
+                {formattedDate}
+              </span>
+            </div>
+            <div className="mt-1 space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar">
+              {dayEvents.map((event, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onSelectEvent(event)}
+                  className="text-xs truncate px-2 py-1.5 rounded-lg font-medium bg-primary-100/80 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300 cursor-pointer hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors shadow-sm"
+                  title={event.title}
+                >
+                  <span className="font-bold opacity-75 mr-1">{format(new Date(event.startDate), "HH:mm")}</span>
+                  {event.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+        day = addDays(day, 1);
+      }
+    }
+
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    return (
+      <div className="glass-card rounded-2xl overflow-hidden shadow-sm mb-8">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {format(currentDate, dateFormat)}
+          </h2>
+          <div className="flex space-x-2">
+            <button onClick={prevMonth} className="p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+            <button onClick={nextMonth} className="p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+              <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/80 dark:bg-gray-900/50">
+          {weekdays.map(day => (
+            <div key={day} className="py-3 text-center text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              {day}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 bg-white dark:bg-gray-800">
+          {days}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -249,27 +348,27 @@ const Events = () => {
               <option value="popular">Most Popular</option>
               <option value="newest">Newest First</option>
             </select>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 bg-gray-100/50 dark:bg-gray-800/50 p-1.5 rounded-xl">
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`p-2.5 rounded-lg transition-all duration-300 flex items-center justify-center ${viewMode === 'calendar' ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                title="Calendar View"
+              >
+                <CalendarDays className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-3 rounded-xl transition-colors ${viewMode === 'grid' ? 'bg-primary-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`p-2.5 rounded-lg transition-all duration-300 flex items-center justify-center ${viewMode === 'grid' ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                title="Grid View"
               >
-                <div className="w-5 h-5 grid grid-cols-2 gap-0.5">
-                  <div className="w-2 h-2 bg-current rounded-sm"></div>
-                  <div className="w-2 h-2 bg-current rounded-sm"></div>
-                  <div className="w-2 h-2 bg-current rounded-sm"></div>
-                  <div className="w-2 h-2 bg-current rounded-sm"></div>
-                </div>
+                <LayoutGrid className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}`}
+                className={`p-2.5 rounded-lg transition-all duration-300 flex items-center justify-center ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                title="List View"
               >
-                <div className="w-4 h-4 space-y-1">
-                  <div className="w-full h-0.5 bg-current"></div>
-                  <div className="w-full h-0.5 bg-current"></div>
-                  <div className="w-full h-0.5 bg-current"></div>
-                </div>
+                <List className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -392,11 +491,17 @@ const Events = () => {
           )}
         </motion.div>
 
-        {/* Events List */}
+        {/* Events List / Calendar */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           </div>
+        ) : viewMode === 'calendar' ? (
+          <CalendarView events={sortedEvents} onSelectEvent={(e) => {
+            // Can be expanded to open an event detail modal
+            window.location.hash = `#event-${e.id}`;
+            toast.success(`Selected: ${e.title}`);
+          }} />
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}>
             {sortedEvents.map((event) => (

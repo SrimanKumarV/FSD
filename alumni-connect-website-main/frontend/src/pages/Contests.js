@@ -21,8 +21,11 @@ import {
   XCircle,
   Play,
   Pause,
-  StopCircle
+  StopCircle,
+  Globe,
+  ExternalLink
 } from 'lucide-react';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
@@ -39,12 +42,67 @@ const Contests = () => {
     search: ''
   });
 
-  // Fetch contests
-  const { data: contestsData, isLoading, error } = useQuery(
+  // Fetch local contests
+  const { data: contestsData, isLoading: localLoading, error } = useQuery(
     ['contests', filters],
     () => api.get('/contests', { params: filters }),
     { keepPreviousData: true }
   );
+
+  // Fetch external Codeforces contests
+  const { data: cfContests, isLoading: cfLoading } = useQuery(
+    ['codeforces-contests'],
+    async () => {
+      try {
+        const response = await axios.get('https://codeforces.com/api/contest.list?gym=false');
+        // Filter upcoming contests and map to our local structure
+        return response.data.result
+          .filter(c => c.phase === 'BEFORE')
+          .map(c => ({
+            _id: `cf-${c.id}`,
+            title: c.name,
+            description: `Global competitive programming contest on Codeforces. Test your algorithmic skills against thousands of programmers worldwide.`,
+            category: 'coding',
+            status: 'upcoming',
+            startDate: new Date(c.startTimeSeconds * 1000).toISOString(),
+            endDate: new Date((c.startTimeSeconds + c.durationSeconds) * 1000).toISOString(),
+            participants: [],
+            maxParticipants: '∞',
+            prizeAmount: 0,
+            isExternal: true,
+            platform: 'Codeforces',
+            externalLink: `https://codeforces.com/contests/${c.id}`
+          }));
+      } catch (err) {
+        console.error('Error fetching Codeforces:', err);
+        return [];
+      }
+    },
+    { refetchOnWindowFocus: false }
+  );
+
+  const combinedContests = React.useMemo(() => {
+    const local = contestsData?.contests || [];
+    const external = cfContests || [];
+    let all = [...local, ...external];
+    
+    // Apply local filters to external as well if needed (e.g., search)
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      all = all.filter(c => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+    }
+    if (filters.status) {
+      all = all.filter(c => c.status === filters.status);
+    }
+    if (filters.category) {
+      all = all.filter(c => c.category === filters.category);
+    }
+
+    // Sort chronologically by start date
+    return all.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+  }, [contestsData, cfContests, filters]);
+
+  const isLoading = localLoading || cfLoading;
 
   // Create contest mutation
   const createContestMutation = useMutation(
@@ -244,8 +302,8 @@ const Contests = () => {
               </div>
             </div>
           ))
-        ) : contestsData?.contests?.length > 0 ? (
-          contestsData.contests.map((contest) => (
+        ) : combinedContests.length > 0 ? (
+          combinedContests.map((contest) => (
             <ContestCard
               key={contest._id}
               contest={contest}
@@ -364,6 +422,12 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(contest.category)}`}>
           {categories.find(c => c.value === contest.category)?.label}
         </span>
+        {contest.isExternal && (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+            <Globe className="w-3 h-3 mr-1" />
+            {contest.platform}
+          </span>
+        )}
       </div>
 
       {/* Contest Info */}
@@ -386,7 +450,7 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
 
       {/* Join Button */}
       <div className="flex justify-between items-center">
-        {contest.status === 'active' && (
+        {contest.status === 'active' && !contest.isExternal && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -416,15 +480,28 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
           </button>
         )}
         
-        {contest.status === 'upcoming' && (
+        {contest.isExternal && (
+          <a
+            href={contest.externalLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center shadow-sm hover:shadow"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            View on {contest.platform}
+          </a>
+        )}
+        
+        {contest.status === 'upcoming' && !contest.isExternal && (
           <span className="text-sm text-blue-600 font-medium">Coming Soon</span>
         )}
         
-        {contest.status === 'judging' && (
+        {contest.status === 'judging' && !contest.isExternal && (
           <span className="text-sm text-yellow-600 font-medium">Judging in Progress</span>
         )}
         
-        {contest.status === 'completed' && (
+        {contest.status === 'completed' && !contest.isExternal && (
           <span className="text-sm text-gray-600 font-medium">Completed</span>
         )}
       </div>
@@ -661,6 +738,14 @@ const ContestDetailModal = ({ contest, onClose, onJoin, user, getStatusColor, ge
                 <div className="text-sm text-gray-600">
                   <strong>Category:</strong> {contest.category}
                 </div>
+                {contest.isExternal && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-indigo-100 text-indigo-800">
+                      <Globe className="w-4 h-4 mr-2" />
+                      Global Challenge ({contest.platform})
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -693,7 +778,7 @@ const ContestDetailModal = ({ contest, onClose, onJoin, user, getStatusColor, ge
 
           {/* Action Buttons */}
           <div className="flex justify-center pt-4">
-            {contest.status === 'active' && (
+            {contest.status === 'active' && !contest.isExternal && (
               <button
                 onClick={() => {
                   if (canJoin) {
@@ -721,6 +806,17 @@ const ContestDetailModal = ({ contest, onClose, onJoin, user, getStatusColor, ge
                   'Contest Full'
                 )}
               </button>
+            )}
+            {contest.isExternal && (
+              <a
+                href={contest.externalLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-bold transition-all shadow-md hover:shadow-lg flex items-center"
+              >
+                <ExternalLink className="w-5 h-5 mr-2" />
+                Register on {contest.platform}
+              </a>
             )}
           </div>
         </div>

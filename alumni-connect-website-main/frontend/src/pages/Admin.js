@@ -58,17 +58,32 @@ const Admin = () => {
     { enabled: !!user }
   );
 
-  // Update user status mutation
-  const updateUserStatusMutation = useMutation(
-    ({ userId, status }) => api.put(`/admin/users/${userId}/status`, { status }),
+  // Approve user mutation
+  const approveUserMutation = useMutation(
+    ({ userId, isApproved }) => api.put(`/admin/users/${userId}/approval`, { isApproved }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['admin-users']);
         queryClient.invalidateQueries(['admin-dashboard']);
-        toast.success('User status updated successfully');
+        toast.success('User approval updated successfully');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to update user status');
+        toast.error(error.response?.data?.message || 'Failed to update user approval');
+      }
+    }
+  );
+
+  // Suspend user mutation
+  const suspendUserMutation = useMutation(
+    ({ userId, isSuspended }) => api.put(`/admin/users/${userId}/suspend`, { isSuspended, reason: isSuspended ? 'Suspended by admin' : '' }),
+    {
+      onSuccess: (data, variables) => {
+        queryClient.invalidateQueries(['admin-users']);
+        queryClient.invalidateQueries(['admin-dashboard']);
+        toast.success(`User ${variables.isSuspended ? 'suspended' : 'unsuspended'} successfully`);
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to update user suspension');
       }
     }
   );
@@ -88,8 +103,12 @@ const Admin = () => {
     }
   );
 
-  const handleUpdateUserStatus = (userId, status) => {
-    updateUserStatusMutation.mutate({ userId, status });
+  const handleApproveUser = (userId, isApproved) => {
+    approveUserMutation.mutate({ userId, isApproved });
+  };
+
+  const handleSuspendUser = (userId, isSuspended) => {
+    suspendUserMutation.mutate({ userId, isSuspended });
   };
 
   const handleUpdateUserRole = (userId, role) => {
@@ -169,7 +188,8 @@ const Admin = () => {
               loading={usersLoading}
               filters={filters}
               setFilters={setFilters}
-              onUpdateStatus={handleUpdateUserStatus}
+              onApproveUser={handleApproveUser}
+              onSuspendUser={handleSuspendUser}
               onUpdateRole={handleUpdateUserRole}
               onSelectUser={setSelectedUser}
               onShowModal={setShowUserModal}
@@ -192,7 +212,8 @@ const Admin = () => {
             setShowUserModal(false);
             setSelectedUser(null);
           }}
-          onUpdateStatus={handleUpdateUserStatus}
+          onApproveUser={handleApproveUser}
+          onSuspendUser={handleSuspendUser}
           onUpdateRole={handleUpdateUserRole}
         />
       )}
@@ -289,18 +310,17 @@ const DashboardTab = ({ data, stats }) => {
 };
 
 // Users Tab Component
-const UsersTab = ({ data, loading, filters, setFilters, onUpdateStatus, onUpdateRole, onSelectUser, onShowModal }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'suspended':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspendUser, onUpdateRole, onSelectUser, onShowModal }) => {
+  const getStatusColor = (user) => {
+    if (user.isSuspended) return 'bg-red-100 text-red-800';
+    if (user.role === 'alumni' && !user.isApproved) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStatusText = (user) => {
+    if (user.isSuspended) return 'Suspended';
+    if (user.role === 'alumni' && !user.isApproved) return 'Pending Approval';
+    return 'Active';
   };
 
   const getRoleColor = (role) => {
@@ -350,7 +370,7 @@ const UsersTab = ({ data, loading, filters, setFilters, onUpdateStatus, onUpdate
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
-            <option value="pending">Pending</option>
+            <option value="pending">Pending Approval</option>
             <option value="suspended">Suspended</option>
           </select>
         </div>
@@ -409,10 +429,11 @@ const UsersTab = ({ data, loading, filters, setFilters, onUpdateStatus, onUpdate
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                        {user.status === 'active' && <CheckCircle className="w-3 h-3 mr-1" />}
-                        {user.status === 'suspended' && <XCircle className="w-3 h-3 mr-1" />}
-                        {user.status}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user)}`}>
+                        {getStatusText(user) === 'Active' && <CheckCircle className="w-3 h-3 mr-1" />}
+                        {getStatusText(user) === 'Suspended' && <XCircle className="w-3 h-3 mr-1" />}
+                        {getStatusText(user) === 'Pending Approval' && <Clock className="w-3 h-3 mr-1" />}
+                        {getStatusText(user)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -438,15 +459,29 @@ const UsersTab = ({ data, loading, filters, setFilters, onUpdateStatus, onUpdate
                           <option value="alumni">Alumni</option>
                           <option value="admin">Admin</option>
                         </select>
-                        <select
-                          value={user.status}
-                          onChange={(e) => onUpdateStatus(user._id, e.target.value)}
-                          className="text-xs border border-gray-300 rounded px-2 py-1"
-                        >
-                          <option value="active">Active</option>
-                          <option value="pending">Pending</option>
-                          <option value="suspended">Suspended</option>
-                        </select>
+                        {user.role === 'alumni' && !user.isApproved && (
+                          <button
+                            onClick={() => onApproveUser(user._id, true)}
+                            className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-md hover:bg-green-200 font-semibold"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {!user.isSuspended ? (
+                          <button
+                            onClick={() => onSuspendUser(user._id, true)}
+                            className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-md hover:bg-red-200 font-semibold"
+                          >
+                            Suspend
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => onSuspendUser(user._id, false)}
+                            className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-200 font-semibold"
+                          >
+                            Unsuspend
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -485,7 +520,7 @@ const SystemSettingsTab = () => {
 };
 
 // User Detail Modal Component
-const UserDetailModal = ({ user, onClose, onUpdateStatus, onUpdateRole }) => {
+const UserDetailModal = ({ user, onClose, onApproveUser, onSuspendUser, onUpdateRole }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -529,16 +564,32 @@ const UserDetailModal = ({ user, onClose, onUpdateStatus, onUpdateRole }) => {
               </select>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Status</h4>
-              <select
-                value={user.status}
-                onChange={(e) => onUpdateStatus(user._id, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="suspended">Suspended</option>
-              </select>
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Actions</h4>
+              <div className="flex space-x-2">
+                {user.role === 'alumni' && !user.isApproved && (
+                  <button
+                    onClick={() => onApproveUser(user._id, true)}
+                    className="w-full text-sm bg-green-100 text-green-700 px-3 py-2 rounded-lg hover:bg-green-200 font-semibold transition-colors"
+                  >
+                    Approve Alumni
+                  </button>
+                )}
+                {!user.isSuspended ? (
+                  <button
+                    onClick={() => onSuspendUser(user._id, true)}
+                    className="w-full text-sm bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 font-semibold transition-colors"
+                  >
+                    Suspend User
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onSuspendUser(user._id, false)}
+                    className="w-full text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 font-semibold transition-colors"
+                  >
+                    Unsuspend User
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

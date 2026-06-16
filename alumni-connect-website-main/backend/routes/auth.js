@@ -75,6 +75,112 @@ router.post('/google', async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/github
+// @desc    Login or Register with GitHub
+// @access  Public
+router.post('/github', async (req, res) => {
+  try {
+    const { code } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ message: 'GitHub authorization code is required' });
+    }
+
+    // 1. Exchange code for access token
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code
+      })
+    });
+
+    const tokenData = await tokenResponse.json();
+    
+    if (tokenData.error) {
+      throw new Error(tokenData.error_description || 'Failed to get GitHub token');
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // 2. Fetch user profile
+    const userResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json'
+      }
+    });
+    
+    if (!userResponse.ok) {
+      throw new Error('Failed to fetch user info from GitHub');
+    }
+    
+    const githubUser = await userResponse.json();
+
+    // 3. Fetch user email (since email might be private on the profile)
+    const emailResponse = await fetch('https://api.github.com/user/emails', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json'
+      }
+    });
+    
+    const emails = await emailResponse.json();
+    const primaryEmailObj = emails.find(e => e.primary) || emails[0];
+    
+    if (!primaryEmailObj || !primaryEmailObj.email) {
+      throw new Error('No email found in GitHub account');
+    }
+    
+    const email = primaryEmailObj.email;
+    const name = githubUser.name || githubUser.login;
+    const picture = githubUser.avatar_url;
+    
+    // 4. Check if user exists
+    let user = await User.findOne({ email });
+    
+    let isNewUser = false;
+    if (!user) {
+      // Create new student user by default
+      user = new User({
+        name,
+        email,
+        password: await bcrypt.hash(githubUser.id.toString() + process.env.JWT_SECRET, 10), // Random secure password
+        role: 'student',
+        photo: picture,
+        studentInfo: {}
+      });
+      await user.save();
+      isNewUser = true;
+    } else if (!user.photo && picture) {
+      // Update photo if missing
+      user.photo = picture;
+      await user.save();
+    }
+    
+    // Generate token
+    const token = generateToken(user._id);
+    const publicUser = user.getPublicProfile();
+    
+    res.json({
+      success: true,
+      token,
+      user: publicUser,
+      isNewUser,
+      message: isNewUser ? 'GitHub account linked! Welcome to Alumnex.' : 'Login successful'
+    });
+    
+  } catch (error) {
+    console.error('GitHub auth error:', error);
+    res.status(401).json({ message: error.message || 'Invalid GitHub authentication' });
+  }
+});
+
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public

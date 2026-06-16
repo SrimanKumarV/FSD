@@ -191,6 +191,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // GitHub Login function
+  const loginWithGithub = async (code) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      
+      const response = await api.post('/auth/github', {
+        code
+      });
+
+      const { user, token, isNewUser, message } = response.data;
+      
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user, token }
+      });
+
+      toast.success(message || 'GitHub Login successful!');
+      return { success: true, isNewUser };
+    } catch (error) {
+      const message = error.response?.data?.message || 'GitHub Login failed';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: message
+      });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
   // Register function
   const register = async (userData) => {
     try {
@@ -392,6 +421,7 @@ export const AuthProvider = ({ children }) => {
     // Actions
     login,
     loginWithGoogle,
+    loginWithGithub,
     register,
     logout,
     updateUser,

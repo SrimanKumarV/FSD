@@ -387,9 +387,11 @@ const Jobs = () => {
                         <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getJobTypeColor(job.jobType)}`}>
                           {job.jobType.replace('-', ' ')}
                         </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getExperienceColor(job.experience)}`}>
-                          {job.experience}
-                        </span>
+                        {job.experience && (
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getExperienceColor(job.experience)}`}>
+                            {job.experience}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -406,7 +408,7 @@ const Jobs = () => {
                 <p className="relative z-10 text-gray-700 dark:text-gray-300 mb-6 line-clamp-2">{job.description}</p>
 
                 <div className="relative z-10 flex flex-wrap gap-2 mb-6">
-                  {job.skills.slice(0, 5).map((skill, index) => (
+                  {(job.skills || job.tags || []).slice(0, 5).map((skill, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-gray-100/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full border border-gray-200/50 dark:border-gray-700/50"
@@ -414,9 +416,9 @@ const Jobs = () => {
                       {skill}
                     </span>
                   ))}
-                  {job.skills.length > 5 && (
+                  {(job.skills || job.tags || []).length > 5 && (
                     <span className="px-3 py-1 bg-gray-100/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full border border-gray-200/50 dark:border-gray-700/50">
-                      +{job.skills.length - 5} more
+                      +{(job.skills || job.tags || []).length - 5} more
                     </span>
                   )}
                 </div>

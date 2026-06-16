@@ -179,12 +179,12 @@ const Contests = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-screen py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Contests & Challenges</h1>
-          <p className="mt-2 text-gray-600">Compete, showcase your skills, and win exciting prizes</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contests & Challenges</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Compete, showcase your skills, and win exciting prizes</p>
         </div>
         {isAdmin() && (
           <button
@@ -198,7 +198,8 @@ const Contests = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="glass-card rounded-2xl p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -209,7 +210,7 @@ const Contests = () => {
                 placeholder="Search contests..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -217,7 +218,7 @@ const Contests = () => {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <Filter className="w-5 h-5 mr-2" />
             Filters
@@ -236,11 +237,11 @@ const Contests = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Status Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">All Status</option>
                     <option value="upcoming">Upcoming</option>
@@ -252,11 +253,11 @@ const Contests = () => {
 
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
                   <select
                     value={filters.category}
                     onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">All Categories</option>
                     {categories.map(category => (
@@ -273,15 +274,16 @@ const Contests = () => {
       </div>
 
       {/* Contests Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           [...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
+            <div key={i} className="glass-card rounded-2xl p-6 animate-pulse">
               <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mt-6"></div>
               </div>
             </div>
           ))
@@ -299,12 +301,13 @@ const Contests = () => {
             />
           ))
         ) : (
-          <div className="col-span-full text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-            <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No contests found</h3>
-            <p className="text-gray-600 mb-4">Check back later for exciting new challenges!</p>
+          <div className="col-span-full text-center py-12 glass-card rounded-2xl">
+            <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No contests found</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Check back later for exciting new challenges!</p>
           </div>
         )}
+      </div>
       </div>
 
       {/* Create Contest Modal */}
@@ -347,35 +350,37 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+      className="glass-card rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
       onClick={() => onSelect(contest)}
     >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+      
       {/* Contest Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="relative z-10 flex items-start justify-between mb-4">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-primary-600">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 hover:text-primary-600 dark:hover:text-primary-400">
             {contest.title}
           </h3>
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
             {contest.description}
           </p>
         </div>
         
         {/* Actions */}
-        <div className="relative">
+        <div className="relative z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowActions(!showActions);
             }}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded"
+            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
 
           {showActions && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10">
-              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-20">
+              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
                 <Eye className="w-4 h-4 mr-2" />
                 View Details
               </button>
@@ -397,7 +402,7 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
       </div>
 
       {/* Tags */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="relative z-10 flex flex-wrap gap-2 mb-4">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contest.status)}`}>
           {getStatusIcon(contest.status)}
           <span className="ml-1 capitalize">{contest.status}</span>
@@ -419,25 +424,25 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
       </div>
 
       {/* Contest Info */}
-      <div className="space-y-3 mb-4">
-        <div className="flex items-center text-sm text-gray-600">
-          <Calendar className="w-4 h-4 mr-2" />
+      <div className="relative z-10 space-y-3 mb-6 bg-gray-50/50 dark:bg-gray-800/50 p-4 rounded-xl">
+        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+          <Calendar className="w-4 h-4 mr-2 text-primary-500" />
           <span>
             {new Date(contest.startDate).toLocaleDateString()} - {new Date(contest.endDate).toLocaleDateString()}
           </span>
         </div>
-        <div className="flex items-center text-sm text-gray-600">
-          <Users className="w-4 h-4 mr-2" />
+        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+          <Users className="w-4 h-4 mr-2 text-primary-500" />
           <span>{contest.participants?.length || 0} / {contest.maxParticipants} participants</span>
         </div>
-        <div className="flex items-center text-sm text-gray-600">
-          <Award className="w-4 h-4 mr-2" />
-          <span>Prize: ${contest.prizeAmount}</span>
+        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+          <Award className="w-4 h-4 mr-2 text-yellow-500" />
+          <span className="font-semibold text-gray-900 dark:text-white">Prize: ${contest.prizeAmount}</span>
         </div>
       </div>
 
       {/* Join Button */}
-      <div className="flex justify-between items-center">
+      <div className="relative z-10 flex justify-between items-center mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
         {contest.status === 'active' && !contest.isExternal && (
           <button
             onClick={(e) => {

@@ -127,16 +127,16 @@ const Forum = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-screen py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Community Forum</h1>
-          <p className="mt-2 text-gray-600">Connect, learn, and share with fellow alumni and students</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Community Forum</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Connect, learn, and share with fellow alumni and students</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
           <Plus className="w-5 h-5 mr-2" />
           New Post
@@ -144,7 +144,8 @@ const Forum = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="glass-card rounded-3xl p-6">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -155,7 +156,7 @@ const Forum = () => {
                 placeholder="Search posts, topics, or tags..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -163,7 +164,7 @@ const Forum = () => {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <Filter className="w-5 h-5 mr-2" />
             Filters
@@ -173,7 +174,7 @@ const Forum = () => {
           <select
             value={filters.sort}
             onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="latest">Latest</option>
             <option value="popular">Popular</option>
@@ -195,11 +196,11 @@ const Forum = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
                   <select
                     value={filters.category}
                     onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">All Categories</option>
                     {categories.map(category => (
@@ -212,11 +213,11 @@ const Forum = () => {
 
                 {/* Post Type Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Post Type</label>
                   <select
                     value={filters.postType}
                     onChange={(e) => setFilters({ ...filters, postType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">All Types</option>
                     {postTypes.map(type => (
@@ -233,17 +234,17 @@ const Forum = () => {
       </div>
 
       {/* Posts List */}
-      <div className="space-y-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
+              <div key={i} className="glass-card rounded-2xl p-6 animate-pulse">
                 <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                   <div className="flex-1 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
                   </div>
                 </div>
               </div>
@@ -261,10 +262,10 @@ const Forum = () => {
             />
           ))
         ) : (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-            <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No posts found</h3>
-            <p className="text-gray-600 mb-4">Be the first to start a discussion in this category!</p>
+          <div className="text-center py-12 glass-card rounded-3xl">
+            <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No posts found</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Be the first to start a discussion in this category!</p>
             <button
               onClick={() => setShowCreateModal(true)}
               className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
@@ -274,6 +275,7 @@ const Forum = () => {
             </button>
           </div>
         )}
+      </div>
       </div>
 
       {/* Pagination */}
@@ -340,10 +342,12 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+      className="glass-card rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
       onClick={() => onSelect(post)}
     >
-      <div className="flex items-start space-x-4">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+      
+      <div className="relative z-10 flex items-start space-x-4">
         {/* Author Avatar */}
         <div className="flex-shrink-0">
           <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
@@ -354,7 +358,7 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
         {/* Post Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-2">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-bold text-gray-900 dark:text-white">
               {post.isAnonymous ? 'Anonymous' : post.author?.name}
             </span>
             <span className="text-sm text-gray-500">•</span>
@@ -369,11 +373,11 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
             )}
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-primary-600">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 hover:text-primary-600 dark:hover:text-primary-400">
             {post.title}
           </h3>
 
-          <p className="text-gray-600 mb-3 line-clamp-2">
+          <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
             {post.content}
           </p>
 

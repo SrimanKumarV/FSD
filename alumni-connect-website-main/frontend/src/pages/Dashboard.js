@@ -39,7 +39,7 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const response = await api.get('/users/dashboard');
-        setDashboardData(response);
+        setDashboardData(response.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {

@@ -137,7 +137,7 @@ router.get('/external', async (req, res) => {
 
     res.json({
       jobs: mappedJobs,
-      total: data.job-count || mappedJobs.length
+      total: data['job-count'] || mappedJobs.length
     });
   } catch (error) {
     console.error('Error fetching external jobs:', error);

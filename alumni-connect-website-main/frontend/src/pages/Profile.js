@@ -27,6 +27,7 @@ const Profile = () => {
     bio: '',
     location: '',
     skills: [],
+    photo: '',
     socialLinks: {
       linkedin: '',
       github: '',
@@ -48,6 +49,7 @@ const Profile = () => {
         bio: user.bio || '',
         location: user.location || '',
         skills: user.skills || [],
+        photo: user.photo || '',
         socialLinks: {
           linkedin: user.socialLinks?.linkedin || '',
           github: user.socialLinks?.github || '',
@@ -180,9 +182,9 @@ const Profile = () => {
           {/* Profile Header */}
           <div className="flex items-start space-x-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                {user.photo ? (
-                  <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+              <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
+                {(isEditing ? formData.photo : user.photo) ? (
+                  <img src={isEditing ? formData.photo : user.photo} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-16 h-16 text-gray-400" />
                 )}
@@ -248,6 +250,20 @@ const Profile = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Profile Picture URL
+                </label>
+                <input
+                  type="url"
+                  name="photo"
+                  value={formData.photo}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://example.com/photo.jpg"
                 />
               </div>
 

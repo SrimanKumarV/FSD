@@ -56,8 +56,8 @@ const Jobs = () => {
           sort: sortBy 
         } 
       });
-      setJobs(response.jobs || []);
-      setTotalPages(response.pagination?.pages || 1);
+      setJobs(response.data?.jobs || response.jobs || []);
+      setTotalPages(response.data?.pagination?.pages || response.pagination?.pages || 1);
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast.error('Failed to fetch jobs');

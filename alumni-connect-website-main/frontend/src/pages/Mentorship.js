@@ -59,7 +59,7 @@ const Mentorship = () => {
     setLoading(true);
     try {
       const response = await api.get('/mentorship/mentors', { params: filters });
-      setMentors(response.mentors || []);
+      setMentors(response.data?.mentors || response.mentors || []);
     } catch (error) {
       console.error('Error fetching mentors:', error);
       toast.error('Failed to fetch mentors');
@@ -72,7 +72,7 @@ const Mentorship = () => {
     setLoading(true);
     try {
       const response = await api.get('/mentorship');
-      setMentorships(response.mentorships || []);
+      setMentorships(response.data?.mentorships || response.mentorships || []);
     } catch (error) {
       console.error('Error fetching mentorships:', error);
       toast.error('Failed to fetch mentorships');

@@ -1,17 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  body {
+    @apply font-sans text-gray-900 bg-gray-50 transition-colors duration-300;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .dark body {
+    @apply text-gray-100 bg-gray-900;
+  }
+
+  /* Animated Mesh Gradient Background for Light and Dark */
+  .animated-bg {
+    @apply fixed inset-0 z-[-1] transition-colors duration-500;
+    background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(192, 38, 211, 0.1), transparent 25%);
+  }
+
+  .dark .animated-bg {
+    background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(192, 38, 211, 0.15), transparent 25%),
+                linear-gradient(to bottom right, #0f172a, #1e1b4b);
+  }
+}
+
+@layer components {
+  /* Premium Glassmorphism Cards */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/50 shadow-soft transition-all duration-300;
+  }
+
+  .dark .glass-card {
+    @apply bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-none;
+  }
+
+  /* Glassmorphism Navigation */
+  .glass-nav {
+    @apply bg-white/70 backdrop-blur-lg border-b border-white/50 transition-all duration-300;
+  }
+
+  .dark .glass-nav {
+    @apply bg-gray-900/70 backdrop-blur-lg border-b border-gray-800/50;
+  }
+
+  /* Inputs */
+  .glass-input {
+    @apply bg-white/50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all;
+  }
+
+  .dark .glass-input {
+    @apply bg-gray-800/50 border-gray-700 text-white focus:bg-gray-800 focus:ring-2 focus:ring-primary-500 placeholder-gray-400;
+  }
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }

@@ -50,12 +50,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Database connection
 // Uses the MONGODB_URI from your .env or Render environment variables
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/alumnex-connect', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  family: 4, // Force IPv4
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // --- API ROUTES ---
 app.use('/api/auth', require('./routes/auth'));

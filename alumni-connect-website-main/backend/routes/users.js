@@ -4,6 +4,93 @@ const { body, validationResult } = require('express-validator');
 const { protect, verified, approved, canAccessResource } = require('../middleware/auth');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Mentorship = require('../models/Mentorship');
+const Job = require('../models/Job');
+const Event = require('../models/Event');
+const ForumPost = require('../models/ForumPost');
+
+// @desc    Get dashboard stats and activities
+// @route   GET /api/users/dashboard
+// @access  Private
+router.get('/dashboard', protect, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    // 1. Fetch Stats
+    let stats = [];
+    if (role === 'student') {
+      const mentorshipCount = await Mentorship.countDocuments({ student: userId });
+      const jobsAppliedCount = await Job.countDocuments({ 'applications.applicant': userId });
+      const eventsCount = await Event.countDocuments({ attendees: userId });
+      const forumPostsCount = await ForumPost.countDocuments({ author: userId });
+
+      stats = [
+        { name: 'Mentorship Requests', value: mentorshipCount, change: '+1', changeType: 'increase', iconName: 'Users', color: 'alumni' },
+        { name: 'Job Applications', value: jobsAppliedCount, change: '+2', changeType: 'increase', iconName: 'Briefcase', color: 'student' },
+        { name: 'Events Registered', value: eventsCount, change: '+1', changeType: 'increase', iconName: 'Calendar', color: 'primary' },
+        { name: 'Forum Posts', value: forumPostsCount, change: '+3', changeType: 'increase', iconName: 'MessageSquare', color: 'success' }
+      ];
+    } else {
+      // Alumni stats
+      const mentorshipsCount = await Mentorship.countDocuments({ mentor: userId });
+      const jobsPostedCount = await Job.countDocuments({ postedBy: userId });
+      const eventsCount = await Event.countDocuments({ attendees: userId });
+      const forumPostsCount = await ForumPost.countDocuments({ author: userId });
+
+      stats = [
+        { name: 'Mentorship Requests', value: mentorshipsCount, change: '+2', changeType: 'increase', iconName: 'Users', color: 'alumni' },
+        { name: 'Jobs Posted', value: jobsPostedCount, change: '+1', changeType: 'increase', iconName: 'Briefcase', color: 'student' },
+        { name: 'Events Registered', value: eventsCount, change: '+1', changeType: 'increase', iconName: 'Calendar', color: 'primary' },
+        { name: 'Forum Posts', value: forumPostsCount, change: '+2', changeType: 'increase', iconName: 'MessageSquare', color: 'success' }
+      ];
+    }
+
+    // 2. Fetch Recent Activities (Notifications)
+    const notifications = await Notification.find({ recipient: userId })
+      .sort({ createdAt: -1 })
+      .limit(4);
+
+    const recentActivities = notifications.map(notif => {
+      let iconName = 'Info';
+      if (notif.type.includes('mentorship')) iconName = 'Users';
+      if (notif.type.includes('job')) iconName = 'Briefcase';
+      if (notif.type.includes('event')) iconName = 'Calendar';
+      if (notif.type.includes('forum')) iconName = 'MessageSquare';
+
+      return {
+        id: notif._id,
+        type: notif.type,
+        title: notif.title,
+        description: notif.content,
+        time: new Date(notif.createdAt).toLocaleDateString(),
+        status: notif.isRead ? 'read' : 'unread',
+        iconName: iconName
+      };
+    });
+
+    // 3. Fetch Upcoming Events
+    const upcomingEventsData = await Event.find({
+      attendees: userId,
+      startDate: { $gte: new Date() }
+    })
+      .sort({ startDate: 1 })
+      .limit(3);
+
+    const upcomingEvents = upcomingEventsData.map(ev => ({
+      id: ev._id,
+      title: ev.title,
+      date: new Date(ev.startDate).toLocaleString(),
+      host: ev.organizer?.name || 'Organizer',
+      type: ev.eventType
+    }));
+
+    res.json({ stats, recentActivities, upcomingEvents });
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // @desc    Get user profile by ID
 // @route   GET /api/users/:id

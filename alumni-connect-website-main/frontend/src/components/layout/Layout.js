@@ -11,18 +11,21 @@ import {
   Calendar, 
   MessageSquare, 
   Code, 
-  Settings, 
   LogOut,
   Bell,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { user, logout, isAdmin } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,7 +51,7 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Mobile sidebar overlay */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -71,10 +74,11 @@ const Layout = ({ children }) => {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
+            exit={{ x: '-100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg lg:hidden"
+            className="fixed inset-y-0 left-0 z-50 w-64 glass-card shadow-xl lg:hidden border-r-0 rounded-none rounded-r-2xl"
           >
-            <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+            <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
                 Alumnex Connect
               </h1>
@@ -95,10 +99,10 @@ const Layout = ({ children }) => {
                       key={item.name}
                       to={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                         isActiveRoute(item.href)
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
                       }`}
                     >
                       <Icon className="mr-3 h-5 w-5" />
@@ -113,9 +117,9 @@ const Layout = ({ children }) => {
       </AnimatePresence>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
-          <div className="flex items-center h-16 px-6 border-b border-gray-200">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:p-4">
+        <div className="flex flex-col flex-grow glass-card border-none rounded-3xl shadow-xl overflow-hidden">
+          <div className="flex items-center h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
             <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
               Alumnex Connect
             </h1>
@@ -128,10 +132,10 @@ const Layout = ({ children }) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                     isActiveRoute(item.href)
-                      ? 'bg-primary-100 text-primary-700'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
                 >
                   <Icon className="mr-3 h-5 w-5" />
@@ -146,22 +150,29 @@ const Layout = ({ children }) => {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top navigation */}
-        <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
+        <div className="sticky top-0 z-30 glass-nav">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             {/* Mobile menu button */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-xl text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
             >
               <Menu className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-1 justify-end items-center space-x-4">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-gray-400 hover:text-yellow-500 dark:text-gray-500 dark:hover:text-yellow-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
               {/* Notifications */}
               <div className="relative">
                 <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg relative"
+                  className="p-2 text-gray-400 hover:text-primary-500 dark:text-gray-500 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl relative transition-all duration-300"
                 >
                   <Bell className="w-6 h-6" />
                   <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
@@ -173,10 +184,10 @@ const Layout = ({ children }) => {
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                      className="absolute right-0 mt-2 w-80 glass-card py-2 z-50 rounded-2xl"
                     >
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
+                      <div className="px-4 py-2 border-b border-gray-200/50 dark:border-gray-700/50">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
                         <div className="px-4 py-3 text-sm text-gray-500">
@@ -192,16 +203,16 @@ const Layout = ({ children }) => {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center space-x-3 p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center space-x-3 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-9 h-9 bg-gradient-to-tr from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-soft">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize font-medium">{user?.role}</p>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                 </button>
 
                 <AnimatePresence>
@@ -210,20 +221,20 @@ const Layout = ({ children }) => {
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                      className="absolute right-0 mt-2 w-48 glass-card py-2 z-50 rounded-2xl"
                     >
                       <Link
                         to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         Profile Settings
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center font-medium">
                           <LogOut className="w-4 h-4 mr-2" />
                           Sign out
                         </div>

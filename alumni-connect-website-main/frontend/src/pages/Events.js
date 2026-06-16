@@ -17,13 +17,15 @@ import {
   TrendingUp,
   CalendarDays
 } from 'lucide-react';
+import { api } from '../utils/api';
+import toast from 'react-hot-toast';
 
 const Events = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    search: '',
+    q: '',
     category: '',
     eventType: '',
     location: '',
@@ -46,55 +48,18 @@ const Events = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      const mockEvents = [
-        {
-          id: 1,
-          title: 'Tech Career Workshop',
-          description: 'Join us for an interactive workshop on building your tech career...',
-          eventType: 'workshop',
-          category: 'career',
-          startDate: '2024-02-15T10:00:00Z',
-          endDate: '2024-02-15T16:00:00Z',
-          timezone: 'UTC',
-          location: 'San Francisco, CA',
-          isVirtual: false,
-          organizer: { name: 'Tech Alumni Association', photo: null },
-          maxCapacity: 50,
-          currentRegistrations: 32,
-          isRegistrationRequired: true,
-          isFree: true,
-          views: 156,
-          registrations: 32,
-          status: 'published'
-        },
-        {
-          id: 2,
-          title: 'AI in Healthcare Webinar',
-          description: 'Explore the latest developments in AI applications for healthcare...',
-          eventType: 'webinar',
-          category: 'healthcare',
-          startDate: '2024-02-20T14:00:00Z',
-          endDate: '2024-02-20T15:30:00Z',
-          timezone: 'UTC',
-          location: 'Virtual',
-          isVirtual: true,
-          virtualPlatform: 'Zoom',
-          organizer: { name: 'Healthcare Innovation Group', photo: null },
-          maxCapacity: 200,
-          currentRegistrations: 89,
-          isRegistrationRequired: true,
-          isFree: false,
-          price: 25,
-          views: 234,
-          registrations: 89,
-          status: 'published'
-        }
-      ];
-      setEvents(mockEvents);
-      setTotalPages(1);
+      const response = await api.get('/events', { 
+        params: { 
+          ...filters, 
+          page: currentPage, 
+          sort: sortBy 
+        } 
+      });
+      setEvents(response.events || []);
+      setTotalPages(response.pagination?.pages || 1);
     } catch (error) {
       console.error('Error fetching events:', error);
+      toast.error('Failed to fetch events');
     } finally {
       setLoading(false);
     }
@@ -115,50 +80,20 @@ const Events = () => {
 
   const handleRegister = async (eventId) => {
     try {
-      // TODO: Replace with actual API call
-      console.log('Registering for event:', eventId);
+      await api.post(`/events/${eventId}/register`);
+      toast.success('Registered successfully!');
+      fetchEvents(); // refresh registrations count
     } catch (error) {
       console.error('Error registering for event:', error);
+      toast.error(error.response?.data?.message || 'Failed to register');
     }
   };
 
   const handleSave = async (eventId) => {
-    try {
-      // TODO: Replace with actual API call
-      console.log('Saving event:', eventId);
-    } catch (error) {
-      console.error('Error saving event:', error);
-    }
+    toast.error('Saving events is not supported yet');
   };
 
-  const filteredEvents = events.filter(event => {
-    if (filters.search && !event.title.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !event.description.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !event.organizer.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    if (filters.category && event.category !== filters.category) return false;
-    if (filters.eventType && event.eventType !== filters.eventType) return false;
-    if (filters.location && !event.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
-    if (filters.isVirtual !== '' && event.isVirtual !== (filters.isVirtual === 'true')) return false;
-    if (filters.isFree !== '' && event.isFree !== (filters.isFree === 'true')) return false;
-    if (filters.startDate && new Date(event.startDate) < new Date(filters.startDate)) return false;
-    if (filters.endDate && new Date(event.endDate) > new Date(filters.endDate)) return false;
-    return true;
-  });
-
-  const sortedEvents = [...filteredEvents].sort((a, b) => {
-    switch (sortBy) {
-      case 'upcoming':
-        return new Date(a.startDate) - new Date(b.startDate);
-      case 'recent':
-        return new Date(b.startDate) - new Date(a.startDate);
-      case 'popular':
-        return b.registrations - a.registrations;
-      case 'newest':
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      default:
-        return new Date(a.startDate) - new Date(b.startDate);
-    }
-  });
+  const sortedEvents = events; // Backend handles sorting and filtering
 
   const getEventTypeColor = (eventType) => {
     switch (eventType) {
@@ -228,25 +163,26 @@ const Events = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow-sm p-6 mb-8"
+          className="glass-card rounded-3xl p-8 mb-8 relative overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-400/20 to-alumni-400/20 dark:from-primary-500/10 dark:to-alumni-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Events & Webinars</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Events & Webinars</h1>
+              <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
                 Discover exciting events, workshops, and networking opportunities
               </p>
             </div>
             {user?.role === 'alumni' && (
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                className="flex items-center px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Event
@@ -255,27 +191,27 @@ const Events = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <CalendarDays className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-blue-600">{events.length}</p>
-              <p className="text-sm text-blue-600">Total Events</p>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-green-600">{events.reduce((sum, event) => sum + event.registrations, 0)}</p>
-              <p className="text-sm text-green-600">Total Registrations</p>
-            </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <Eye className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-yellow-600">{events.reduce((sum, event) => sum + event.views, 0)}</p>
-              <p className="text-sm text-yellow-600">Total Views</p>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <Video className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-purple-600">{events.filter(event => event.isVirtual).length}</p>
-              <p className="text-sm text-purple-600">Virtual Events</p>
-            </div>
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-2xl shadow-sm">
+              <CalendarDays className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{events.length}</p>
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">Total Events</p>
+            </motion.div>
+            <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-green-50/50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-2xl shadow-sm">
+              <Users className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{events.reduce((sum, event) => sum + event.registrations, 0)}</p>
+              <p className="text-sm font-medium text-green-600 dark:text-green-400 mt-1">Total Registrations</p>
+            </motion.div>
+            <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-yellow-50/50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800/30 rounded-2xl shadow-sm">
+              <Eye className="w-8 h-8 text-yellow-600 dark:text-yellow-400 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{events.reduce((sum, event) => sum + event.views, 0)}</p>
+              <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-1">Total Views</p>
+            </motion.div>
+            <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 rounded-2xl shadow-sm">
+              <Video className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{events.filter(event => event.isVirtual).length}</p>
+              <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mt-1">Virtual Events</p>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -283,30 +219,30 @@ const Events = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow-sm p-6 mb-8"
+          className="glass-card rounded-2xl p-6 mb-8"
         >
           <div className="flex flex-col lg:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search events by title, description, or organizer..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
+                className="glass-input w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none"
+                value={filters.q}
+                onChange={(e) => handleFilterChange('q', e.target.value)}
               />
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center px-6 py-3 glass-card rounded-xl hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all font-semibold text-gray-700 dark:text-gray-200"
             >
-              <Filter className="w-4 h-4 mr-2" />
+              <Filter className="w-5 h-5 mr-2" />
               Filters
             </button>
             <select
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="glass-input px-6 py-3 rounded-xl focus:outline-none"
             >
               <option value="upcoming">Upcoming First</option>
               <option value="recent">Recent First</option>
@@ -316,13 +252,13 @@ const Events = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}`}
+                className={`p-3 rounded-xl transition-colors ${viewMode === 'grid' ? 'bg-primary-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
               >
-                <div className="w-4 h-4 grid grid-cols-2 gap-0.5">
-                  <div className="w-1.5 h-1.5 bg-current"></div>
-                  <div className="w-1.5 h-1.5 bg-current"></div>
-                  <div className="w-1.5 h-1.5 bg-current"></div>
-                  <div className="w-1.5 h-1.5 bg-current"></div>
+                <div className="w-5 h-5 grid grid-cols-2 gap-0.5">
+                  <div className="w-2 h-2 bg-current rounded-sm"></div>
+                  <div className="w-2 h-2 bg-current rounded-sm"></div>
+                  <div className="w-2 h-2 bg-current rounded-sm"></div>
+                  <div className="w-2 h-2 bg-current rounded-sm"></div>
                 </div>
               </button>
               <button
@@ -342,17 +278,17 @@ const Events = () => {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="pt-4 border-t border-gray-200"
+              className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Category
                   </label>
                   <select
                     value={filters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
                   >
                     <option value="">All Categories</option>
                     <option value="technology">Technology</option>
@@ -367,13 +303,13 @@ const Events = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Event Type
                   </label>
                   <select
                     value={filters.eventType}
                     onChange={(e) => handleFilterChange('eventType', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
                   >
                     <option value="">All Types</option>
                     <option value="workshop">Workshop</option>
@@ -386,13 +322,13 @@ const Events = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Format
                   </label>
                   <select
                     value={filters.isVirtual}
                     onChange={(e) => handleFilterChange('isVirtual', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
                   >
                     <option value="">All Formats</option>
                     <option value="true">Virtual Only</option>
@@ -401,13 +337,13 @@ const Events = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Price
                   </label>
                   <select
                     value={filters.isFree}
                     onChange={(e) => handleFilterChange('isFree', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
                   >
                     <option value="">All Prices</option>
                     <option value="true">Free Only</option>
@@ -416,26 +352,26 @@ const Events = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Start Date From
                   </label>
                   <input
                     type="date"
                     value={filters.startDate}
                     onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     End Date To
                   </label>
                   <input
                     type="date"
                     value={filters.endDate}
                     onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
                   />
                 </div>
 
@@ -459,35 +395,39 @@ const Events = () => {
         {/* Events List */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           </div>
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}>
             {sortedEvents.map((event) => (
               <motion.div
+                whileHover={{ y: -5 }}
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow ${
-                  viewMode === 'list' ? 'flex' : ''
+                className={`glass-card rounded-2xl overflow-hidden relative group transition-all duration-300 ${
+                  viewMode === 'list' ? 'flex flex-col md:flex-row' : 'flex flex-col'
                 }`}
               >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+                
                 {/* Event Image/Icon */}
-                <div className={`${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''} h-48 bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center`}>
-                  <Calendar className="w-16 h-16 text-white" />
+                <div className={`${viewMode === 'list' ? 'md:w-64 md:h-auto h-48 flex-shrink-0' : 'h-48'} bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
+                  <Calendar className="w-16 h-16 text-white relative z-10 drop-shadow-lg" />
                 </div>
 
                 {/* Event Content */}
-                <div className={`p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">{event.title}</h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{event.description}</p>
+                <div className={`p-6 relative z-10 flex flex-col flex-1 ${viewMode === 'list' ? 'justify-center' : ''}`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 pr-4">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{event.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 leading-relaxed">{event.description}</p>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleSave(event.id)}
-                        className="p-2 text-gray-400 hover:text-yellow-500 transition-colors"
+                        className="p-2 text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors bg-gray-50/50 dark:bg-gray-800/50 rounded-xl"
                       >
                         <Bookmark className="w-5 h-5" />
                       </button>
@@ -495,83 +435,82 @@ const Events = () => {
                   </div>
 
                   {/* Event Meta */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="w-4 h-4 mr-2" />
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                      <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mr-3">
+                        <Calendar className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                      </div>
                       {formatDate(event.startDate)} at {formatTime(event.startDate)}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="w-4 h-4 mr-2" />
+                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                        <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
                       {getTimeUntilEvent(event.startDate)}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      {event.isVirtual ? (
-                        <>
-                          <Video className="w-4 h-4 mr-2" />
-                          Virtual ({event.virtualPlatform})
-                        </>
-                      ) : (
-                        <>
-                          <MapPin className="w-4 h-4 mr-2" />
-                          {event.location}
-                        </>
-                      )}
+                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                      <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-3">
+                        {event.isVirtual ? <Video className="w-4 h-4 text-green-600 dark:text-green-400" /> : <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />}
+                      </div>
+                      {event.isVirtual ? `Virtual (${event.virtualPlatform})` : event.location}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Users className="w-4 h-4 mr-2" />
+                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                      <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-3">
+                        <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      </div>
                       {event.currentRegistrations}/{event.maxCapacity || '∞'} registered
                     </div>
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.eventType)}`}>
+                  <div className="flex flex-wrap gap-2 mb-6 mt-auto">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getEventTypeColor(event.eventType)}`}>
                       {event.eventType.replace('_', ' ')}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(event.category)}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getCategoryColor(event.category)}`}>
                       {event.category}
                     </span>
                     {event.isFree ? (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-100">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold shadow-sm text-green-700 bg-green-100/80 dark:text-green-300 dark:bg-green-900/30 border border-green-200/50 dark:border-green-800/50">
                         Free
                       </span>
                     ) : (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-100">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold shadow-sm text-blue-700 bg-blue-100/80 dark:text-blue-300 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/50">
                         ${event.price}
                       </span>
                     )}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                    <div className="flex items-center space-x-6 text-sm font-medium text-gray-500 dark:text-gray-400 w-full sm:w-auto">
                       <span className="flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        {event.views} views
+                        <Eye className="w-4 h-4 mr-1.5" />
+                        {event.views}
                       </span>
                       <span className="flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-1" />
-                        {event.registrations} registrations
+                        <TrendingUp className="w-4 h-4 mr-1.5" />
+                        {event.registrations}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 w-full sm:w-auto">
                       {isEventFull(event) ? (
-                        <span className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium">
+                        <span className="flex-1 sm:flex-none text-center px-6 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold shadow-sm">
                           Full
                         </span>
                       ) : isEventUpcoming(event) ? (
                         <button
                           onClick={() => handleRegister(event.id)}
-                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                          className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                         >
                           Register
                         </button>
                       ) : (
-                        <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                        <span className="flex-1 sm:flex-none text-center px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-bold shadow-sm">
                           Past Event
                         </span>
                       )}
-                      <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                      <button className="p-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-xl transition-colors shadow-sm hover:shadow">
                         <ExternalLink className="w-5 h-5" />
                       </button>
                     </div>
@@ -592,12 +531,12 @@ const Events = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
-            <nav className="flex items-center space-x-2">
+          <div className="mt-12 flex justify-center">
+            <nav className="glass-card rounded-2xl flex items-center p-2 space-x-1 shadow-sm">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Previous
               </button>
@@ -606,10 +545,10 @@ const Events = () => {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 border rounded-lg ${
+                  className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-xl transition-all duration-300 ${
                     currentPage === page
-                      ? 'border-primary bg-primary text-white'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      ? 'bg-primary-600 text-white shadow-md shadow-primary-500/30'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
                   {page}
@@ -619,7 +558,7 @@ const Events = () => {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>

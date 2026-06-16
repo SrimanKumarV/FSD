@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -41,12 +42,14 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SocketProvider>
-          <NotificationProvider>
-            <Router>
-              <div className="App min-h-screen bg-gray-50">
-                <Routes>
+      <ThemeProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <NotificationProvider>
+              <Router>
+                <div className="App min-h-screen relative">
+                  <div className="animated-bg"></div>
+                  <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
@@ -159,6 +162,7 @@ function App() {
           </NotificationProvider>
         </SocketProvider>
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

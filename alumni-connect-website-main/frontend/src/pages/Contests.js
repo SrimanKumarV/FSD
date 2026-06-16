@@ -49,32 +49,15 @@ const Contests = () => {
     { keepPreviousData: true }
   );
 
-  // Fetch external Codeforces contests
-  const { data: cfContests, isLoading: cfLoading } = useQuery(
-    ['codeforces-contests'],
+  // Fetch external contests
+  const { data: externalContests, isLoading: externalLoading } = useQuery(
+    ['external-contests'],
     async () => {
       try {
-        const response = await axios.get('https://codeforces.com/api/contest.list?gym=false');
-        // Filter upcoming contests and map to our local structure
-        return response.data.result
-          .filter(c => c.phase === 'BEFORE')
-          .map(c => ({
-            _id: `cf-${c.id}`,
-            title: c.name,
-            description: `Global competitive programming contest on Codeforces. Test your algorithmic skills against thousands of programmers worldwide.`,
-            category: 'coding',
-            status: 'upcoming',
-            startDate: new Date(c.startTimeSeconds * 1000).toISOString(),
-            endDate: new Date((c.startTimeSeconds + c.durationSeconds) * 1000).toISOString(),
-            participants: [],
-            maxParticipants: '∞',
-            prizeAmount: 0,
-            isExternal: true,
-            platform: 'Codeforces',
-            externalLink: `https://codeforces.com/contests/${c.id}`
-          }));
+        const response = await api.get('/contests/external');
+        return response.contests || response.data?.contests || [];
       } catch (err) {
-        console.error('Error fetching Codeforces:', err);
+        console.error('Error fetching external contests:', err);
         return [];
       }
     },
@@ -83,7 +66,7 @@ const Contests = () => {
 
   const combinedContests = React.useMemo(() => {
     const local = contestsData?.contests || [];
-    const external = cfContests || [];
+    const external = externalContests || [];
     let all = [...local, ...external];
     
     // Apply local filters to external as well if needed (e.g., search)
@@ -100,9 +83,9 @@ const Contests = () => {
 
     // Sort chronologically by start date
     return all.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-  }, [contestsData, cfContests, filters]);
+  }, [contestsData, externalContests, filters]);
 
-  const isLoading = localLoading || cfLoading;
+  const isLoading = localLoading || externalLoading;
 
   // Create contest mutation
   const createContestMutation = useMutation(
@@ -423,7 +406,12 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
           {categories.find(c => c.value === contest.category)?.label}
         </span>
         {contest.isExternal && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+            contest.platform === 'LeetCode' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+            contest.platform === 'CodeChef' ? 'bg-amber-100 text-amber-900 border-amber-200' :
+            contest.platform === 'GeeksForGeeks' ? 'bg-green-100 text-green-800 border-green-200' :
+            'bg-indigo-100 text-indigo-800 border-indigo-200'
+          }`}>
             <Globe className="w-3 h-3 mr-1" />
             {contest.platform}
           </span>
@@ -486,7 +474,12 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center shadow-sm hover:shadow"
+            className={`px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm hover:shadow ${
+              contest.platform === 'LeetCode' ? 'bg-orange-600 hover:bg-orange-700' :
+              contest.platform === 'CodeChef' ? 'bg-amber-700 hover:bg-amber-800' :
+              contest.platform === 'GeeksForGeeks' ? 'bg-green-700 hover:bg-green-800' :
+              'bg-indigo-600 hover:bg-indigo-700'
+            }`}
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             View on {contest.platform}
@@ -740,7 +733,12 @@ const ContestDetailModal = ({ contest, onClose, onJoin, user, getStatusColor, ge
                 </div>
                 {contest.isExternal && (
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-indigo-100 text-indigo-800">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+                      contest.platform === 'LeetCode' ? 'bg-orange-100 text-orange-800' :
+                      contest.platform === 'CodeChef' ? 'bg-amber-100 text-amber-900' :
+                      contest.platform === 'GeeksForGeeks' ? 'bg-green-100 text-green-800' :
+                      'bg-indigo-100 text-indigo-800'
+                    }`}>
                       <Globe className="w-4 h-4 mr-2" />
                       Global Challenge ({contest.platform})
                     </span>
@@ -812,7 +810,12 @@ const ContestDetailModal = ({ contest, onClose, onJoin, user, getStatusColor, ge
                 href={contest.externalLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-bold transition-all shadow-md hover:shadow-lg flex items-center"
+                className={`px-6 py-3 text-white rounded-lg text-lg font-bold transition-all shadow-md hover:shadow-lg flex items-center ${
+                  contest.platform === 'LeetCode' ? 'bg-orange-600 hover:bg-orange-700' :
+                  contest.platform === 'CodeChef' ? 'bg-amber-700 hover:bg-amber-800' :
+                  contest.platform === 'GeeksForGeeks' ? 'bg-green-700 hover:bg-green-800' :
+                  'bg-indigo-600 hover:bg-indigo-700'
+                }`}
               >
                 <ExternalLink className="w-5 h-5 mr-2" />
                 Register on {contest.platform}

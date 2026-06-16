@@ -64,8 +64,40 @@ const Events = () => {
           sort: sortBy 
         } 
       });
-      setEvents(response.events || []);
+      let localEvents = response.events || [];
       setTotalPages(response.pagination?.pages || 1);
+
+      // Also fetch external contests for the calendar!
+      try {
+        const extRes = await api.get('/contests/external');
+        // Handle axios response wrapper (.data or direct array depending on api utility)
+        const extContests = extRes.contests || extRes.data?.contests || [];
+        if (extContests.length > 0) {
+          const mappedExt = extContests.map(c => ({
+            id: c._id,
+            title: c.title,
+            description: c.description,
+            startDate: c.startDate,
+            endDate: c.endDate,
+            category: 'coding',
+            eventType: 'contest',
+            isVirtual: true,
+            location: 'Global (Online)',
+            isFree: true,
+            currentRegistrations: 0,
+            maxCapacity: null,
+            views: 0,
+            isExternal: true,
+            platform: c.platform,
+            externalLink: c.externalLink
+          }));
+          localEvents = [...localEvents, ...mappedExt];
+        }
+      } catch (err) {
+        console.error('Failed to fetch external contests for events page', err);
+      }
+
+      setEvents(localEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
       toast.error('Failed to fetch events');
@@ -112,6 +144,7 @@ const Events = () => {
       case 'meetup': return 'text-yellow-600 bg-yellow-100';
       case 'hackathon': return 'text-red-600 bg-red-100';
       case 'career_fair': return 'text-indigo-600 bg-indigo-100';
+      case 'contest': return 'text-orange-600 bg-orange-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -215,8 +248,15 @@ const Events = () => {
               {dayEvents.map((event, idx) => (
                 <div
                   key={idx}
-                  onClick={() => onSelectEvent(event)}
-                  className="text-xs truncate px-2 py-1.5 rounded-lg font-medium bg-primary-100/80 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300 cursor-pointer hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors shadow-sm"
+                  onClick={() => event.isExternal ? window.open(event.externalLink, '_blank') : onSelectEvent(event)}
+                  className={`text-xs truncate px-2 py-1.5 rounded-lg font-medium cursor-pointer transition-colors shadow-sm ${
+                    event.isExternal 
+                      ? (event.platform === 'LeetCode' ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' :
+                         event.platform === 'CodeChef' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' :
+                         event.platform === 'GeeksForGeeks' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                         'bg-indigo-100 text-indigo-800 hover:bg-indigo-200')
+                      : 'bg-primary-100/80 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+                  }`}
                   title={event.title}
                 >
                   <span className="font-bold opacity-75 mr-1">{format(new Date(event.startDate), "HH:mm")}</span>
@@ -586,40 +626,51 @@ const Events = () => {
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                    <div className="flex items-center space-x-6 text-sm font-medium text-gray-500 dark:text-gray-400 w-full sm:w-auto">
-                      <span className="flex items-center">
-                        <Eye className="w-4 h-4 mr-1.5" />
-                        {event.views}
-                      </span>
-                      <span className="flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-1.5" />
-                        {event.registrations}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3 w-full sm:w-auto">
-                      {isEventFull(event) ? (
-                        <span className="flex-1 sm:flex-none text-center px-6 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold shadow-sm">
-                          Full
-                        </span>
-                      ) : isEventUpcoming(event) ? (
-                        <button
-                          onClick={() => handleRegister(event.id)}
-                          className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                        >
-                          Register
-                        </button>
-                      ) : (
-                        <span className="flex-1 sm:flex-none text-center px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-bold shadow-sm">
-                          Past Event
-                        </span>
-                      )}
-                      <button className="p-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-xl transition-colors shadow-sm hover:shadow">
-                        <ExternalLink className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center space-x-6 text-sm font-medium text-gray-500 dark:text-gray-400 w-full sm:w-auto">
+                          <span className="flex items-center">
+                            <Eye className="w-4 h-4 mr-1.5" />
+                            {event.views}
+                          </span>
+                          <span className="flex items-center">
+                            <TrendingUp className="w-4 h-4 mr-1.5" />
+                            {event.registrations || 0}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3 w-full sm:w-auto">
+                          {event.isExternal ? (
+                            <a
+                              href={event.externalLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 sm:flex-none px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-center flex justify-center items-center"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Join on {event.platform}
+                            </a>
+                          ) : isEventFull(event) ? (
+                            <span className="flex-1 sm:flex-none text-center px-6 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold shadow-sm">
+                              Full
+                            </span>
+                          ) : isEventUpcoming(event) ? (
+                            <button
+                              onClick={() => handleRegister(event.id)}
+                              className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                            >
+                              Register
+                            </button>
+                          ) : (
+                            <span className="flex-1 sm:flex-none text-center px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-bold shadow-sm">
+                              Past Event
+                            </span>
+                          )}
+                          {!event.isExternal && (
+                            <button className="p-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-xl transition-colors shadow-sm hover:shadow">
+                              <ExternalLink className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                 </div>
               </motion.div>
             ))}

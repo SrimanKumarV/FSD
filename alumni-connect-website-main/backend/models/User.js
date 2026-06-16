@@ -137,7 +137,11 @@ const userSchema = new mongoose.Schema({
   lastActive: {
     type: Date,
     default: Date.now
-  }
+  },
+  
+  // Password Reset
+  resetPasswordOtp: String,
+  resetPasswordExpires: Date
 }, {
   timestamps: true
 });

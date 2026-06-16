@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const sendEmail = require('../utils/sendEmail');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -268,13 +269,12 @@ router.post('/change-password', [
 });
 
 // @route   POST /api/auth/forgot-password
-// @desc    Send password reset email
+// @desc    Send password reset OTP email
 // @access  Public
 router.post('/forgot-password', [
   body('email', 'Please include a valid email').isEmail().normalizeEmail()
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -282,30 +282,50 @@ router.post('/forgot-password', [
 
     const { email } = req.body;
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       // Don't reveal if user exists or not
       return res.json({
         success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.'
+        message: 'If an account with that email exists, an OTP has been sent.'
       });
     }
 
-    // Generate reset token (expires in 1 hour)
-    const resetToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // TODO: Send email with reset link
-    // For now, just return success message
-    res.json({
-      success: true,
-      message: 'Password reset link sent to your email',
-      resetToken // In production, this should be sent via email
-    });
+    // Set OTP and expiration (15 minutes)
+    user.resetPasswordOtp = otp;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    // Send email
+    const message = `
+      <h1>Password Reset Request</h1>
+      <p>You requested a password reset for your Alumnex Connect account.</p>
+      <p>Your 6-digit verification code is: <strong>${otp}</strong></p>
+      <p>This code is valid for 15 minutes.</p>
+      <p>If you did not request this, please ignore this email.</p>
+    `;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Alumnex Connect - Password Reset Verification Code',
+        message
+      });
+
+      res.json({
+        success: true,
+        message: 'OTP sent to your email'
+      });
+    } catch (err) {
+      console.error('Email send error:', err);
+      user.resetPasswordOtp = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      return res.status(500).json({ message: 'Email could not be sent' });
+    }
 
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -314,37 +334,39 @@ router.post('/forgot-password', [
 });
 
 // @route   POST /api/auth/reset-password
-// @desc    Reset password with token
+// @desc    Reset password with OTP
 // @access  Public
 router.post('/reset-password', [
-  body('token', 'Reset token is required').exists(),
+  body('email', 'Valid email is required').isEmail().normalizeEmail(),
+  body('otp', 'OTP is required').exists(),
   body('newPassword', 'New password must be at least 6 characters').isLength({ min: 6 })
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { token, newPassword } = req.body;
+    const { email, otp, newPassword } = req.body;
 
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
-    }
+    // Find user with matching email and OTP that hasn't expired
+    const user = await User.findOne({
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
 
-    // Find user
-    const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
     // Update password
     user.password = newPassword;
+    
+    // Clear OTP fields
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    
     await user.save();
 
     res.json({

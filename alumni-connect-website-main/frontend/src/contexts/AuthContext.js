@@ -196,11 +196,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Update user profile
-  const updateUser = (userData) => {
-    dispatch({
-      type: AUTH_ACTIONS.UPDATE_USER,
-      payload: userData
-    });
+  const updateUser = async (userData, role = null) => {
+    try {
+      let response;
+      if (role) {
+        response = await api.put(`/users/profile/${role}`, userData);
+      } else {
+        response = await api.put('/users/profile', userData);
+      }
+      
+      dispatch({
+        type: AUTH_ACTIONS.UPDATE_USER,
+        payload: response.data.user
+      });
+      toast.success('Profile updated successfully!');
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to update profile';
+      toast.error(message);
+      return { success: false, error: message };
+    }
   };
 
   // Clear error
@@ -239,10 +254,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Reset password
-  const resetPassword = async (token, newPassword) => {
+  const resetPassword = async (email, otp, newPassword) => {
     try {
       const response = await api.post('/auth/reset-password', {
-        token,
+        email,
+        otp,
         newPassword
       });
       

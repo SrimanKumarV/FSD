@@ -510,6 +510,7 @@ const ContentModerationTab = () => {
 
 // System Settings Tab Component
 const SystemSettingsTab = () => {
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [type, setType] = useState('announcement');

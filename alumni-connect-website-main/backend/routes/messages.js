@@ -124,7 +124,7 @@ router.post('/', [protect, verified], [
     await Notification.createNotification({
       recipient: receiver,
       sender: req.user.id,
-      type: 'new_message',
+      type: 'message-received',
       title: 'New Message',
       content: `You have a new message from ${req.user.name}`,
       relatedData: { messageId: message._id }

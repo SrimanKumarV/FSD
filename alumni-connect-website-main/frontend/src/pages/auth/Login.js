@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -242,6 +243,7 @@ const Login = () => {
           <div className="mt-6 grid grid-cols-2 gap-4">
             <button
               type="button"
+              onClick={() => toast('Google Sign-In needs API Key setup!', { icon: '🚧' })}
               className="w-full inline-flex justify-center py-2.5 px-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
             >
               <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24">
@@ -267,12 +269,16 @@ const Login = () => {
 
             <button
               type="button"
+              onClick={() => toast('Microsoft Sign-In needs API Key setup!', { icon: '🚧' })}
               className="w-full inline-flex justify-center py-2.5 px-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#f35325" d="M1 1h10.5v10.5H1z"/>
+                <path fill="#81bc06" d="M12.5 1H23v10.5H12.5z"/>
+                <path fill="#05a6f0" d="M1 12.5h10.5V23H1z"/>
+                <path fill="#ffba08" d="M12.5 12.5H23V23H12.5z"/>
               </svg>
-              <span className="ml-2">Twitter</span>
+              <span className="ml-2">Microsoft</span>
             </button>
           </div>
         </motion.div>

@@ -97,6 +97,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @desc    Get external jobs from free Remotive API
+// @route   GET /api/jobs/external
+// @access  Public
+router.get('/external', async (req, res) => {
+  try {
+    const { category = '', search = '', limit = 20 } = req.query;
+    
+    // Remotive API URL (No key required)
+    let apiUrl = `https://remotive.com/api/remote-jobs?limit=${limit}`;
+    
+    if (category) {
+      apiUrl += `&category=${category}`;
+    }
+    if (search) {
+      apiUrl += `&search=${search}`;
+    }
+
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    // Map Remotive job format to match our internal Job schema closely
+    const mappedJobs = data.jobs ? data.jobs.map(job => ({
+      _id: `ext_${job.id}`,
+      isExternal: true,
+      title: job.title,
+      company: job.company_name,
+      companyLogo: job.company_logo,
+      location: job.candidate_required_location || 'Remote',
+      isRemote: true,
+      jobType: job.job_type === 'full_time' ? 'full-time' : job.job_type || 'full-time',
+      category: job.category || 'other',
+      description: job.description, // HTML content usually
+      applicationLink: job.url,
+      createdAt: job.publication_date,
+      tags: job.tags || [],
+      salary: job.salary ? { min: 0, max: 0, currency: job.salary } : undefined
+    })) : [];
+
+    res.json({
+      jobs: mappedJobs,
+      total: data.job-count || mappedJobs.length
+    });
+  } catch (error) {
+    console.error('Error fetching external jobs:', error);
+    res.status(500).json({ message: 'Failed to fetch external jobs' });
+  }
+});
+
 // @desc    Get job by ID
 // @route   GET /api/jobs/:id
 // @access  Public

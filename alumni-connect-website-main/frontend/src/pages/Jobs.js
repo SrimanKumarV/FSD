@@ -39,15 +39,17 @@ const Jobs = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [jobSource, setJobSource] = useState('internal'); // 'internal' | 'external'
 
   useEffect(() => {
     fetchJobs();
-  }, [filters, sortBy, currentPage]);
+  }, [filters, sortBy, currentPage, jobSource]);
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/jobs', { 
+      const endpoint = jobSource === 'external' ? '/jobs/external' : '/jobs';
+      const response = await api.get(endpoint, { 
         params: { 
           ...filters, 
           page: currentPage, 
@@ -171,6 +173,26 @@ const Jobs = () => {
               <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mt-1">Remote Jobs</p>
             </motion.div>
           </div>
+        </motion.div>
+
+        {/* Source Toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8"
+        >
+          <button
+            onClick={() => setJobSource('internal')}
+            className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'internal' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
+          >
+            Alumni Network Jobs
+          </button>
+          <button
+            onClick={() => setJobSource('external')}
+            className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'external' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
+          >
+            Global Remote Jobs (External)
+          </button>
         </motion.div>
 
         {/* Search and Filters */}
@@ -401,30 +423,51 @@ const Jobs = () => {
 
                 <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
                   <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center">
-                      <DollarSign className="w-4 h-4 mr-1.5" />
-                      ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}
-                    </span>
+                    {job.salary && (
+                      <span className="flex items-center">
+                        <DollarSign className="w-4 h-4 mr-1.5" />
+                        {job.isExternal && job.salary.currency 
+                          ? job.salary.currency 
+                          : job.salary.min 
+                            ? `$${job.salary.min.toLocaleString()} - $${job.salary.max?.toLocaleString() || '∞'}`
+                            : 'Not specified'}
+                      </span>
+                    )}
                     <span className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1.5" />
                       Posted {new Date(job.createdAt).toLocaleDateString()}
                     </span>
-                    <span className="flex items-center">
-                      <Eye className="w-4 h-4 mr-1.5" />
-                      {job.views} views
-                    </span>
-                    <span className="flex items-center">
-                      <Users className="w-4 h-4 mr-1.5" />
-                      {job.applications} applications
-                    </span>
+                    {!job.isExternal && (
+                      <>
+                        <span className="flex items-center">
+                          <Eye className="w-4 h-4 mr-1.5" />
+                          {job.views || 0} views
+                        </span>
+                        <span className="flex items-center">
+                          <Users className="w-4 h-4 mr-1.5" />
+                          {job.applications || 0} applications
+                        </span>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center space-x-3 w-full sm:w-auto">
-                    <button
-                      onClick={() => handleApply(job.id)}
-                      className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                    >
-                      Apply Now
-                    </button>
+                    {job.isExternal ? (
+                      <a
+                        href={job.applicationLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-center transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                      >
+                        Apply on Site
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => handleApply(job.id)}
+                        className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                      >
+                        Apply Now
+                      </button>
+                    )}
                     <button className="p-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-xl transition-colors shadow-sm hover:shadow">
                       <ExternalLink className="w-5 h-5" />
                     </button>

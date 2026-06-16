@@ -21,6 +21,23 @@ import {
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
+const JobLogo = ({ logo, company }) => {
+  const [error, setError] = useState(false);
+
+  if (!logo || error) {
+    return <Building className="w-8 h-8 text-gray-400 dark:text-gray-500" />;
+  }
+
+  return (
+    <img 
+      src={logo} 
+      alt={company} 
+      className="w-full h-full object-contain bg-white dark:bg-white/95 p-1" 
+      onError={() => setError(true)} 
+    />
+  );
+};
+
 const Jobs = () => {
   const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
@@ -48,16 +65,43 @@ const Jobs = () => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const endpoint = jobSource === 'external' ? '/jobs/external' : '/jobs';
-      const response = await api.get(endpoint, { 
-        params: { 
-          ...filters, 
-          page: currentPage, 
-          sort: sortBy 
-        } 
-      });
-      setJobs(response.data?.jobs || response.jobs || []);
-      setTotalPages(response.data?.pagination?.pages || response.pagination?.pages || 1);
+      if (jobSource === 'internal') {
+        const [internalRes, externalRes] = await Promise.all([
+          api.get('/jobs', { 
+            params: { ...filters, page: currentPage, sort: sortBy } 
+          }),
+          currentPage === 1 ? api.get('/jobs/external', { 
+            params: { category: filters.category, search: filters.q, limit: 50, region: 'india' } 
+          }).catch(err => {
+            console.error("External jobs fetch failed:", err);
+            return { data: { jobs: [] } };
+          }) : Promise.resolve({ data: { jobs: [] } })
+        ]);
+
+        const internalJobs = internalRes.data?.jobs || internalRes.jobs || [];
+        const externalJobs = externalRes.data?.jobs || externalRes.jobs || [];
+        
+        let combinedJobs = [...internalJobs, ...externalJobs];
+
+        if (sortBy === 'newest') {
+          combinedJobs.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        } else if (sortBy === 'oldest') {
+          combinedJobs.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+        } else if (sortBy === 'salary_high') {
+          combinedJobs.sort((a, b) => (b.salary?.max || b.salary?.min || 0) - (a.salary?.max || a.salary?.min || 0));
+        } else if (sortBy === 'salary_low') {
+          combinedJobs.sort((a, b) => (a.salary?.min || a.salary?.max || 0) - (b.salary?.min || b.salary?.max || 0));
+        }
+
+        setJobs(combinedJobs);
+        setTotalPages(internalRes.data?.pagination?.pages || internalRes.pagination?.pages || 1);
+      } else {
+        const response = await api.get('/jobs/external', { 
+          params: { ...filters, limit: 50, region: 'international' } 
+        });
+        setJobs(response.data?.jobs || response.jobs || []);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast.error('Failed to fetch jobs');
@@ -159,12 +203,12 @@ const Jobs = () => {
             </motion.div>
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-green-50/50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-2xl shadow-sm">
               <Eye className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-3" />
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{jobs.reduce((sum, job) => sum + job.views, 0)}</p>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{jobs.reduce((sum, job) => sum + (job.views || 0), 0)}</p>
               <p className="text-sm font-medium text-green-600 dark:text-green-400 mt-1">Total Views</p>
             </motion.div>
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-yellow-50/50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800/30 rounded-2xl shadow-sm">
               <Users className="w-8 h-8 text-yellow-600 dark:text-yellow-400 mx-auto mb-3" />
-              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{jobs.reduce((sum, job) => sum + job.applications, 0)}</p>
+              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{jobs.reduce((sum, job) => sum + (job.applications?.length || 0), 0)}</p>
               <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-1">Applications</p>
             </motion.div>
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 rounded-2xl shadow-sm">
@@ -185,7 +229,7 @@ const Jobs = () => {
             onClick={() => setJobSource('internal')}
             className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'internal' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
           >
-            Alumni Network Jobs
+            Jobs and Internships
           </button>
           <button
             onClick={() => setJobSource('external')}
@@ -355,7 +399,7 @@ const Jobs = () => {
             {sortedJobs.map((job) => (
               <motion.div
                 whileHover={{ y: -5 }}
-                key={job.id}
+                key={job._id || job.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="glass-card rounded-2xl p-6 relative overflow-hidden group"
@@ -363,12 +407,8 @@ const Jobs = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
                 <div className="relative z-10 flex items-start justify-between mb-6">
                   <div className="flex items-start space-x-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-                      {job.companyLogo ? (
-                        <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover" />
-                      ) : (
-                        <Building className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                      )}
+                    <div className="w-16 h-16 shrink-0 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
+                      <JobLogo logo={job.companyLogo} company={job.company} />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{job.title}</h3>
@@ -384,8 +424,8 @@ const Jobs = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getJobTypeColor(job.jobType)}`}>
-                          {job.jobType.replace('-', ' ')}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getJobTypeColor(job.jobType || 'full-time')}`}>
+                          {(job.jobType || 'full-time').replace('-', ' ')}
                         </span>
                         {job.experience && (
                           <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getExperienceColor(job.experience)}`}>
@@ -397,7 +437,7 @@ const Jobs = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => handleSave(job.id)}
+                      onClick={() => handleSave(job._id || job.id)}
                       className="p-2 text-gray-400 hover:text-yellow-500 transition-colors"
                     >
                       <Bookmark className="w-5 h-5" />
@@ -447,7 +487,7 @@ const Jobs = () => {
                         </span>
                         <span className="flex items-center">
                           <Users className="w-4 h-4 mr-1.5" />
-                          {job.applications || 0} applications
+                          {job.applications?.length || 0} applications
                         </span>
                       </>
                     )}
@@ -464,7 +504,7 @@ const Jobs = () => {
                       </a>
                     ) : (
                       <button
-                        onClick={() => handleApply(job.id)}
+                        onClick={() => handleApply(job._id || job.id)}
                         className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                       >
                         Apply Now

@@ -112,13 +112,17 @@ router.get('/external', async (req, res) => {
     }
     if (search) {
       apiUrl += `&search=${search}`;
+    } else if (req.query.region === 'india') {
+      apiUrl += `&search=India`;
     }
 
     const response = await fetch(apiUrl);
     const data = await response.json();
     
+    const region = req.query.region;
+    
     // Map Remotive job format to match our internal Job schema closely
-    const mappedJobs = data.jobs ? data.jobs.map(job => ({
+    let mappedJobs = data.jobs ? data.jobs.map(job => ({
       _id: `ext_${job.id}`,
       isExternal: true,
       title: job.title,
@@ -128,12 +132,18 @@ router.get('/external', async (req, res) => {
       isRemote: true,
       jobType: job.job_type === 'full_time' ? 'full-time' : job.job_type || 'full-time',
       category: job.category || 'other',
-      description: job.description, // HTML content usually
+      description: job.description ? job.description.replace(/<[^>]*>?/gm, '') : '', // HTML content usually
       applicationLink: job.url,
       createdAt: job.publication_date,
       tags: job.tags || [],
       salary: job.salary ? { min: 0, max: 0, currency: job.salary } : undefined
     })) : [];
+
+    if (region === 'india') {
+      mappedJobs = mappedJobs.filter(job => job.location.match(/india|worldwide|anywhere|apac/i));
+    } else if (region === 'international') {
+      mappedJobs = mappedJobs.filter(job => !job.location.toLowerCase().includes('india'));
+    }
 
     res.json({
       jobs: mappedJobs,

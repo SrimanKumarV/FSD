@@ -37,6 +37,36 @@ router.get('/conversation/:userId', protect, async (req, res) => {
   }
 });
 
+// @desc    Start chat by email
+// @route   POST /api/messages/start-chat
+// @access  Private
+router.post('/start-chat', protect, [
+  body('email').isEmail().withMessage('Valid email is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+
+    const targetUser = await User.findOne({ email });
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found with this email' });
+    }
+
+    if (targetUser._id.toString() === req.user.id) {
+      return res.status(400).json({ message: 'Cannot start a chat with yourself' });
+    }
+
+    res.json({ targetUser: { _id: targetUser._id, name: targetUser.name, photo: targetUser.photo, role: targetUser.role } });
+  } catch (error) {
+    console.error('Error starting chat:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Send a message
 // @route   POST /api/messages
 // @access  Private
@@ -112,15 +142,24 @@ router.post('/', [protect, verified], [
 // @access  Private
 router.get('/conversations', protect, async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const conversationsRaw = await Message.findRecentConversations(req.user.id);
+    
+    // Populate participants
+    const chats = await Promise.all(conversationsRaw.map(async (conv) => {
+      const msg = conv.lastMessage;
+      const otherId = msg.sender.toString() === req.user.id ? msg.receiver : msg.sender;
+      const otherUser = await User.findById(otherId).select('name photo role isOnline status');
+      const currentUser = await User.findById(req.user.id).select('name photo role isOnline status');
+      
+      return {
+        _id: conv._id,
+        participants: [currentUser, otherUser].filter(Boolean),
+        lastMessage: msg,
+        unreadCount: conv.unreadCount
+      };
+    }));
 
-    const conversations = await Message.findRecentConversations(req.user.id, {
-      skip,
-      limit: parseInt(limit)
-    });
-
-    res.json({ conversations });
+    res.json({ chats });
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({ message: 'Server error' });

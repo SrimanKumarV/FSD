@@ -354,25 +354,74 @@ router.delete('/:id/connect', protect, async (req, res) => {
   }
 });
 
-// @desc    Get user connections
+// @desc    Get user connections, followers, and following
 // @route   GET /api/users/:id/connections
 // @access  Private
 router.get('/:id/connections', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('connections', 'name photo role location');
+    const user = await User.findById(req.params.id)
+      .populate('connections', 'name photo role location studentInfo alumniInfo')
+      .populate('followers', 'name photo role location studentInfo alumniInfo')
+      .populate('following', 'name photo role location studentInfo alumniInfo');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if current user can view connections
-    if (req.user.id !== req.params.id && !user.connections.includes(req.user.id)) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    res.json({ connections: user.connections });
+    res.json({ 
+      connections: user.connections,
+      followers: user.followers,
+      following: user.following
+    });
   } catch (error) {
     console.error('Error fetching connections:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Follow a user
+// @route   POST /api/users/:id/follow
+// @access  Private
+router.post('/:id/follow', protect, async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+    if (targetUser._id.toString() === req.user.id) return res.status(400).json({ message: 'Cannot follow yourself' });
+
+    if (targetUser.followers.includes(req.user.id)) {
+      return res.status(400).json({ message: 'Already following' });
+    }
+
+    targetUser.followers.push(req.user.id);
+    await targetUser.save();
+
+    const currentUser = await User.findById(req.user.id);
+    currentUser.following.push(targetUser._id);
+    await currentUser.save();
+
+    res.json({ message: 'Followed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Unfollow a user
+// @route   POST /api/users/:id/unfollow
+// @access  Private
+router.post('/:id/unfollow', protect, async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    targetUser.followers = targetUser.followers.filter(id => id.toString() !== req.user.id);
+    await targetUser.save();
+
+    const currentUser = await User.findById(req.user.id);
+    currentUser.following = currentUser.following.filter(id => id.toString() !== targetUser._id.toString());
+    await currentUser.save();
+
+    res.json({ message: 'Unfollowed successfully' });
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });

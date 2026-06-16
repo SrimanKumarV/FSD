@@ -47,14 +47,24 @@ router.post('/google', async (req, res) => {
         password: await bcrypt.hash(sub + process.env.JWT_SECRET, 10), // Random secure password
         role: 'student',
         photo: picture,
+        isVerified: true,
         studentInfo: {}
       });
       await user.save();
       isNewUser = true;
-    } else if (!user.photo && picture) {
-      // Update photo if missing
-      user.photo = picture;
-      await user.save();
+    } else {
+      let needsSave = false;
+      if (!user.photo && picture) {
+        user.photo = picture;
+        needsSave = true;
+      }
+      if (!user.isVerified) {
+        user.isVerified = true;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await user.save();
+      }
     }
     
     // Generate token
@@ -162,14 +172,24 @@ router.post('/github', async (req, res) => {
         password: await bcrypt.hash(githubUser.id.toString() + process.env.JWT_SECRET, 10), // Random secure password
         role: 'student',
         photo: picture,
+        isVerified: true,
         studentInfo: {}
       });
       await user.save();
       isNewUser = true;
-    } else if (!user.photo && picture) {
-      // Update photo if missing
-      user.photo = picture;
-      await user.save();
+    } else {
+      let needsSave = false;
+      if (!user.photo && picture) {
+        user.photo = picture;
+        needsSave = true;
+      }
+      if (!user.isVerified) {
+        user.isVerified = true;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await user.save();
+      }
     }
     
     // Generate token

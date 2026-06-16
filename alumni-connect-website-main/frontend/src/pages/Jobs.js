@@ -184,6 +184,7 @@ const Jobs = () => {
                 Discover exciting career opportunities from our alumni network
               </p>
             </div>
+            {(user?.role === 'alumni' || user?.role === 'admin') && (
               <button
                 onClick={() => setShowPostForm(true)}
                 className="flex items-center px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"

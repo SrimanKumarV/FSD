@@ -41,16 +41,46 @@ const Chat = () => {
   // Fetch user's chats
   const { data: chatsData, isLoading: chatsLoading } = useQuery(
     ['user-chats'],
-    () => api.get('/messages/chats'),
+    () => api.get('/messages/conversations'),
     { enabled: !!user }
   );
 
   // Fetch messages for selected chat
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
     ['chat-messages', selectedChat?._id],
-    () => api.get(`/messages/${selectedChat?._id}`),
+    () => api.get(`/messages/conversation/${selectedChat?.participants?.find(p => p._id !== user?.id)?._id}`),
     { enabled: !!selectedChat?._id }
   );
+
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newChatEmail, setNewChatEmail] = useState('');
+
+  const startChatMutation = useMutation(
+    (email) => api.post('/messages/start-chat', { email }),
+    {
+      onSuccess: (res) => {
+        const { targetUser } = res.data;
+        const newChat = {
+          _id: `temp_${targetUser._id}`,
+          participants: [user, targetUser],
+          lastMessage: null,
+          unreadCount: 0
+        };
+        setSelectedChat(newChat);
+        setShowNewChat(false);
+        setNewChatEmail('');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to start chat');
+      }
+    }
+  );
+
+  const handleStartChat = (e) => {
+    e.preventDefault();
+    if (!newChatEmail.trim()) return;
+    startChatMutation.mutate(newChatEmail.trim());
+  };
 
   // Send message mutation
   const sendMessageMutation = useMutation(
@@ -103,9 +133,9 @@ const Chat = () => {
     if (!message.trim() || !selectedChat) return;
 
     const messageData = {
-      chatId: selectedChat._id,
+      receiver: selectedChat.participants.find(p => p._id !== user?.id)?._id,
       content: message.trim(),
-      type: 'text'
+      messageType: 'text'
     };
 
     sendMessageMutation.mutate(messageData);
@@ -144,7 +174,34 @@ const Chat = () => {
       <div className="w-80 border-r border-gray-200 dark:border-gray-700/50 flex flex-col bg-white/50 dark:bg-gray-900/50">
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700/50">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Messages</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Messages</h2>
+            <button
+              onClick={() => setShowNewChat(!showNewChat)}
+              className="p-2 bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 rounded-xl transition-all"
+            >
+              <Edit className="w-5 h-5" />
+            </button>
+          </div>
+          {showNewChat && (
+            <form onSubmit={handleStartChat} className="mb-4 flex space-x-2">
+              <input
+                type="email"
+                placeholder="User email..."
+                value={newChatEmail}
+                onChange={(e) => setNewChatEmail(e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white"
+                required
+              />
+              <button
+                type="submit"
+                disabled={startChatMutation.isLoading}
+                className="px-3 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 text-sm font-medium"
+              >
+                Start
+              </button>
+            </form>
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input

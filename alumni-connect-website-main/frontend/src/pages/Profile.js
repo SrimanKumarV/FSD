@@ -15,8 +15,12 @@ import {
   Linkedin,
   Github,
   Globe,
-  Twitter
+  Twitter,
+  MessageSquare,
+  Users
 } from 'lucide-react';
+import { api } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -41,6 +45,18 @@ const Profile = () => {
   });
   const [newSkill, setNewSkill] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('about');
+  const [network, setNetwork] = useState({ followers: [], following: [] });
+  const navigate = useNavigate();
+
+  const fetchNetwork = async (userId) => {
+    try {
+      const res = await api.get(`/users/${userId}/connections`);
+      setNetwork({ followers: res.data.followers || [], following: res.data.following || [] });
+    } catch (error) {
+      console.error('Error fetching network:', error);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -62,6 +78,7 @@ const Profile = () => {
         alumniInfo: user.alumniInfo || {},
         studentInfo: user.studentInfo || {}
       });
+      fetchNetwork(user._id);
     }
   }, [user]);
 
@@ -224,9 +241,38 @@ const Profile = () => {
               {user.bio && (
                 <p className="text-gray-700 dark:text-gray-300 mt-4 leading-relaxed">{user.bio}</p>
               )}
+
+              <div className="flex items-center space-x-6 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                <div className="text-center cursor-pointer hover:opacity-80" onClick={() => setActiveTab('network')}>
+                  <span className="block text-2xl font-bold text-gray-900 dark:text-white">{network.followers.length}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Followers</span>
+                </div>
+                <div className="text-center cursor-pointer hover:opacity-80" onClick={() => setActiveTab('network')}>
+                  <span className="block text-2xl font-bold text-gray-900 dark:text-white">{network.following.length}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Following</span>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-8">
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'about' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            About
+            {activeTab === 'about' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+          </button>
+          <button
+            onClick={() => setActiveTab('network')}
+            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'network' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            Network
+            {activeTab === 'network' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+          </button>
+        </div>
 
         {/* Profile Form */}
         {isEditing && (
@@ -417,6 +463,81 @@ const Profile = () => {
               </button>
             </div>
           </motion.form>
+        )}
+
+        {/* Network Tab */}
+        {!isEditing && activeTab === 'network' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          >
+            {/* Followers */}
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                <Users className="w-5 h-5 mr-2 text-primary" />
+                Followers ({network.followers.length})
+              </h3>
+              <div className="space-y-4">
+                {network.followers.length === 0 ? (
+                  <p className="text-gray-500 italic">No followers yet.</p>
+                ) : (
+                  network.followers.map(follower => (
+                    <div key={follower._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <img src={follower.photo || `https://ui-avatars.com/api/?name=${follower.name}`} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">{follower.name}</h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {follower.role === 'student' ? (follower.studentInfo?.course || 'Student') : (follower.alumniInfo?.company || 'Alumni')}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate('/messages')}
+                        className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Following */}
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                <Users className="w-5 h-5 mr-2 text-primary" />
+                Following ({network.following.length})
+              </h3>
+              <div className="space-y-4">
+                {network.following.length === 0 ? (
+                  <p className="text-gray-500 italic">Not following anyone yet.</p>
+                ) : (
+                  network.following.map(followingUser => (
+                    <div key={followingUser._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <img src={followingUser.photo || `https://ui-avatars.com/api/?name=${followingUser.name}`} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">{followingUser.name}</h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {followingUser.role === 'student' ? (followingUser.studentInfo?.course || 'Student') : (followingUser.alumniInfo?.company || 'Alumni')}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate('/messages')}
+                        className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
 
       </div>

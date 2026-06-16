@@ -522,6 +522,8 @@ const SystemSettingsTab = () => {
         toast.success('System notification sent successfully!');
         setTitle('');
         setContent('');
+        queryClient.invalidateQueries(['notifications']);
+        queryClient.invalidateQueries(['messages']); // For the inbox
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to send notification');

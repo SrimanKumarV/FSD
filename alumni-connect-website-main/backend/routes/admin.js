@@ -551,6 +551,7 @@ router.post('/notifications', [protect, admin], [
     } = req.body;
 
     let targetUsers = [];
+    const Message = require('../models/Message');
 
     switch (recipients) {
       case 'all':
@@ -586,6 +587,21 @@ router.post('/notifications', [protect, admin], [
     }));
 
     await Notification.createBulkNotifications(notifications);
+
+    // Also send as an Inbox Message to every user
+    const messages = targetUsers.map(user => {
+      const conversationId = Message.generateConversationId(req.user.id, user._id);
+      return {
+        sender: req.user.id,
+        receiver: user._id,
+        content: `**${title}**\n\n${content}`,
+        messageType: 'text',
+        conversationId
+      };
+    });
+    
+    // Create the messages
+    await Message.insertMany(messages);
 
     // Send emails asynchronously without blocking the request
     targetUsers.forEach(user => {

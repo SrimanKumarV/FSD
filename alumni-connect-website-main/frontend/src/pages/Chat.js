@@ -111,7 +111,7 @@ const Chat = () => {
 
     // Listen for typing indicators
     socket.on('user-typing', (data) => {
-      if (data.chatId === selectedChat?._id && data.userId !== user?._id) {
+      if (data.chatId === selectedChat?._id && data.userId !== (user?._id || user?.id)) {
         setIsTyping(true);
         setTimeout(() => setIsTyping(false), 3000);
       }
@@ -133,7 +133,7 @@ const Chat = () => {
     if (!message.trim() || !selectedChat) return;
 
     const messageData = {
-      receiver: selectedChat.participants.find(p => p._id !== user?._id)?._id,
+      receiver: selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id,
       content: message.trim(),
       messageType: 'text'
     };
@@ -154,7 +154,7 @@ const Chat = () => {
 
   const filteredChats = chatsData?.chats?.filter(chat => 
     chat.participants.some(participant => 
-      participant._id !== user?._id && 
+      (participant._id || participant.id) !== (user?._id || user?.id) && 
       participant.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
   ) || [];
@@ -218,7 +218,7 @@ const Chat = () => {
         <div className="flex-1 overflow-y-auto">
           {filteredChats.length > 0 ? (
             filteredChats.map((chat) => {
-              const otherParticipant = chat.participants.find(p => p._id !== user?._id);
+              const otherParticipant = chat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id));
               const lastMessage = chat.lastMessage;
               const isUnread = chat.unreadCount > 0;
               const isSelected = selectedChat?._id === chat._id;
@@ -261,7 +261,7 @@ const Chat = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400 truncate pr-2">
                           {lastMessage ? (
                             <span className="flex items-center">
-                              {lastMessage.sender === user?._id && (
+                              {lastMessage.sender === (user?._id || user?.id) && (
                                 <span className="mr-1">
                                   {lastMessage.read ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-gray-400" />}
                                 </span>
@@ -299,18 +299,18 @@ const Chat = () => {
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
-                    {selectedChat.participants.find(p => p._id !== user?._id)?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  {selectedChat.participants.find(p => p._id !== user?._id)?.isOnline && (
+                  {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline && (
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
                   )}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {selectedChat.participants.find(p => p._id !== user?._id)?.name}
+                    {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                    {selectedChat.participants.find(p => p._id !== user?._id)?.isOnline ? (
+                    {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline ? (
                       <span className="text-green-500">Online</span>
                     ) : 'Offline'}
                   </p>
@@ -341,7 +341,7 @@ const Chat = () => {
                   <MessageBubble
                     key={msg._id}
                     message={msg}
-                    isOwn={msg.sender === user?._id}
+                    isOwn={msg.sender === (user?._id || user?.id)}
                     user={user}
                   />
                 ))

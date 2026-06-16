@@ -133,7 +133,7 @@ router.post('/', [protect, verified], [
     res.status(201).json({ message });
   } catch (error) {
     console.error('Error sending message:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 });
 

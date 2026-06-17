@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { 
@@ -48,6 +48,30 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('about');
   const [network, setNetwork] = useState({ followers: [], following: [] });
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+
+    try {
+      setLoading(true);
+      const res = await api.post('/upload', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setFormData(prev => ({
+        ...prev,
+        photo: res.data.url
+      }));
+    } catch (error) {
+      console.error("Upload failed", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchNetwork = async (userId) => {
     try {
@@ -207,9 +231,12 @@ const Profile = () => {
                 )}
               </div>
               {isEditing && (
-                <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full hover:bg-primary-dark transition-colors">
-                  <Camera className="w-4 h-4" />
-                </button>
+                <>
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full hover:bg-primary-dark transition-colors z-10">
+                    <Camera className="w-4 h-4" />
+                  </button>
+                </>
               )}
             </div>
 
@@ -301,16 +328,26 @@ const Profile = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Profile Picture URL
+                  Profile Picture
                 </label>
-                <input
-                  type="url"
-                  name="photo"
-                  value={formData.photo}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  placeholder="https://example.com/photo.jpg"
-                />
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="url"
+                    name="photo"
+                    value={formData.photo}
+                    onChange={handleInputChange}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                    placeholder="URL auto-filled after upload..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors whitespace-nowrap font-medium text-sm disabled:opacity-50"
+                  >
+                    Upload Image
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -485,7 +522,13 @@ const Profile = () => {
                   network.followers.map(follower => (
                     <div key={follower._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <img src={follower.photo || `https://ui-avatars.com/api/?name=${follower.name}`} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
+                        {follower.photo ? (
+                          <img src={follower.photo} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-lg flex-shrink-0">
+                            {follower.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                        )}
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">{follower.name}</h4>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -518,7 +561,13 @@ const Profile = () => {
                   network.following.map(followingUser => (
                     <div key={followingUser._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <img src={followingUser.photo || `https://ui-avatars.com/api/?name=${followingUser.name}`} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
+                        {followingUser.photo ? (
+                          <img src={followingUser.photo} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-lg flex-shrink-0">
+                            {followingUser.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                        )}
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">{followingUser.name}</h4>
                           <p className="text-xs text-gray-500 dark:text-gray-400">

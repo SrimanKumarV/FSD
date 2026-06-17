@@ -474,6 +474,15 @@ router.post('/:id/decline-follow', protect, async (req, res) => {
     if(currentUser.followRequests) {
       currentUser.followRequests = currentUser.followRequests.filter(id => id.toString() !== requesterId);
       await currentUser.save();
+      
+      await Notification.createNotification({
+        recipient: requesterId,
+        sender: currentUser._id,
+        type: 'follow_decline',
+        title: 'Follow Request Declined',
+        content: `${currentUser.name} declined your follow request`,
+        relatedData: { userId: currentUser._id }
+      });
     }
 
     res.json({ message: 'Follow request declined' });

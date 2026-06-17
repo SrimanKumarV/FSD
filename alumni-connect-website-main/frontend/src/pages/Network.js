@@ -131,9 +131,13 @@ const Network = () => {
             {pendingRequests.map(reqUser => (
               <div key={reqUser._id} className="glass-card p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white font-bold">
-                    {reqUser.name?.charAt(0)?.toUpperCase()}
-                  </div>
+                  {reqUser.photo ? (
+                    <img src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                      {reqUser.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
                     <p className="text-xs text-gray-500 capitalize">{reqUser.role}</p>
@@ -166,9 +170,13 @@ const Network = () => {
                 className="glass-card p-6 flex flex-col"
               >
                 <div className="flex items-start space-x-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white text-xl font-bold shadow-soft flex-shrink-0">
-                    {user.name?.charAt(0)?.toUpperCase()}
-                  </div>
+                  {user.photo ? (
+                    <img src={user.photo} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-soft flex-shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white text-xl font-bold shadow-soft flex-shrink-0">
+                      {user.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                       {user.name}

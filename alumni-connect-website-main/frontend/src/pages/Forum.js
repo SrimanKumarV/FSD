@@ -350,9 +350,13 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
       <div className="relative z-10 flex items-start space-x-4">
         {/* Author Avatar */}
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
-            {post.author?.name?.charAt(0)?.toUpperCase() || 'A'}
-          </div>
+          {post.author?.photo ? (
+            <img src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0">
+              {post.author?.name?.charAt(0)?.toUpperCase() || 'A'}
+            </div>
+          )}
         </div>
 
         {/* Post Content */}
@@ -519,9 +523,9 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Create New Post</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create New Post</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -605,7 +609,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
               onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
               className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             />
-            <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-900">
+            <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
               Post anonymously
             </label>
           </div>
@@ -614,7 +618,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -644,13 +648,13 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">{post.title}</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{post.title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               ✕
             </button>
@@ -669,12 +673,12 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
                 {new Date(post.createdAt).toLocaleDateString()}
               </span>
             </div>
-            <p className="text-gray-700 leading-relaxed">{post.content}</p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{post.content}</p>
           </div>
 
           {/* Comments */}
           <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               Comments ({post.comments?.length || 0})
             </h3>
             
@@ -686,16 +690,16 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
                       {comment.author?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1">
-                      <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
                             {comment.author?.name}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(comment.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-gray-700">{comment.content}</p>
+                        <p className="text-gray-700 dark:text-gray-300">{comment.content}</p>
                       </div>
                     </div>
                   </div>

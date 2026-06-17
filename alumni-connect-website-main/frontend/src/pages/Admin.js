@@ -500,9 +500,9 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
 const ContentModerationTab = () => {
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Content Moderation</h3>
-        <p className="text-gray-600">Content moderation features will be implemented here.</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Content Moderation</h3>
+        <p className="text-gray-600 dark:text-gray-400">Content moderation features will be implemented here.</p>
       </div>
     </div>
   );
@@ -543,9 +543,9 @@ const SystemSettingsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Send System Announcement</h3>
-        <p className="text-gray-600 mb-6 text-sm">Send a notification and email to users across the platform.</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Send System Announcement</h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Send a notification and email to users across the platform.</p>
         
         <form onSubmit={handleSendNotification} className="space-y-4 max-w-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -613,9 +613,9 @@ const SystemSettingsTab = () => {
         </form>
       </div>
       
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 opacity-50">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Other Settings</h3>
-        <p className="text-gray-600 text-sm">System configuration options will be implemented here.</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 opacity-50">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Other Settings</h3>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">System configuration options will be implemented here.</p>
       </div>
     </div>
   );

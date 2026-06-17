@@ -199,7 +199,7 @@ const Layout = ({ children }) => {
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-80 sm:w-96 glass-card py-2 z-50 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800"
+                      className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50 rounded-2xl"
                     >
                       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
@@ -268,9 +268,13 @@ const Layout = ({ children }) => {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-3 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
                 >
-                  <div className="w-9 h-9 bg-gradient-to-tr from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-soft">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  {user?.photo ? (
+                    <img src={user.photo} alt={user.name} className="w-9 h-9 rounded-full object-cover shadow-soft" />
+                  ) : (
+                    <div className="w-9 h-9 bg-gradient-to-tr from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-soft">
+                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 capitalize font-medium">{user?.role}</p>
@@ -284,7 +288,7 @@ const Layout = ({ children }) => {
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-48 glass-card py-2 z-50 rounded-2xl"
+                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50 rounded-2xl"
                     >
                       <Link
                         to="/profile"

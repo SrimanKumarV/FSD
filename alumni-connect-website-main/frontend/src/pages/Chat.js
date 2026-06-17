@@ -40,6 +40,10 @@ const Chat = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [attachment, setAttachment] = useState(null);
+  
+  const emojis = ['😀', '😂', '🥰', '😎', '😭', '🥺', '😡', '👍', '❤️', '🔥', '✨', '🎉', '💡', '🚀', '👀', '💯'];
 
   // Fetch user's chats
   const { data: chatsData, isLoading: chatsLoading } = useQuery(
@@ -180,23 +184,28 @@ const Chat = () => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim() || !selectedChat || !otherParticipantId) return;
+    if ((!message.trim() && !attachment) || !selectedChat || !otherParticipantId) return;
+
+    const payload = {
+      receiverId: otherParticipantId,
+      content: attachment ? (message.trim() || 'Sent an attachment') : message.trim(),
+      messageType: attachment?.fileType === 'image' ? 'image' : (attachment ? 'file' : 'text'),
+      attachments: attachment ? [attachment] : []
+    };
 
     if (socket && isConnected) {
-      socket.emit('message:send', {
-        receiverId: otherParticipantId,
-        content: message.trim(),
-        messageType: 'text'
-      });
+      socket.emit('message:send', payload);
       // Fallback optimistic UI clear
       setMessage('');
+      setAttachment(null);
     } else {
       const messageData = {
         receiver: otherParticipantId,
-        content: message.trim(),
-        messageType: 'text'
+        ...payload
       };
+      delete messageData.receiverId;
       sendMessageMutation.mutate(messageData);
+      setAttachment(null);
     }
 
     // Emit typing stop
@@ -209,6 +218,27 @@ const Chat = () => {
     if (socket && isConnected && otherParticipantId) {
       socket.emit('typing:start', { receiverId: otherParticipantId });
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAttachment({
+        fileUrl: reader.result,
+        fileName: file.name,
+        fileType: file.type.startsWith('image/') ? 'image' : 'file',
+        fileSize: file.size
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const filteredChats = chatsData?.data?.chats?.filter(chat => 
@@ -427,10 +457,50 @@ const Chat = () => {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 relative">
+              {attachment && (
+                <div className="absolute bottom-full left-4 mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                  {attachment.fileType === 'image' ? (
+                    <img src={attachment.fileUrl} alt="attachment" className="h-16 w-16 object-cover rounded" />
+                  ) : (
+                    <div className="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-xs text-gray-500">File</div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[150px]">{attachment.fileName}</span>
+                    <button type="button" onClick={() => setAttachment(null)} className="text-xs text-red-500 hover:text-red-700 text-left mt-1">Remove</button>
+                  </div>
+                </div>
+              )}
+              {showEmojiPicker && (
+                <div className="absolute bottom-full right-4 mb-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-64">
+                  <div className="grid grid-cols-8 gap-2">
+                    {emojis.map(emoji => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => {
+                          setMessage(prev => prev + emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        className="hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded text-lg transition-colors"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileSelect} 
+                  className="hidden" 
+                  accept="image/*,.pdf,.doc,.docx"
+                />
                 <button
                   type="button"
+                  onClick={() => fileInputRef.current?.click()}
                   className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
                 >
                   <Paperclip className="w-5 h-5" />
@@ -443,7 +513,8 @@ const Chat = () => {
                 </button>
                 <button
                   type="button"
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className={`p-2 rounded-xl transition-all ${showEmojiPicker ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20' : 'text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
                 >
                   <Smile className="w-5 h-5" />
                 </button>
@@ -456,21 +527,20 @@ const Chat = () => {
                       setMessage(e.target.value);
                       handleTyping();
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
                     placeholder="Type your message..."
                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
                 
                 <button
-                  type="button"
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
-                
-                <button
                   type="submit"
-                  disabled={!message.trim()}
+                  disabled={!message.trim() && !attachment}
                   className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all ml-1"
                 >
                   <Send className="w-5 h-5" />
@@ -533,7 +603,20 @@ const MessageBubble = ({ message, isOwn, user }) => {
               : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 rounded-bl-sm'
           }`}
         >
-          <p className="text-sm">{message.content}</p>
+          {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType === 'image' && (
+            <div className="mb-2">
+              <img src={message.attachments[0].fileUrl} alt="attachment" className="rounded-lg max-w-full h-auto object-cover max-h-48" />
+            </div>
+          )}
+          {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType !== 'image' && (
+            <div className={`mb-2 p-2 rounded flex items-center gap-2 ${isOwn ? 'bg-primary-700' : 'bg-gray-100 dark:bg-gray-700'}`}>
+              <Paperclip className="w-4 h-4" />
+              <a href={message.attachments[0].fileUrl} download={message.attachments[0].fileName} className="text-sm underline truncate max-w-[200px]">
+                {message.attachments[0].fileName}
+              </a>
+            </div>
+          )}
+          {message.content && <p className="text-sm">{message.content}</p>}
         </div>
         <div className={`flex items-center space-x-1 mt-1 text-xs text-gray-500 dark:text-gray-400 ${isOwn ? 'justify-end' : 'justify-start'}`}>
           <span>{getMessageTime(message.createdAt)}</span>

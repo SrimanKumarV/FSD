@@ -28,6 +28,7 @@ import Contests from './pages/Contests';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
+import Network from './pages/Network';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -70,6 +71,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Profile />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/network" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Network />
                       </Layout>
                     </ProtectedRoute>
                   } />

@@ -24,7 +24,11 @@ mongoose.connect(process.env.MONGODB_URI).then(async () => {
       });
 
       await message.save();
-      console.log("Message saved!");
+      
+      await message.populate('sender', 'name photo role');
+      await message.populate('receiver', 'name photo role');
+      
+      console.log("Message saved and populated!");
 
       // Create notification for receiver
       await Notification.createNotification({

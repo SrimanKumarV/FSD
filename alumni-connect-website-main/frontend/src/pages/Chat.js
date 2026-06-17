@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
@@ -31,6 +32,8 @@ const Chat = () => {
   const { user } = useAuth();
   const { socket, isConnected } = useSocket();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [message, setMessage] = useState('');
@@ -81,6 +84,14 @@ const Chat = () => {
     if (!newChatEmail.trim()) return;
     startChatMutation.mutate(newChatEmail.trim());
   };
+
+  useEffect(() => {
+    if (location.state?.startChatWith) {
+      startChatMutation.mutate(location.state.startChatWith);
+      // Clear the state so it doesn't trigger again on reload
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.startChatWith]);
 
   // Send message mutation
   const sendMessageMutation = useMutation(

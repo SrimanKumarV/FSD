@@ -18,7 +18,8 @@ import {
   Moon,
   Settings,
   Check,
-  CheckCircle
+  CheckCircle,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -43,6 +44,7 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Network', href: '/network', icon: Globe },
     { name: 'Mentorship', href: '/mentorship', icon: Users },
     { name: 'Jobs', href: '/jobs', icon: Briefcase },
     { name: 'Events', href: '/events', icon: Calendar },

@@ -204,7 +204,7 @@ router.put('/profile', protect, [
     }
 
     // Update allowed fields
-    const allowedFields = ['name', 'bio', 'skills', 'location', 'socialLinks'];
+    const allowedFields = ['name', 'bio', 'skills', 'location', 'socialLinks', 'photo'];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         user[field] = req.body[field];

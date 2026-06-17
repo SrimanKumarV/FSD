@@ -331,14 +331,6 @@ const Profile = () => {
                   Profile Picture
                 </label>
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="url"
-                    name="photo"
-                    value={formData.photo}
-                    onChange={handleInputChange}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-                    placeholder="URL auto-filled after upload..."
-                  />
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -347,6 +339,7 @@ const Profile = () => {
                   >
                     Upload Image
                   </button>
+                  {formData.photo && <span className="text-sm text-green-600 dark:text-green-400 font-medium">Image successfully uploaded!</span>}
                 </div>
               </div>
 

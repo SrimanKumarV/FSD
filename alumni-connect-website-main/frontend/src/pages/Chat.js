@@ -120,8 +120,8 @@ const Chat = () => {
 
   // Auto-update selectedChat if the backend returns a real ID after sending a message
   useEffect(() => {
-    if (selectedChat?._id?.startsWith('temp_') && chatsData?.chats) {
-      const realChat = chatsData.chats.find(c => {
+    if (selectedChat?._id?.startsWith('temp_') && chatsData?.data?.chats) {
+      const realChat = chatsData.data.chats.find(c => {
         const cOther = c.participants.find(p => (p._id || p.id) !== (user?._id || user?.id));
         return (cOther?._id || cOther?.id) === otherParticipantId;
       });
@@ -176,7 +176,7 @@ const Chat = () => {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messagesData?.messages]);
+  }, [messagesData?.data?.messages]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -211,7 +211,7 @@ const Chat = () => {
     }
   };
 
-  const filteredChats = chatsData?.chats?.filter(chat => 
+  const filteredChats = chatsData?.data?.chats?.filter(chat => 
     chat.participants.some(participant => 
       (participant._id || participant.id) !== (user?._id || user?.id) && 
       participant.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -395,8 +395,8 @@ const Chat = () => {
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
-              ) : messagesData?.messages?.length > 0 ? (
-                [...messagesData.messages].reverse().map((msg) => (
+              ) : messagesData?.data?.messages?.length > 0 ? (
+                [...messagesData.data.messages].reverse().map((msg) => (
                   <MessageBubble
                     key={msg._id}
                     message={msg}

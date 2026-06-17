@@ -36,7 +36,7 @@ const Network = () => {
     { enabled: !!currentUser?._id }
   );
 
-  const followingIds = connectionsData?.following?.map(f => f._id) || [];
+  const followingIds = connectionsData?.data?.following?.map(f => f._id) || [];
 
   // Follow mutation
   const followMutation = useMutation(
@@ -76,7 +76,7 @@ const Network = () => {
     }
   };
 
-  const pendingRequests = connectionsData?.followRequests || [];
+  const pendingRequests = connectionsData?.data?.followRequests || [];
 
   const acceptMutation = useMutation(
     (userId) => api.post(`/users/${userId}/accept-follow`),

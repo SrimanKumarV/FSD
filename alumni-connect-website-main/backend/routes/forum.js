@@ -88,6 +88,52 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @desc    Get forum feed for followers (posts from users I follow)
+// @route   GET /api/forum/feed
+// @access  Private
+router.get('/feed', protect, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Get posts from users the current user follows + own posts
+    const followingIds = [...(currentUser.following || []), req.user.id];
+
+    const posts = await ForumPost.find({
+      author: { $in: followingIds },
+      status: 'active'
+    })
+      .populate('author', 'name photo role')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await ForumPost.countDocuments({
+      author: { $in: followingIds },
+      status: 'active'
+    });
+
+    res.json({
+      posts,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit)),
+        total,
+        hasNext: parseInt(page) * parseInt(limit) < total,
+        hasPrev: parseInt(page) > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching forum feed:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get forum post by ID
 // @route   GET /api/forum/:id
 // @access  Public
@@ -119,8 +165,8 @@ router.post('/', [protect, verified], [
   body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be 5-200 characters'),
   body('content').trim().isLength({ min: 20, max: 10000 }).withMessage('Content must be 20-10000 characters'),
   body('postType').isIn(['question', 'discussion', 'success_story', 'announcement', 'resource']).withMessage('Invalid post type'),
-  body('category').isIn(['career_guidance', 'higher_studies', 'tech_skills', 'industry_insights', 'networking', 'job_search', 'personal_development', 'other']).withMessage('Invalid category'),
-  body('tags').isArray({ min: 1, max: 10 }).withMessage('1-10 tags are required'),
+  body('category').isIn(['career_guidance', 'higher_studies', 'tech_skills', 'industry_insights', 'networking', 'job_search', 'personal_development', 'general', 'other']).withMessage('Invalid category'),
+  body('tags').optional().isArray().withMessage('Tags must be an array'),
   body('isAnonymous').optional().isBoolean().withMessage('Anonymous flag must be boolean')
 ], async (req, res) => {
   try {
@@ -165,8 +211,8 @@ router.post('/', [protect, verified], [
 router.put('/:id', protect, [
   body('title').optional().trim().isLength({ min: 5, max: 200 }),
   body('content').optional().trim().isLength({ min: 20, max: 10000 }),
-  body('category').optional().isIn(['career_guidance', 'higher_studies', 'tech_skills', 'industry_insights', 'networking', 'job_search', 'personal_development', 'other']),
-  body('tags').optional().isArray({ min: 1, max: 10 })
+  body('category').optional().isIn(['career_guidance', 'higher_studies', 'tech_skills', 'industry_insights', 'networking', 'job_search', 'personal_development', 'general', 'other']),
+  body('tags').optional().isArray()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -239,15 +285,10 @@ router.post('/:id/like', protect, async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const isLiked = post.isLikedBy(req.user.id);
-    
-    if (isLiked) {
-      await post.unlikePost(req.user.id);
-      res.json({ message: 'Post unliked', liked: false });
-    } else {
-      await post.likePost(req.user.id);
-      res.json({ message: 'Post liked', liked: true });
-    }
+    // likePost toggles: removes like if already liked, adds if not
+    const wasLiked = post.isLikedBy(req.user.id);
+    await post.likePost(req.user.id);
+    res.json({ message: wasLiked ? 'Post unliked' : 'Post liked', liked: !wasLiked });
   } catch (error) {
     console.error('Error liking/unliking post:', error);
     res.status(500).json({ message: 'Server error' });

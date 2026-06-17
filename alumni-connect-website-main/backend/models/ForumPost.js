@@ -24,7 +24,7 @@ const forumPostSchema = new mongoose.Schema({
   // Post Type
   postType: {
     type: String,
-    enum: ['question', 'discussion', 'announcement', 'resource', 'success-story'],
+    enum: ['question', 'discussion', 'announcement', 'resource', 'success_story'],
     default: 'discussion'
   },
   
@@ -32,7 +32,7 @@ const forumPostSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['career-guidance', 'higher-studies', 'tech-skills', 'industry-insights', 'networking', 'general', 'alumni-success', 'student-questions']
+    enum: ['career_guidance', 'higher_studies', 'tech_skills', 'industry_insights', 'networking', 'job_search', 'personal_development', 'general', 'other']
   },
   tags: [{
     type: String,

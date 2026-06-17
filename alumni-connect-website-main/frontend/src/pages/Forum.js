@@ -50,6 +50,7 @@ const Forum = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState({
     category: '',
     postType: '',
@@ -57,11 +58,18 @@ const Forum = () => {
     search: ''
   });
 
-  // Fetch forum posts
+  // Fetch all forum posts
   const { data: postsData, isLoading, error } = useQuery(
     ['forum-posts', filters],
     () => api.get('/forum', { params: filters }),
-    { keepPreviousData: true }
+    { keepPreviousData: true, enabled: activeTab === 'all' }
+  );
+
+  // Fetch feed posts (from followed users)
+  const { data: feedData, isLoading: feedLoading, error: feedError } = useQuery(
+    ['forum-feed'],
+    () => api.get('/forum/feed'),
+    { enabled: activeTab === 'feed' }
   );
 
   // Create post mutation
@@ -70,11 +78,12 @@ const Forum = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
         setShowCreateModal(false);
         toast.success('Post created successfully!');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to create post');
+        toast.error(error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to create post');
       }
     }
   );
@@ -85,6 +94,7 @@ const Forum = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
       }
     }
   );
@@ -141,6 +151,32 @@ const Forum = () => {
           <Plus className="w-5 h-5 mr-2" />
           New Post
         </button>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex space-x-1 glass-card rounded-2xl p-1.5 w-fit">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeTab === 'all'
+                ? 'bg-primary-600 text-white shadow-md'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            All Posts
+          </button>
+          <button
+            onClick={() => setActiveTab('feed')}
+            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeTab === 'feed'
+                ? 'bg-primary-600 text-white shadow-md'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            My Feed
+          </button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -235,46 +271,63 @@ const Forum = () => {
 
       {/* Posts List */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-        {isLoading ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="glass-card rounded-2xl p-6 animate-pulse">
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                  <div className="flex-1 space-y-3">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+        {(() => {
+          const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
+          const currentPosts = activeTab === 'all' ? postsData?.posts : feedData?.posts;
+
+          if (currentLoading) {
+            return (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="glass-card rounded-2xl p-6 animate-pulse">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                      <div className="flex-1 space-y-3">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : postsData?.posts?.length > 0 ? (
-          postsData.posts.map((post) => (
-            <PostCard
-              key={post._id}
-              post={post}
-              onLike={handleLikePost}
-              onClose={handleClosePost}
-              onSelect={setSelectedPost}
-              user={user}
-            />
-          ))
-        ) : (
-          <div className="text-center py-12 glass-card rounded-3xl">
-            <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No posts found</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Be the first to start a discussion in this category!</p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Create First Post
-            </button>
-          </div>
-        )}
+            );
+          }
+
+          if (currentPosts?.length > 0) {
+            return currentPosts.map((post) => (
+              <PostCard
+                key={post._id}
+                post={post}
+                onLike={handleLikePost}
+                onClose={handleClosePost}
+                onSelect={setSelectedPost}
+                user={user}
+              />
+            ));
+          }
+
+          return (
+            <div className="text-center py-12 glass-card rounded-3xl">
+              <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                {activeTab === 'feed' ? 'No posts from people you follow' : 'No posts found'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {activeTab === 'feed'
+                  ? 'Follow people in the Network page to see their posts here!'
+                  : 'Be the first to start a discussion in this category!'}
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create First Post
+              </button>
+            </div>
+          );
+        })()}
       </div>
       </div>
 
@@ -530,37 +583,37 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
             <input
               type="text"
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Enter post title..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
             <textarea
               required
               rows={6}
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Share your thoughts, questions, or experiences..."
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
               <select
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select category</option>
                 {categories.map(category => (
@@ -572,12 +625,12 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Post Type</label>
               <select
                 required
                 value={formData.postType}
                 onChange={(e) => setFormData({ ...formData, postType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select type</option>
                 {postTypes.map(type => (
@@ -590,15 +643,15 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</label>
             <input
               type="text"
               value={formData.tags}
               onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Enter tags separated by commas..."
             />
-            <p className="mt-1 text-sm text-gray-500">Add relevant tags to help others find your post</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Add relevant tags to help others find your post</p>
           </div>
 
           <div className="flex items-center">
@@ -716,7 +769,7 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Add a comment..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
               <div className="mt-3 flex justify-end">
                 <button

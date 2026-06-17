@@ -92,6 +92,60 @@ router.get('/dashboard', protect, async (req, res) => {
   }
 });
 
+// @desc    Search users
+// @route   GET /api/users/search
+// @access  Private
+router.get('/search', protect, async (req, res) => {
+  try {
+    const { q, role, industry, location, skills, company } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    let query = { _id: { $ne: req.user.id } }; // Exclude current user
+
+    if (role) query.role = role;
+    if (industry) query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
+    if (location) query.location = { $regex: location, $options: 'i' };
+    if (company) query['alumniInfo.company'] = { $regex: company, $options: 'i' };
+
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: 'i' } },
+        { bio: { $regex: q, $options: 'i' } },
+        { skills: { $in: [new RegExp(q, 'i')] } }
+      ];
+    }
+
+    if (skills) {
+      const skillArray = skills.split(',').map(skill => skill.trim());
+      query.skills = { $in: skillArray };
+    }
+
+    const users = await User.find(query)
+      .select('-password')
+      .skip(skip)
+      .limit(limit)
+      .sort({ name: 1 });
+
+    const total = await User.countDocuments(query);
+
+    res.json({
+      users,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get user profile by ID
 // @route   GET /api/users/:id
 // @access  Public (for basic info), Private (for detailed info)
@@ -228,59 +282,6 @@ router.post('/photo', protect, async (req, res) => {
   }
 });
 
-// @desc    Search users
-// @route   GET /api/users/search
-// @access  Private
-router.get('/search', protect, async (req, res) => {
-  try {
-    const { q, role, industry, location, skills, company } = req.query;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    let query = { _id: { $ne: req.user.id } }; // Exclude current user
-
-    if (role) query.role = role;
-    if (industry) query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (company) query['alumniInfo.company'] = { $regex: company, $options: 'i' };
-
-    if (q) {
-      query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { bio: { $regex: q, $options: 'i' } },
-        { skills: { $in: [new RegExp(q, 'i')] } }
-      ];
-    }
-
-    if (skills) {
-      const skillArray = skills.split(',').map(skill => skill.trim());
-      query.skills = { $in: skillArray };
-    }
-
-    const users = await User.find(query)
-      .select('-password')
-      .skip(skip)
-      .limit(limit)
-      .sort({ name: 1 });
-
-    const total = await User.countDocuments(query);
-
-    res.json({
-      users,
-      pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
-        total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1
-      }
-    });
-  } catch (error) {
-    console.error('Error searching users:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 // @desc    Send connection request
 // @route   POST /api/users/:id/connect

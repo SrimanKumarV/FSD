@@ -107,7 +107,7 @@ router.post('/', [protect, student], [
   body('description').trim().isLength({ min: 20, max: 1000 }).withMessage('Description must be 20-1000 characters'),
   body('focusAreas').isArray({ min: 1 }).withMessage('At least one focus area is required'),
   body('goals').isArray({ min: 1 }).withMessage('At least one goal is required'),
-  body('expectedDuration').isIn(['1-3 months', '3-6 months', '6-12 months', '1+ years']).withMessage('Invalid duration'),
+  body('expectedDuration').isNumeric().withMessage('Invalid duration in weeks'),
   body('communicationMethod').isIn(['email', 'video_call', 'chat', 'in_person']).withMessage('Invalid communication method')
 ], async (req, res) => {
   try {

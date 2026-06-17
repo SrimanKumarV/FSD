@@ -97,7 +97,7 @@ const Mentorship = () => {
         description: 'I would like to request mentorship from you to help guide my career and skills.',
         focusAreas: ['General Mentorship'],
         goals: ['Career Guidance'],
-        expectedDuration: '1-3 months',
+        expectedDuration: 12, // in weeks
         communicationMethod: 'chat'
       };
       
@@ -165,15 +165,7 @@ const Mentorship = () => {
                 Connect with experienced alumni mentors to accelerate your career growth
               </p>
             </div>
-            {user?.role === 'student' && (
-              <button
-                onClick={() => setShowRequestForm(true)}
-                className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Request Mentorship
-              </button>
-            )}
+
           </div>
 
           {/* Stats */}

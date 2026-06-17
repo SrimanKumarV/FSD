@@ -324,7 +324,9 @@ const Mentorship = () => {
                         {mentor.photo ? (
                           <img src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
                         ) : (
-                          <User className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                          <div className="w-full h-full bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-2xl flex items-center justify-center">
+                            {mentor.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
                         )}
                       </div>
                       <div className="flex-1">

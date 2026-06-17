@@ -187,10 +187,10 @@ router.put('/profile', protect, [
   body('bio').optional().trim().isLength({ max: 500 }),
   body('skills').optional().isArray(),
   body('location').optional().trim().isLength({ max: 100 }),
-  body('socialLinks.linkedin').optional().isURL(),
-  body('socialLinks.github').optional().isURL(),
-  body('socialLinks.twitter').optional().isURL(),
-  body('socialLinks.website').optional().isURL()
+  body('socialLinks.linkedin').optional({ checkFalsy: true }).isURL(),
+  body('socialLinks.github').optional({ checkFalsy: true }).isURL(),
+  body('socialLinks.twitter').optional({ checkFalsy: true }).isURL(),
+  body('socialLinks.website').optional({ checkFalsy: true }).isURL()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

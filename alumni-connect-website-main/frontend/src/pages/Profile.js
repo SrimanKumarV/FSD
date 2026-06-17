@@ -227,7 +227,9 @@ const Profile = () => {
                 {(isEditing ? formData.photo : user.photo) ? (
                   <img src={isEditing ? formData.photo : user.photo} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-16 h-16 text-gray-400" />
+                  <div className="w-full h-full bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-5xl flex items-center justify-center">
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
                 )}
               </div>
               {isEditing && (

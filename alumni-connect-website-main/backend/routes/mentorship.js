@@ -36,6 +36,41 @@ router.get('/', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// @desc    Get available mentors
+// @route   GET /api/mentorship/mentors
+// @access  Private
+router.get('/mentors', protect, async (req, res) => {
+  try {
+    const { skills, industry, location, availability } = req.query;
+    let query = { role: 'alumni' }; // Removed isApproved constraint to show all alumni
+
+    if (skills) {
+      const skillArray = skills.split(',').map(skill => skill.trim());
+      query.skills = { $in: skillArray };
+    }
+
+    if (industry) {
+      query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
+    }
+
+    if (location) {
+      query.location = { $regex: location, $options: 'i' };
+    }
+
+    if (availability === 'available') {
+      query.status = 'available';
+    }
+
+    const mentors = await User.find(query)
+      .select('name photo bio skills location alumniInfo status')
+      .sort({ name: 1 });
+
+    res.json({ mentors });
+  } catch (error) {
+    console.error('Error fetching mentors:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // @desc    Get mentorship by ID
 // @route   GET /api/mentorship/:id
@@ -326,41 +361,7 @@ router.post('/:id/notes', protect, [
   }
 });
 
-// @desc    Get available mentors
-// @route   GET /api/mentorship/mentors
-// @access  Private
-router.get('/mentors', protect, async (req, res) => {
-  try {
-    const { skills, industry, location, availability } = req.query;
-    let query = { role: 'alumni' }; // Removed isApproved constraint to show all alumni
 
-    if (skills) {
-      const skillArray = skills.split(',').map(skill => skill.trim());
-      query.skills = { $in: skillArray };
-    }
-
-    if (industry) {
-      query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
-    }
-
-    if (location) {
-      query.location = { $regex: location, $options: 'i' };
-    }
-
-    if (availability === 'available') {
-      query.status = 'available';
-    }
-
-    const mentors = await User.find(query)
-      .select('name photo bio skills location alumniInfo status')
-      .sort({ name: 1 });
-
-    res.json({ mentors });
-  } catch (error) {
-    console.error('Error fetching mentors:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 // @desc    Update mentor availability
 // @route   PUT /api/mentorship/availability

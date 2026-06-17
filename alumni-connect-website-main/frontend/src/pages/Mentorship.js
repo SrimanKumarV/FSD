@@ -321,7 +321,7 @@ const Mentorship = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
                     <div className="relative z-10 flex items-start space-x-4 mb-4">
                       <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-                        {mentor.photo ? (
+                        {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
                           <img src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-2xl flex items-center justify-center">
@@ -421,7 +421,7 @@ const Mentorship = () => {
                         <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1 flex items-center space-x-2">
                           {user.role === 'alumni' ? (
                             <>
-                              {mentorship.student?.photo ? (
+                              {mentorship.student?.photo && mentorship.student.photo !== 'default-avatar.png' ? (
                                 <img src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
                                 <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -432,7 +432,7 @@ const Mentorship = () => {
                             </>
                           ) : (
                             <>
-                              {mentorship.mentor?.photo ? (
+                              {mentorship.mentor?.photo && mentorship.mentor.photo !== 'default-avatar.png' ? (
                                 <img src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
                                 <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -512,7 +512,7 @@ const Mentorship = () => {
                           </button>
                         )}
                         <button
-                          onClick={() => navigate('/chat')}
+                          onClick={() => navigate('/chat', { state: { startChatWith: user.role === 'alumni' ? mentorship.student?.email : mentorship.mentor?.email } })}
                           className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-primary-500 hover:text-white dark:hover:bg-primary-600 font-semibold rounded-xl transition-colors duration-300"
                         >
                           <MessageCircle className="w-4 h-4 mr-2" />

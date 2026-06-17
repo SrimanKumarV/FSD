@@ -26,8 +26,8 @@ router.get('/', protect, async (req, res) => {
     if (type === 'cancelled') query.status = 'cancelled';
 
     const mentorships = await Mentorship.find(query)
-      .populate('student', 'name photo role studentInfo')
-      .populate('mentor', 'name photo role alumniInfo')
+      .populate('student', 'name email photo role studentInfo')
+      .populate('mentor', 'name email photo role alumniInfo')
       .sort({ createdAt: -1 });
 
     res.json({ mentorships });
@@ -78,8 +78,8 @@ router.get('/mentors', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const mentorship = await Mentorship.findById(req.params.id)
-      .populate('student', 'name photo role studentInfo')
-      .populate('mentor', 'name photo role alumniInfo');
+      .populate('student', 'name email photo role studentInfo')
+      .populate('mentor', 'name email photo role alumniInfo');
 
     if (!mentorship) {
       return res.status(404).json({ message: 'Mentorship request not found' });

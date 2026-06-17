@@ -278,8 +278,8 @@ messageSchema.statics.findRecentConversations = function(userId) {
     {
       $match: {
         $or: [
-          { sender: mongoose.Types.ObjectId(userId) },
-          { receiver: mongoose.Types.ObjectId(userId) }
+          { sender: new mongoose.Types.ObjectId(userId) },
+          { receiver: new mongoose.Types.ObjectId(userId) }
         ],
         'metadata.isDeleted': false
       }
@@ -293,8 +293,8 @@ messageSchema.statics.findRecentConversations = function(userId) {
             $cond: [
               {
                 $and: [
-                  { $eq: ['$receiver', mongoose.Types.ObjectId(userId)] },
-                  { $not: { $in: [mongoose.Types.ObjectId(userId), '$readBy.user'] } }
+                  { $eq: ['$receiver', new mongoose.Types.ObjectId(userId)] },
+                  { $not: { $in: [new mongoose.Types.ObjectId(userId), '$readBy.user'] } }
                 ]
               },
               1,

@@ -396,11 +396,11 @@ const Chat = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
               ) : messagesData?.messages?.length > 0 ? (
-                messagesData.messages.map((msg) => (
+                [...messagesData.messages].reverse().map((msg) => (
                   <MessageBubble
                     key={msg._id}
                     message={msg}
-                    isOwn={msg.sender === (user?._id || user?.id)}
+                    isOwn={msg.sender === (user?._id || user?.id) || msg.sender?._id === (user?._id || user?.id)}
                     user={user}
                   />
                 ))

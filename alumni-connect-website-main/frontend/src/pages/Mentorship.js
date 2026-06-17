@@ -88,29 +88,21 @@ const Mentorship = () => {
     }));
   };
 
-  const handleRequestSubmit = async (e) => {
-    e.preventDefault();
+  const handleQuickRequest = async (mentor) => {
     setLoading(true);
     try {
-      // Split comma separated focus areas and goals
       const submitData = {
-        ...requestForm,
-        focusAreas: typeof requestForm.focusAreas === 'string' ? requestForm.focusAreas.split(',').map(s => s.trim()) : requestForm.focusAreas,
-        goals: typeof requestForm.goals === 'string' ? requestForm.goals.split(',').map(s => s.trim()) : requestForm.goals
+        mentorId: mentor._id || mentor.id,
+        title: `Mentorship Request from ${user.name}`,
+        description: 'I would like to request mentorship from you to help guide my career and skills.',
+        focusAreas: ['General Mentorship'],
+        goals: ['Career Guidance'],
+        expectedDuration: '1-3 months',
+        communicationMethod: 'chat'
       };
       
       await api.post('/mentorship', submitData);
       toast.success('Mentorship request sent successfully!');
-      setShowRequestForm(false);
-      setRequestForm({
-        mentorId: '',
-        title: '',
-        description: '',
-        focusAreas: [],
-        goals: [],
-        expectedDuration: '',
-        communicationMethod: ''
-      });
       if (activeTab === 'my-mentorships') fetchMentorships();
     } catch (error) {
       console.error('Error submitting request:', error);
@@ -137,6 +129,8 @@ const Mentorship = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'accepted': return 'text-green-600 bg-green-100';
+      case 'rejected': return 'text-red-600 bg-red-100';
       case 'active': return 'text-green-600 bg-green-100';
       case 'completed': return 'text-blue-600 bg-blue-100';
       case 'cancelled': return 'text-red-600 bg-red-100';
@@ -392,11 +386,9 @@ const Mentorship = () => {
                         {mentor.status === 'available' ? 'Available' : 'Busy'}
                       </span>
                       <button
-                        onClick={() => {
-                          setRequestForm(prev => ({ ...prev, mentorId: mentor.id }));
-                          setShowRequestForm(true);
-                        }}
-                        className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                        onClick={() => handleQuickRequest(mentor)}
+                        disabled={loading}
+                        className="px-6 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                       >
                         Request Mentorship
                       </button>
@@ -460,8 +452,8 @@ const Mentorship = () => {
                           )}
                         </p>
                       </div>
-                      <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${getStatusColor(mentorship.status)}`}>
-                        {mentorship.status}
+                      <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm capitalize ${getStatusColor(mentorship.status)}`}>
+                        {mentorship.status === 'accepted' ? 'Approved' : mentorship.status}
                       </span>
                     </div>
 
@@ -548,132 +540,7 @@ const Mentorship = () => {
           </motion.div>
         )}
 
-        {/* Mentorship Request Modal */}
-        {showRequestForm && (
-          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="glass-card bg-white/95 dark:bg-gray-900/95 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Request Mentorship</h2>
-                  <button
-                    onClick={() => setShowRequestForm(false)}
-                    className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                  >
-                    <XCircle className="w-8 h-8" />
-                  </button>
-                </div>
 
-                <form onSubmit={handleRequestSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mentor
-                    </label>
-                    <select
-                      value={requestForm.mentorId}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, mentorId: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select a mentor</option>
-                      {mentors.map(mentor => (
-                        <option key={mentor.id} value={mentor.id}>
-                          {mentor.name} - {mentor.alumniInfo.position} at {mentor.alumniInfo.company}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      value={requestForm.title}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="e.g., Career Transition to Tech"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={requestForm.description}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, description: e.target.value }))}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Describe what you're looking to achieve through mentorship..."
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Expected Duration
-                      </label>
-                      <select
-                        value={requestForm.expectedDuration}
-                        onChange={(e) => setRequestForm(prev => ({ ...prev, expectedDuration: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        required
-                      >
-                        <option value="">Select duration</option>
-                        <option value="1-3 months">1-3 months</option>
-                        <option value="3-6 months">3-6 months</option>
-                        <option value="6-12 months">6-12 months</option>
-                        <option value="1+ years">1+ years</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Communication Method
-                      </label>
-                      <select
-                        value={requestForm.communicationMethod}
-                        onChange={(e) => setRequestForm(prev => ({ ...prev, communicationMethod: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        required
-                      >
-                        <option value="">Select method</option>
-                        <option value="email">Email</option>
-                        <option value="video_call">Video Call</option>
-                        <option value="chat">Chat</option>
-                        <option value="in_person">In Person</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-gray-200/50 dark:border-gray-700/50">
-                    <button
-                      type="button"
-                      onClick={() => setShowRequestForm(false)}
-                      className="px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-8 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
-                    >
-                      {loading ? 'Submitting...' : 'Submit Request'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        )}
       </div>
     </div>
   );

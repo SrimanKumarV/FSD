@@ -494,7 +494,7 @@ const Profile = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate('/messages')}
+                        onClick={() => navigate('/chat', { state: { startChatWith: follower.email } })}
                         className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors"
                       >
                         <MessageSquare className="w-4 h-4" />
@@ -527,7 +527,7 @@ const Profile = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate('/messages')}
+                        onClick={() => navigate('/chat', { state: { startChatWith: followingUser.email } })}
                         className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors"
                       >
                         <MessageSquare className="w-4 h-4" />

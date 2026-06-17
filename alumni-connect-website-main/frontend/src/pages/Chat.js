@@ -48,11 +48,13 @@ const Chat = () => {
     { enabled: !!user }
   );
 
-  // Fetch messages for selected chat
+  const otherParticipantId = selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id;
+
+  // Fetch messages for selected chat using the stable participant ID
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
-    ['chat-messages', selectedChat?._id],
-    () => api.get(`/messages/conversation/${selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id}`),
-    { enabled: !!selectedChat?._id }
+    ['chat-messages', otherParticipantId],
+    () => api.get(`/messages/conversation/${otherParticipantId}`),
+    { enabled: !!otherParticipantId }
   );
 
   const [showNewChat, setShowNewChat] = useState(false);
@@ -101,12 +103,12 @@ const Chat = () => {
     }
   }, [location.state?.startChatWith, location.search]);
 
-  // Send message mutation
+  // Send message mutation (fallback if socket fails)
   const sendMessageMutation = useMutation(
     (messageData) => api.post('/messages', messageData),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(['chat-messages', selectedChat?._id]);
+        queryClient.invalidateQueries(['chat-messages', otherParticipantId]);
         queryClient.invalidateQueries(['user-chats']);
         setMessage('');
       },
@@ -116,31 +118,60 @@ const Chat = () => {
     }
   );
 
+  // Auto-update selectedChat if the backend returns a real ID after sending a message
+  useEffect(() => {
+    if (selectedChat?._id?.startsWith('temp_') && chatsData?.chats) {
+      const realChat = chatsData.chats.find(c => {
+        const cOther = c.participants.find(p => (p._id || p.id) !== (user?._id || user?.id));
+        return (cOther?._id || cOther?.id) === otherParticipantId;
+      });
+      if (realChat && realChat._id !== selectedChat._id) {
+        setSelectedChat(realChat);
+      }
+    }
+  }, [chatsData, selectedChat, otherParticipantId, user]);
+
   // Socket event handlers
   useEffect(() => {
     if (!socket || !isConnected) return;
 
-    // Listen for new messages
-    socket.on('new-message', (data) => {
-      if (data.chatId === selectedChat?._id) {
-        queryClient.invalidateQueries(['chat-messages', selectedChat?._id]);
-      }
+    const handleMessageReceived = (data) => {
+      const senderId = data.message.sender._id || data.message.sender;
+      queryClient.invalidateQueries(['chat-messages', senderId]);
       queryClient.invalidateQueries(['user-chats']);
-    });
+    };
 
-    // Listen for typing indicators
-    socket.on('user-typing', (data) => {
-      if (data.chatId === selectedChat?._id && data.userId !== (user?._id || user?.id)) {
+    const handleMessageSent = (data) => {
+      const receiverId = data.message.receiver._id || data.message.receiver;
+      queryClient.invalidateQueries(['chat-messages', receiverId]);
+      queryClient.invalidateQueries(['user-chats']);
+      setMessage('');
+    };
+
+    const handleTypingStart = (data) => {
+      if (otherParticipantId === data.userId) {
         setIsTyping(true);
-        setTimeout(() => setIsTyping(false), 3000);
       }
-    });
+    };
+
+    const handleTypingStop = (data) => {
+      if (otherParticipantId === data.userId) {
+        setIsTyping(false);
+      }
+    };
+
+    socket.on('message:received', handleMessageReceived);
+    socket.on('message:sent', handleMessageSent);
+    socket.on('typing:start', handleTypingStart);
+    socket.on('typing:stop', handleTypingStop);
 
     return () => {
-      socket.off('new-message');
-      socket.off('user-typing');
+      socket.off('message:received', handleMessageReceived);
+      socket.off('message:sent', handleMessageSent);
+      socket.off('typing:start', handleTypingStart);
+      socket.off('typing:stop', handleTypingStop);
     };
-  }, [socket, isConnected, selectedChat, user, queryClient]);
+  }, [socket, isConnected, otherParticipantId, queryClient]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -149,25 +180,34 @@ const Chat = () => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim() || !selectedChat) return;
+    if (!message.trim() || !selectedChat || !otherParticipantId) return;
 
-    const messageData = {
-      receiver: selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id,
-      content: message.trim(),
-      messageType: 'text'
-    };
-
-    sendMessageMutation.mutate(messageData);
+    if (socket && isConnected) {
+      socket.emit('message:send', {
+        receiverId: otherParticipantId,
+        content: message.trim(),
+        messageType: 'text'
+      });
+      // Fallback optimistic UI clear
+      setMessage('');
+    } else {
+      const messageData = {
+        receiver: otherParticipantId,
+        content: message.trim(),
+        messageType: 'text'
+      };
+      sendMessageMutation.mutate(messageData);
+    }
 
     // Emit typing stop
     if (socket && isConnected) {
-      socket.emit('stop-typing', { chatId: selectedChat._id });
+      socket.emit('typing:stop', { receiverId: otherParticipantId });
     }
   };
 
   const handleTyping = () => {
-    if (socket && isConnected && selectedChat) {
-      socket.emit('typing', { chatId: selectedChat._id });
+    if (socket && isConnected && otherParticipantId) {
+      socket.emit('typing:start', { receiverId: otherParticipantId });
     }
   };
 

@@ -61,6 +61,15 @@ router.post('/start-chat', protect, [
       return res.status(400).json({ message: 'Cannot start a chat with yourself' });
     }
 
+    const isConnected = targetUser.connections && targetUser.connections.includes(req.user.id);
+    const isFollower = targetUser.followers && targetUser.followers.includes(req.user.id);
+    const isFollowing = req.user.followers && req.user.followers.includes(targetUser._id);
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isAdmin && !isConnected && !isFollower && !isFollowing) {
+      return res.status(403).json({ message: 'You can only chat with your connections or followers' });
+    }
+
     res.json({ targetUser: { _id: targetUser._id, name: targetUser.name, photo: targetUser.photo, role: targetUser.role } });
   } catch (error) {
     console.error('Error starting chat:', error);
@@ -98,6 +107,15 @@ router.post('/', [protect, verified], [
     // Check if trying to message self
     if (receiver === req.user.id) {
       return res.status(400).json({ message: 'Cannot send message to yourself' });
+    }
+
+    const isConnected = receiverUser.connections && receiverUser.connections.includes(req.user.id);
+    const isFollower = receiverUser.followers && receiverUser.followers.includes(req.user.id);
+    const isFollowing = req.user.followers && req.user.followers.includes(receiverUser._id);
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isAdmin && !isConnected && !isFollower && !isFollowing) {
+      return res.status(403).json({ message: 'You can only chat with your connections or followers' });
     }
 
     // Generate conversation ID

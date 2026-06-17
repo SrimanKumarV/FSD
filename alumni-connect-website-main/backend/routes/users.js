@@ -102,7 +102,10 @@ router.get('/search', protect, async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    let query = { _id: { $ne: req.user.id } }; // Exclude current user
+    let query = { 
+      _id: { $ne: req.user.id },
+      isVerified: true 
+    }; // Exclude current user and require verification
 
     if (role) query.role = role;
     if (industry) query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
@@ -361,10 +364,10 @@ router.delete('/:id/connect', protect, async (req, res) => {
 router.get('/:id/connections', protect, async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .populate('connections', 'name photo role location studentInfo alumniInfo')
-      .populate('followers', 'name photo role location studentInfo alumniInfo')
-      .populate('following', 'name photo role location studentInfo alumniInfo')
-      .populate('followRequests', 'name photo role location studentInfo alumniInfo');
+      .populate('connections', 'name email photo role location studentInfo alumniInfo')
+      .populate('followers', 'name email photo role location studentInfo alumniInfo')
+      .populate('following', 'name email photo role location studentInfo alumniInfo')
+      .populate('followRequests', 'name email photo role location studentInfo alumniInfo');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -511,7 +514,8 @@ router.get('/online', protect, async (req, res) => {
     
     const onlineUsers = await User.find({
       lastActive: { $gte: fiveMinutesAgo },
-      _id: { $ne: req.user.id }
+      _id: { $ne: req.user.id },
+      isVerified: true
     }).select('name photo role lastActive');
 
     res.json({ onlineUsers });

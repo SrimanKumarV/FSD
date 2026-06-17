@@ -42,14 +42,16 @@ router.get('/', protect, async (req, res) => {
 router.get('/mentors', protect, async (req, res) => {
   try {
     const { skills, industry, location, availability } = req.query;
-    let query = { role: 'alumni' }; // Removed isApproved constraint to show all alumni
+    // Determine target role based on current user's role
+    const targetRole = req.user.role === 'alumni' ? 'student' : 'alumni';
+    let query = { role: targetRole };
 
     if (skills) {
       const skillArray = skills.split(',').map(skill => skill.trim());
       query.skills = { $in: skillArray };
     }
 
-    if (industry) {
+    if (industry && targetRole === 'alumni') {
       query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
     }
 
@@ -57,12 +59,19 @@ router.get('/mentors', protect, async (req, res) => {
       query.location = { $regex: location, $options: 'i' };
     }
 
-    if (availability === 'available') {
+    if (availability === 'available' && targetRole === 'alumni') {
       query.status = 'available';
     }
 
+    let selectFields = 'name email photo bio skills location status role';
+    if (targetRole === 'student') {
+      selectFields += ' studentInfo';
+    } else {
+      selectFields += ' alumniInfo';
+    }
+
     const mentors = await User.find(query)
-      .select('name photo bio skills location alumniInfo status')
+      .select(selectFields)
       .sort({ name: 1 });
 
     res.json({ mentors });
@@ -100,9 +109,9 @@ router.get('/:id', protect, async (req, res) => {
 
 // @desc    Create mentorship request
 // @route   POST /api/mentorship
-// @access  Private (Students only)
-router.post('/', [protect, student], [
-  body('mentorId').isMongoId().withMessage('Valid mentor ID is required'),
+// @access  Private
+router.post('/', [protect], [
+  body('targetUserId').isMongoId().withMessage('Valid target user ID is required'),
   body('title').trim().isLength({ min: 5, max: 100 }).withMessage('Title must be 5-100 characters'),
   body('description').trim().isLength({ min: 20, max: 1000 }).withMessage('Description must be 20-1000 characters'),
   body('focusAreas').isArray({ min: 1 }).withMessage('At least one focus area is required'),
@@ -116,21 +125,32 @@ router.post('/', [protect, student], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { mentorId, title, description, focusAreas, goals, expectedDuration, communicationMethod } = req.body;
+    const { targetUserId, title, description, focusAreas, goals, expectedDuration, communicationMethod } = req.body;
 
-    // Check if mentor exists and is available
-    const mentor = await User.findById(mentorId);
-    if (!mentor || mentor.role !== 'alumni') {
-      return res.status(400).json({ message: 'Invalid mentor' });
+    // Check if target user exists
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(400).json({ message: 'User not found' });
     }
 
-    if (!mentor.isApproved) {
-      return res.status(400).json({ message: 'Mentor account not approved' });
+    let studentId, mentorId;
+    if (req.user.role === 'alumni') {
+      if (targetUser.role !== 'student') return res.status(400).json({ message: 'Alumni can only mentor students' });
+      mentorId = req.user.id;
+      studentId = targetUserId;
+    } else {
+      if (targetUser.role !== 'alumni') return res.status(400).json({ message: 'Students can only request alumni' });
+      studentId = req.user.id;
+      mentorId = targetUserId;
+      
+      if (!targetUser.isApproved) {
+        return res.status(400).json({ message: 'Mentor account not approved' });
+      }
     }
 
     // Check if there's already a pending/active mentorship
     const existingMentorship = await Mentorship.findOne({
-      student: req.user.id,
+      student: studentId,
       mentor: mentorId,
       status: { $in: ['pending', 'active'] }
     });
@@ -140,7 +160,7 @@ router.post('/', [protect, student], [
     }
 
     const mentorship = new Mentorship({
-      student: req.user.id,
+      student: studentId,
       mentor: mentorId,
       title,
       description,
@@ -152,6 +172,10 @@ router.post('/', [protect, student], [
     });
 
     await mentorship.save();
+
+    // Bi-directional follower logic: requester automatically follows target user
+    await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: targetUserId } });
+    await User.findByIdAndUpdate(targetUserId, { $addToSet: { followers: req.user.id } });
 
     // Populate for response
     await mentorship.populate('student', 'name photo role');
@@ -176,8 +200,8 @@ router.post('/', [protect, student], [
 
 // @desc    Update mentorship status
 // @route   PUT /api/mentorship/:id/status
-// @access  Private (Mentor only)
-router.put('/:id/status', [protect, alumni], [
+// @access  Private
+router.put('/:id/status', [protect], [
   body('status').isIn(['accepted', 'rejected', 'active', 'completed', 'cancelled']).withMessage('Invalid status'),
   body('reason').optional().trim().isLength({ max: 500 })
 ], async (req, res) => {
@@ -194,7 +218,7 @@ router.put('/:id/status', [protect, alumni], [
       return res.status(404).json({ message: 'Mentorship request not found' });
     }
 
-    if (mentorship.mentor.toString() !== req.user.id) {
+    if (mentorship.mentor.toString() !== req.user.id && mentorship.student.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -214,6 +238,11 @@ router.put('/:id/status', [protect, alumni], [
       mentorship.startDate = new Date();
     } else if (status === 'completed') {
       mentorship.endDate = new Date();
+    } else if (status === 'accepted') {
+      // Bi-directional follower logic: responder automatically follows requester
+      const requesterId = req.user.id === mentorship.mentor.toString() ? mentorship.student : mentorship.mentor;
+      await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: requesterId } });
+      await User.findByIdAndUpdate(requesterId, { $addToSet: { followers: req.user.id } });
     }
 
     await mentorship.save();

@@ -88,11 +88,11 @@ const Mentorship = () => {
     }));
   };
 
-  const handleQuickRequest = async (mentor) => {
+  const handleQuickRequest = async (targetUser) => {
     setLoading(true);
     try {
       const submitData = {
-        mentorId: mentor._id || mentor.id,
+        targetUserId: targetUser._id || targetUser.id,
         title: `Mentorship Request from ${user.name}`,
         description: 'I would like to request mentorship from you to help guide my career and skills.',
         focusAreas: ['General Mentorship'],
@@ -173,7 +173,7 @@ const Mentorship = () => {
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-2xl shadow-sm">
               <Users className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{mentors.length}</p>
-              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">Available Mentors</p>
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">{user.role === 'alumni' ? 'Available Students' : 'Available Mentors'}</p>
             </motion.div>
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-green-50/50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-2xl shadow-sm">
               <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-3" />
@@ -205,7 +205,7 @@ const Mentorship = () => {
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 }`}
               >
-                Find Mentors
+                {user.role === 'alumni' ? 'Find Students' : 'Find Mentors'}
               </button>
               <button
                 onClick={() => setActiveTab('my-mentorships')}
@@ -331,8 +331,12 @@ const Mentorship = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">{mentor.name}</h3>
-                        <p className="text-sm font-medium text-primary-600 dark:text-primary-400">{mentor.alumniInfo.position}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{mentor.alumniInfo.company}</p>
+                        <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                          {user.role === 'alumni' ? mentor.studentInfo?.course : mentor.alumniInfo?.position}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {user.role === 'alumni' ? mentor.studentInfo?.university : mentor.alumniInfo?.company}
+                        </p>
                       </div>
                     </div>
 
@@ -345,12 +349,14 @@ const Mentorship = () => {
                       </div>
                       <div className="flex items-center">
                         <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                        {mentor.rating}
+                        {mentor.rating || '5.0'}
                       </div>
-                      <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {mentor.menteeCount} mentees
-                      </div>
+                      {user.role !== 'alumni' && (
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-1" />
+                          {mentor.menteeCount || 0} mentees
+                        </div>
+                      )}
                     </div>
 
                     <div className="relative z-10 flex flex-wrap gap-2 mb-6">

@@ -66,13 +66,37 @@ const Network = () => {
     }
   );
 
-  const handleFollowToggle = (userId, isFollowing) => {
+  const handleFollowToggle = (userId, isFollowing, isRequested) => {
     if (isFollowing) {
       unfollowMutation.mutate(userId);
+    } else if (isRequested) {
+      toast('Follow request already sent', { icon: 'ℹ️' });
     } else {
       followMutation.mutate(userId);
     }
   };
+
+  const pendingRequests = connectionsData?.followRequests || [];
+
+  const acceptMutation = useMutation(
+    (userId) => api.post(`/users/${userId}/accept-follow`),
+    {
+      onSuccess: () => {
+        toast.success('Request accepted');
+        queryClient.invalidateQueries(['user-connections', currentUser?._id]);
+      }
+    }
+  );
+
+  const declineMutation = useMutation(
+    (userId) => api.post(`/users/${userId}/decline-follow`),
+    {
+      onSuccess: () => {
+        toast.success('Request declined');
+        queryClient.invalidateQueries(['user-connections', currentUser?._id]);
+      }
+    }
+  );
 
   const handleMessage = (userEmail) => {
     navigate('/chat', { state: { startChatWith: userEmail } });
@@ -100,6 +124,31 @@ const Network = () => {
         </div>
       </div>
 
+      {pendingRequests.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Follow Requests</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pendingRequests.map(reqUser => (
+              <div key={reqUser._id} className="glass-card p-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white font-bold">
+                    {reqUser.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
+                    <p className="text-xs text-gray-500 capitalize">{reqUser.role}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button onClick={() => acceptMutation.mutate(reqUser._id)} disabled={acceptMutation.isLoading} className="px-3 py-1 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-all disabled:opacity-50">Accept</button>
+                  <button onClick={() => declineMutation.mutate(reqUser._id)} disabled={declineMutation.isLoading} className="px-3 py-1 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50">Decline</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -108,6 +157,7 @@ const Network = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data?.data?.users?.map((user) => {
             const isFollowing = followingIds.includes(user._id);
+            const isRequested = user.followRequests?.some(id => id.toString() === (currentUser?._id || currentUser?.id)?.toString());
             return (
               <motion.div
                 key={user._id}
@@ -174,11 +224,13 @@ const Network = () => {
 
                 <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                   <button
-                    onClick={() => handleFollowToggle(user._id, isFollowing)}
+                    onClick={() => handleFollowToggle(user._id, isFollowing, isRequested)}
                     disabled={followMutation.isLoading || unfollowMutation.isLoading}
                     className={`flex-1 flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                       isFollowing
                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                        : isRequested
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
                         : 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40'
                     }`}
                   >
@@ -186,6 +238,11 @@ const Network = () => {
                       <>
                         <UserCheck className="w-4 h-4 mr-2" />
                         Following
+                      </>
+                    ) : isRequested ? (
+                      <>
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Requested
                       </>
                     ) : (
                       <>

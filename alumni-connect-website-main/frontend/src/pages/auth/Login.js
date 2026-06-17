@@ -84,7 +84,9 @@ const Login = () => {
 
     try {
       const result = await login(data.email, data.password);
-      if (result.success) {
+      if (result.requiresVerification) {
+        navigate('/verify-email', { state: { email: result.email } });
+      } else if (result.success) {
         navigate(from, { replace: true });
       } else {
         setError('root', {

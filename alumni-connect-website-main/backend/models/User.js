@@ -132,6 +132,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  followRequests: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   
   // Timestamps
   lastActive: {
@@ -141,7 +145,11 @@ const userSchema = new mongoose.Schema({
   
   // Password Reset
   resetPasswordOtp: String,
-  resetPasswordExpires: Date
+  resetPasswordExpires: Date,
+  
+  // Email Verification OTP
+  verificationOtp: String,
+  verificationOtpExpires: Date
 }, {
   timestamps: true
 });

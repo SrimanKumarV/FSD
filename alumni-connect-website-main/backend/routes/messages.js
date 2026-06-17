@@ -147,7 +147,7 @@ router.post('/', [protect, verified], [
               <p style="margin: 0; color: #4b5563; font-style: italic;">${content}</p>
             </div>
             <div style="text-align: center; margin-top: 30px;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/chat" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reply to Message</a>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/chat?startChat=${req.user.email}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reply to Message</a>
             </div>
           </div>
           <div style="background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">

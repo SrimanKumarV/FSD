@@ -363,7 +363,8 @@ router.get('/:id/connections', protect, async (req, res) => {
     const user = await User.findById(req.params.id)
       .populate('connections', 'name photo role location studentInfo alumniInfo')
       .populate('followers', 'name photo role location studentInfo alumniInfo')
-      .populate('following', 'name photo role location studentInfo alumniInfo');
+      .populate('following', 'name photo role location studentInfo alumniInfo')
+      .populate('followRequests', 'name photo role location studentInfo alumniInfo');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -372,7 +373,8 @@ router.get('/:id/connections', protect, async (req, res) => {
     res.json({ 
       connections: user.connections,
       followers: user.followers,
-      following: user.following
+      following: user.following,
+      followRequests: user.followRequests
     });
   } catch (error) {
     console.error('Error fetching connections:', error);
@@ -392,15 +394,86 @@ router.post('/:id/follow', protect, async (req, res) => {
     if (targetUser.followers.includes(req.user.id)) {
       return res.status(400).json({ message: 'Already following' });
     }
+    
+    if (targetUser.followRequests && targetUser.followRequests.includes(req.user.id)) {
+      return res.status(400).json({ message: 'Follow request already sent' });
+    }
 
-    targetUser.followers.push(req.user.id);
+    if(!targetUser.followRequests) targetUser.followRequests = [];
+    targetUser.followRequests.push(req.user.id);
     await targetUser.save();
 
+    // Create notification
+    await Notification.createNotification({
+      recipient: targetUser._id,
+      sender: req.user.id,
+      type: 'follow_request',
+      title: 'New Follow Request',
+      content: `${req.user.name} wants to follow you`,
+      relatedData: { userId: req.user.id }
+    });
+
+    res.json({ message: 'Follow request sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Accept follow request
+// @route   POST /api/users/:id/accept-follow
+// @access  Private
+router.post('/:id/accept-follow', protect, async (req, res) => {
+  try {
+    const requesterId = req.params.id;
     const currentUser = await User.findById(req.user.id);
-    currentUser.following.push(targetUser._id);
+    
+    if (!currentUser.followRequests || !currentUser.followRequests.includes(requesterId)) {
+      return res.status(400).json({ message: 'No follow request found' });
+    }
+
+    currentUser.followRequests = currentUser.followRequests.filter(id => id.toString() !== requesterId);
+    if(!currentUser.followers.includes(requesterId)) {
+      currentUser.followers.push(requesterId);
+    }
     await currentUser.save();
 
-    res.json({ message: 'Followed successfully' });
+    const requesterUser = await User.findById(requesterId);
+    if (requesterUser) {
+      if(!requesterUser.following.includes(currentUser._id)) {
+        requesterUser.following.push(currentUser._id);
+        await requesterUser.save();
+      }
+      
+      await Notification.createNotification({
+        recipient: requesterId,
+        sender: currentUser._id,
+        type: 'follow_accept',
+        title: 'Follow Request Accepted',
+        content: `${currentUser.name} accepted your follow request`,
+        relatedData: { userId: currentUser._id }
+      });
+    }
+
+    res.json({ message: 'Follow request accepted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Decline follow request
+// @route   POST /api/users/:id/decline-follow
+// @access  Private
+router.post('/:id/decline-follow', protect, async (req, res) => {
+  try {
+    const requesterId = req.params.id;
+    const currentUser = await User.findById(req.user.id);
+    
+    if(currentUser.followRequests) {
+      currentUser.followRequests = currentUser.followRequests.filter(id => id.toString() !== requesterId);
+      await currentUser.save();
+    }
+
+    res.json({ message: 'Follow request declined' });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

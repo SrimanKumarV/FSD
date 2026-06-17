@@ -104,14 +104,14 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await register(formData);
-      toast.success('Registration successful! Welcome to Alumnex Connect!');
-      navigate('/dashboard');
+      const result = await register(formData);
+      if (result.requiresVerification) {
+        navigate('/verify-email', { state: { email: result.email } });
+      } else if (result.success) {
+        navigate('/dashboard');
+      }
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed. Please try again.';
-      toast.error(message);
-      
-      // Set specific field errors if provided by the backend
+      // AuthContext handles most errors and toasts
       if (error.response?.data?.errors) {
         const backendErrors = {};
         error.response.data.errors.forEach(err => {

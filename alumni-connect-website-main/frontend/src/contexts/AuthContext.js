@@ -153,12 +153,18 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
+      const requiresVerification = error.response?.data?.requiresVerification;
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
         payload: message
       });
-      toast.error(message);
-      return { success: false, error: message };
+      if (!requiresVerification) toast.error(message);
+      return { 
+        success: false, 
+        error: message, 
+        requiresVerification, 
+        email: error.response?.data?.email || email 
+      };
     }
   };
 
@@ -227,7 +233,13 @@ export const AuthProvider = ({ children }) => {
       
       const response = await api.post('/auth/register', userData);
       
-      const { user, token, message } = response.data;
+      const { user, token, message, requiresVerification } = response.data;
+      
+      if (requiresVerification) {
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        toast.success(message || 'Registration successful!');
+        return { success: true, requiresVerification: true, email: user.email };
+      }
       
       dispatch({
         type: AUTH_ACTIONS.REGISTER_SUCCESS,
@@ -330,10 +342,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Verify email
-  const verifyEmail = async (token) => {
+  const verifyEmail = async (email, otp) => {
     try {
-      const response = await api.post('/auth/verify-email', { token });
-      toast.success(response.data.message);
+      const response = await api.post('/auth/verify-email', { email, otp });
+      const { user, token, message } = response.data;
+      
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user, token }
+      });
+      
+      toast.success(message);
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Email verification failed';

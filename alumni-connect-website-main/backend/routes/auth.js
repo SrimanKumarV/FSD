@@ -275,23 +275,39 @@ router.post('/register', [
       userFields.isApproved = false;
     }
 
+    // Generate 6-digit OTP for email verification
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    userFields.verificationOtp = otp;
+    userFields.verificationOtpExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+    userFields.isVerified = false;
+
     // Create new user
     user = new User(userFields);
     await user.save();
 
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Return user data (without password)
-    const userResponse = user.getPublicProfile();
+    // Send verification email
+    const message = `
+      <h1>Welcome to Alumnex Connect!</h1>
+      <p>Thank you for registering. Please verify your email address to complete your registration.</p>
+      <p>Your 6-digit verification code is: <strong>${otp}</strong></p>
+      <p>This code is valid for 15 minutes.</p>
+    `;
+    
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Alumnex Connect - Verify Your Email',
+        message
+      });
+    } catch (err) {
+      console.error('Registration email send error:', err);
+    }
 
     res.status(201).json({
       success: true,
-      token,
-      user: userResponse,
-      message: role === 'alumni' ? 
-        'Account created successfully! Your account will be reviewed by admin for approval.' : 
-        'Account created successfully!'
+      requiresVerification: true,
+      user: { email: user.email },
+      message: 'Registration successful! Please check your email for the verification code.'
     });
 
   } catch (error) {
@@ -325,6 +341,31 @@ router.post('/login', [
     // Check if user is active
     if (!user.isActive) {
       return res.status(400).json({ message: 'Account is deactivated' });
+    }
+
+    // Check if user is verified
+    if (!user.isVerified) {
+      // Generate new OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.verificationOtp = otp;
+      user.verificationOtpExpires = Date.now() + 15 * 60 * 1000;
+      await user.save();
+      
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Alumnex Connect - Verify Your Email',
+          message: `<p>Your verification code is: <strong>${otp}</strong></p>`
+        });
+      } catch (e) {
+        console.error('Email failed', e);
+      }
+      
+      return res.status(403).json({ 
+        message: 'Please verify your email to login. A new OTP has been sent to your email.',
+        requiresVerification: true,
+        email: user.email
+      });
     }
 
     // Check if alumni account is approved
@@ -596,46 +637,46 @@ router.post('/logout', protect, async (req, res) => {
 });
 
 // @route   POST /api/auth/verify-email
-// @desc    Verify user email
+// @desc    Verify user email with OTP
 // @access  Public
 router.post('/verify-email', [
-  body('token', 'Verification token is required').exists()
+  body('email', 'Valid email is required').isEmail().normalizeEmail(),
+  body('otp', 'OTP is required').exists()
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { token } = req.body;
+    const { email, otp } = req.body;
 
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      return res.status(400).json({ message: 'Invalid or expired verification token' });
-    }
+    const user = await User.findOne({
+      email,
+      verificationOtp: otp,
+      verificationOtpExpires: { $gt: Date.now() }
+    });
 
-    // Find user
-    const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
-    // Check if already verified
     if (user.isVerified) {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
-    // Mark as verified
     user.isVerified = true;
+    user.verificationOtp = undefined;
+    user.verificationOtpExpires = undefined;
     await user.save();
+
+    const token = generateToken(user._id);
 
     res.json({
       success: true,
-      message: 'Email verified successfully'
+      message: 'Email verified successfully! You are now logged in.',
+      token,
+      user: user.getPublicProfile()
     });
 
   } catch (error) {

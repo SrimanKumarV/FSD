@@ -51,7 +51,7 @@ const Chat = () => {
   // Fetch messages for selected chat
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
     ['chat-messages', selectedChat?._id],
-    () => api.get(`/messages/conversation/${selectedChat?.participants?.find(p => p._id !== user?._id)?._id}`),
+    () => api.get(`/messages/conversation/${selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id}`),
     { enabled: !!selectedChat?._id }
   );
 
@@ -86,12 +86,20 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    if (location.state?.startChatWith) {
+    const searchParams = new URLSearchParams(location.search);
+    const startChatEmail = searchParams.get('startChat');
+    
+    if (startChatEmail) {
+      startChatMutation.mutate(startChatEmail);
+      // Remove query param
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    } else if (location.state?.startChatWith) {
       startChatMutation.mutate(location.state.startChatWith);
       // Clear the state so it doesn't trigger again on reload
       window.history.replaceState({}, document.title);
     }
-  }, [location.state?.startChatWith]);
+  }, [location.state?.startChatWith, location.search]);
 
   // Send message mutation
   const sendMessageMutation = useMutation(

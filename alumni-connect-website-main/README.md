@@ -1,220 +1,156 @@
-# Alumnex Connect - Student-Alumni Connection Platform
+# Alumnex-Connect 🎓
 
-A comprehensive platform that connects students with alumni for mentorship, job opportunities, networking, and knowledge sharing.
+![Alumnex Connect Banner](https://img.shields.io/badge/Platform-Alumnex_Connect-blue?style=for-the-badge) ![MERN Stack](https://img.shields.io/badge/Stack-MERN-green?style=for-the-badge) ![React](https://img.shields.io/badge/Frontend-React-61dafb?style=for-the-badge) ![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?style=for-the-badge) 
 
-## 🚀 Current Status
-
-The project has been significantly developed with both backend and frontend components implemented:
-
-### ✅ Backend (Complete)
-- **Authentication & Authorization** - JWT-based auth with role-based access control
-- **User Management** - Student and alumni profiles with verification system
-- **Forum System** - Complete discussion platform with posts, comments, and moderation
-- **Job Board** - Job posting and application management
-- **Events Management** - Event creation, registration, and management
-- **Mentorship System** - Mentor-mentee matching and communication
-- **Contest Platform** - Competition management with participation tracking
-- **Messaging System** - Real-time chat functionality
-- **Notification System** - Push notifications and alerts
-- **Admin Panel** - Comprehensive administrative tools
-
-### ✅ Frontend (Complete)
-- **Modern UI Components** - Built with React, Tailwind CSS, and Framer Motion
-- **Responsive Design** - Mobile-first approach with beautiful animations
-- **State Management** - React Query for server state, Context for app state
-- **Real-time Features** - WebSocket integration for live updates
-- **Form Handling** - Comprehensive form validation and error handling
-- **Navigation** - Protected routes with role-based access control
-
-## 🛠️ Technology Stack
-
-### Backend
-- **Node.js** with Express.js
-- **MongoDB** with Mongoose ODM
-- **JWT** for authentication
-- **Socket.io** for real-time communication
-- **Multer** for file uploads
-- **Express Validator** for input validation
-
-### Frontend
-- **React 18** with modern hooks
-- **Tailwind CSS** for styling
-- **Framer Motion** for animations
-- **React Query** for server state management
-- **Socket.io Client** for real-time features
-- **React Router** for navigation
-- **React Hot Toast** for notifications
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v5 or higher)
-- npm or yarn
-
-### Backend Setup
-   ```bash
-   cd backend
-npm install
-cp env.example .env
-# Configure your .env file with database and JWT secrets
-npm start
-```
-
-### Frontend Setup
-   ```bash
-cd frontend
-npm install
-npm start
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
-
-## 📱 Features Overview
-
-### 🔐 Authentication
-- User registration (Students & Alumni)
-- Email verification system
-- Role-based access control
-- Secure password handling
-
-### 👥 User Profiles
-- Comprehensive profile management
-- Role-specific information (graduation year, company, position)
-- Profile verification system
-- Photo and document uploads
-
-### 💬 Forum System
-- Create and manage discussion posts
-- Categorization and tagging
-- Comment system with replies
-- Content moderation tools
-- Anonymous posting option
-
-### 💼 Job Board
-- Job posting and management
-- Application tracking
-- Company profiles
-- Job search and filtering
-- Application status updates
-
-### 📅 Events
-- Event creation and management
-- Registration system
-- Calendar integration
-- Event categories and filtering
-- Attendee management
-
-### 🤝 Mentorship
-- Mentor-mentee matching
-- Goal setting and tracking
-- Communication tools
-- Progress monitoring
-- Feedback system
-
-### 🏆 Contests
-- Competition creation and management
-- Participant registration
-- Judging system
-- Prize management
-- Status tracking
-
-### 💬 Real-time Chat
-- Direct messaging between users
-- Group conversations
-- Typing indicators
-- Message status tracking
-- File sharing support
-
-### 🔔 Notifications
-- Real-time push notifications
-- Email notifications
-- In-app notification center
-- Customizable notification preferences
-
-### ⚙️ Admin Panel
-- User management and moderation
-- Content moderation tools
-- System analytics and reports
-- Platform configuration
-- User role management
-
-## 🎯 Next Steps for Development
-
-### Immediate Improvements
-1. **Testing Implementation**
-   - Unit tests for components
-   - Integration tests for API endpoints
-   - E2E testing with Cypress or Playwright
-
-2. **Performance Optimization**
-   - Image optimization and lazy loading
-   - Code splitting and bundle optimization
-   - Database query optimization
-   - Caching strategies
-
-3. **Security Enhancements**
-   - Rate limiting implementation
-   - Input sanitization improvements
-   - CORS configuration
-   - Security headers
-
-### Feature Enhancements
-1. **Advanced Search**
-   - Elasticsearch integration
-   - Advanced filtering options
-   - Search analytics
-
-2. **Mobile App**
-   - React Native application
-   - Push notifications
-   - Offline functionality
-
-3. **Analytics Dashboard**
-   - User engagement metrics
-   - Platform usage statistics
-   - Performance monitoring
-
-4. **Integration Features**
-   - LinkedIn integration
-   - Email marketing tools
-   - Calendar integrations
-   - Payment processing
-
-### Deployment & DevOps
-1. **Production Deployment**
-   - Docker containerization
-   - CI/CD pipeline setup
-   - Environment configuration
-   - Monitoring and logging
-
-2. **Cloud Infrastructure**
-   - AWS/Azure/GCP deployment
-   - Load balancing
-   - Auto-scaling
-   - CDN integration
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation
+Alumnex-Connect is a premium, full-stack student-alumni networking platform designed to bridge the gap between academic learning and professional careers. Built with a modern glassmorphism UI, it offers real-time communication, mentorship tracking, job hunting, and competitive programming aggregation.
 
 ---
 
-**Alumnex Connect** - Building bridges between students and alumni for a stronger professional community! 🎓✨
+## 🚀 Key Features
+
+*   **Real-time Communication:** Built-in live chat using `Socket.io`, complete with "Enter-to-send", emoji pickers, and file/image attachments.
+*   **Networking & Mentorship:** Robust follower/following system. Students can request mentorships from alumni, track focus areas, and manage their mentorship pipeline.
+*   **Job Portal:** Dedicated job board where alumni can post openings and students can find internships and full-time roles.
+*   **Contest Aggregator:** Real-time integration pulling active coding contests from LeetCode, Codeforces, CodeChef, and GeeksForGeeks, displayed in an interactive calendar view.
+*   **Forum & Discussions:** A categorized discussion board with rich-text comments and dark-mode support.
+*   **Advanced Profile Management:** Users can customize their bios, skills, and seamlessly upload profile pictures natively via **Cloudinary**.
+*   **Admin Dashboard:** A centralized control panel for content moderation, user suspension, role management, and system-wide setting configurations.
+*   **Premium UI/UX:** Responsive, fully-featured dark mode, dynamic glassmorphism aesthetics, and smooth micro-animations using `framer-motion`.
+
+---
+
+## 💻 Tech Stack
+
+### Frontend (Client)
+*   **Framework:** React.js
+*   **Routing:** React Router v6
+*   **State Management & Data Fetching:** React Query (`@tanstack/react-query`)
+*   **Styling:** Tailwind CSS (Custom customized tokens and glassmorphism utilities)
+*   **Animations:** Framer Motion
+*   **Icons:** Lucide React
+*   **Real-time Client:** Socket.io-client
+
+### Backend (Server)
+*   **Runtime:** Node.js
+*   **Framework:** Express.js
+*   **Database:** MongoDB & Mongoose ORM
+*   **Authentication:** JSON Web Tokens (JWT) & bcryptjs
+*   **Real-time Server:** Socket.io
+*   **File Uploads:** Multer & Multer-Storage-Cloudinary
+*   **Security & Optimization:** Helmet, Compression, Express Rate Limit, Morgan
+
+---
+
+## 🔗 External APIs & Integrations
+
+1.  **Cloudinary:** Integrated for secure, cloud-based image hosting (Profile pictures and attachments).
+2.  **Brevo API:** Integrated for automated email delivery, account verification, and system notifications.
+3.  **Judge0 API / Contest APIs:** Used to aggregate global coding contest schedules.
+4.  **Google & GitHub OAuth:** Providing seamless, third-party single sign-on (SSO) authentication.
+
+---
+
+## 🛠️ Local Development Setup
+
+Follow these steps to run the application locally.
+
+### 1. Prerequisites
+*   Node.js (v16 or higher)
+*   MongoDB (Local instance or MongoDB Atlas URI)
+*   Git
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/SrimanKumarV/FSD.git
+cd FSD/Micro-project/alumni-connect-website-main
+```
+
+### 3. Install Dependencies
+This project uses `concurrently` to run both the frontend and backend simultaneously.
+```bash
+# Install root dependencies
+npm install
+
+# Install backend and frontend dependencies
+npm run install-all
+```
+
+### 4. Environment Variables
+Create a `.env` file in the `backend/` directory with the following variables:
+
+```env
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+
+# MongoDB Configuration
+MONGODB_URI=your_mongodb_connection_string
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key
+JWT_EXPIRE=7d
+
+# Email Configuration (Brevo)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+BREVO_API_KEY=your_brevo_api_key
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# OAuth Configurations
+GOOGLE_CLIENT_ID=your_google_client_id
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+```
+
+### 5. Run the Application
+You can start both the Node.js server and the React frontend with a single command from the root folder:
+```bash
+npm run dev
+```
+
+The application will be available at:
+*   **Frontend:** `http://localhost:3000`
+*   **Backend API:** `http://localhost:5000`
+
+---
+
+## 🏗️ Project Architecture & File Structure
+
+```text
+alumni-connect-website-main/
+├── backend/
+│   ├── config/          # Cloudinary and DB configurations
+│   ├── controllers/     # API request handlers
+│   ├── middleware/      # JWT validation, error handling
+│   ├── models/          # MongoDB schemas (User, Message, Post, etc.)
+│   ├── routes/          # Express API routes
+│   ├── socket/          # Socket.io connection handlers
+│   └── server.js        # Main Express application entry point
+│
+├── frontend/
+│   ├── public/          # Static assets
+│   ├── src/
+│   │   ├── components/  # Reusable UI components (Layout, Cards, Modals)
+│   │   ├── contexts/    # React Context (AuthContext for global state)
+│   │   ├── pages/       # Main views (Chat, Profile, Network, Admin, etc.)
+│   │   ├── utils/       # API interceptors and helper functions
+│   │   ├── App.js       # Main React router configuration
+│   │   └── index.css    # Global Tailwind styles & CSS variables
+│
+└── package.json         # Root configuration for concurrently
+```
+
+---
+
+## 🎨 UI/UX Philosophy
+The frontend emphasizes a **Premium Aesthetic** through the rigorous use of CSS variables tailored for both light and dark mode profiles. Heavy emphasis is placed on contrast ratios, micro-interactions, and visual feedback, ensuring the platform feels fast, fluid, and professional.
+
+---
+*Built with ❤️ for Alumni and Students.*

@@ -120,6 +120,20 @@ const Mentorship = () => {
     }
   };
 
+  const handleStatusUpdate = async (mentorshipId, newStatus) => {
+    setLoading(true);
+    try {
+      await api.put(`/mentorship/${mentorshipId}/status`, { status: newStatus });
+      toast.success(`Mentorship request ${newStatus}`);
+      if (activeTab === 'my-mentorships') fetchMentorships();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error(error.response?.data?.message || 'Failed to update status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
@@ -420,8 +434,30 @@ const Mentorship = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">{mentorship.title}</h3>
-                        <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1">
-                          Mentor: {mentorship.mentor.name}
+                        <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1 flex items-center space-x-2">
+                          {user.role === 'alumni' ? (
+                            <>
+                              {mentorship.student.photo ? (
+                                <img src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
+                              ) : (
+                                <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                  {mentorship.student.name?.charAt(0)?.toUpperCase()}
+                                </span>
+                              )}
+                              <span>Student: {mentorship.student.name}</span>
+                            </>
+                          ) : (
+                            <>
+                              {mentorship.mentor.photo ? (
+                                <img src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
+                              ) : (
+                                <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                  {mentorship.mentor.name?.charAt(0)?.toUpperCase()}
+                                </span>
+                              )}
+                              <span>Mentor: {mentorship.mentor.name}</span>
+                            </>
+                          )}
                         </p>
                       </div>
                       <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${getStatusColor(mentorship.status)}`}>
@@ -463,13 +499,33 @@ const Mentorship = () => {
                           {mentorship.expectedDuration}
                         </span>
                       </div>
-                      <button
-                        onClick={() => navigate('/chat')}
-                        className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-primary-500 hover:text-white dark:hover:bg-primary-600 font-semibold rounded-xl transition-colors duration-300"
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Message
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        {user.role === 'alumni' && mentorship.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleStatusUpdate(mentorship._id || mentorship.id, 'accepted')}
+                              className="flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors duration-300"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(mentorship._id || mentorship.id, 'rejected')}
+                              className="flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-colors duration-300"
+                            >
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Decline
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => navigate('/chat')}
+                          className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-primary-500 hover:text-white dark:hover:bg-primary-600 font-semibold rounded-xl transition-colors duration-300"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Message
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}

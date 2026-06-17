@@ -437,25 +437,25 @@ const Mentorship = () => {
                         <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1 flex items-center space-x-2">
                           {user.role === 'alumni' ? (
                             <>
-                              {mentorship.student.photo ? (
+                              {mentorship.student?.photo ? (
                                 <img src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
                                 <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                  {mentorship.student.name?.charAt(0)?.toUpperCase()}
+                                  {mentorship.student?.name?.charAt(0)?.toUpperCase()}
                                 </span>
                               )}
-                              <span>Student: {mentorship.student.name}</span>
+                              <span>Student: {mentorship.student?.name || 'Unknown User'}</span>
                             </>
                           ) : (
                             <>
-                              {mentorship.mentor.photo ? (
+                              {mentorship.mentor?.photo ? (
                                 <img src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
                                 <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                  {mentorship.mentor.name?.charAt(0)?.toUpperCase()}
+                                  {mentorship.mentor?.name?.charAt(0)?.toUpperCase()}
                                 </span>
                               )}
-                              <span>Mentor: {mentorship.mentor.name}</span>
+                              <span>Mentor: {mentorship.mentor?.name || 'Unknown User'}</span>
                             </>
                           )}
                         </p>

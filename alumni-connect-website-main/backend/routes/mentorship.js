@@ -332,7 +332,7 @@ router.post('/:id/notes', protect, [
 router.get('/mentors', protect, async (req, res) => {
   try {
     const { skills, industry, location, availability } = req.query;
-    let query = { role: 'alumni', isApproved: true };
+    let query = { role: 'alumni' }; // Removed isApproved constraint to show all alumni
 
     if (skills) {
       const skillArray = skills.split(',').map(skill => skill.trim());

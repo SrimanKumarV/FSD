@@ -106,6 +106,11 @@ const userSchema = new mongoose.Schema({
   },
   
   // Account Status
+  status: {
+    type: String,
+    enum: ['available', 'busy'],
+    default: 'available'
+  },
   isVerified: {
     type: Boolean,
     default: false

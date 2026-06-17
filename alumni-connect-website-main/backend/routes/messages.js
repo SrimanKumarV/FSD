@@ -5,6 +5,7 @@ const { protect, verified } = require('../middleware/auth');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Get conversation messages
 // @route   GET /api/messages/conversation/:userId
@@ -23,12 +24,12 @@ router.get('/conversation/:userId', protect, async (req, res) => {
 
     // For now, allow messaging between any users
     // In production, you might want to check if they're connected
-    const conversationId = Message.generateConversationId(req.user.id, userId);
-
-    const messages = await Message.findConversation(conversationId, {
-      skip,
-      limit: parseInt(limit)
-    });
+    const messages = await Message.findConversation(
+      req.user.id,
+      userId,
+      parseInt(page),
+      parseInt(limit)
+    );
 
     res.json({ messages });
   } catch (error) {
@@ -128,6 +129,32 @@ router.post('/', [protect, verified], [
       title: 'New Message',
       content: `You have a new message from ${req.user.name}`,
       relatedData: { messageId: message._id }
+    });
+
+    // Send email notification to receiver
+    await sendEmail({
+      email: receiverUser.email,
+      subject: `New Message from ${req.user.name} on Alumnex Connect`,
+      message: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+          <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+            <h2 style="margin: 0; color: #1f2937;">Alumnex Connect</h2>
+          </div>
+          <div style="padding: 20px;">
+            <p style="color: #374151; font-size: 16px;">Hi <strong>${receiverUser.name}</strong>,</p>
+            <p style="color: #374151; font-size: 16px;">You have received a new message from <strong>${req.user.name}</strong>:</p>
+            <div style="background-color: #f9fafb; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+              <p style="margin: 0; color: #4b5563; font-style: italic;">${content}</p>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/chat" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reply to Message</a>
+            </div>
+          </div>
+          <div style="background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
+            <p style="margin: 0;">This email was sent by Alumnex Connect.</p>
+          </div>
+        </div>
+      `
     });
 
     res.status(201).json({ message });

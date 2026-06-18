@@ -8,6 +8,8 @@ const Mentorship = require('../models/Mentorship');
 const Job = require('../models/Job');
 const Event = require('../models/Event');
 const ForumPost = require('../models/ForumPost');
+const Message = require('../models/Message');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Get dashboard stats and activities
 // @route   GET /api/users/dashboard
@@ -554,6 +556,104 @@ router.put('/status', protect, async (req, res) => {
     res.json({ message: 'Status updated successfully' });
   } catch (error) {
     console.error('Error updating status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Request account deletion (Sends OTP)
+// @route   POST /api/users/delete-request
+// @access  Private
+router.post('/delete-request', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.deleteAccountOtp = otp;
+    user.deleteAccountExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+    await user.save();
+
+    const message = `
+      <h1>Account Deletion Request</h1>
+      <p>You requested to delete your Alumnex Connect account.</p>
+      <p>Your 6-digit verification code is: <strong style="color:red">${otp}</strong></p>
+      <p>This code is valid for 15 minutes.</p>
+      <p>If you did not request this, please change your password immediately.</p>
+    `;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Alumnex Connect - Account Deletion OTP',
+      message
+    });
+
+    res.json({ message: 'OTP sent to your email.' });
+  } catch (error) {
+    console.error('Delete request error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Delete account permanently
+// @route   DELETE /api/users/me
+// @access  Private
+router.delete('/me', [
+  protect,
+  body('otp', 'OTP is required').exists()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { otp } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.deleteAccountOtp !== otp || user.deleteAccountExpires < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    const userId = user._id;
+
+    // 1. Delete all forum posts authored by user
+    await ForumPost.deleteMany({ author: userId });
+
+    // 2. Remove user from likes and comments in other posts
+    await ForumPost.updateMany({}, { 
+      $pull: { 
+        likes: userId, 
+        dislikes: userId,
+        comments: { author: userId } 
+      } 
+    });
+
+    // 3. Delete messages
+    await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+
+    // 4. Delete mentorships
+    await Mentorship.deleteMany({ $or: [{ mentor: userId }, { student: userId }] });
+
+    // 5. Delete notifications
+    await Notification.deleteMany({ $or: [{ sender: userId }, { recipient: userId }] });
+
+    // 6. Remove user from all connections/followers arrays across all other users
+    await User.updateMany({}, {
+      $pull: {
+        connections: userId,
+        followers: userId,
+        following: userId,
+        followRequests: userId
+      }
+    });
+
+    // Finally delete user
+    await user.remove();
+
+    res.json({ message: 'Account permanently deleted' });
+  } catch (error) {
+    console.error('Account deletion error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

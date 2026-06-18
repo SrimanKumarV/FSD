@@ -154,7 +154,11 @@ const userSchema = new mongoose.Schema({
   
   // Email Verification OTP
   verificationOtp: String,
-  verificationOtpExpires: Date
+  verificationOtpExpires: Date,
+  
+  // Account Deletion OTP
+  deleteAccountOtp: String,
+  deleteAccountExpires: Date
 }, {
   timestamps: true
 });

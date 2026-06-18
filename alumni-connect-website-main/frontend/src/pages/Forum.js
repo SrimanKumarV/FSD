@@ -129,6 +129,21 @@ const Forum = () => {
     }
   );
 
+  // Delete post mutation
+  const deletePostMutation = useMutation(
+    (postId) => api.delete(`/forum/${postId}`),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
+        toast.success('Post deleted successfully');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to delete post');
+      }
+    }
+  );
+
   const handleCreatePost = (postData) => {
     createPostMutation.mutate(postData);
   };
@@ -143,6 +158,12 @@ const Forum = () => {
 
   const handleClosePost = (postId) => {
     closePostMutation.mutate(postId);
+  };
+
+  const handleDeletePost = (postId) => {
+    if (window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      deletePostMutation.mutate(postId);
+    }
   };
 
   if (error) {
@@ -324,6 +345,7 @@ const Forum = () => {
                 post={post}
                 onLike={handleLikePost}
                 onClose={handleClosePost}
+                onDelete={handleDeletePost}
                 onSelect={setSelectedPost}
                 user={user}
               />
@@ -403,7 +425,7 @@ const Forum = () => {
 };
 
 // Post Card Component
-const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
+const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
   const [showActions, setShowActions] = useState(false);
 
   const getCategoryColor = (category) => {
@@ -470,8 +492,8 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
                 </div>
               ) : (
                 <img 
-                  src={post.attachments[0].url} 
-                  alt={post.attachments[0].filename} 
+                  src={post.attachments[0].fileUrl || post.attachments[0].url} 
+                  alt={post.attachments[0].fileName || post.attachments[0].filename} 
                   className="w-full h-48 object-cover rounded-xl border border-gray-100 dark:border-gray-700" 
                 />
               )}
@@ -542,7 +564,14 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
                         <Edit className="w-4 h-4 mr-2" />
                         Edit
                       </button>
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(post._id);
+                          setShowActions(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </button>
@@ -627,8 +656,8 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
       setFormData(prev => ({
         ...prev,
         attachments: [...prev.attachments, {
-          url: res.data.url,
-          filename: res.data.fileName,
+          fileUrl: res.data.url,
+          fileName: res.data.fileName,
           fileType: file.type.startsWith('video/') ? 'video' : 'image'
         }]
       }));
@@ -758,9 +787,9 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
                 {formData.attachments.map((file, idx) => (
                   <div key={idx} className="relative rounded-lg overflow-hidden border border-gray-200 bg-black">
                     {file.fileType === 'video' ? (
-                      <video src={file.url} controls className="w-full h-32 object-contain" />
+                      <video src={file.fileUrl || file.url} controls className="w-full h-32 object-contain" />
                     ) : (
-                      <img src={file.url} alt={file.filename} className="w-full h-32 object-contain bg-gray-100" />
+                      <img src={file.fileUrl || file.url} alt={file.fileName || file.filename} className="w-full h-32 object-contain bg-gray-100" />
                     )}
                     <button
                       type="button"
@@ -847,9 +876,9 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting 
                 {post.attachments.map((file, idx) => (
                   <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
                     {file.fileType === 'video' ? (
-                      <video src={file.url} controls className="w-full max-h-[500px] bg-black" />
+                      <video src={file.fileUrl || file.url} controls className="w-full max-h-[500px] bg-black" />
                     ) : (
-                      <img src={file.url} alt={file.filename} className="w-full h-auto max-h-[500px] object-contain bg-gray-50 dark:bg-gray-900" />
+                      <img src={file.fileUrl || file.url} alt={file.fileName || file.filename} className="w-full h-auto max-h-[500px] object-contain bg-gray-50 dark:bg-gray-900" />
                     )}
                   </div>
                 ))}

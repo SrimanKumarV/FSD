@@ -32,6 +32,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
+import DefaultAvatar from '../components/DefaultAvatar';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -414,12 +415,10 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
                   <tr key={user._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {user.photo ? (
+                        {user.photo && user.photo !== 'default-avatar.png' ? (
                           <img src={user.photo} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                         ) : (
-                          <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
-                            {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
                         )}
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{user.name}</div>
@@ -645,12 +644,10 @@ const UserDetailModal = ({ user, onClose, onApproveUser, onSuspendUser, onUpdate
         <div className="p-6 space-y-6">
           {/* User Info */}
           <div className="flex items-center space-x-4">
-            {user.photo ? (
+            {user.photo && user.photo !== 'default-avatar.png' ? (
               <img src={user.photo} alt={user.name} className="w-20 h-20 rounded-full object-cover" />
             ) : (
-              <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-2xl font-medium">
-                {user.name?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
+              <DefaultAvatar className="w-20 h-20 flex-shrink-0" />
             )}
             <div>
               <h3 className="text-xl font-semibold text-gray-900">{user.name}</h3>

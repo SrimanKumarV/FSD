@@ -24,11 +24,14 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import DefaultAvatar from '../DefaultAvatar';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { 
@@ -38,8 +41,6 @@ const Layout = ({ children }) => {
     markAllAsRead, 
     formatNotificationTime 
   } = useNotifications();
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -62,6 +63,51 @@ const Layout = ({ children }) => {
   const isActiveRoute = (href) => {
     return location.pathname === href;
   };
+
+  const handleNotificationClick = (notification) => {
+    if (!notification.isRead) markAsRead(notification._id);
+    
+    // Close notifications dropdown
+    setNotificationsOpen(false);
+
+    // Route based on notification type
+    switch (notification.type) {
+      case 'follow_request':
+      case 'follow_accept':
+      case 'follow_decline':
+      case 'connection-request':
+      case 'connection-accepted':
+        navigate('/network');
+        break;
+      case 'forum-reply':
+      case 'forum-like':
+      case 'forum_reply':
+        navigate('/forum');
+        break;
+      case 'message-received':
+        navigate('/chat');
+        break;
+      case 'mentorship-request':
+      case 'mentorship-accepted':
+      case 'mentorship-rejected':
+        navigate('/mentorship');
+        break;
+      case 'job-posted':
+        navigate('/jobs');
+        break;
+      case 'event-reminder':
+      case 'event-registration':
+        navigate('/events');
+        break;
+      case 'contest-reminder':
+      case 'contest-result':
+        navigate('/contests');
+        break;
+      default:
+        break;
+    }
+  };
+
 
   return (
     <div className="min-h-screen">
@@ -225,9 +271,7 @@ const Layout = ({ children }) => {
                               <div 
                                 key={notification._id}
                                 className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${!notification.isRead ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}
-                                onClick={() => {
-                                  if (!notification.isRead) markAsRead(notification._id);
-                                }}
+                                onClick={() => handleNotificationClick(notification)}
                               >
                                 <div className="flex gap-3">
                                   <div className="flex-1 min-w-0">
@@ -268,12 +312,10 @@ const Layout = ({ children }) => {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-3 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
                 >
-                  {user?.photo ? (
+                  {user?.photo && user?.photo !== 'default-avatar.png' ? (
                     <img src={user.photo} alt={user.name} className="w-9 h-9 rounded-full object-cover shadow-soft" />
                   ) : (
-                    <div className="w-9 h-9 bg-gradient-to-tr from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-soft">
-                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                    </div>
+                    <DefaultAvatar className="w-9 h-9 flex-shrink-0" />
                   )}
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name}</p>
@@ -315,8 +357,8 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <main className={location.pathname === '/chat' ? 'h-[calc(100vh-4rem)]' : 'py-6'}>
+          <div className={location.pathname === '/chat' ? 'h-full w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
             {children}
           </div>
         </main>

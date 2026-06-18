@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
+import DefaultAvatar from '../components/DefaultAvatar';
 
 const Mentorship = () => {
   const { user } = useAuth();
@@ -324,9 +325,7 @@ const Mentorship = () => {
                         {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
                           <img src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-2xl flex items-center justify-center">
-                            {mentor.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          <DefaultAvatar className="w-full h-full" />
                         )}
                       </div>
                       <div className="flex-1">
@@ -430,9 +429,7 @@ const Mentorship = () => {
                               {mentorship.student?.photo && mentorship.student.photo !== 'default-avatar.png' ? (
                                 <img src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
-                                <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                  {mentorship.student?.name?.charAt(0)?.toUpperCase()}
-                                </span>
+                                <DefaultAvatar className="w-6 h-6" />
                               )}
                               <span>Student: {mentorship.student?.name || 'Unknown User'}</span>
                             </>
@@ -441,9 +438,7 @@ const Mentorship = () => {
                               {mentorship.mentor?.photo && mentorship.mentor.photo !== 'default-avatar.png' ? (
                                 <img src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
-                                <span className="w-6 h-6 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                  {mentorship.mentor?.name?.charAt(0)?.toUpperCase()}
-                                </span>
+                                <DefaultAvatar className="w-6 h-6" />
                               )}
                               <span>Mentor: {mentorship.mentor?.name || 'Unknown User'}</span>
                             </>

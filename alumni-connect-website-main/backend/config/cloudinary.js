@@ -12,7 +12,8 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'alumnex_uploads',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx']
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm', 'mov', 'pdf', 'doc', 'docx'],
+    resource_type: 'auto'
   },
 });
 

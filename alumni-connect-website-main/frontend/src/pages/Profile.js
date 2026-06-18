@@ -17,10 +17,13 @@ import {
   Globe,
   Twitter,
   MessageSquare,
-  Users
+  Users,
+  FileText
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
+import DefaultAvatar from '../components/DefaultAvatar';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -81,6 +84,13 @@ const Profile = () => {
       console.error('Error fetching network:', error);
     }
   };
+
+  // Fetch user's forum posts
+  const { data: userPostsData, isLoading: loadingPosts } = useQuery(
+    ['user-posts', user?._id],
+    () => api.get(`/forum`, { params: { author: user?._id } }),
+    { enabled: !!user?._id && activeTab === 'posts' }
+  );
 
   useEffect(() => {
     if (user) {
@@ -224,12 +234,10 @@ const Profile = () => {
           <div className="flex items-start space-x-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
-                {(isEditing ? formData.photo : user.photo) ? (
+                {(isEditing ? formData.photo : user.photo) && (isEditing ? formData.photo : user.photo) !== 'default-avatar.png' ? (
                   <img src={isEditing ? formData.photo : user.photo} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-5xl flex items-center justify-center">
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  <DefaultAvatar className="w-full h-full" />
                 )}
               </div>
               {isEditing && (
@@ -300,6 +308,13 @@ const Profile = () => {
           >
             Network
             {activeTab === 'network' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+          </button>
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'posts' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            Posts
+            {activeTab === 'posts' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
           </button>
         </div>
 
@@ -517,12 +532,10 @@ const Profile = () => {
                   network.followers.map(follower => (
                     <div key={follower._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        {follower.photo ? (
+                        {follower.photo && follower.photo !== 'default-avatar.png' ? (
                           <img src={follower.photo} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-lg flex-shrink-0">
-                            {follower.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          <DefaultAvatar className="w-12 h-12 flex-shrink-0" />
                         )}
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">{follower.name}</h4>
@@ -556,12 +569,10 @@ const Profile = () => {
                   network.following.map(followingUser => (
                     <div key={followingUser._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        {followingUser.photo ? (
+                        {followingUser.photo && followingUser.photo !== 'default-avatar.png' ? (
                           <img src={followingUser.photo} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-tr from-primary-500 to-alumni-500 text-white font-bold text-lg flex-shrink-0">
-                            {followingUser.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          <DefaultAvatar className="w-12 h-12 flex-shrink-0" />
                         )}
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">{followingUser.name}</h4>
@@ -581,6 +592,43 @@ const Profile = () => {
                 )}
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* Posts Tab */}
+        {!isEditing && activeTab === 'posts' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-primary" />
+              My Posts
+            </h3>
+            
+            {loadingPosts ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : userPostsData?.data?.posts?.length > 0 ? (
+              <div className="space-y-4">
+                {userPostsData.data.posts.map(post => (
+                  <div key={post._id} className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{post.title}</h4>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4">{post.content}</p>
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                      <span>• {post.likes?.length || 0} Likes</span>
+                      <span>• {post.comments?.length || 0} Comments</span>
+                      <span>• {post.views || 0} Views</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic text-center py-8">You haven't created any posts yet.</p>
+            )}
           </motion.div>
         )}
 

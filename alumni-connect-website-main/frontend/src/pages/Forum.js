@@ -24,6 +24,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
+import DefaultAvatar from '../components/DefaultAvatar';
 
 // Define categories and postTypes outside the component
 const categories = [
@@ -99,6 +100,24 @@ const Forum = () => {
     }
   );
 
+  // Comment mutation
+  const commentMutation = useMutation(
+    ({ postId, content }) => api.post(`/forum/${postId}/comments`, { content }),
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
+        if (selectedPost && selectedPost._id === data.data.post._id) {
+          setSelectedPost(data.data.post);
+        }
+        toast.success('Comment added successfully');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to add comment');
+      }
+    }
+  );
+
   // Close post mutation
   const closePostMutation = useMutation(
     (postId) => api.put(`/forum/${postId}/status`, { status: 'closed' }),
@@ -116,6 +135,10 @@ const Forum = () => {
 
   const handleLikePost = (postId) => {
     likePostMutation.mutate(postId);
+  };
+
+  const handleCommentPost = (postId, content) => {
+    commentMutation.mutate({ postId, content });
   };
 
   const handleClosePost = (postId) => {
@@ -273,7 +296,7 @@ const Forum = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         {(() => {
           const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
-          const currentPosts = activeTab === 'all' ? postsData?.posts : feedData?.posts;
+          const currentPosts = activeTab === 'all' ? postsData?.data?.posts : feedData?.data?.posts;
 
           if (currentLoading) {
             return (
@@ -332,20 +355,20 @@ const Forum = () => {
       </div>
 
       {/* Pagination */}
-      {postsData?.pagination && postsData.pagination.pages > 1 && (
+      {postsData?.data?.pagination && postsData.data.pagination.pages > 1 && (
         <div className="flex justify-center">
           <nav className="flex items-center space-x-2">
             <button
-              disabled={!postsData.pagination.hasPrev}
+              disabled={!postsData.data.pagination.hasPrev}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <span className="px-3 py-2 text-sm text-gray-700">
-              Page {postsData.pagination.current} of {postsData.pagination.pages}
+              Page {postsData.data.pagination.current} of {postsData.data.pagination.pages}
             </span>
             <button
-              disabled={!postsData.pagination.hasNext}
+              disabled={!postsData.data.pagination.hasNext}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
@@ -370,7 +393,9 @@ const Forum = () => {
           post={selectedPost}
           onClose={() => setSelectedPost(null)}
           onLike={handleLikePost}
+          onComment={handleCommentPost}
           user={user}
+          isCommenting={commentMutation.isLoading}
         />
       )}
     </div>
@@ -403,12 +428,10 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
       <div className="relative z-10 flex items-start space-x-4">
         {/* Author Avatar */}
         <div className="flex-shrink-0">
-          {post.author?.photo ? (
-            <img src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover" />
+          {post.author?.photo && post.author?.photo !== 'default-avatar.png' ? (
+            <img src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0">
-              {post.author?.name?.charAt(0)?.toUpperCase() || 'A'}
-            </div>
+            <DefaultAvatar className="w-10 h-10" />
           )}
         </div>
 
@@ -438,6 +461,26 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
             {post.content}
           </p>
 
+          {/* Attachments Preview */}
+          {post.attachments && post.attachments.length > 0 && (
+            <div className="mb-4">
+              {post.attachments[0].fileType === 'video' ? (
+                <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
+                  <span className="text-gray-500">🎥 Video Attachment</span>
+                </div>
+              ) : (
+                <img 
+                  src={post.attachments[0].url} 
+                  alt={post.attachments[0].filename} 
+                  className="w-full h-48 object-cover rounded-xl border border-gray-100 dark:border-gray-700" 
+                />
+              )}
+              {post.attachments.length > 1 && (
+                <p className="text-xs text-gray-500 mt-1">+{post.attachments.length - 1} more attachments</p>
+              )}
+            </div>
+          )}
+
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-3">
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(post.category)}`}>
@@ -461,8 +504,9 @@ const PostCard = ({ post, onLike, onClose, onSelect, user }) => {
                   e.stopPropagation();
                   onLike(post._id);
                 }}
+                title={post.likes?.map(l => l.name || l).join(', ') || 'Like'}
                 className={`flex items-center space-x-1 hover:text-primary-600 transition-colors ${
-                  post.likes?.includes(user?.id) ? 'text-primary-600' : ''
+                  post.likes?.some(like => (like._id || like) === user?.id) ? 'text-primary-600' : ''
                 }`}
               >
                 <ThumbsUp className="w-4 h-4" />
@@ -561,9 +605,40 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
     content: '',
     category: '',
     postType: '',
+    postType: '',
     tags: '',
-    isAnonymous: false
+    isAnonymous: false,
+    attachments: []
   });
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formDataObj = new FormData();
+    formDataObj.append('file', file);
+
+    try {
+      setUploadingMedia(true);
+      const res = await api.post('/upload', formDataObj, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, {
+          url: res.data.url,
+          filename: res.data.fileName,
+          fileType: file.type.startsWith('video/') ? 'video' : 'image'
+        }]
+      }));
+      toast.success('Media uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload media');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -667,19 +742,57 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
             </label>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Media Upload</label>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileUpload}
+              disabled={uploadingMedia}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+            />
+            {uploadingMedia && <p className="text-sm text-primary-600 mt-2">Uploading media...</p>}
+            
+            {formData.attachments.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                {formData.attachments.map((file, idx) => (
+                  <div key={idx} className="relative rounded-lg overflow-hidden border border-gray-200 bg-black">
+                    {file.fileType === 'video' ? (
+                      <video src={file.url} controls className="w-full h-32 object-contain" />
+                    ) : (
+                      <img src={file.url} alt={file.filename} className="w-full h-32 object-contain bg-gray-100" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        attachments: prev.attachments.filter((_, i) => i !== idx)
+                      }))}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              disabled={uploadingMedia}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              disabled={uploadingMedia}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
             >
-              Create Post
+              {uploadingMedia ? 'Uploading...' : 'Create Post'}
             </button>
           </div>
         </form>
@@ -689,13 +802,13 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, onClose, onLike, user }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting }) => {
   const [newComment, setNewComment] = useState('');
 
   const handleAddComment = (e) => {
     e.preventDefault();
-    // TODO: Implement comment functionality
-    console.log('Adding comment:', newComment);
+    if (!newComment.trim()) return;
+    onComment(post._id, newComment);
     setNewComment('');
   };
 
@@ -726,7 +839,35 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
                 {new Date(post.createdAt).toLocaleDateString()}
               </span>
             </div>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{post.content}</p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            
+            {/* Full Attachments */}
+            {post.attachments && post.attachments.length > 0 && (
+              <div className="mt-6 space-y-4">
+                {post.attachments.map((file, idx) => (
+                  <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    {file.fileType === 'video' ? (
+                      <video src={file.url} controls className="w-full max-h-[500px] bg-black" />
+                    ) : (
+                      <img src={file.url} alt={file.filename} className="w-full h-auto max-h-[500px] object-contain bg-gray-50 dark:bg-gray-900" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Likes List */}
+            {post.likes?.length > 0 && (
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <ThumbsUp className="w-4 h-4 text-primary-500" />
+                <span className="font-medium">Liked by:</span>
+                {post.likes.map((like, i) => (
+                  <span key={like._id || i} className="font-medium text-gray-900 dark:text-gray-200">
+                    {like.name || 'User'}{i < post.likes.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Comments */}
@@ -738,9 +879,13 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
             {post.comments?.length > 0 ? (
               <div className="space-y-4">
                 {post.comments.map((comment) => (
-                  <div key={comment._id} className="flex space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                      {comment.author?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  <div className="flex space-x-3">
+                    <div className="flex-shrink-0">
+                      {comment.author?.photo && comment.author?.photo !== 'default-avatar.png' ? (
+                        <img src={comment.author.photo} alt={comment.author.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
+                      ) : (
+                        <DefaultAvatar className="w-8 h-8" />
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
@@ -774,10 +919,10 @@ const PostDetailModal = ({ post, onClose, onLike, user }) => {
               <div className="mt-3 flex justify-end">
                 <button
                   type="submit"
-                  disabled={!newComment.trim()}
+                  disabled={!newComment.trim() || isCommenting}
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Add Comment
+                  {isCommenting ? 'Posting...' : 'Add Comment'}
                 </button>
               </div>
             </form>

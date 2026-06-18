@@ -91,16 +91,20 @@ const Chat = () => {
     startChatMutation.mutate(newChatEmail.trim());
   };
 
+  const startedChatRef = useRef('');
+
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const startChatEmail = searchParams.get('startChat');
     
-    if (startChatEmail) {
+    if (startChatEmail && startedChatRef.current !== startChatEmail) {
+      startedChatRef.current = startChatEmail;
       startChatMutation.mutate(startChatEmail);
       // Remove query param
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
-    } else if (location.state?.startChatWith) {
+    } else if (location.state?.startChatWith && startedChatRef.current !== location.state.startChatWith) {
+      startedChatRef.current = location.state.startChatWith;
       startChatMutation.mutate(location.state.startChatWith);
       // Clear the state so it doesn't trigger again on reload
       window.history.replaceState({}, document.title);
@@ -257,8 +261,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div className="h-[calc(100vh-10rem)] glass-card rounded-3xl flex overflow-hidden">
+    <div className="h-full w-full flex overflow-hidden border-t border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50">
       {/* Sidebar - Chat List */}
       <div className="w-80 border-r border-gray-200 dark:border-gray-700/50 flex flex-col bg-white/50 dark:bg-gray-900/50">
         {/* Header */}
@@ -560,7 +563,6 @@ const Chat = () => {
           </div>
         )}
       </div>
-    </div>
     </div>
   );
 };

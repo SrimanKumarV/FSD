@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import DefaultAvatar from '../components/DefaultAvatar';
 
 const Network = () => {
   const { user: currentUser } = useAuth();
@@ -43,8 +44,9 @@ const Network = () => {
     (userId) => api.post(`/users/${userId}/follow`),
     {
       onSuccess: () => {
-        toast.success('Followed successfully');
+        toast.success('Request sent successfully');
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
+        queryClient.invalidateQueries(['network-users']);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to follow user');
@@ -59,6 +61,7 @@ const Network = () => {
       onSuccess: () => {
         toast.success('Unfollowed successfully');
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
+        queryClient.invalidateQueries(['network-users']);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to unfollow user');
@@ -84,6 +87,7 @@ const Network = () => {
       onSuccess: () => {
         toast.success('Request accepted');
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
+        queryClient.invalidateQueries(['network-users']);
       }
     }
   );
@@ -94,6 +98,7 @@ const Network = () => {
       onSuccess: () => {
         toast.success('Request declined');
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
+        queryClient.invalidateQueries(['network-users']);
       }
     }
   );
@@ -131,12 +136,10 @@ const Network = () => {
             {pendingRequests.map(reqUser => (
               <div key={reqUser._id} className="glass-card p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  {reqUser.photo ? (
+                  {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
                     <img src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                      {reqUser.name?.charAt(0)?.toUpperCase()}
-                    </div>
+                    <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
                   )}
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
@@ -170,12 +173,10 @@ const Network = () => {
                 className="glass-card p-6 flex flex-col"
               >
                 <div className="flex items-start space-x-4 mb-4">
-                  {user.photo ? (
+                  {user.photo && user.photo !== 'default-avatar.png' ? (
                     <img src={user.photo} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-soft flex-shrink-0" />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary-500 to-alumni-500 flex items-center justify-center text-white text-xl font-bold shadow-soft flex-shrink-0">
-                      {user.name?.charAt(0)?.toUpperCase()}
-                    </div>
+                    <DefaultAvatar className="w-16 h-16 flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">

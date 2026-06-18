@@ -5,6 +5,7 @@ const { protect, verified, approved } = require('../middleware/auth');
 const ForumPost = require('../models/ForumPost');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Get all forum posts with filters
 // @route   GET /api/forum
@@ -12,7 +13,7 @@ const Notification = require('../models/Notification');
 router.get('/', async (req, res) => {
   try {
     const {
-      q, category, postType, author, tags, status, sort = 'latest',
+      q, search, category, postType, author, tags, status, sort = 'latest',
       page = 1, limit = 10
     } = req.query;
 
@@ -20,11 +21,12 @@ router.get('/', async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Search query
-    if (q) {
+    const searchQuery = q || search;
+    if (searchQuery) {
       query.$or = [
-        { title: { $regex: q, $options: 'i' } },
-        { content: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } }
+        { title: { $regex: searchQuery, $options: 'i' } },
+        { content: { $regex: searchQuery, $options: 'i' } },
+        { tags: { $in: [new RegExp(searchQuery, 'i')] } }
       ];
     }
 
@@ -66,6 +68,9 @@ router.get('/', async (req, res) => {
 
     const posts = await ForumPost.find(query)
       .populate('author', 'name photo role')
+      .populate('likes', 'name photo')
+      .populate('comments.author', 'name photo role')
+      .populate('comments.replies.author', 'name photo role')
       .skip(skip)
       .limit(parseInt(limit))
       .sort(sortOption);
@@ -109,6 +114,9 @@ router.get('/feed', protect, async (req, res) => {
       status: 'active'
     })
       .populate('author', 'name photo role')
+      .populate('likes', 'name photo')
+      .populate('comments.author', 'name photo role')
+      .populate('comments.replies.author', 'name photo role')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -141,6 +149,7 @@ router.get('/:id', async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id)
       .populate('author', 'name photo role bio')
+      .populate('likes', 'name photo')
       .populate('comments.author', 'name photo role')
       .populate('comments.replies.author', 'name photo role');
 
@@ -160,8 +169,8 @@ router.get('/:id', async (req, res) => {
 
 // @desc    Create new forum post
 // @route   POST /api/forum
-// @access  Private (Verified users only)
-router.post('/', [protect, verified], [
+// @access  Private
+router.post('/', [protect], [
   body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be 5-200 characters'),
   body('content').trim().isLength({ min: 20, max: 10000 }).withMessage('Content must be 20-10000 characters'),
   body('postType').isIn(['question', 'discussion', 'success_story', 'announcement', 'resource']).withMessage('Invalid post type'),
@@ -197,6 +206,34 @@ router.post('/', [protect, verified], [
 
     // Populate for response
     await post.populate('author', 'name photo role');
+    await post.populate('likes', 'name photo');
+
+    // Notify followers
+    try {
+      if (!isAnonymous) {
+        const authorWithFollowers = await User.findById(req.user.id).populate('followers', 'email name');
+        if (authorWithFollowers && authorWithFollowers.followers && authorWithFollowers.followers.length > 0) {
+          authorWithFollowers.followers.forEach(follower => {
+            if (follower.email) {
+              sendEmail({
+                email: follower.email,
+                subject: `${authorWithFollowers.name} published a new forum post: ${title}`,
+                message: `
+                  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #3b82f6;">New Post from ${authorWithFollowers.name}</h2>
+                    <p style="font-size: 16px; font-weight: bold;">${title}</p>
+                    <p style="color: #4b5563;">${content.substring(0, 150)}${content.length > 150 ? '...' : ''}</p>
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/forum" style="display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px;">View on Alumnex</a>
+                  </div>
+                `
+              });
+            }
+          });
+        }
+      }
+    } catch (emailError) {
+      console.error('Error sending follower notifications:', emailError);
+    }
 
     res.status(201).json({ post });
   } catch (error) {
@@ -288,6 +325,19 @@ router.post('/:id/like', protect, async (req, res) => {
     // likePost toggles: removes like if already liked, adds if not
     const wasLiked = post.isLikedBy(req.user.id);
     await post.likePost(req.user.id);
+
+    // Create Notification for new likes
+    if (!wasLiked && post.author.toString() !== req.user.id.toString()) {
+      await Notification.create({
+        recipient: post.author,
+        sender: req.user.id,
+        type: 'forum-like',
+        title: 'New Like on your Post',
+        content: `${req.user.name || 'Someone'} liked your forum post "${post.title.substring(0, 30)}${post.title.length > 30 ? '...' : ''}"`,
+        relatedData: { forumPostId: post._id }
+      });
+    }
+
     res.json({ message: wasLiked ? 'Post unliked' : 'Post liked', liked: !wasLiked });
   } catch (error) {
     console.error('Error liking/unliking post:', error);
@@ -298,7 +348,7 @@ router.post('/:id/like', protect, async (req, res) => {
 // @desc    Add comment to forum post
 // @route   POST /api/forum/:id/comments
 // @access  Private
-router.post('/:id/comments', [protect, verified], [
+router.post('/:id/comments', [protect], [
   body('content').trim().isLength({ min: 1, max: 2000 }).withMessage('Comment content is required and must be under 2000 characters'),
   body('parentCommentId').optional().isMongoId().withMessage('Invalid parent comment ID')
 ], async (req, res) => {
@@ -346,7 +396,21 @@ router.post('/:id/comments', [protect, verified], [
 
     await post.save();
 
+    // Create Notification for new comment
+    if (post.author.toString() !== req.user.id.toString()) {
+      await Notification.create({
+        recipient: post.author,
+        sender: req.user.id,
+        type: 'forum-reply',
+        title: 'New Comment on your Post',
+        content: `${req.user.name || 'Someone'} commented on your forum post "${post.title.substring(0, 30)}${post.title.length > 30 ? '...' : ''}"`,
+        relatedData: { forumPostId: post._id }
+      });
+    }
+
     // Populate for response
+    await post.populate('author', 'name photo role');
+    await post.populate('likes', 'name photo');
     await post.populate('comments.author', 'name photo role');
     await post.populate('comments.replies.author', 'name photo role');
 
@@ -389,6 +453,11 @@ router.put('/:id/comments/:commentId', protect, [
 
     await post.save();
 
+    await post.populate('author', 'name photo role');
+    await post.populate('likes', 'name photo');
+    await post.populate('comments.author', 'name photo role');
+    await post.populate('comments.replies.author', 'name photo role');
+
     res.json({ post });
   } catch (error) {
     console.error('Error updating comment:', error);
@@ -418,7 +487,12 @@ router.delete('/:id/comments/:commentId', protect, async (req, res) => {
     comment.remove();
     await post.save();
 
-    res.json({ message: 'Comment deleted successfully' });
+    await post.populate('author', 'name photo role');
+    await post.populate('likes', 'name photo');
+    await post.populate('comments.author', 'name photo role');
+    await post.populate('comments.replies.author', 'name photo role');
+
+    res.json({ message: 'Comment deleted successfully', post });
   } catch (error) {
     console.error('Error deleting comment:', error);
     res.status(500).json({ message: 'Server error' });
@@ -566,6 +640,9 @@ router.get('/category/:category', async (req, res) => {
 
     const posts = await ForumPost.findByCategory(category)
       .populate('author', 'name photo role')
+      .populate('likes', 'name photo')
+      .populate('comments.author', 'name photo role')
+      .populate('comments.replies.author', 'name photo role')
       .skip(skip)
       .limit(parseInt(limit))
       .sort(sortOption);

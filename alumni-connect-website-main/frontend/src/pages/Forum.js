@@ -162,6 +162,21 @@ const Forum = () => {
     }
   );
 
+  // Delete comment mutation
+  const deleteCommentMutation = useMutation(
+    ({ postId, commentId }) => api.delete(`/forum/${postId}/comments/${commentId}`),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
+        toast.success('Comment deleted successfully');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to delete comment');
+      }
+    }
+  );
+
   const handleCreatePost = (postData) => {
     createPostMutation.mutate(postData);
   };
@@ -181,6 +196,12 @@ const Forum = () => {
   const handleDeletePost = (postId) => {
     if (window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       deletePostMutation.mutate(postId);
+    }
+  };
+
+  const handleDeleteComment = (postId, commentId) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      deleteCommentMutation.mutate({ postId, commentId });
     }
   };
 
@@ -438,6 +459,7 @@ const Forum = () => {
           isCommenting={commentMutation.isLoading}
           onDelete={handleDeletePost}
           onClosePost={handleClosePost}
+          onDeleteComment={handleDeleteComment}
         />
       )}
     </div>
@@ -565,6 +587,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
               </div>
             </div>
           </div>
+        </div>
         </div>
 
         {/* Actions Dropdown at Top Right */}
@@ -856,7 +879,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment }) => {
   const [newComment, setNewComment] = useState('');
   const [showActions, setShowActions] = useState(false);
 
@@ -1008,16 +1031,27 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 group relative">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {comment.author?.name}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
+                          <div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {comment.author?.name}
+                            </span>
+                            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {(String(comment.author?._id || comment.author) === String(user?._id || user?.id)) && (
+                            <button
+                              onClick={() => onDeleteComment(post._id, comment._id)}
+                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Delete Comment"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300">{comment.content}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{comment.content}</p>
                       </div>
                     </div>
                   </div>

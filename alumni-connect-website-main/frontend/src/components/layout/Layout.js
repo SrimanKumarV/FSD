@@ -133,7 +133,6 @@ const Layout = ({ children }) => {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            exit={{ x: '-100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
             className="fixed inset-y-0 left-0 z-50 w-64 glass-card shadow-xl lg:hidden border-r-0 rounded-none rounded-r-2xl"
           >

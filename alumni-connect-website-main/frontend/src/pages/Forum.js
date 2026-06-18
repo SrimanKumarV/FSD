@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -48,6 +49,7 @@ const postTypes = [
 const Forum = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const location = useLocation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -58,6 +60,22 @@ const Forum = () => {
     sort: 'latest',
     search: ''
   });
+
+  useEffect(() => {
+    if (location.state?.openPostId) {
+      const fetchPost = async () => {
+        try {
+          const res = await api.get(`/forum/${location.state.openPostId}`);
+          setSelectedPost(res.data.post);
+        } catch (error) {
+          toast.error('Failed to open post');
+        }
+      };
+      fetchPost();
+      // Clear state to avoid reopening on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Fetch all forum posts
   const { data: postsData, isLoading, error } = useQuery(

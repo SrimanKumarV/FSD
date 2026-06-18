@@ -661,8 +661,12 @@ const Profile = () => {
             ) : userPostsData?.data?.posts?.length > 0 ? (
               <div className="space-y-4">
                 {userPostsData.data.posts.map(post => (
-                  <div key={post._id} className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{post.title}</h4>
+                  <div 
+                    key={post._id} 
+                    onClick={() => navigate('/forum', { state: { openPostId: post._id, openPostCategory: post.category } })}
+                    className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  >
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-primary transition-colors">{post.title}</h4>
                     <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4">{post.content}</p>
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                       <span>{new Date(post.createdAt).toLocaleDateString()}</span>
@@ -677,8 +681,6 @@ const Profile = () => {
               <p className="text-gray-500 italic text-center py-8">You haven't created any posts yet.</p>
             )}
           </motion.div>
-        )}
-
         )}
 
       </div>

@@ -436,6 +436,8 @@ const Forum = () => {
           onComment={handleCommentPost}
           user={user}
           isCommenting={commentMutation.isLoading}
+          onDelete={handleDeletePost}
+          onClosePost={handleClosePost}
         />
       )}
     </div>
@@ -465,19 +467,20 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
       
-      <div className="relative z-10 flex items-start space-x-4">
-        {/* Author Avatar */}
-        <div className="flex-shrink-0">
-          {post.author?.photo && post.author?.photo !== 'default-avatar.png' ? (
-            <img src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
-          ) : (
-            <DefaultAvatar className="w-10 h-10" />
-          )}
-        </div>
+      <div className="relative z-10 flex items-start justify-between">
+        <div className="flex items-start space-x-4 flex-1 min-w-0">
+          {/* Author Avatar */}
+          <div className="flex-shrink-0">
+            {post.author?.photo && post.author?.photo !== 'default-avatar.png' ? (
+              <img src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
+            ) : (
+              <DefaultAvatar className="w-10 h-10" />
+            )}
+          </div>
 
-        {/* Post Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-2">
+          {/* Post Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2 mb-2">
             <span className="text-sm font-bold text-gray-900 dark:text-white">
               {post.isAnonymous ? 'Anonymous' : post.author?.name}
             </span>
@@ -561,74 +564,78 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
                 <span>{post.views || 0}</span>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Actions */}
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActions(!showActions);
-                }}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
+        {/* Actions Dropdown at Top Right */}
+        <div className="relative flex-shrink-0 ml-4">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActions(!showActions);
+            }}
+            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
 
-              {showActions && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10">
-                  {((post.author?._id || post.author) === (user?._id || user?.id)) && (
-                    <>
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(post._id);
-                          setShowActions(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </button>
-                      {post.status === 'active' ? (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onClose(post._id);
-                            setShowActions(false);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                        >
-                          <Lock className="w-4 h-4 mr-2" />
-                          Close Post
-                        </button>
-                      ) : (
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                          <Unlock className="w-4 h-4 mr-2" />
-                          Reopen Post
-                        </button>
-                      )}
-                    </>
+          {showActions && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-20">
+              {(String(post.author?._id || post.author) === String(user?._id || user?.id)) && (
+                <>
+                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                    <Edit className="w-4 h-4 mr-3" />
+                    Edit Post
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(post._id);
+                      setShowActions(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 mr-3" />
+                    Delete Post
+                  </button>
+                  {post.status === 'active' ? (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClose(post._id);
+                        setShowActions(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 flex items-center transition-colors"
+                    >
+                      <Lock className="w-4 h-4 mr-3" />
+                      Close Discussion
+                    </button>
+                  ) : (
+                    <button className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/10 flex items-center transition-colors">
+                      <Unlock className="w-4 h-4 mr-3" />
+                      Reopen Discussion
+                    </button>
                   )}
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <Bookmark className="w-4 h-4 mr-2" />
-                    Bookmark
-                  </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                    <Flag className="w-4 h-4 mr-2" />
-                    Report
-                  </button>
-                </div>
+                  <div className="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
+                </>
+              )}
+              
+              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                <Bookmark className="w-4 h-4 mr-3" />
+                Save Post
+              </button>
+              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                <Share2 className="w-4 h-4 mr-3" />
+                Share Link
+              </button>
+              {(post.author?._id !== user?._id && post.author?._id !== user?.id && post.author !== user?._id && post.author !== user?.id) && (
+                <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors">
+                  <Flag className="w-4 h-4 mr-3" />
+                  Report Post
+                </button>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Solution Badge */}
@@ -849,8 +856,9 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost }) => {
   const [newComment, setNewComment] = useState('');
+  const [showActions, setShowActions] = useState(false);
 
   const handleAddComment = (e) => {
     e.preventDefault();
@@ -864,13 +872,78 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting 
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{post.title}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              ✕
-            </button>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white pr-4">{post.title}</h2>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <button
+                  onClick={() => setShowActions(!showActions)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+                {showActions && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-20">
+                    {(String(post.author?._id || post.author) === String(user?._id || user?.id)) && (
+                      <>
+                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                          <Edit className="w-4 h-4 mr-3" />
+                          Edit Post
+                        </button>
+                        <button 
+                          onClick={() => {
+                            onDelete(post._id);
+                            setShowActions(false);
+                            onClose();
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 mr-3" />
+                          Delete Post
+                        </button>
+                        {post.status === 'active' ? (
+                          <button 
+                            onClick={() => {
+                              onClosePost(post._id);
+                              setShowActions(false);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 flex items-center transition-colors"
+                          >
+                            <Lock className="w-4 h-4 mr-3" />
+                            Close Discussion
+                          </button>
+                        ) : (
+                          <button className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/10 flex items-center transition-colors">
+                            <Unlock className="w-4 h-4 mr-3" />
+                            Reopen Discussion
+                          </button>
+                        )}
+                        <div className="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
+                      </>
+                    )}
+                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                      <Bookmark className="w-4 h-4 mr-3" />
+                      Save Post
+                    </button>
+                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                      <Share2 className="w-4 h-4 mr-3" />
+                      Share Link
+                    </button>
+                    {(String(post.author?._id || post.author) !== String(user?._id || user?.id)) && (
+                      <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors">
+                        <Flag className="w-4 h-4 mr-3" />
+                        Report Post
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
 

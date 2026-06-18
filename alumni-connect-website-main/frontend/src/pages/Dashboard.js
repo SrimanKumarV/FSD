@@ -219,7 +219,7 @@ const Dashboard = () => {
               })}
             </div>
             <div className="mt-8">
-              <Link to="/dashboard" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-3 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300">
+              <Link to="/notifications" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-3 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300">
                 View All Activity
               </Link>
             </div>

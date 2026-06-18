@@ -219,13 +219,7 @@ const Layout = ({ children }) => {
             </button>
 
             <div className="flex flex-1 justify-end items-center space-x-4">
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 text-gray-400 hover:text-yellow-500 dark:text-gray-500 dark:hover:text-yellow-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
+              {/* Theme toggle removed from top nav */}
               {/* Notifications */}
               <div className="relative">
                 <button
@@ -296,7 +290,7 @@ const Layout = ({ children }) => {
                         )}
                       </div>
                       <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800 text-center">
-                        <button className="text-xs text-primary-600 hover:text-primary-700 font-medium" onClick={() => setNotificationsOpen(false)}>
+                        <button className="text-xs text-primary-600 hover:text-primary-700 font-medium" onClick={() => { setNotificationsOpen(false); navigate('/notifications'); }}>
                           View all notifications
                         </button>
                       </div>
@@ -337,6 +331,13 @@ const Layout = ({ children }) => {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         View / Edit Profile
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        Settings
                       </Link>
                       <button
                         onClick={handleLogout}

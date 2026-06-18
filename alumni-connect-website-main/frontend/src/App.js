@@ -30,6 +30,8 @@ import Chat from './pages/Chat';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
 import Network from './pages/Network';
+import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -81,6 +83,22 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Network />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Settings />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/notifications" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Notifications />
                       </Layout>
                     </ProtectedRoute>
                   } />

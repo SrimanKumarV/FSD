@@ -29,9 +29,6 @@ import DefaultAvatar from '../components/DefaultAvatar';
 const Profile = () => {
   const { user, updateUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteOtp, setDeleteOtp] = useState('');
-  const [deletingAccount, setDeletingAccount] = useState(false);
   const [isEditingRole, setIsEditingRole] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -89,35 +86,7 @@ const Profile = () => {
     }
   };
 
-  const requestDeleteAccount = async () => {
-    try {
-      setDeletingAccount(true);
-      await api.post('/users/delete-request');
-      setShowDeleteModal(true);
-      toast.success('OTP sent to your email');
-    } catch (error) {
-      toast.error('Failed to send OTP');
-    } finally {
-      setDeletingAccount(false);
-    }
-  };
 
-  const confirmDeleteAccount = async () => {
-    if (!deleteOtp) {
-      toast.error('Please enter the OTP');
-      return;
-    }
-    try {
-      setDeletingAccount(true);
-      await api.delete('/users/me', { data: { otp: deleteOtp } });
-      toast.success('Account deleted successfully');
-      logout();
-      navigate('/');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete account');
-      setDeletingAccount(false);
-    }
-  };
 
   // Fetch user's forum posts
   const { data: userPostsData, isLoading: loadingPosts } = useQuery(
@@ -527,19 +496,6 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="md:col-span-2 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h4 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">Danger Zone</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-              <button
-                type="button"
-                onClick={requestDeleteAccount}
-                disabled={deletingAccount}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {deletingAccount && !showDeleteModal ? 'Sending OTP...' : 'Delete Account'}
-              </button>
-            </div>
-
             <div className="mt-8 flex justify-end space-x-4">
               <button
                 type="button"
@@ -684,47 +640,6 @@ const Profile = () => {
         )}
 
       </div>
-
-      {/* Delete Account Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Confirm Account Deletion</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              We've sent an OTP to your email. Please enter it below to permanently delete your account. This action cannot be undone.
-            </p>
-            <input
-              type="text"
-              value={deleteOtp}
-              onChange={(e) => setDeleteOtp(e.target.value)}
-              placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent mb-6 text-center text-xl tracking-widest bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              maxLength={6}
-            />
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteOtp('');
-                }}
-                disabled={deletingAccount}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDeleteAccount}
-                disabled={deletingAccount || !deleteOtp || deleteOtp.length !== 6}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center"
-              >
-                {deletingAccount ? 'Deleting...' : 'Confirm Deletion'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -97,13 +97,24 @@ router.get('/', async (req, res) => {
   }
 });
 
+const cache = require('../utils/cache');
+const fetchWithTimeout = require('../utils/fetchWithTimeout');
+
 // @desc    Get external jobs from free Remotive API
 // @route   GET /api/jobs/external
 // @access  Public
 router.get('/external', async (req, res) => {
   try {
-    const { category = '', search = '', limit = 20 } = req.query;
+    const { category = '', search = '', limit = 20, region = '' } = req.query;
     
+    // Create a unique cache key based on query params
+    const cacheKey = `external_jobs_${category}_${search}_${limit}_${region}`;
+    const cachedJobs = cache.get(cacheKey);
+
+    if (cachedJobs) {
+      return res.json(cachedJobs);
+    }
+
     // Remotive API URL (No key required)
     let apiUrl = `https://remotive.com/api/remote-jobs?limit=${limit}`;
     
@@ -112,14 +123,12 @@ router.get('/external', async (req, res) => {
     }
     if (search) {
       apiUrl += `&search=${search}`;
-    } else if (req.query.region === 'india') {
+    } else if (region === 'india') {
       apiUrl += `&search=India`;
     }
 
-    const response = await fetch(apiUrl);
+    const response = await fetchWithTimeout(apiUrl);
     const data = await response.json();
-    
-    const region = req.query.region;
     
     // Map Remotive job format to match our internal Job schema closely
     let mappedJobs = data.jobs ? data.jobs.map(job => ({
@@ -145,10 +154,15 @@ router.get('/external', async (req, res) => {
       mappedJobs = mappedJobs.filter(job => !job.location.toLowerCase().includes('india'));
     }
 
-    res.json({
+    const result = {
       jobs: mappedJobs,
       total: data['job-count'] || mappedJobs.length
-    });
+    };
+
+    // Cache the response for 30 minutes
+    cache.set(cacheKey, result);
+
+    res.json(result);
   } catch (error) {
     console.error('Error fetching external jobs:', error);
     res.status(500).json({ message: 'Failed to fetch external jobs' });

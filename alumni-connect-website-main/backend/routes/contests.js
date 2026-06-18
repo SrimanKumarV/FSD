@@ -78,114 +78,140 @@ router.get('/', async (req, res) => {
   }
 });
 
+const cache = require('../utils/cache');
+const fetchWithTimeout = require('../utils/fetchWithTimeout');
+
 // @desc    Get external contests
 // @route   GET /api/contests/external
 // @access  Public
 router.get('/external', async (req, res) => {
   try {
+    const cacheKey = 'external_contests';
+    const cachedContests = cache.get(cacheKey);
+
+    if (cachedContests) {
+      return res.json({ contests: cachedContests });
+    }
+
     const contests = [];
 
-    // 1. Fetch Codeforces
-    try {
-      const cfRes = await fetch('https://codeforces.com/api/contest.list?gym=false');
-      const cfData = await cfRes.json();
-      if (cfData.status === 'OK') {
-        const upcf = cfData.result.filter(c => c.phase === 'BEFORE').map(c => ({
-          _id: `cf-${c.id}`,
-          title: c.name,
-          description: `Global competitive programming contest on Codeforces.`,
-          category: 'coding',
-          status: 'upcoming',
-          startDate: new Date(c.startTimeSeconds * 1000).toISOString(),
-          endDate: new Date((c.startTimeSeconds + c.durationSeconds) * 1000).toISOString(),
-          participants: [],
-          maxParticipants: '∞',
-          prizeAmount: 0,
-          isExternal: true,
-          platform: 'Codeforces',
-          externalLink: `https://codeforces.com/contests/${c.id}`
-        }));
-        contests.push(...upcf);
-      }
-    } catch (e) { console.error('Codeforces error', e); }
+    // Concurrent fetching with Promise.allSettled and 5-second timeout
+    const fetchPromises = [
+      // 1. Fetch Codeforces
+      (async () => {
+        const cfRes = await fetchWithTimeout('https://codeforces.com/api/contest.list?gym=false');
+        const cfData = await cfRes.json();
+        if (cfData.status === 'OK') {
+          return cfData.result.filter(c => c.phase === 'BEFORE').map(c => ({
+            _id: `cf-${c.id}`,
+            title: c.name,
+            description: `Global competitive programming contest on Codeforces.`,
+            category: 'coding',
+            status: 'upcoming',
+            startDate: new Date(c.startTimeSeconds * 1000).toISOString(),
+            endDate: new Date((c.startTimeSeconds + c.durationSeconds) * 1000).toISOString(),
+            participants: [],
+            maxParticipants: '∞',
+            prizeAmount: 0,
+            isExternal: true,
+            platform: 'Codeforces',
+            externalLink: `https://codeforces.com/contests/${c.id}`
+          }));
+        }
+        return [];
+      })(),
 
-    // 2. Fetch LeetCode
-    try {
-      const lcQuery = JSON.stringify({ query: '{ allContests { title titleSlug startTime duration } }' });
-      const lcRes = await fetch('https://leetcode.com/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: lcQuery
-      });
-      const lcData = await lcRes.json();
-      if (lcData.data && lcData.data.allContests) {
-        const now = Date.now() / 1000;
-        const uplc = lcData.data.allContests.filter(c => c.startTime > now).map(c => ({
-          _id: `lc-${c.titleSlug}`,
-          title: c.title,
-          description: `Global competitive programming contest on LeetCode.`,
-          category: 'coding',
-          status: 'upcoming',
-          startDate: new Date(c.startTime * 1000).toISOString(),
-          endDate: new Date((c.startTime + c.duration) * 1000).toISOString(),
-          participants: [],
-          maxParticipants: '∞',
-          prizeAmount: 0,
-          isExternal: true,
-          platform: 'LeetCode',
-          externalLink: `https://leetcode.com/contest/${c.titleSlug}`
-        }));
-        contests.push(...uplc);
-      }
-    } catch (e) { console.error('LeetCode error', e); }
+      // 2. Fetch LeetCode
+      (async () => {
+        const lcQuery = JSON.stringify({ query: '{ allContests { title titleSlug startTime duration } }' });
+        const lcRes = await fetchWithTimeout('https://leetcode.com/graphql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: lcQuery
+        });
+        const lcData = await lcRes.json();
+        if (lcData.data && lcData.data.allContests) {
+          const now = Date.now() / 1000;
+          return lcData.data.allContests.filter(c => c.startTime > now).map(c => ({
+            _id: `lc-${c.titleSlug}`,
+            title: c.title,
+            description: `Global competitive programming contest on LeetCode.`,
+            category: 'coding',
+            status: 'upcoming',
+            startDate: new Date(c.startTime * 1000).toISOString(),
+            endDate: new Date((c.startTime + c.duration) * 1000).toISOString(),
+            participants: [],
+            maxParticipants: '∞',
+            prizeAmount: 0,
+            isExternal: true,
+            platform: 'LeetCode',
+            externalLink: `https://leetcode.com/contest/${c.titleSlug}`
+          }));
+        }
+        return [];
+      })(),
 
-    // 3. Fetch CodeChef
-    try {
-      const ccRes = await fetch('https://www.codechef.com/api/list/contests/all?sort_by=START&sorting_order=asc&offset=0&mode=premium');
-      const ccData = await ccRes.json();
-      if (ccData.status === 'success' && ccData.future_contests) {
-        const upcc = ccData.future_contests.map(c => ({
-          _id: `cc-${c.contest_code}`,
-          title: c.contest_name,
-          description: `Global competitive programming contest on CodeChef.`,
-          category: 'coding',
-          status: 'upcoming',
-          startDate: new Date(c.contest_start_date_iso).toISOString(),
-          endDate: new Date(c.contest_end_date_iso).toISOString(),
-          participants: [],
-          maxParticipants: '∞',
-          prizeAmount: 0,
-          isExternal: true,
-          platform: 'CodeChef',
-          externalLink: `https://www.codechef.com/${c.contest_code}`
-        }));
-        contests.push(...upcc);
-      }
-    } catch (e) { console.error('CodeChef error', e); }
+      // 3. Fetch CodeChef
+      (async () => {
+        const ccRes = await fetchWithTimeout('https://www.codechef.com/api/list/contests/all?sort_by=START&sorting_order=asc&offset=0&mode=premium');
+        const ccData = await ccRes.json();
+        if (ccData.status === 'success' && ccData.future_contests) {
+          return ccData.future_contests.map(c => ({
+            _id: `cc-${c.contest_code}`,
+            title: c.contest_name,
+            description: `Global competitive programming contest on CodeChef.`,
+            category: 'coding',
+            status: 'upcoming',
+            startDate: new Date(c.contest_start_date_iso).toISOString(),
+            endDate: new Date(c.contest_end_date_iso).toISOString(),
+            participants: [],
+            maxParticipants: '∞',
+            prizeAmount: 0,
+            isExternal: true,
+            platform: 'CodeChef',
+            externalLink: `https://www.codechef.com/${c.contest_code}`
+          }));
+        }
+        return [];
+      })(),
 
-    // 4. Fetch GeeksForGeeks
-    try {
-      const gfgRes = await fetch('https://practiceapi.geeksforgeeks.org/api/vr/events/?page_number=1&sub_type=all&type=contest');
-      const gfgData = await gfgRes.json();
-      if (gfgData.results && gfgData.results.upcoming) {
-        const upgfg = gfgData.results.upcoming.map(c => ({
-          _id: `gfg-${c.slug}`,
-          title: c.name,
-          description: `Global competitive programming contest on GeeksForGeeks.`,
-          category: 'coding',
-          status: 'upcoming',
-          startDate: new Date(c.start_time).toISOString(),
-          endDate: new Date(c.end_time).toISOString(),
-          participants: [],
-          maxParticipants: '∞',
-          prizeAmount: 0,
-          isExternal: true,
-          platform: 'GeeksForGeeks',
-          externalLink: `https://practice.geeksforgeeks.org/contest/${c.slug}`
-        }));
-        contests.push(...upgfg);
+      // 4. Fetch GeeksForGeeks
+      (async () => {
+        const gfgRes = await fetchWithTimeout('https://practiceapi.geeksforgeeks.org/api/vr/events/?page_number=1&sub_type=all&type=contest');
+        const gfgData = await gfgRes.json();
+        if (gfgData.results && gfgData.results.upcoming) {
+          return gfgData.results.upcoming.map(c => ({
+            _id: `gfg-${c.slug}`,
+            title: c.name,
+            description: `Global competitive programming contest on GeeksForGeeks.`,
+            category: 'coding',
+            status: 'upcoming',
+            startDate: new Date(c.start_time).toISOString(),
+            endDate: new Date(c.end_time).toISOString(),
+            participants: [],
+            maxParticipants: '∞',
+            prizeAmount: 0,
+            isExternal: true,
+            platform: 'GeeksForGeeks',
+            externalLink: `https://practice.geeksforgeeks.org/contest/${c.slug}`
+          }));
+        }
+        return [];
+      })()
+    ];
+
+    const results = await Promise.allSettled(fetchPromises);
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        contests.push(...result.value);
+      } else {
+        console.error(`External fetch failed at index ${index}:`, result.reason);
       }
-    } catch (e) { console.error('GFG error', e); }
+    });
+
+    // Cache the merged results for 30 minutes
+    cache.set(cacheKey, contests);
 
     res.json({ contests });
   } catch (error) {

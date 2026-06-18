@@ -214,4 +214,9 @@ userSchema.virtual('isOnline').get(function() {
   return this.lastActive > fiveMinutesAgo;
 });
 
+// Indexes for faster queries
+userSchema.index({ role: 1, status: 1 });
+userSchema.index({ 'alumniInfo.industry': 1 });
+userSchema.index({ location: 1 });
+
 module.exports = mongoose.model('User', userSchema);

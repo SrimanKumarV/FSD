@@ -137,9 +137,12 @@ const Layout = ({ children }) => {
             className="fixed inset-y-0 left-0 z-50 w-64 glass-card shadow-xl lg:hidden border-r-0 rounded-none rounded-r-2xl"
           >
             <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
-                Alumnex Connect
-              </h1>
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
+                <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
+                  Alumnex Connect
+                </h1>
+              </div>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -178,9 +181,12 @@ const Layout = ({ children }) => {
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:p-4">
         <div className="flex flex-col flex-grow glass-card border-none rounded-3xl shadow-xl overflow-hidden">
           <div className="flex items-center h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
-              Alumnex Connect
-            </h1>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
+                Alumnex Connect
+              </h1>
+            </div>
           </div>
           
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

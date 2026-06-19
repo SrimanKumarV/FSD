@@ -161,9 +161,12 @@ const Register = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent drop-shadow-sm">
-              Alumnex Connect
-            </h1>
+            <div className="flex justify-center items-center gap-3">
+              <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-full shadow-md" />
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent drop-shadow-sm">
+                Alumnex Connect
+              </h1>
+            </div>
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Create your account</h2>
             <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
               Join our community of students and alumni

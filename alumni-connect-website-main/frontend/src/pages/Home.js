@@ -91,7 +91,8 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 flex items-center gap-3">
+                <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full shadow-md" />
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
                   Alumnex Connect
                 </h1>
@@ -342,7 +343,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div>
-              <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-primary-500 to-alumni-500 bg-clip-text text-transparent">Alumnex Connect</h3>
+              <div className="flex items-center gap-3 mb-6">
+                <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full shadow-md" />
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-alumni-500 bg-clip-text text-transparent">Alumnex Connect</h3>
+              </div>
               <p className="text-sm font-medium leading-relaxed">
                 Connecting students with alumni for mentorship, career guidance, and professional growth.
               </p>

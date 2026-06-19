@@ -33,6 +33,14 @@ import Network from './pages/Network';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 
+// Legal and Support Pages
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import TermsConditions from './pages/legal/TermsConditions';
+import CookiePolicy from './pages/legal/CookiePolicy';
+import HelpCentre from './pages/support/HelpCentre';
+import ContactUs from './pages/support/ContactUs';
+import FAQ from './pages/support/FAQ';
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +69,14 @@ function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
+                  
+                  {/* Legal and Support Routes */}
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsConditions />} />
+                  <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/help" element={<HelpCentre />} />
+                  <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/faq" element={<FAQ />} />
                   
                   {/* Protected Routes */}
                   <Route path="/dashboard" element={

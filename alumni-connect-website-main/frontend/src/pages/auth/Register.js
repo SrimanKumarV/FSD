@@ -495,6 +495,15 @@ const Register = () => {
           </form>
         </motion.div>
       </div>
+      {/* Footer Links for Register Page */}
+      <div className="mt-8 text-center relative z-10">
+        <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+          <Link to="/help" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Help Centre</Link>
+          <Link to="/contact" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Contact Us</Link>
+          <Link to="/faq" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">FAQ</Link>
+          <Link to="/cookies" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Cookie Policy</Link>
+        </div>
+      </div>
     </div>
   );
 };

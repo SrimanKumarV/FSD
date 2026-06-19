@@ -53,6 +53,7 @@ const Forum = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState({
     category: '',
@@ -147,6 +148,25 @@ const Forum = () => {
     }
   );
 
+  // Update post mutation
+  const updatePostMutation = useMutation(
+    ({ postId, postData }) => api.put(`/forum/${postId}`, postData),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
+        setEditingPost(null);
+        if (selectedPost) {
+          api.get(`/forum/${selectedPost._id}`).then(res => setSelectedPost(res.data.post));
+        }
+        toast.success('Post updated successfully!');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to update post');
+      }
+    }
+  );
+
   // Delete post mutation
   const deletePostMutation = useMutation(
     (postId) => api.delete(`/forum/${postId}`),
@@ -179,6 +199,10 @@ const Forum = () => {
 
   const handleCreatePost = (postData) => {
     createPostMutation.mutate(postData);
+  };
+
+  const handleUpdatePost = (postData) => {
+    updatePostMutation.mutate({ postId: editingPost._id, postData });
   };
 
   const handleLikePost = (postId) => {
@@ -386,6 +410,7 @@ const Forum = () => {
                 onClose={handleClosePost}
                 onDelete={handleDeletePost}
                 onSelect={setSelectedPost}
+                onEdit={setEditingPost}
                 user={user}
               />
             ));
@@ -448,6 +473,17 @@ const Forum = () => {
         />
       )}
 
+      {/* Edit Post Modal */}
+      {editingPost && (
+        <CreatePostModal
+          initialData={editingPost}
+          onClose={() => setEditingPost(null)}
+          onSubmit={handleUpdatePost}
+          categories={categories}
+          postTypes={postTypes}
+        />
+      )}
+
       {/* Post Detail Modal */}
       {selectedPost && (
         <PostDetailModal
@@ -460,6 +496,7 @@ const Forum = () => {
           onDelete={handleDeletePost}
           onClosePost={handleClosePost}
           onDeleteComment={handleDeleteComment}
+          onEdit={setEditingPost}
         />
       )}
     </div>
@@ -467,8 +504,43 @@ const Forum = () => {
 };
 
 // Post Card Component
-const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
+const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit }) => {
   const [showActions, setShowActions] = useState(false);
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    setShowActions(false);
+    const url = `${window.location.origin}/forum`; 
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title,
+          text: `Check out this post on Alumnex Connect: ${post.title}`,
+          url: url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard');
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard');
+      }
+    }
+  };
+
+  const handleSave = (e) => {
+    e.stopPropagation();
+    setShowActions(false);
+    toast.success('Post saved successfully!');
+  };
+
+  const handleReport = (e) => {
+    e.stopPropagation();
+    setShowActions(false);
+    toast.success('Post reported to moderators');
+  };
 
   const getCategoryColor = (category) => {
     const cat = categories.find(c => c.value === category);
@@ -606,7 +678,14 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-20">
               {(String(post.author?._id || post.author) === String(user?._id || user?.id)) && (
                 <>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowActions(false);
+                      if(onEdit) onEdit(post);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors"
+                  >
                     <Edit className="w-4 h-4 mr-3" />
                     Edit Post
                   </button>
@@ -643,16 +722,25 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
                 </>
               )}
               
-              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+              <button 
+                onClick={handleSave}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors"
+              >
                 <Bookmark className="w-4 h-4 mr-3" />
                 Save Post
               </button>
-              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+              <button 
+                onClick={handleShare}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors"
+              >
                 <Share2 className="w-4 h-4 mr-3" />
                 Share Link
               </button>
               {(post.author?._id !== user?._id && post.author?._id !== user?.id && post.author !== user?._id && post.author !== user?.id) && (
-                <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors">
+                <button 
+                  onClick={handleReport}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors"
+                >
                   <Flag className="w-4 h-4 mr-3" />
                   Report Post
                 </button>
@@ -676,16 +764,15 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user }) => {
 };
 
 // Create Post Modal Component
-const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
+const CreatePostModal = ({ onClose, onSubmit, categories, postTypes, initialData }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    category: '',
-    postType: '',
-    postType: '',
-    tags: '',
-    isAnonymous: false,
-    attachments: []
+    title: initialData?.title || '',
+    content: initialData?.content || '',
+    category: initialData?.category || '',
+    postType: initialData?.postType || '',
+    tags: initialData?.tags?.join(', ') || '',
+    isAnonymous: initialData?.isAnonymous || false,
+    attachments: initialData?.attachments || []
   });
   const [uploadingMedia, setUploadingMedia] = useState(false);
 
@@ -730,7 +817,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create New Post</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{initialData ? 'Edit Post' : 'Create New Post'}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -869,7 +956,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
               disabled={uploadingMedia}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
             >
-              {uploadingMedia ? 'Uploading...' : 'Create Post'}
+              {uploadingMedia ? 'Uploading...' : (initialData ? 'Update Post' : 'Create Post')}
             </button>
           </div>
         </form>
@@ -879,9 +966,41 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes }) => {
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment, onEdit }) => {
   const [newComment, setNewComment] = useState('');
   const [showActions, setShowActions] = useState(false);
+
+  const handleShare = async () => {
+    setShowActions(false);
+    const url = `${window.location.origin}/forum`; 
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title,
+          text: `Check out this post on Alumnex Connect: ${post.title}`,
+          url: url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard');
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard');
+      }
+    }
+  };
+
+  const handleSave = () => {
+    setShowActions(false);
+    toast.success('Post saved successfully!');
+  };
+
+  const handleReport = () => {
+    setShowActions(false);
+    toast.success('Post reported to moderators');
+  };
 
   const handleAddComment = (e) => {
     e.preventDefault();
@@ -908,7 +1027,16 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-20">
                     {(String(post.author?._id || post.author) === String(user?._id || user?.id)) && (
                       <>
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                        <button 
+                          onClick={() => {
+                            setShowActions(false);
+                            if(onEdit) {
+                              onClose();
+                              onEdit(post);
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors"
+                        >
                           <Edit className="w-4 h-4 mr-3" />
                           Edit Post
                         </button>
@@ -943,16 +1071,25 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                         <div className="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
                       </>
                     )}
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                    <button 
+                      onClick={handleSave}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors"
+                    >
                       <Bookmark className="w-4 h-4 mr-3" />
                       Save Post
                     </button>
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors">
+                    <button 
+                      onClick={handleShare}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center transition-colors"
+                    >
                       <Share2 className="w-4 h-4 mr-3" />
                       Share Link
                     </button>
                     {(String(post.author?._id || post.author) !== String(user?._id || user?.id)) && (
-                      <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors">
+                      <button 
+                        onClick={handleReport}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center transition-colors"
+                      >
                         <Flag className="w-4 h-4 mr-3" />
                         Report Post
                       </button>

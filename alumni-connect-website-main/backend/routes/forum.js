@@ -304,7 +304,7 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    await post.remove();
+    await post.deleteOne();
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     console.error('Error deleting forum post:', error);
@@ -484,7 +484,7 @@ router.delete('/:id/comments/:commentId', protect, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    comment.remove();
+    post.comments.pull(req.params.commentId);
     await post.save();
 
     await post.populate('author', 'name photo role');

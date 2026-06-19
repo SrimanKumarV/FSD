@@ -95,6 +95,21 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+// Keep Render free tier awake by pinging itself every 14 minutes
+if (process.env.RENDER_EXTERNAL_URL) {
+  const https = require('https');
+  const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+  
+  setInterval(() => {
+    https.get(`${process.env.RENDER_EXTERNAL_URL}/`, (resp) => {
+      console.log(`[Self-Ping] Keep-awake ping sent to ${process.env.RENDER_EXTERNAL_URL} - Status: ${resp.statusCode}`);
+    }).on("error", (err) => {
+      console.error("[Self-Ping] Keep-awake ping failed: " + err.message);
+    });
+  }, PING_INTERVAL);
+  console.log(`[Self-Ping] Mechanism enabled for ${process.env.RENDER_EXTERNAL_URL}`);
+}
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

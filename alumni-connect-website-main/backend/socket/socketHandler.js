@@ -65,13 +65,19 @@ module.exports = (io) => {
     });
 
     // Send online users list to the connected user
-    const onlineUsersList = Array.from(onlineUsers.values()).map(user => ({
-      userId: user.user._id.toString(),
-      userName: user.user.name,
-      role: user.user.role,
-      lastSeen: user.lastSeen
-    }));
-    socket.emit('users:online', onlineUsersList);
+    const sendOnlineUsersList = () => {
+      const onlineUsersList = Array.from(onlineUsers.values()).map(user => ({
+        userId: user.user._id.toString(),
+        userName: user.user.name,
+        role: user.user.role,
+        lastSeen: user.lastSeen
+      }));
+      socket.emit('users:online', onlineUsersList);
+    };
+    sendOnlineUsersList();
+
+    // Allow frontend to request the list explicitly
+    socket.on('get:users:online', sendOnlineUsersList);
 
     // Handle private message
     socket.on('message:send', async (data) => {

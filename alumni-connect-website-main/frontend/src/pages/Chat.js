@@ -39,6 +39,7 @@ const Chat = () => {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [onlineUsersMap, setOnlineUsersMap] = useState(new Map());
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [attachment, setAttachment] = useState(null);
@@ -184,16 +185,43 @@ const Chat = () => {
       }
     };
 
+    const handleUsersOnline = (users) => {
+      const map = new Map();
+      users.forEach(u => map.set(u.userId, true));
+      setOnlineUsersMap(map);
+    };
+
+    const handleUserOnline = (data) => {
+      setOnlineUsersMap(prev => new Map(prev).set(data.userId, true));
+    };
+
+    const handleUserOffline = (data) => {
+      setOnlineUsersMap(prev => {
+        const next = new Map(prev);
+        next.delete(data.userId);
+        return next;
+      });
+    };
+
     socket.on('message:received', handleMessageReceived);
     socket.on('message:sent', handleMessageSent);
     socket.on('typing:start', handleTypingStart);
     socket.on('typing:stop', handleTypingStop);
+    socket.on('users:online', handleUsersOnline);
+    socket.on('user:online', handleUserOnline);
+    socket.on('user:offline', handleUserOffline);
+
+    // Ask for current online users
+    socket.emit('get:users:online');
 
     return () => {
       socket.off('message:received', handleMessageReceived);
       socket.off('message:sent', handleMessageSent);
       socket.off('typing:start', handleTypingStart);
       socket.off('typing:stop', handleTypingStop);
+      socket.off('users:online', handleUsersOnline);
+      socket.off('user:online', handleUserOnline);
+      socket.off('user:offline', handleUserOffline);
     };
   }, [socket, isConnected, otherParticipantId, queryClient]);
 
@@ -214,8 +242,27 @@ const Chat = () => {
     };
 
     if (socket && isConnected) {
+      // Zero-latency optimistic UI update
+      const tempMessage = {
+        _id: 'temp_' + Date.now(),
+        sender: user?._id || user?.id,
+        receiver: otherParticipantId,
+        content: payload.content,
+        messageType: payload.messageType,
+        attachments: payload.attachments,
+        createdAt: new Date().toISOString()
+      };
+      
+      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
+        if (!oldData || !oldData.data) return oldData;
+        const messages = oldData.data.messages || [];
+        return {
+          ...oldData,
+          data: { ...oldData.data, messages: [tempMessage, ...messages] }
+        };
+      });
+
       socket.emit('message:send', payload);
-      // Fallback optimistic UI clear
       setMessage('');
       setAttachment(null);
     } else {
@@ -345,7 +392,7 @@ const Chat = () => {
                       <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
                         {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
-                      {otherParticipant?.isOnline && (
+                      {(onlineUsersMap.has(otherParticipant?._id || otherParticipant?.id) || otherParticipant?.isOnline) && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
@@ -409,7 +456,7 @@ const Chat = () => {
                   <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
                     {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline && (
+                  {(onlineUsersMap.has(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) && (
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
                   )}
                 </div>
@@ -418,7 +465,7 @@ const Chat = () => {
                     {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                    {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline ? (
+                    {(onlineUsersMap.has(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) ? (
                       <span className="text-green-500">Online</span>
                     ) : 'Offline'}
                   </p>

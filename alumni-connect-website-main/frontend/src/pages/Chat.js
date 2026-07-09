@@ -161,11 +161,26 @@ const Chat = () => {
       const receiverId = data.message.receiver._id || data.message.receiver;
       queryClient.setQueryData(['chat-messages', receiverId], (oldData) => {
         if (!oldData || !oldData.data) return oldData;
-        const messages = oldData.data.messages || [];
+        const messages = [...(oldData.data.messages || [])];
         if (messages.some(msg => msg._id === data.message._id)) return oldData;
+        
+        // Find and replace the exact temporary optimistic message
+        let replaced = false;
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i]._id.toString().startsWith('temp_') && messages[i].content === data.message.content) {
+            messages[i] = data.message;
+            replaced = true;
+            break;
+          }
+        }
+        
+        if (!replaced) {
+          messages.unshift(data.message);
+        }
+        
         return {
           ...oldData,
-          data: { ...oldData.data, messages: [data.message, ...messages] }
+          data: { ...oldData.data, messages }
         };
       });
       queryClient.invalidateQueries(['user-chats']);
@@ -214,6 +229,26 @@ const Chat = () => {
     };
 
     if (socket && isConnected) {
+      // Zero-latency optimistic UI update
+      const tempMessage = {
+        _id: 'temp_' + Date.now(),
+        sender: user?._id || user?.id,
+        receiver: otherParticipantId,
+        content: payload.content,
+        messageType: payload.messageType,
+        attachments: payload.attachments,
+        createdAt: new Date().toISOString()
+      };
+      
+      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
+        if (!oldData || !oldData.data) return oldData;
+        const messages = oldData.data.messages || [];
+        return {
+          ...oldData,
+          data: { ...oldData.data, messages: [tempMessage, ...messages] }
+        };
+      });
+
       socket.emit('message:send', payload);
       setMessage('');
       setAttachment(null);

@@ -103,6 +103,7 @@ module.exports = (io) => {
           content,
           messageType,
           attachments,
+          replyTo: data.replyTo || null,
           conversationId: Message.generateConversationId(userId, receiverId)
         });
 
@@ -156,6 +157,61 @@ module.exports = (io) => {
       } catch (error) {
         console.error('Message send error:', error);
         socket.emit('message:error', { message: 'Failed to send message' });
+      }
+    });
+
+    // Handle message reaction (Instagram double tap)
+    socket.on('message:react', async (data) => {
+      try {
+        const { messageId, emoji } = data;
+        if (!messageId || !emoji) return;
+
+        const message = await Message.findById(messageId);
+        if (!message) return;
+
+        await message.addReaction(userId, emoji);
+        await message.populate('reactions.user', 'name');
+
+        const receiverSocketId = onlineUsers.get(message.receiver.toString())?.socketId;
+        const senderSocketId = onlineUsers.get(message.sender.toString())?.socketId;
+
+        const reactionUpdate = {
+          messageId: message._id,
+          reactions: message.reactions
+        };
+
+        if (receiverSocketId) io.to(receiverSocketId).emit('message:reacted', reactionUpdate);
+        if (senderSocketId) io.to(senderSocketId).emit('message:reacted', reactionUpdate);
+      } catch (error) {
+        console.error('Reaction error:', error);
+      }
+    });
+
+    // Handle message unsend (Instagram unsend)
+    socket.on('message:unsend', async (data) => {
+      try {
+        const { messageId } = data;
+        if (!messageId) return;
+
+        const message = await Message.findById(messageId);
+        if (!message) return;
+
+        // Ensure only sender can unsend
+        if (message.sender.toString() !== userId) return;
+
+        await message.deleteMessage(userId);
+
+        const receiverSocketId = onlineUsers.get(message.receiver.toString())?.socketId;
+        const senderSocketId = onlineUsers.get(message.sender.toString())?.socketId;
+
+        const unsendUpdate = {
+          messageId: message._id
+        };
+
+        if (receiverSocketId) io.to(receiverSocketId).emit('message:unsent', unsendUpdate);
+        if (senderSocketId) io.to(senderSocketId).emit('message:unsent', unsendUpdate);
+      } catch (error) {
+        console.error('Unsend error:', error);
       }
     });
 

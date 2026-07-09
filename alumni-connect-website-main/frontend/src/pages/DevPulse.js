@@ -7,7 +7,10 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
-
+import { 
+  PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
+} from 'recharts';
 // Simple custom styles for the heatmap to match our theme
 const heatmapStyles = `
   .react-calendar-heatmap .color-empty { fill: #f3f4f6; }
@@ -88,6 +91,21 @@ const DevPulse = () => {
     }
     return dataPoints;
   }, [alumnexScore]);
+
+  // Recharts Data Prep
+  const leetcodeData = stats?.leetcode ? [
+    { name: 'Easy', value: stats.leetcode.easySolved, color: '#10b981' },
+    { name: 'Medium', value: stats.leetcode.mediumSolved, color: '#f59e0b' },
+    { name: 'Hard', value: stats.leetcode.hardSolved, color: '#ef4444' }
+  ].filter(d => d.value > 0) : [];
+
+  const radarData = [
+    { subject: 'Algorithms', A: Math.min((stats?.leetcode?.totalSolved || 0) / 5, 100), fullMark: 100 },
+    { subject: 'Consistency', A: Math.min((alumnexScore / 10), 100), fullMark: 100 },
+    { subject: 'Open Source', A: Math.min(((stats?.github?.followers || 0) * 5) + ((stats?.github?.publicRepos || 0) * 2), 100), fullMark: 100 },
+    { subject: 'Competitions', A: Math.min((stats?.hackerrank?.badgesCount || 0) * 15, 100), fullMark: 100 },
+    { subject: 'Core CS', A: Math.min((stats?.gfg?.codingScore || 0) / 5, 100), fullMark: 100 },
+  ];
 
   const startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 6);
@@ -187,6 +205,78 @@ const DevPulse = () => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Advanced Analytics Row (Codolio Style) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Radar Chart */}
+        <div className="bg-white dark:bg-gray-800/50 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-sm flex flex-col">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Skill Matrix</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Normalized distribution across platforms</p>
+          <div className="flex-1 min-h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                <PolarGrid stroke="#e5e7eb" className="dark:stroke-gray-700" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar
+                  name="Skills"
+                  dataKey="A"
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.4}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* LeetCode Breakdown */}
+        <div className="bg-white dark:bg-gray-800/50 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-sm flex flex-col">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">LeetCode Breakdown</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Difficulty distribution of solved problems</p>
+          <div className="flex-1 min-h-[300px] flex items-center justify-center">
+            {leetcodeData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={leetcodeData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={110}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {leetcodeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center text-gray-500 flex flex-col items-center">
+                <Code className="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" />
+                <p>Link your LeetCode account to see difficulty analysis</p>
+              </div>
+            )}
+          </div>
+          {leetcodeData.length > 0 && (
+            <div className="flex justify-center space-x-6 mt-4">
+              {leetcodeData.map(entry => (
+                <div key={entry.name} className="flex items-center">
+                  <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{entry.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Stats Grid */}

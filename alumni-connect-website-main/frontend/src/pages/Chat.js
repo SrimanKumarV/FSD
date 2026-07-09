@@ -44,6 +44,7 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [attachment, setAttachment] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
   
   const emojis = ['😀', '😂', '🥰', '😎', '😭', '🥺', '😡', '👍', '❤️', '🔥', '✨', '🎉', '💡', '🚀', '👀', '💯'];
 
@@ -209,16 +210,40 @@ const Chat = () => {
       }
     };
 
+    const handleMessageReacted = (data) => {
+      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
+        if (!oldData || !oldData.data) return oldData;
+        const messages = oldData.data.messages.map(msg => 
+          msg._id === data.messageId ? { ...msg, reactions: data.reactions } : msg
+        );
+        return { ...oldData, data: { ...oldData.data, messages } };
+      });
+    };
+
+    const handleMessageUnsent = (data) => {
+      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
+        if (!oldData || !oldData.data) return oldData;
+        const messages = oldData.data.messages.map(msg => 
+          msg._id === data.messageId ? { ...msg, metadata: { ...msg.metadata, isDeleted: true } } : msg
+        );
+        return { ...oldData, data: { ...oldData.data, messages } };
+      });
+    };
+
     socket.on('message:received', handleMessageReceived);
     socket.on('message:sent', handleMessageSent);
     socket.on('typing:start', handleTypingStart);
     socket.on('typing:stop', handleTypingStop);
+    socket.on('message:reacted', handleMessageReacted);
+    socket.on('message:unsent', handleMessageUnsent);
 
     return () => {
       socket.off('message:received', handleMessageReceived);
       socket.off('message:sent', handleMessageSent);
       socket.off('typing:start', handleTypingStart);
       socket.off('typing:stop', handleTypingStop);
+      socket.off('message:reacted', handleMessageReacted);
+      socket.off('message:unsent', handleMessageUnsent);
     };
   }, [socket, isConnected, otherParticipantId, queryClient]);
 
@@ -235,7 +260,8 @@ const Chat = () => {
       receiverId: otherParticipantId,
       content: attachment ? (message.trim() || 'Sent an attachment') : message.trim(),
       messageType: attachment?.fileType === 'image' ? 'image' : (attachment ? 'file' : 'text'),
-      attachments: attachment ? [attachment] : []
+      attachments: attachment ? [attachment] : [],
+      replyTo: replyingTo?._id
     };
 
     if (socket && isConnected) {
@@ -247,6 +273,7 @@ const Chat = () => {
         content: payload.content,
         messageType: payload.messageType,
         attachments: payload.attachments,
+        replyTo: replyingTo,
         createdAt: new Date().toISOString()
       };
       
@@ -262,6 +289,7 @@ const Chat = () => {
       socket.emit('message:send', payload);
       setMessage('');
       setAttachment(null);
+      setReplyingTo(null);
     } else {
       const messageData = {
         receiver: otherParticipantId,
@@ -270,6 +298,7 @@ const Chat = () => {
       delete messageData.receiverId;
       sendMessageMutation.mutate(messageData);
       setAttachment(null);
+      setReplyingTo(null);
     }
 
     // Emit typing stop
@@ -462,9 +491,21 @@ const Chat = () => {
                     {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                    {(onlineUsersMap.has(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) ? (
-                      <span className="text-green-500">Online</span>
-                    ) : 'Offline'}
+                    {(onlineUsersMap.has(otherParticipantId) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) ? (
+                      <span className="text-green-500">Active now</span>
+                    ) : (
+                      <span>{(() => {
+                        const otherP = selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id));
+                        if (!otherP?.lastSeen) return 'Offline';
+                        const date = new Date(otherP.lastSeen);
+                        const diffInMins = Math.floor((new Date() - date) / (1000 * 60));
+                        if (diffInMins < 1) return 'Active just now';
+                        if (diffInMins < 60) return `Active ${diffInMins}m ago`;
+                        const diffInHours = Math.floor(diffInMins / 60);
+                        if (diffInHours < 24) return `Active ${diffInHours}h ago`;
+                        return `Active ${date.toLocaleDateString()}`;
+                      })()}</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -497,14 +538,23 @@ const Chat = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
               ) : messagesData?.data?.messages?.length > 0 ? (
-                [...messagesData.data.messages].reverse().map((msg) => (
-                  <MessageBubble
-                    key={msg._id}
-                    message={msg}
-                    isOwn={msg.sender === (user?._id || user?.id) || msg.sender?._id === (user?._id || user?.id)}
-                    user={user}
-                  />
-                ))
+                [...messagesData.data.messages].reverse().map((msg, index, array) => {
+                  const isOwn = msg.sender === (user?._id || user?.id) || msg.sender?._id === (user?._id || user?.id);
+                  const isLastMessage = index === array.length - 1;
+                  
+                  return (
+                    <MessageBubble
+                      key={msg._id}
+                      message={msg}
+                      isOwn={isOwn}
+                      user={user}
+                      isLastMessage={isLastMessage}
+                      onReply={() => setReplyingTo(msg)}
+                      onReact={(emoji) => socket.emit('message:react', { messageId: msg._id, emoji })}
+                      onUnsend={() => socket.emit('message:unsend', { messageId: msg._id })}
+                    />
+                  );
+                })
               ) : (
                 <div className="text-center text-gray-500 dark:text-gray-400 py-8 flex flex-col items-center justify-center h-full">
                   <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
@@ -529,6 +579,23 @@ const Chat = () => {
 
             {/* Message Input */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 relative">
+              
+              {replyingTo && (
+                <div className="absolute bottom-full left-4 right-4 mb-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-t-xl border-l-4 border-primary-500 flex justify-between items-center shadow-sm">
+                  <div className="overflow-hidden flex-1">
+                    <p className="text-xs text-primary-600 dark:text-primary-400 font-bold mb-1">
+                      Replying to {replyingTo.sender?._id === user?._id ? 'yourself' : (replyingTo.sender?.name || 'user')}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
+                      {replyingTo.content || 'Attachment'}
+                    </p>
+                  </div>
+                  <button onClick={() => setReplyingTo(null)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500">
+                    <Block className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
               {attachment && (
                 <div className="absolute bottom-full left-4 mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2">
                   {attachment.fileType === 'image' ? (
@@ -640,8 +707,11 @@ const Chat = () => {
   );
 };
 
-// Message Bubble Component
-const MessageBubble = ({ message, isOwn, user }) => {
+// Message Bubble Component (Instagram Style)
+const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, onUnsend }) => {
+  const [showOptions, setShowOptions] = useState(false);
+  const [lastTap, setLastTap] = useState(0);
+
   const getMessageTime = (timestamp) => {
     const now = new Date();
     const messageTime = new Date(timestamp);
@@ -654,28 +724,86 @@ const MessageBubble = ({ message, isOwn, user }) => {
     }
   };
 
-  const getReadStatus = () => {
-    if (!isOwn) return null;
-    
-    if (message.read) {
-      return <CheckCheck className="w-4 h-4 text-blue-500" />;
+  const handleDoubleTap = (e) => {
+    e.preventDefault();
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+      if (!isOwn) onReact('❤️'); // Instagram double tap to heart
     } else {
-      return <Check className="w-4 h-4 text-gray-400" />;
+      setLastTap(now);
     }
   };
+
+  const hasHeartReaction = message.reactions?.some(r => r.emoji === '❤️');
+
+  if (message.metadata?.isDeleted) {
+    return (
+      <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+        <div className="px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-400 dark:text-gray-500 italic text-sm">
+          This message was unsent.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 group relative`}
+      onMouseEnter={() => setShowOptions(true)}
+      onMouseLeave={() => setShowOptions(false)}
     >
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'}`}>
+      
+      {/* Options Menu (Reply, Unsend) */}
+      <AnimatePresence>
+        {showOptions && !message._id.toString().startsWith('temp_') && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className={`absolute top-1/2 -translate-y-1/2 flex items-center space-x-1 ${isOwn ? 'right-[105%]' : 'left-[105%]'}`}
+          >
+            <button 
+              onClick={onReply}
+              className="p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-colors shadow-sm"
+              title="Reply"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            {isOwn && (
+              <button 
+                onClick={onUnsend}
+                className="p-2 bg-gray-100 dark:bg-gray-800 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full text-gray-500 hover:text-red-500 transition-colors shadow-sm"
+                title="Unsend"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'} relative`}>
+        
+        {/* Reply Context Banner */}
+        {message.replyTo && (
+          <div className={`text-xs p-2 rounded-t-xl opacity-75 mb-[-8px] pb-3 ${isOwn ? 'bg-primary-700 text-primary-100' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
+            <span className="font-bold mr-1">Replying to</span>
+            <span className="truncate inline-block max-w-[150px] align-bottom">
+              {message.replyTo.content || 'an attachment'}
+            </span>
+          </div>
+        )}
+
+        {/* The Bubble */}
         <div
-          className={`px-4 py-2.5 rounded-2xl shadow-sm ${
+          onClick={handleDoubleTap}
+          className={`px-4 py-2.5 shadow-sm relative z-10 cursor-pointer select-none transition-transform active:scale-95 ${
             isOwn
-              ? 'bg-primary-600 text-white rounded-br-sm'
-              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 rounded-bl-sm'
+              ? 'bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-2xl rounded-br-sm'
+              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-sm'
           }`}
         >
           {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType === 'image' && (
@@ -691,12 +819,22 @@ const MessageBubble = ({ message, isOwn, user }) => {
               </a>
             </div>
           )}
-          {message.content && <p className="text-sm">{message.content}</p>}
+          {message.content && <p className="text-[15px] leading-relaxed">{message.content}</p>}
+
+          {/* Floating Reaction */}
+          {hasHeartReaction && (
+            <div className={`absolute -bottom-3 ${isOwn ? 'left-2' : 'right-2'} bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-full p-1 text-sm z-20`}>
+              ❤️
+            </div>
+          )}
         </div>
-        <div className={`flex items-center space-x-1 mt-1 text-xs text-gray-500 dark:text-gray-400 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-          <span>{getMessageTime(message.createdAt)}</span>
-          {getReadStatus()}
-        </div>
+
+        {/* Read Receipt (Instagram Style) */}
+        {isOwn && isLastMessage && message.status === 'read' && !message._id.toString().startsWith('temp_') && (
+          <div className="flex justify-end mt-1">
+            <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Seen</span>
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -145,13 +145,29 @@ const Chat = () => {
 
     const handleMessageReceived = (data) => {
       const senderId = data.message.sender._id || data.message.sender;
-      queryClient.invalidateQueries(['chat-messages', senderId]);
+      queryClient.setQueryData(['chat-messages', senderId], (oldData) => {
+        if (!oldData || !oldData.data) return oldData;
+        const messages = oldData.data.messages || [];
+        if (messages.some(msg => msg._id === data.message._id)) return oldData;
+        return {
+          ...oldData,
+          data: { ...oldData.data, messages: [data.message, ...messages] }
+        };
+      });
       queryClient.invalidateQueries(['user-chats']);
     };
 
     const handleMessageSent = (data) => {
       const receiverId = data.message.receiver._id || data.message.receiver;
-      queryClient.invalidateQueries(['chat-messages', receiverId]);
+      queryClient.setQueryData(['chat-messages', receiverId], (oldData) => {
+        if (!oldData || !oldData.data) return oldData;
+        const messages = oldData.data.messages || [];
+        if (messages.some(msg => msg._id === data.message._id)) return oldData;
+        return {
+          ...oldData,
+          data: { ...oldData.data, messages: [data.message, ...messages] }
+        };
+      });
       queryClient.invalidateQueries(['user-chats']);
       setMessage('');
     };

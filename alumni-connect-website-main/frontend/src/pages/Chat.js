@@ -158,29 +158,22 @@ const Chat = () => {
     };
 
     const handleMessageSent = (data) => {
-      const receiverId = data.message.receiver._id || data.message.receiver;
-      queryClient.setQueryData(['chat-messages', receiverId], (oldData) => {
+      const msgReceiverId = (data.message.receiver._id || data.message.receiver).toString();
+      // Only update the currently active chat view
+      if (msgReceiverId !== otherParticipantId) return;
+
+      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
         if (!oldData || !oldData.data) return oldData;
         const messages = [...(oldData.data.messages || [])];
         if (messages.some(msg => msg._id === data.message._id)) return oldData;
         
-        // Find and replace the exact temporary optimistic message
-        let replaced = false;
-        for (let i = messages.length - 1; i >= 0; i--) {
-          if (messages[i]._id.toString().startsWith('temp_') && messages[i].content === data.message.content) {
-            messages[i] = data.message;
-            replaced = true;
-            break;
-          }
-        }
-        
-        if (!replaced) {
-          messages.unshift(data.message);
-        }
+        // Remove ALL temporary optimistic messages to absolutely prevent duplicates
+        const cleanMessages = messages.filter(msg => !msg._id.toString().startsWith('temp_'));
+        cleanMessages.unshift(data.message);
         
         return {
           ...oldData,
-          data: { ...oldData.data, messages }
+          data: { ...oldData.data, messages: cleanMessages }
         };
       });
       queryClient.invalidateQueries(['user-chats']);

@@ -396,15 +396,17 @@ router.post('/:id/follow', protect, async (req, res) => {
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
     if (targetUser._id.toString() === req.user.id) return res.status(400).json({ message: 'Cannot follow yourself' });
 
-    if (targetUser.followers.includes(req.user.id)) {
+    if (!targetUser.followers) targetUser.followers = [];
+    if (!targetUser.followRequests) targetUser.followRequests = [];
+
+    if (targetUser.followers.some(id => id.toString() === req.user.id)) {
       return res.status(400).json({ message: 'Already following' });
     }
     
-    if (targetUser.followRequests && targetUser.followRequests.includes(req.user.id)) {
+    if (targetUser.followRequests.some(id => id.toString() === req.user.id)) {
       return res.status(400).json({ message: 'Follow request already sent' });
     }
 
-    if(!targetUser.followRequests) targetUser.followRequests = [];
     targetUser.followRequests.push(req.user.id);
     await targetUser.save();
 
@@ -420,6 +422,7 @@ router.post('/:id/follow', protect, async (req, res) => {
 
     res.json({ message: 'Follow request sent successfully' });
   } catch (error) {
+    console.error('Follow error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -432,19 +435,24 @@ router.post('/:id/accept-follow', protect, async (req, res) => {
     const requesterId = req.params.id;
     const currentUser = await User.findById(req.user.id);
     
-    if (!currentUser.followRequests || !currentUser.followRequests.includes(requesterId)) {
+    if (!currentUser.followRequests) currentUser.followRequests = [];
+    if (!currentUser.followers) currentUser.followers = [];
+
+    const hasRequest = currentUser.followRequests.some(id => id.toString() === requesterId);
+    if (!hasRequest) {
       return res.status(400).json({ message: 'No follow request found' });
     }
 
     currentUser.followRequests = currentUser.followRequests.filter(id => id.toString() !== requesterId);
-    if(!currentUser.followers.includes(requesterId)) {
+    if (!currentUser.followers.some(id => id.toString() === requesterId)) {
       currentUser.followers.push(requesterId);
     }
     await currentUser.save();
 
     const requesterUser = await User.findById(requesterId);
     if (requesterUser) {
-      if(!requesterUser.following.includes(currentUser._id)) {
+      if (!requesterUser.following) requesterUser.following = [];
+      if (!requesterUser.following.some(id => id.toString() === currentUser._id.toString())) {
         requesterUser.following.push(currentUser._id);
         await requesterUser.save();
       }
@@ -455,12 +463,13 @@ router.post('/:id/accept-follow', protect, async (req, res) => {
         type: 'follow_accept',
         title: 'Follow Request Accepted',
         content: `${currentUser.name} accepted your follow request`,
-        relatedData: { userId: currentUser._id }
+        relatedData: { connectionUserId: currentUser._id }
       });
     }
 
     res.json({ message: 'Follow request accepted' });
   } catch (error) {
+    console.error('Accept follow error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -473,7 +482,7 @@ router.post('/:id/decline-follow', protect, async (req, res) => {
     const requesterId = req.params.id;
     const currentUser = await User.findById(req.user.id);
     
-    if(currentUser.followRequests) {
+    if (currentUser.followRequests) {
       currentUser.followRequests = currentUser.followRequests.filter(id => id.toString() !== requesterId);
       await currentUser.save();
       
@@ -483,12 +492,13 @@ router.post('/:id/decline-follow', protect, async (req, res) => {
         type: 'follow_decline',
         title: 'Follow Request Declined',
         content: `${currentUser.name} declined your follow request`,
-        relatedData: { userId: currentUser._id }
+        relatedData: { connectionUserId: currentUser._id }
       });
     }
 
     res.json({ message: 'Follow request declined' });
   } catch (error) {
+    console.error('Decline follow error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -501,15 +511,20 @@ router.post('/:id/unfollow', protect, async (req, res) => {
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
-    targetUser.followers = targetUser.followers.filter(id => id.toString() !== req.user.id);
-    await targetUser.save();
+    if (targetUser.followers) {
+      targetUser.followers = targetUser.followers.filter(id => id.toString() !== req.user.id);
+      await targetUser.save();
+    }
 
     const currentUser = await User.findById(req.user.id);
-    currentUser.following = currentUser.following.filter(id => id.toString() !== targetUser._id.toString());
-    await currentUser.save();
+    if (currentUser.following) {
+      currentUser.following = currentUser.following.filter(id => id.toString() !== targetUser._id.toString());
+      await currentUser.save();
+    }
 
     res.json({ message: 'Unfollowed successfully' });
   } catch (error) {
+    console.error('Unfollow error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

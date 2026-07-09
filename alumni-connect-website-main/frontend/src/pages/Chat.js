@@ -530,12 +530,6 @@ const Chat = () => {
                       setMessage(e.target.value);
                       handleTyping();
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSendMessage(e);
-                      }
-                    }}
                     placeholder="Type your message..."
                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />

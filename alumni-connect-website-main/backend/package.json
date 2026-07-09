@@ -42,5 +42,8 @@
     "api"
   ],
   "author": "Alumnex Connect Team",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "cloudinary": "^2.10.0"
+  }
 }

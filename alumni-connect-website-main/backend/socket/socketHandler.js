@@ -338,6 +338,60 @@ module.exports = (io) => {
       }
     });
 
+    // --- WEBRTC SIGNALING EVENTS ---
+    
+    // Caller initiates a call (sends offer)
+    socket.on('call:request', (data) => {
+      const { receiverId, offer, callerName, isVideo } = data;
+      const receiverSocketId = onlineUsers.get(receiverId)?.socketId;
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit('call:incoming', {
+          callerId: userId,
+          callerName: callerName || userName,
+          isVideo: isVideo,
+          offer: offer
+        });
+      } else {
+        // If receiver is offline, immediately tell caller
+        socket.emit('call:error', { message: 'User is offline' });
+      }
+    });
+
+    // Receiver answers the call (sends answer)
+    socket.on('call:answer', (data) => {
+      const { callerId, answer } = data;
+      const callerSocketId = onlineUsers.get(callerId)?.socketId;
+      
+      if (callerSocketId) {
+        io.to(callerSocketId).emit('call:accepted', {
+          answer: answer
+        });
+      }
+    });
+
+    // Exchange ICE Candidates
+    socket.on('call:ice-candidate', (data) => {
+      const { targetId, candidate } = data;
+      const targetSocketId = onlineUsers.get(targetId)?.socketId;
+      
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('call:ice-candidate', {
+          candidate: candidate
+        });
+      }
+    });
+
+    // End call or reject call
+    socket.on('call:end', (data) => {
+      const { targetId } = data;
+      const targetSocketId = onlineUsers.get(targetId)?.socketId;
+      
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('call:ended');
+      }
+    });
+
     // Handle disconnect
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${userName} (${userId})`);

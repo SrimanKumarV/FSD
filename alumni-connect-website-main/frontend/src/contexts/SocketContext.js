@@ -15,6 +15,7 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [onlineUsersMap, setOnlineUsersMap] = useState(new Map());
   const { user } = useAuth();
 
   useEffect(() => {
@@ -28,7 +29,11 @@ export const SocketProvider = ({ children }) => {
     }
 
     // Create socket connection
-    const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000', {
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const defaultSocketUrl = apiUrl.replace(/\/api$/, '');
+    const socketUrl = process.env.REACT_APP_SOCKET_URL || defaultSocketUrl;
+    
+    const newSocket = io(socketUrl, {
       auth: {
         token: localStorage.getItem('token')
       },
@@ -55,7 +60,27 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('connect', () => {
       if (user?._id) {
         newSocket.emit('join-user-room', { userId: user._id });
+        newSocket.emit('get:users:online');
       }
+    });
+    
+    // Online users status handlers
+    newSocket.on('users:online', (users) => {
+      const map = new Map();
+      users.forEach(u => map.set(u.userId, true));
+      setOnlineUsersMap(map);
+    });
+    
+    newSocket.on('user:online', (data) => {
+      setOnlineUsersMap(prev => new Map(prev).set(data.userId, true));
+    });
+    
+    newSocket.on('user:offline', (data) => {
+      setOnlineUsersMap(prev => {
+        const next = new Map(prev);
+        next.delete(data.userId);
+        return next;
+      });
     });
 
     setSocket(newSocket);
@@ -100,6 +125,7 @@ export const SocketProvider = ({ children }) => {
   const value = {
     socket,
     isConnected,
+    onlineUsersMap,
     // Helper functions
     emit: (event, data) => {
       if (socket && isConnected) {

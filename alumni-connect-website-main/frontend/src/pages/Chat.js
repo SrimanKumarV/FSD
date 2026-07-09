@@ -30,7 +30,7 @@ import { api } from '../utils/api';
 
 const Chat = () => {
   const { user } = useAuth();
-  const { socket, isConnected } = useSocket();
+  const { socket, isConnected, onlineUsersMap } = useSocket();
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,7 +39,6 @@ const Chat = () => {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [onlineUsersMap, setOnlineUsersMap] = useState(new Map());
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [attachment, setAttachment] = useState(null);
@@ -185,43 +184,16 @@ const Chat = () => {
       }
     };
 
-    const handleUsersOnline = (users) => {
-      const map = new Map();
-      users.forEach(u => map.set(u.userId, true));
-      setOnlineUsersMap(map);
-    };
-
-    const handleUserOnline = (data) => {
-      setOnlineUsersMap(prev => new Map(prev).set(data.userId, true));
-    };
-
-    const handleUserOffline = (data) => {
-      setOnlineUsersMap(prev => {
-        const next = new Map(prev);
-        next.delete(data.userId);
-        return next;
-      });
-    };
-
     socket.on('message:received', handleMessageReceived);
     socket.on('message:sent', handleMessageSent);
     socket.on('typing:start', handleTypingStart);
     socket.on('typing:stop', handleTypingStop);
-    socket.on('users:online', handleUsersOnline);
-    socket.on('user:online', handleUserOnline);
-    socket.on('user:offline', handleUserOffline);
-
-    // Ask for current online users
-    socket.emit('get:users:online');
 
     return () => {
       socket.off('message:received', handleMessageReceived);
       socket.off('message:sent', handleMessageSent);
       socket.off('typing:start', handleTypingStart);
       socket.off('typing:stop', handleTypingStop);
-      socket.off('users:online', handleUsersOnline);
-      socket.off('user:online', handleUserOnline);
-      socket.off('user:offline', handleUserOffline);
     };
   }, [socket, isConnected, otherParticipantId, queryClient]);
 

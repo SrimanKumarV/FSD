@@ -14,10 +14,22 @@ const devProfileSchema = new mongoose.Schema({
     lowercase: true
   },
   usernames: {
-    github: { type: String, trim: true, default: '' },
-    leetcode: { type: String, trim: true, default: '' },
-    hackerrank: { type: String, trim: true, default: '' },
-    gfg: { type: String, trim: true, default: '' }
+    github: { 
+      username: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false }
+    },
+    leetcode: { 
+      username: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false }
+    },
+    hackerrank: { 
+      username: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false }
+    },
+    gfg: { 
+      username: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false }
+    }
   },
   stats: {
     github: {
@@ -38,6 +50,18 @@ const devProfileSchema = new mongoose.Schema({
     }
   },
   lastUpdated: {
+    type: Date,
+    default: null
+  },
+  alumnexScore: {
+    type: Number,
+    default: 0
+  },
+  verificationCode: {
+    type: String,
+    default: null
+  },
+  verificationExpires: {
     type: Date,
     default: null
   }

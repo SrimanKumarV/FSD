@@ -16,11 +16,10 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  Settings,
-  Check,
   CheckCircle,
   Globe,
-  Activity
+  Activity,
+  Trophy
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -53,6 +52,7 @@ const Layout = ({ children }) => {
     { name: 'Forum', href: '/forum', icon: MessageSquare },
     { name: 'Contests', href: '/contests', icon: Code },
     { name: 'DevPulse', href: '/devpulse', icon: Activity },
+    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Chat', href: '/chat', icon: MessageSquare },
     ...(isAdmin() ? [{ name: 'Admin', href: '/admin', icon: Settings }] : [])
   ];

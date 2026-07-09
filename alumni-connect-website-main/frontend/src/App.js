@@ -33,6 +33,7 @@ import Network from './pages/Network';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import DevPulse from './pages/DevPulse';
+import Leaderboard from './pages/Leaderboard';
 
 // Legal and Support Pages
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
@@ -116,6 +117,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <DevPulse />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/leaderboard" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Leaderboard />
                       </Layout>
                     </ProtectedRoute>
                   } />

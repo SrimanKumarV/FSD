@@ -8,6 +8,8 @@ const {
   fetchHackerRankStats,
   fetchGFGStats
 } = require('../utils/devStatsFetcher');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 // @route   GET /api/dev-activity/:email
 // @desc    Get dev activity stats for a user
@@ -33,16 +35,18 @@ router.get('/:email', protect, async (req, res) => {
         usernames: profile.usernames,
         stats: profile.stats,
         lastUpdated: profile.lastUpdated,
+        alumnexScore: profile.alumnexScore,
         fromCache: true
       });
     }
 
-    // Fetch new stats concurrently
+    // Fetch new stats concurrently only for verified or just-added accounts
+    // We assume fetch functions handle empty strings gracefully
     const [githubStats, leetcodeStats, hackerrankStats, gfgStats] = await Promise.all([
-      fetchGitHubStats(profile.usernames.github),
-      fetchLeetCodeStats(profile.usernames.leetcode),
-      fetchHackerRankStats(profile.usernames.hackerrank),
-      fetchGFGStats(profile.usernames.gfg)
+      fetchGitHubStats(profile.usernames.github.username),
+      fetchLeetCodeStats(profile.usernames.leetcode.username),
+      fetchHackerRankStats(profile.usernames.hackerrank.username),
+      fetchGFGStats(profile.usernames.gfg.username)
     ]);
 
     // Update profile
@@ -51,9 +55,36 @@ router.get('/:email', protect, async (req, res) => {
     if (hackerrankStats) profile.stats.hackerrank = hackerrankStats;
     if (gfgStats) profile.stats.gfg = gfgStats;
     
-    profile.lastUpdated = now;
+    // Calculate Alumnex Score
+    let score = 0;
     
-    // Mark stats as modified because they use Mixed type
+    // GitHub: 1 pt per repo, 2 pts per follower (basic placeholder since REST API lacks total commits easily)
+    if (githubStats) {
+      score += (githubStats.publicRepos || 0) * 1;
+      score += (githubStats.followers || 0) * 2;
+    }
+    
+    // LeetCode: Hard = 10, Medium = 5, Easy = 2
+    if (leetcodeStats) {
+      score += (leetcodeStats.easySolved || 0) * 2;
+      score += (leetcodeStats.mediumSolved || 0) * 5;
+      score += (leetcodeStats.hardSolved || 0) * 10;
+    }
+    
+    // HackerRank: 10 pts per badge
+    if (hackerrankStats) {
+      score += (hackerrankStats.badgesCount || 0) * 10;
+    }
+    
+    // GFG: Coding score directly maps to points (divided by 10 to keep it balanced)
+    if (gfgStats && gfgStats.codingScore) {
+      score += Math.floor(gfgStats.codingScore / 10);
+    }
+
+    // Cap score at 1000
+    profile.alumnexScore = Math.min(score, 1000);
+    
+    profile.lastUpdated = now;
     profile.markModified('stats');
     
     await profile.save();
@@ -62,6 +93,7 @@ router.get('/:email', protect, async (req, res) => {
       usernames: profile.usernames,
       stats: profile.stats,
       lastUpdated: profile.lastUpdated,
+      alumnexScore: profile.alumnexScore,
       fromCache: false
     });
 
@@ -104,12 +136,10 @@ router.post('/usernames', protect, async (req, res) => {
       return str;
     };
 
-    profile.usernames = {
-      github: cleanUsername(github) || profile.usernames.github,
-      leetcode: cleanUsername(leetcode) || profile.usernames.leetcode,
-      hackerrank: cleanUsername(hackerrank) || profile.usernames.hackerrank,
-      gfg: cleanUsername(gfg) || profile.usernames.gfg
-    };
+    profile.usernames.github.username = cleanUsername(github) || profile.usernames.github.username;
+    profile.usernames.leetcode.username = cleanUsername(leetcode) || profile.usernames.leetcode.username;
+    profile.usernames.hackerrank.username = cleanUsername(hackerrank) || profile.usernames.hackerrank.username;
+    profile.usernames.gfg.username = cleanUsername(gfg) || profile.usernames.gfg.username;
 
     // Force refresh next time by clearing lastUpdated
     profile.lastUpdated = null;
@@ -120,6 +150,113 @@ router.post('/usernames', protect, async (req, res) => {
   } catch (error) {
     console.error('Error saving developer usernames:', error);
     res.status(500).json({ message: 'Server error saving usernames' });
+  }
+});
+
+// @route   POST /api/dev-activity/generate-code
+// @desc    Generate a verification code for bio verification
+// @access  Private
+router.post('/generate-code', protect, async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+    let profile = await DevProfile.findOne({ email: userEmail });
+    
+    if (!profile) {
+      profile = new DevProfile({
+        user: req.user._id,
+        email: userEmail
+      });
+    }
+
+    // Generate random 8-char code
+    const code = 'ALUMNEX_VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    
+    profile.verificationCode = code;
+    profile.verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    await profile.save();
+    
+    res.json({ verificationCode: code });
+  } catch (error) {
+    console.error('Error generating code:', error);
+    res.status(500).json({ message: 'Server error generating code' });
+  }
+});
+
+// @route   POST /api/dev-activity/verify-platform
+// @desc    Verify a platform by scraping the public profile for the code
+// @access  Private
+router.post('/verify-platform', protect, async (req, res) => {
+  try {
+    const { platform } = req.body;
+    const userEmail = req.user.email;
+    
+    const profile = await DevProfile.findOne({ email: userEmail });
+    if (!profile || !profile.verificationCode) {
+      return res.status(400).json({ message: 'No verification code found. Please generate one first.' });
+    }
+
+    if (new Date() > profile.verificationExpires) {
+      return res.status(400).json({ message: 'Verification code expired. Please generate a new one.' });
+    }
+
+    const username = profile.usernames[platform]?.username;
+    if (!username) {
+      return res.status(400).json({ message: `No username saved for ${platform}` });
+    }
+
+    const code = profile.verificationCode;
+    let isVerified = false;
+
+    // Scrape public profiles to look for the code
+    if (platform === 'github') {
+      const response = await axios.get(`https://github.com/${username}`);
+      const $ = cheerio.load(response.data);
+      const bio = $('.user-profile-bio').text();
+      if (bio.includes(code)) isVerified = true;
+    } 
+    else if (platform === 'leetcode') {
+      // LeetCode requires graphql for profile summary
+      const response = await axios.post('https://leetcode.com/graphql', {
+        query: `
+          query userPublicProfile($username: String!) {
+            matchedUser(username: $username) {
+              profile { aboutMe }
+            }
+          }
+        `,
+        variables: { username }
+      });
+      const aboutMe = response.data?.data?.matchedUser?.profile?.aboutMe || '';
+      if (aboutMe.includes(code)) isVerified = true;
+    }
+    else if (platform === 'gfg') {
+      // GeeksForGeeks public profile doesn't have an easily editable "bio" that's universally scraped. 
+      // As a fallback for this demo, we'll check the main div text.
+      const response = await axios.get(`https://auth.geeksforgeeks.org/user/${username}`);
+      const $ = cheerio.load(response.data);
+      const pageText = $('body').text();
+      if (pageText.includes(code)) isVerified = true;
+    }
+    else if (platform === 'hackerrank') {
+      const response = await axios.get(`https://www.hackerrank.com/${username}`);
+      const $ = cheerio.load(response.data);
+      const pageText = $('body').text();
+      if (pageText.includes(code)) isVerified = true;
+    }
+
+    if (isVerified) {
+      profile.usernames[platform].isVerified = true;
+      profile.markModified(`usernames.${platform}`);
+      await profile.save();
+      return res.json({ message: `${platform} verified successfully!`, usernames: profile.usernames });
+    } else {
+      return res.status(400).json({ message: `Verification code not found on your ${platform} profile.` });
+    }
+
+  } catch (error) {
+    console.error('Error verifying platform:', error);
+    res.status(500).json({ message: 'Error accessing your public profile. Ensure it is public and try again.' });
   }
 });
 

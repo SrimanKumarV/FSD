@@ -71,6 +71,7 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/dev-activity', require('./routes/devActivity'));
 
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);

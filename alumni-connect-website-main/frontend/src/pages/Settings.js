@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import DevProfileSettings from '../components/profile/DevProfileSettings';
 
 const Settings = () => {
   const { logout } = useAuth();
@@ -86,6 +87,11 @@ const Settings = () => {
                 )}
               </button>
             </div>
+          </div>
+
+          {/* DevPulse Integrations */}
+          <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+            <DevProfileSettings />
           </div>
 
           {/* Danger Zone */}

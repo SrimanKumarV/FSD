@@ -19,7 +19,8 @@ import {
   Settings,
   Check,
   CheckCircle,
-  Globe
+  Globe,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -51,6 +52,7 @@ const Layout = ({ children }) => {
     { name: 'Events', href: '/events', icon: Calendar },
     { name: 'Forum', href: '/forum', icon: MessageSquare },
     { name: 'Contests', href: '/contests', icon: Code },
+    { name: 'DevPulse', href: '/devpulse', icon: Activity },
     { name: 'Chat', href: '/chat', icon: MessageSquare },
     ...(isAdmin() ? [{ name: 'Admin', href: '/admin', icon: Settings }] : [])
   ];

@@ -32,6 +32,7 @@ import NotFound from './pages/NotFound';
 import Network from './pages/Network';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
+import DevPulse from './pages/DevPulse';
 
 // Legal and Support Pages
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
@@ -107,6 +108,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Settings />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/devpulse" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DevPulse />
                       </Layout>
                     </ProtectedRoute>
                   } />

@@ -214,26 +214,6 @@ const Chat = () => {
     };
 
     if (socket && isConnected) {
-      // Zero-latency optimistic UI update
-      const tempMessage = {
-        _id: 'temp_' + Date.now(),
-        sender: user?._id || user?.id,
-        receiver: otherParticipantId,
-        content: payload.content,
-        messageType: payload.messageType,
-        attachments: payload.attachments,
-        createdAt: new Date().toISOString()
-      };
-      
-      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
-        if (!oldData || !oldData.data) return oldData;
-        const messages = oldData.data.messages || [];
-        return {
-          ...oldData,
-          data: { ...oldData.data, messages: [tempMessage, ...messages] }
-        };
-      });
-
       socket.emit('message:send', payload);
       setMessage('');
       setAttachment(null);

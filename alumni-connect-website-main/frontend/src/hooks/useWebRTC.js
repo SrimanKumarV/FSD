@@ -11,6 +11,7 @@ export const useWebRTC = (otherParticipantId) => {
   const [callStatus, setCallStatus] = useState('idle'); // idle, ringing, connecting, connected, ended
 
   const peerConnection = useRef(null);
+  const activeCallTargetId = useRef(null);
 
   // Free public STUN servers for NAT traversal
   const iceServers = {
@@ -45,9 +46,9 @@ export const useWebRTC = (otherParticipantId) => {
     const pc = new RTCPeerConnection(iceServers);
     
     pc.onicecandidate = (event) => {
-      if (event.candidate && otherParticipantId) {
+      if (event.candidate && activeCallTargetId.current) {
         socket.emit('call:ice-candidate', {
-          targetId: otherParticipantId,
+          targetId: activeCallTargetId.current,
           candidate: event.candidate,
         });
       }
@@ -72,6 +73,7 @@ export const useWebRTC = (otherParticipantId) => {
   const startCall = async (isVideo = true) => {
     if (!otherParticipantId) return;
     try {
+      activeCallTargetId.current = otherParticipantId;
       setCallStatus('connecting');
       setIsCalling(true);
       const stream = await getMedia(isVideo);
@@ -99,6 +101,7 @@ export const useWebRTC = (otherParticipantId) => {
   const acceptCall = async () => {
     if (!incomingCall) return;
     try {
+      activeCallTargetId.current = incomingCall.callerId;
       setCallStatus('connecting');
       const stream = await getMedia(incomingCall.isVideo);
       const pc = createPeerConnection();
@@ -133,9 +136,12 @@ export const useWebRTC = (otherParticipantId) => {
   };
 
   const endCall = useCallback(() => {
-    if (otherParticipantId) {
+    if (activeCallTargetId.current) {
+      socket.emit('call:end', { targetId: activeCallTargetId.current });
+    } else if (otherParticipantId) {
       socket.emit('call:end', { targetId: otherParticipantId });
     }
+    
     if (peerConnection.current) {
       peerConnection.current.close();
       peerConnection.current = null;
@@ -143,6 +149,7 @@ export const useWebRTC = (otherParticipantId) => {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
     }
+    activeCallTargetId.current = null;
     setLocalStream(null);
     setRemoteStream(null);
     setIsCalling(false);

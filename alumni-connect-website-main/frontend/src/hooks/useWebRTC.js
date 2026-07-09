@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useSocket } from '../contexts/SocketContext';
 
 export const useWebRTC = (otherParticipantId) => {
@@ -29,6 +30,13 @@ export const useWebRTC = (otherParticipantId) => {
       return stream;
     } catch (err) {
       console.error('Failed to get media devices', err);
+      if (err.name === 'NotAllowedError') {
+        toast.error('Camera/Microphone access was denied. Please grant permissions.');
+      } else if (err.name === 'NotFoundError') {
+        toast.error('No camera/microphone found on this device.');
+      } else {
+        toast.error('Failed to access media devices. Note: WebRTC requires an HTTPS connection (or localhost) on mobile devices.');
+      }
       throw err;
     }
   }, []);
@@ -82,6 +90,7 @@ export const useWebRTC = (otherParticipantId) => {
         isVideo
       });
     } catch (error) {
+      console.error('Failed to start call', error);
       setCallStatus('idle');
       setIsCalling(false);
     }

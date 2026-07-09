@@ -159,17 +159,19 @@ const Chat = () => {
 
     const handleMessageSent = (data) => {
       const msgReceiverId = (data.message.receiver._id || data.message.receiver).toString();
-      // Only update the currently active chat view
       if (msgReceiverId !== otherParticipantId) return;
 
       queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
         if (!oldData || !oldData.data) return oldData;
         const messages = [...(oldData.data.messages || [])];
-        if (messages.some(msg => msg._id === data.message._id)) return oldData;
         
-        // Remove ALL temporary optimistic messages to absolutely prevent duplicates
+        // Always remove ALL temporary optimistic messages
         const cleanMessages = messages.filter(msg => !msg._id.toString().startsWith('temp_'));
-        cleanMessages.unshift(data.message);
+        
+        // Only add the real message if it's not already in the clean list
+        if (!cleanMessages.some(msg => msg._id === data.message._id)) {
+          cleanMessages.unshift(data.message);
+        }
         
         return {
           ...oldData,

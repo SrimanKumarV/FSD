@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { CallProvider } from './contexts/CallContext';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -61,7 +62,8 @@ function App() {
         <AuthProvider>
           <SocketProvider>
             <NotificationProvider>
-              <Router>
+              <CallProvider>
+                <Router>
                 <div className="App min-h-screen relative">
                   <div className="animated-bg"></div>
                   <Routes>
@@ -224,8 +226,9 @@ function App() {
                 />
               </div>
             </Router>
-          </NotificationProvider>
-        </SocketProvider>
+              </CallProvider>
+            </NotificationProvider>
+          </SocketProvider>
       </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

@@ -1,19 +1,31 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { useSocket } from '../contexts/SocketContext';
+import { useSocket } from './SocketContext';
+import VideoCallOverlay from '../components/chat/VideoCallOverlay';
 
-export const useWebRTC = (otherParticipantId) => {
+const CallContext = createContext();
+
+export const useCall = () => {
+  const context = useContext(CallContext);
+  if (!context) {
+    throw new Error('useCall must be used within a CallProvider');
+  }
+  return context;
+};
+
+export const CallProvider = ({ children }) => {
   const { socket } = useSocket();
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [isCalling, setIsCalling] = useState(false);
-  const [incomingCall, setIncomingCall] = useState(null); // { callerId, callerName, isVideo, offer }
-  const [callStatus, setCallStatus] = useState('idle'); // idle, ringing, connecting, connected, ended
+  const [incomingCall, setIncomingCall] = useState(null);
+  const [callStatus, setCallStatus] = useState('idle');
 
   const peerConnection = useRef(null);
   const activeCallTargetId = useRef(null);
+  const iceCandidateQueue = useRef([]);
+  const isRemoteDescriptionSet = useRef(false);
 
-  // Free public STUN servers for NAT traversal
   const iceServers = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
@@ -36,7 +48,7 @@ export const useWebRTC = (otherParticipantId) => {
       } else if (err.name === 'NotFoundError') {
         toast.error('No camera/microphone found on this device.');
       } else {
-        toast.error('Failed to access media devices. Note: WebRTC requires an HTTPS connection (or localhost) on mobile devices.');
+        toast.error('Failed to access media devices. Note: WebRTC requires an HTTPS connection on mobile devices.');
       }
       throw err;
     }
@@ -44,10 +56,12 @@ export const useWebRTC = (otherParticipantId) => {
 
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection(iceServers);
+    iceCandidateQueue.current = [];
+    isRemoteDescriptionSet.current = false;
     
     pc.onicecandidate = (event) => {
       if (event.candidate && activeCallTargetId.current) {
-        socket.emit('call:ice-candidate', {
+        socket?.emit('call:ice-candidate', {
           targetId: activeCallTargetId.current,
           candidate: event.candidate,
         });
@@ -68,12 +82,25 @@ export const useWebRTC = (otherParticipantId) => {
 
     peerConnection.current = pc;
     return pc;
-  }, [socket, otherParticipantId]);
+  }, [socket]);
 
-  const startCall = async (isVideo = true) => {
-    if (!otherParticipantId) return;
+  const processIceQueue = async () => {
+    if (peerConnection.current && isRemoteDescriptionSet.current) {
+      while (iceCandidateQueue.current.length > 0) {
+        const candidate = iceCandidateQueue.current.shift();
+        try {
+          await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error('Error processing queued ICE candidate', e);
+        }
+      }
+    }
+  };
+
+  const startCall = async (targetId, isVideo = true) => {
+    if (!targetId || !socket) return;
     try {
-      activeCallTargetId.current = otherParticipantId;
+      activeCallTargetId.current = targetId;
       setCallStatus('connecting');
       setIsCalling(true);
       const stream = await getMedia(isVideo);
@@ -87,7 +114,7 @@ export const useWebRTC = (otherParticipantId) => {
       await pc.setLocalDescription(offer);
 
       socket.emit('call:request', {
-        receiverId: otherParticipantId,
+        receiverId: targetId,
         offer,
         isVideo
       });
@@ -99,7 +126,7 @@ export const useWebRTC = (otherParticipantId) => {
   };
 
   const acceptCall = async () => {
-    if (!incomingCall) return;
+    if (!incomingCall || !socket) return;
     try {
       activeCallTargetId.current = incomingCall.callerId;
       setCallStatus('connecting');
@@ -111,6 +138,9 @@ export const useWebRTC = (otherParticipantId) => {
       });
 
       await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
+      isRemoteDescriptionSet.current = true;
+      processIceQueue();
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
@@ -128,7 +158,7 @@ export const useWebRTC = (otherParticipantId) => {
   };
 
   const rejectCall = () => {
-    if (incomingCall) {
+    if (incomingCall && socket) {
       socket.emit('call:end', { targetId: incomingCall.callerId });
       setIncomingCall(null);
       setCallStatus('idle');
@@ -136,10 +166,8 @@ export const useWebRTC = (otherParticipantId) => {
   };
 
   const endCall = useCallback(() => {
-    if (activeCallTargetId.current) {
+    if (activeCallTargetId.current && socket) {
       socket.emit('call:end', { targetId: activeCallTargetId.current });
-    } else if (otherParticipantId) {
-      socket.emit('call:end', { targetId: otherParticipantId });
     }
     
     if (peerConnection.current) {
@@ -150,62 +178,74 @@ export const useWebRTC = (otherParticipantId) => {
       localStream.getTracks().forEach(track => track.stop());
     }
     activeCallTargetId.current = null;
+    iceCandidateQueue.current = [];
+    isRemoteDescriptionSet.current = false;
     setLocalStream(null);
     setRemoteStream(null);
     setIsCalling(false);
     setIncomingCall(null);
     setCallStatus('idle');
-  }, [localStream, otherParticipantId, socket]);
+  }, [localStream, socket]);
 
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('call:incoming', (data) => {
-      // Only handle if we're looking at the right person or if we're not currently in a call
+    const handleIncoming = (data) => {
       if (callStatus === 'idle') {
         setIncomingCall(data);
         setCallStatus('ringing');
       } else {
-        // Automatically reject if busy
         socket.emit('call:end', { targetId: data.callerId });
       }
-    });
+    };
 
-    socket.on('call:accepted', async (data) => {
+    const handleAccepted = async (data) => {
       if (peerConnection.current) {
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+        isRemoteDescriptionSet.current = true;
+        processIceQueue();
       }
-    });
+    };
 
-    socket.on('call:ice-candidate', async (data) => {
+    const handleIceCandidate = async (data) => {
       if (peerConnection.current) {
-        try {
-          await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } catch (e) {
-          console.error('Error adding received ice candidate', e);
+        if (isRemoteDescriptionSet.current) {
+          try {
+            await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+          } catch (e) {
+            console.error('Error adding received ice candidate', e);
+          }
+        } else {
+          iceCandidateQueue.current.push(data.candidate);
         }
       }
-    });
+    };
 
-    socket.on('call:ended', () => {
+    const handleEnded = () => {
       endCall();
-    });
+    };
 
-    socket.on('call:error', (data) => {
-      alert(data.message);
+    const handleError = (data) => {
+      toast.error(data.message || 'Call error');
       endCall();
-    });
+    };
+
+    socket.on('call:incoming', handleIncoming);
+    socket.on('call:accepted', handleAccepted);
+    socket.on('call:ice-candidate', handleIceCandidate);
+    socket.on('call:ended', handleEnded);
+    socket.on('call:error', handleError);
 
     return () => {
-      socket.off('call:incoming');
-      socket.off('call:accepted');
-      socket.off('call:ice-candidate');
-      socket.off('call:ended');
-      socket.off('call:error');
+      socket.off('call:incoming', handleIncoming);
+      socket.off('call:accepted', handleAccepted);
+      socket.off('call:ice-candidate', handleIceCandidate);
+      socket.off('call:ended', handleEnded);
+      socket.off('call:error', handleError);
     };
   }, [socket, callStatus, endCall]);
 
-  return {
+  const value = {
     localStream,
     remoteStream,
     isCalling,
@@ -216,4 +256,19 @@ export const useWebRTC = (otherParticipantId) => {
     rejectCall,
     endCall
   };
+
+  return (
+    <CallContext.Provider value={value}>
+      {children}
+      <VideoCallOverlay
+        localStream={localStream}
+        remoteStream={remoteStream}
+        callStatus={callStatus}
+        incomingCall={incomingCall}
+        onAccept={acceptCall}
+        onReject={rejectCall}
+        onEndCall={endCall}
+      />
+    </CallContext.Provider>
+  );
 };

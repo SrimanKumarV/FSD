@@ -29,8 +29,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { api } from '../utils/api';
-import { useWebRTC } from '../hooks/useWebRTC';
-import VideoCallOverlay from '../components/chat/VideoCallOverlay';
+import { useCall } from '../contexts/CallContext';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -63,16 +62,10 @@ const Chat = () => {
 
   // WebRTC Hook
   const {
-    localStream,
-    remoteStream,
     isCalling,
-    incomingCall,
     callStatus,
     startCall,
-    acceptCall,
-    rejectCall,
-    endCall
-  } = useWebRTC(otherParticipantId);
+  } = useCall();
 
   // Fetch messages for selected chat using the stable participant ID
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
@@ -525,14 +518,14 @@ const Chat = () => {
               
               <div className="flex items-center space-x-2">
                 <button 
-                  onClick={() => startCall(false)}
+                  onClick={() => startCall(otherParticipantId, false)}
                   disabled={isCalling || callStatus !== 'idle'}
                   className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
                 >
                   <Phone className="w-5 h-5" />
                 </button>
                 <button 
-                  onClick={() => startCall(true)}
+                  onClick={() => startCall(otherParticipantId, true)}
                   disabled={isCalling || callStatus !== 'idle'}
                   className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
                 >
@@ -706,16 +699,6 @@ const Chat = () => {
         )}
       </div>
 
-      {/* Video Call Overlay */}
-      <VideoCallOverlay
-        localStream={localStream}
-        remoteStream={remoteStream}
-        callStatus={callStatus}
-        incomingCall={incomingCall}
-        onAccept={acceptCall}
-        onReject={rejectCall}
-        onEndCall={endCall}
-      />
     </div>
   );
 };

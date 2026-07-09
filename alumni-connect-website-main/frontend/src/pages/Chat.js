@@ -19,7 +19,7 @@ import {
   Clock,
   Edit,
   Trash2,
-  Block,
+  X,
   Report,
   MessageSquare
 } from 'lucide-react';
@@ -592,7 +592,7 @@ const Chat = () => {
                     </p>
                   </div>
                   <button onClick={() => setReplyingTo(null)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500">
-                    <Block className="w-4 h-4" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               )}

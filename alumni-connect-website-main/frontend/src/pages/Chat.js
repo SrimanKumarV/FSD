@@ -55,7 +55,8 @@ const Chat = () => {
     { enabled: !!user }
   );
 
-  const otherParticipantId = selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id;
+  const rawOtherParticipantId = selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id;
+  const otherParticipantId = rawOtherParticipantId ? String(rawOtherParticipantId) : null;
 
   // WebRTC Hook
   const {
@@ -418,7 +419,7 @@ const Chat = () => {
                       <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
                         {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
-                      {(onlineUsersMap.has(otherParticipant?._id || otherParticipant?.id) || otherParticipant?.isOnline) && (
+                      {(onlineUsersMap.has(String(otherParticipant?._id || otherParticipant?.id)) || otherParticipant?.isOnline) && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>

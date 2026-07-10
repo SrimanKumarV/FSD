@@ -32,12 +32,18 @@ const GlobalCallOverlay = () => {
 
   /* Wire streams */
   useEffect(() => {
-    if (localRef.current  && localStream)  localRef.current.srcObject  = localStream;
-  }, [localStream]);
+    if (localRef.current && localStream) {
+      localRef.current.srcObject = localStream;
+    }
+  }, [localStream, callStatus, minimised, isVideoOff]);
 
   useEffect(() => {
-    if (remoteRef.current && remoteStream) remoteRef.current.srcObject = remoteStream;
-  }, [remoteStream]);
+    if (remoteRef.current && remoteStream) {
+      remoteRef.current.srcObject = remoteStream;
+      // Explicitly play to ensure audio unblocks
+      remoteRef.current.play().catch(e => console.warn('Remote play err:', e));
+    }
+  }, [remoteStream, callStatus, minimised]);
 
 
 

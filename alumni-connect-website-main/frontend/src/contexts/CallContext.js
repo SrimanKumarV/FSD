@@ -280,6 +280,11 @@ export const CallProvider = ({ children }) => {
     
     setStatus('connecting');
 
+    // Store caller info so endCall knows who to notify (since we clear incomingCall)
+    const info = { isVideo, targetId: callerId };
+    stateRef.current.callInfo = info;
+    setCallInfo(info);
+
     try {
       const stream = await getMedia(isVideo);
       stateRef.current.localStream = stream;

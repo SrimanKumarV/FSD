@@ -22,27 +22,41 @@ const GlobalCallOverlay = () => {
     endCall,
   } = useCall();
 
-  const localRef  = useRef(null);
-  const remoteRef = useRef(null);
-
   const [isMuted,     setIsMuted]     = useState(false);
   const [isVideoOff,  setIsVideoOff]  = useState(false);
   const [minimised,   setMinimised]   = useState(false);
-  // elapsed comes from CallContext (PeerJS timer)
 
-  /* Wire streams */
-  useEffect(() => {
-    if (localRef.current && localStream) {
-      localRef.current.srcObject = localStream;
+  // We use callback refs so that the exact moment the <video> node mounts (or remounts),
+  // the stream is guaranteed to be attached. This prevents React lifecycle bugs.
+  const setLocalVideoNode = (node) => {
+    if (node && localStream) attachStream(node, localStream, true);
+  };
+
+  const setRemoteVideoNode = (node) => {
+    if (node && remoteStream) attachStream(node, remoteStream, false);
+  };
+
+  /* Wire streams robustly */
+  const attachStream = (videoNode, stream, isLocal) => {
+    if (!videoNode || !stream) return;
+    if (videoNode.srcObject !== stream) {
+      console.log(`[VideoOverlay] Attaching ${isLocal ? 'local' : 'remote'} stream with ${stream.getAudioTracks().length} audio tracks and ${stream.getVideoTracks().length} video tracks`);
+      videoNode.srcObject = stream;
+      videoNode.onloadedmetadata = () => {
+        videoNode.play().catch(e => console.warn('[VideoOverlay] Play error:', e));
+      };
     }
+  };
+
+  // Re-run if streams change while node is already mounted
+  useEffect(() => {
+    const videoNode = document.getElementById('local-video');
+    if (videoNode) attachStream(videoNode, localStream, true);
   }, [localStream, callStatus, minimised, isVideoOff]);
 
   useEffect(() => {
-    if (remoteRef.current && remoteStream) {
-      remoteRef.current.srcObject = remoteStream;
-      // Explicitly play to ensure audio unblocks
-      remoteRef.current.play().catch(e => console.warn('Remote play err:', e));
-    }
+    const videoNode = document.getElementById('remote-video');
+    if (videoNode) attachStream(videoNode, remoteStream, false);
   }, [remoteStream, callStatus, minimised]);
 
 
@@ -177,7 +191,7 @@ const GlobalCallOverlay = () => {
       return (
         <div className="fixed bottom-5 right-5 z-[9999] w-44 h-28 rounded-2xl overflow-hidden shadow-2xl border border-gray-700 bg-gray-900 group cursor-pointer">
           {remoteStream
-            ? <video ref={remoteRef} autoPlay playsInline className="w-full h-full object-cover" />
+            ? <video ref={setRemoteVideoNode} id="remote-video" autoPlay playsInline className="w-full h-full object-cover" />
             : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Connecting…</div>}
 
           {/* Timer badge */}
@@ -207,7 +221,8 @@ const GlobalCallOverlay = () => {
         {/* Remote stream */}
         {remoteStream ? (
           <video
-            ref={remoteRef}
+            ref={setRemoteVideoNode}
+            id="remote-video"
             autoPlay
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
@@ -223,7 +238,7 @@ const GlobalCallOverlay = () => {
         {/* Local stream PiP – top right */}
         <div className="absolute top-4 right-4 w-32 h-44 bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-gray-700 z-10">
           {localStream && !isVideoOff ? (
-            <video ref={localRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+            <video ref={setLocalVideoNode} id="local-video" autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <VideoOff className="w-8 h-8 text-gray-500" />

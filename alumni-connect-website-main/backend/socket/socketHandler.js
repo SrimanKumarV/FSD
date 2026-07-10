@@ -451,15 +451,15 @@ module.exports = (io) => {
       }
     });
 
-    // Receiver answers the call (sends answer)
+    // Receiver answers the call — forward answererPeerId so caller can do peer.call()
     socket.on('call:answer', (data) => {
-      const { callerId, answer } = data;
+      const { callerId, answererPeerId } = data;
       const callerSession = onlineUsers.get(callerId);
       
       if (callerSession) {
         callerSession.socketIds.forEach(id => {
           io.to(id).emit('call:accepted', {
-            answer: answer
+            answererPeerId: answererPeerId || null,
           });
         });
       }

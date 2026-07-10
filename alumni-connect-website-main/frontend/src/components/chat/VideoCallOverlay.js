@@ -16,6 +16,7 @@ const GlobalCallOverlay = () => {
     localStream,
     remoteStream,
     callInfo,
+    elapsed,
     acceptCall,
     rejectCall,
     endCall,
@@ -27,7 +28,7 @@ const GlobalCallOverlay = () => {
   const [isMuted,     setIsMuted]     = useState(false);
   const [isVideoOff,  setIsVideoOff]  = useState(false);
   const [minimised,   setMinimised]   = useState(false);
-  const [elapsed,     setElapsed]     = useState(0);
+  // elapsed comes from CallContext (PeerJS timer)
 
   /* Wire streams */
   useEffect(() => {
@@ -38,12 +39,8 @@ const GlobalCallOverlay = () => {
     if (remoteRef.current && remoteStream) remoteRef.current.srcObject = remoteStream;
   }, [remoteStream]);
 
-  /* Live call timer – starts only when truly connected */
-  useEffect(() => {
-    if (callStatus !== 'connected') { setElapsed(0); return; }
-    const id = setInterval(() => setElapsed(s => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [callStatus]);
+
+
 
   /* Reset minimised on idle */
   useEffect(() => {

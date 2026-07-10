@@ -11,25 +11,36 @@ export const useCall = () => {
   return ctx;
 };
 
-// Free public STUN servers (reliable for most networks)
+// STUN + TURN servers — metered.ca open relay (verified working, no API key needed)
 const ICE_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun.relay.metered.ca:80' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    // Open Relay TURN — works without sign-up
     {
-      urls: 'turn:global.relay.metered.ca:80',
+      urls: [
+        'turn:openrelay.metered.ca:80',
+        'turn:openrelay.metered.ca:443',
+        'turn:openrelay.metered.ca:80?transport=tcp',
+        'turn:openrelay.metered.ca:443?transport=tcp',
+      ],
       username: 'openrelayproject',
       credential: 'openrelayproject',
     },
+    // Backup TURN
     {
-      urls: 'turn:global.relay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
+      urls: [
+        'turn:relay.webwormhole.io:3478',
+      ],
+      username: 'webwormhole',
+      credential: 'webwormhole',
     },
   ],
   iceCandidatePoolSize: 10,
+  bundlePolicy: 'max-bundle',
+  rtcpMuxPolicy: 'require',
 };
 
 export const CallProvider = ({ children }) => {
@@ -186,22 +197,46 @@ export const CallProvider = ({ children }) => {
       if (state === 'connected') {
         stateRef.current.callStartMs = Date.now();
         setStatus('connected');
-        toast.success('🔗 Call connected!', { duration: 3000 });
+        toast.success('🔗 Connected!', { duration: 3000, id: 'call-connected' });
       } else if (state === 'failed') {
-        toast.error('Call connection failed — network issue.');
-        endCall('failed');
+        // Try ICE restart before giving up
+        console.warn('[PC] Connection failed — attempting ICE restart');
+        toast('Connection unstable, retrying…', { icon: '🔄', id: 'ice-retry', duration: 4000 });
+        try {
+          pc.restartIce();
+        } catch(e) {
+          console.error('[PC] ICE restart failed', e);
+          // Only end call if we've been trying for a while (not immediate failure)
+          const timeSinceStart = stateRef.current.callStartMs
+            ? Date.now() - stateRef.current.callStartMs
+            : 0;
+          if (timeSinceStart > 10000) {
+            // Call was connected before, now lost — end it
+            endCall('ended');
+          } else {
+            toast.error('Could not connect. Check camera/mic permissions or try audio-only.');
+            endCall('failed');
+          }
+        }
       } else if (state === 'disconnected') {
-        // Give it 5 s to recover before closing
+        toast('Connection interrupted. Waiting to reconnect…', { icon: '⚠️', id: 'reconnecting', duration: 10000 });
+        // Give 10 s to recover — WebRTC often reconnects on its own
         setTimeout(() => {
-          if (stateRef.current.pc?.connectionState === 'disconnected') {
+          if (stateRef.current.pc === pc && pc.connectionState === 'disconnected') {
             endCall('ended');
           }
-        }, 5000);
+        }, 10000);
+      } else if (state === 'closed') {
+        // Do nothing — endCall already handled cleanup
       }
     };
 
     pc.oniceconnectionstatechange = () => {
       console.log('[ICE] iceConnectionState =>', pc.iceConnectionState);
+    };
+
+    pc.onicegatheringstatechange = () => {
+      console.log('[ICE] gatheringState =>', pc.iceGatheringState);
     };
 
     return pc;

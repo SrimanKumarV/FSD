@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Phone, PhoneOff, Mic, MicOff,
   Video, VideoOff, Minimize2, Maximize2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCall } from '../../contexts/CallContext';
+import { callManager } from '../../utils/CallManager';
 
 const fmt = (s) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -13,56 +14,29 @@ const GlobalCallOverlay = () => {
   const {
     callStatus,
     incomingCall,
-    localStream,
     remoteStream,
     callInfo,
     elapsed,
     acceptCall,
     rejectCall,
     endCall,
+    toggleMute,
+    toggleVideo,
   } = useCall();
 
   const [isMuted,     setIsMuted]     = useState(false);
   const [isVideoOff,  setIsVideoOff]  = useState(false);
   const [minimised,   setMinimised]   = useState(false);
 
-  // We use callback refs so that the exact moment the <video> node mounts (or remounts),
-  // the stream is guaranteed to be attached. This prevents React lifecycle bugs.
-  const setLocalVideoNode = (node) => {
-    if (node && localStream) attachStream(node, localStream, true);
-  };
-
-  const setRemoteVideoNode = (node) => {
-    if (node && remoteStream) attachStream(node, remoteStream, false);
-  };
-
-  /* Wire streams robustly */
-  const attachStream = (videoNode, stream, isLocal) => {
-    if (!videoNode || !stream) return;
-    if (videoNode.srcObject !== stream) {
-      console.log(`[VideoOverlay] Attaching ${isLocal ? 'local' : 'remote'} stream with ${stream.getAudioTracks().length} audio tracks and ${stream.getVideoTracks().length} video tracks`);
-      videoNode.srcObject = stream;
-      videoNode.onloadedmetadata = () => {
-        videoNode.play().catch(e => console.warn('[VideoOverlay] Play error:', e));
-      };
+  // Whenever the UI re-renders (e.g. going full screen or minimised), tell CallManager to re-attach streams
+  // This completely eliminates React DOM reconciliation bugs with <video> srcObject.
+  useEffect(() => {
+    if (callStatus === 'connecting' || callStatus === 'connected') {
+      callManager.attachMedia();
     }
-  };
+  }, [callStatus, minimised]);
 
-  // Re-run if streams change while node is already mounted
-  useEffect(() => {
-    const videoNode = document.getElementById('local-video');
-    if (videoNode) attachStream(videoNode, localStream, true);
-  }, [localStream, callStatus, minimised, isVideoOff]);
-
-  useEffect(() => {
-    const videoNode = document.getElementById('remote-video');
-    if (videoNode) attachStream(videoNode, remoteStream, false);
-  }, [remoteStream, callStatus, minimised]);
-
-
-
-
-  /* Reset minimised on idle */
+  /* Reset UI state on idle */
   useEffect(() => {
     if (callStatus === 'idle') {
       setMinimised(false);
@@ -71,22 +45,18 @@ const GlobalCallOverlay = () => {
     }
   }, [callStatus]);
 
-  const toggleMute = () => {
-    if (!localStream) return;
-    const next = !isMuted;
-    localStream.getAudioTracks().forEach(t => { t.enabled = !next; });
-    setIsMuted(next);
+  const handleMute = () => {
+    const muted = toggleMute();
+    setIsMuted(muted);
   };
 
-  const toggleVideo = () => {
-    if (!localStream) return;
-    const next = !isVideoOff;
-    localStream.getVideoTracks().forEach(t => { t.enabled = !next; });
-    setIsVideoOff(next);
+  const handleVideo = () => {
+    const videoOff = toggleVideo();
+    setIsVideoOff(videoOff);
   };
 
   /* ─────────────────────────────────────────────────────────────────────
-     1.  RINGING  –  Incoming call popup (always full-screen, z-[9999])
+     1.  RINGING  –  Incoming call popup
   ───────────────────────────────────────────────────────────────────── */
   if (callStatus === 'ringing' && incomingCall) {
     return (
@@ -98,7 +68,6 @@ const GlobalCallOverlay = () => {
           transition={{ type: 'spring', stiffness: 320, damping: 22 }}
           className="bg-white dark:bg-gray-900 rounded-3xl p-10 w-full max-w-xs shadow-2xl text-center border border-gray-100 dark:border-gray-700"
         >
-          {/* Pulsing avatar */}
           <div className="relative w-28 h-28 mx-auto mb-6">
             <span className="absolute inset-0 rounded-full bg-green-400/25 animate-ping" />
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center text-white text-4xl font-bold shadow-xl">
@@ -114,7 +83,6 @@ const GlobalCallOverlay = () => {
           </h2>
 
           <div className="flex justify-around">
-            {/* Decline */}
             <div className="flex flex-col items-center gap-2">
               <button
                 onClick={rejectCall}
@@ -125,7 +93,6 @@ const GlobalCallOverlay = () => {
               <span className="text-xs text-gray-500">Decline</span>
             </div>
 
-            {/* Accept */}
             <div className="flex flex-col items-center gap-2">
               <button
                 onClick={acceptCall}
@@ -156,9 +123,7 @@ const GlobalCallOverlay = () => {
           <div className="relative w-28 h-28 mx-auto mb-6">
             <span className="absolute inset-0 rounded-full bg-blue-400/25 animate-ping" />
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl">
-              {callInfo?.isVideo
-                ? <Video className="w-12 h-12" />
-                : <Phone className="w-12 h-12" />}
+              {callInfo?.isVideo ? <Video className="w-12 h-12" /> : <Phone className="w-12 h-12" />}
             </div>
           </div>
 
@@ -186,13 +151,17 @@ const GlobalCallOverlay = () => {
      3.  CONNECTING / CONNECTED  –  Active call
   ───────────────────────────────────────────────────────────────────── */
   if (callStatus === 'connecting' || callStatus === 'connected') {
+    
     /* ── Minimised PiP ── */
     if (minimised) {
       return (
         <div className="fixed bottom-5 right-5 z-[9999] w-44 h-28 rounded-2xl overflow-hidden shadow-2xl border border-gray-700 bg-gray-900 group cursor-pointer">
-          {remoteStream
-            ? <video ref={setRemoteVideoNode} id="remote-video" autoPlay playsInline className="w-full h-full object-cover" />
-            : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Connecting…</div>}
+          <video id="remote-video" autoPlay playsInline className="w-full h-full object-cover" />
+          
+          {/* Hide if no remote stream yet */}
+          {!remoteStream && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-gray-400 text-xs">Connecting…</div>
+          )}
 
           {/* Timer badge */}
           {callStatus === 'connected' && (
@@ -217,17 +186,11 @@ const GlobalCallOverlay = () => {
     /* ── Full screen active call ── */
     return (
       <div className="fixed inset-0 z-[9999] bg-gray-950 flex flex-col select-none">
-
+        
         {/* Remote stream */}
-        {remoteStream ? (
-          <video
-            ref={setRemoteVideoNode}
-            id="remote-video"
-            autoPlay
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
+        <video id="remote-video" autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+        
+        {!remoteStream && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-5" />
             <p className="text-white font-semibold text-lg">Connecting…</p>
@@ -237,10 +200,9 @@ const GlobalCallOverlay = () => {
 
         {/* Local stream PiP – top right */}
         <div className="absolute top-4 right-4 w-32 h-44 bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-gray-700 z-10">
-          {localStream && !isVideoOff ? (
-            <video ref={setLocalVideoNode} id="local-video" autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
+          <video id="local-video" autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+          {isVideoOff && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
               <VideoOff className="w-8 h-8 text-gray-500" />
             </div>
           )}
@@ -269,10 +231,9 @@ const GlobalCallOverlay = () => {
 
         {/* Bottom controls */}
         <div className="absolute bottom-0 inset-x-0 z-10 p-8 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-center gap-8">
-          {/* Mute toggle */}
           <div className="flex flex-col items-center gap-1.5">
             <button
-              onClick={toggleMute}
+              onClick={handleMute}
               className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 isMuted ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
               }`}
@@ -282,7 +243,6 @@ const GlobalCallOverlay = () => {
             <span className="text-white/70 text-xs">{isMuted ? 'Unmute' : 'Mute'}</span>
           </div>
 
-          {/* End call */}
           <div className="flex flex-col items-center gap-1.5">
             <button
               onClick={() => endCall()}
@@ -293,10 +253,9 @@ const GlobalCallOverlay = () => {
             <span className="text-white/70 text-xs">End</span>
           </div>
 
-          {/* Video toggle */}
           <div className="flex flex-col items-center gap-1.5">
             <button
-              onClick={toggleVideo}
+              onClick={handleVideo}
               className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 isVideoOff ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
               }`}

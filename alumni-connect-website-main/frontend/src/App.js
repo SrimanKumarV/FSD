@@ -65,9 +65,9 @@ function App() {
             <NotificationProvider>
               <Router>
                 <CallProvider>
+                <div className="App min-h-screen relative">
                   {/* Global call overlay — renders on top of everything, across all routes */}
                   <GlobalCallOverlay />
-                <div className="App min-h-screen relative">
                   <div className="animated-bg"></div>
 
                   <Routes>
@@ -228,7 +228,7 @@ function App() {
                     },
                   }}
                 />
-              </div>
+                </div>
               </CallProvider>
             </Router>
 

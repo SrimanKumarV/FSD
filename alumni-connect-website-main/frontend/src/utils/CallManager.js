@@ -64,25 +64,25 @@ class CallManager {
   init(socket, user) {
     if (!socket || !user) return;
     
-    // If socket changed, re-attach listeners
-    if (this.socket !== socket) {
-      if (this.socket) {
-        this.socket.off('call:incoming', this.onIncoming);
-        this.socket.off('call:accepted', this.onAccepted);
-        this.socket.off('call:ice-candidate', this.onIceCandidate);
-        this.socket.off('call:ended', this.onEnded);
-        this.socket.off('call:error', this.onError);
-      }
-      
-      this.socket = socket;
-      this.user = user;
-      
-      this.socket.on('call:incoming', this.onIncoming);
-      this.socket.on('call:accepted', this.onAccepted);
-      this.socket.on('call:ice-candidate', this.onIceCandidate);
-      this.socket.on('call:ended', this.onEnded);
-      this.socket.on('call:error', this.onError);
+    // Always clean up old socket listeners before re-attaching
+    if (this.socket) {
+      this.socket.off('call:incoming', this.onIncoming);
+      this.socket.off('call:accepted', this.onAccepted);
+      this.socket.off('call:ice-candidate', this.onIceCandidate);
+      this.socket.off('call:ended', this.onEnded);
+      this.socket.off('call:error', this.onError);
     }
+    
+    this.socket = socket;
+    this.user = user;
+    
+    this.socket.on('call:incoming', this.onIncoming);
+    this.socket.on('call:accepted', this.onAccepted);
+    this.socket.on('call:ice-candidate', this.onIceCandidate);
+    this.socket.on('call:ended', this.onEnded);
+    this.socket.on('call:error', this.onError);
+    
+    console.log('[CallManager] Initialized with socket:', socket.id);
   }
 
   // --- EVENT EMITTER ---
@@ -108,12 +108,13 @@ class CallManager {
   setStatus(newStatus) {
     this.status = newStatus;
     
-    // Play/Pause ringtone based on status
     if (newStatus === 'ringing') {
       this.playRingtone();
-    } else {
+    } else if (newStatus === 'idle' || newStatus === 'connecting' || newStatus === 'connected') {
+      // Stop ringtone when call is accepted, ends, or connects — but NOT when outgoing
       this.stopRingtone();
     }
+    // 'outgoing' — no ringtone change (caller doesn't ring)
     
     this.emit();
   }

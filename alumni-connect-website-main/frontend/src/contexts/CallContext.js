@@ -251,8 +251,9 @@ export const CallProvider = ({ children }) => {
         logStatus = reason === 'rejected' ? 'rejected' : 'missed';
       }
 
-      // If I am the initiator, log this call to chat history
+      // If I am the initiator, log this call to chat history exactly once
       if (isInitiatorRef.current) {
+        isInitiatorRef.current = false; // Prevent multiple logs on double-clicks
         const typeStr = isVideoCallRef.current ? "video" : "audio";
         const logContent = JSON.stringify({ type: typeStr, status: logStatus, duration: durationStr });
         
@@ -360,7 +361,7 @@ export const CallProvider = ({ children }) => {
   return (
     <CallContext.Provider value={value}>
       {children}
-      {!isChatRoute && (
+      {(!isChatRoute || callStatus === 'ringing') && (
         <VideoCallOverlay
           localStream={localStream}
           remoteStream={remoteStream}

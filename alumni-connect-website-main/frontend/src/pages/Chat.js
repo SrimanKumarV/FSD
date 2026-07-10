@@ -451,10 +451,18 @@ const Chat = () => {
                             <span className="flex items-center">
                               {lastMessage.sender === (user?._id || user?.id) && (
                                 <span className="mr-1">
-                                  {lastMessage.read ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-gray-400" />}
+                                  {lastMessage.status === 'read' ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-gray-400" />}
                                 </span>
                               )}
-                              {lastMessage.content}
+                              {lastMessage.messageType === 'call-log' 
+                                ? (() => {
+                                    try {
+                                      const log = JSON.parse(lastMessage.content);
+                                      return log.status === 'missed' ? 'Missed Call' :
+                                             log.status === 'rejected' ? 'Call Rejected' : 'Call Ended';
+                                    } catch(e) { return 'Call'; }
+                                  })()
+                                : lastMessage.content}
                             </span>
                           ) : (
                             'No messages yet'

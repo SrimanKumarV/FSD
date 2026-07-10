@@ -30,7 +30,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { api } from '../utils/api';
 import { useCall } from '../contexts/CallContext';
-import VideoCallOverlay from './chat/VideoCallOverlay';
+import VideoCallOverlay from '../components/chat/VideoCallOverlay';
 
 const Chat = () => {
   const { user } = useAuth();

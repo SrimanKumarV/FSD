@@ -481,12 +481,12 @@ module.exports = (io) => {
 
     // End call or reject call
     socket.on('call:end', (data) => {
-      const { targetId } = data;
+      const { targetId, reason } = data;
       const targetSession = onlineUsers.get(targetId);
       
       if (targetSession) {
         targetSession.socketIds.forEach(id => {
-          io.to(id).emit('call:ended');
+          io.to(id).emit('call:ended', { reason });
         });
       }
     });

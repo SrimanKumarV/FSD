@@ -30,6 +30,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { api } from '../utils/api';
 import { useCall } from '../contexts/CallContext';
+import VideoCallOverlay from './chat/VideoCallOverlay';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -65,6 +66,12 @@ const Chat = () => {
     isCalling,
     callStatus,
     startCall,
+    localStream,
+    remoteStream,
+    incomingCall,
+    acceptCall,
+    rejectCall,
+    endCall
   } = useCall();
 
   // Fetch messages for selected chat using the stable participant ID
@@ -537,6 +544,22 @@ const Chat = () => {
               </div>
             </div>
 
+            {/* Video Call Overlay Integration within Chat */}
+            {(callStatus === 'connecting' || callStatus === 'connected') && (
+              <div className="absolute inset-0 z-40 bg-gray-900 rounded-b-none border-t border-gray-700/50" style={{ top: '73px' }}>
+                <VideoCallOverlay
+                  localStream={localStream}
+                  remoteStream={remoteStream}
+                  callStatus={callStatus}
+                  incomingCall={incomingCall}
+                  onAccept={acceptCall}
+                  onReject={rejectCall}
+                  onEndCall={endCall}
+                  isEmbedded={true}
+                />
+              </div>
+            )}
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messagesLoading ? (
@@ -815,7 +838,25 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
               </a>
             </div>
           )}
-          {message.content && <p className="text-[15px] leading-relaxed">{message.content}</p>}
+          
+          {message.messageType === 'call-log' ? (
+            <div className="flex items-center space-x-3 py-1">
+              <div className={`p-2 rounded-full ${isOwn ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                {JSON.parse(message.content).type === 'video' ? <Video className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold">
+                  {JSON.parse(message.content).status === 'missed' ? 'Missed Call' :
+                   JSON.parse(message.content).status === 'rejected' ? 'Call Rejected' : 'Call Ended'}
+                </span>
+                <span className="text-xs opacity-80">
+                  {JSON.parse(message.content).duration !== '0:00' ? `Duration: ${JSON.parse(message.content).duration}` : ''}
+                </span>
+              </div>
+            </div>
+          ) : (
+            message.content && <p className="text-[15px] leading-relaxed">{message.content}</p>
+          )}
 
           {/* Floating Reaction */}
           {hasHeartReaction && (

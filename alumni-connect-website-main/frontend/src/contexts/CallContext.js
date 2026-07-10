@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import toast from 'react-hot-toast';
 import { useSocket } from './SocketContext';
 import VideoCallOverlay from '../components/chat/VideoCallOverlay';
+import { useLocation } from 'react-router-dom';
 
 const CallContext = createContext();
 
@@ -27,6 +28,13 @@ export const CallProvider = ({ children }) => {
   const isRemoteDescriptionSet = useRef(false);
   const callStatusRef = useRef('idle');
   const ringtoneRef = useRef(null);
+  const location = useLocation();
+  const isChatRoute = location.pathname.includes('/chat');
+  
+  // Call History Logging Refs
+  const callStartTimeRef = useRef(null);
+  const isInitiatorRef = useRef(false);
+  const isVideoCallRef = useRef(true);
 
   // Initialize ringtone audio
   useEffect(() => {
@@ -41,7 +49,17 @@ export const CallProvider = ({ children }) => {
     if (callStatus === 'ringing') {
       // Play ringtone if there's an incoming call
       if (ringtoneRef.current) {
-        ringtoneRef.current.play().catch(e => console.log('Audio autoplay blocked by browser', e));
+        // Try to play, but catch autoplay block and fallback to toast/banner
+        const playPromise = ringtoneRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => {
+            console.log('Audio autoplay blocked by browser', e);
+            toast('Incoming call! Click here to answer and enable audio.', {
+              icon: '📞',
+              duration: 10000,
+            });
+          });
+        }
       }
     } else {
       // Stop ringtone for any other status
@@ -56,6 +74,9 @@ export const CallProvider = ({ children }) => {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
     ],
   };
 
@@ -115,6 +136,7 @@ export const CallProvider = ({ children }) => {
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') {
         setCallStatus('connected');
+        callStartTimeRef.current = Date.now();
       } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
         endCall();
       }
@@ -143,6 +165,9 @@ export const CallProvider = ({ children }) => {
       activeCallTargetId.current = targetId;
       setCallStatus('connecting');
       setIsCalling(true);
+      isInitiatorRef.current = true;
+      isVideoCallRef.current = isVideo;
+      
       const stream = await getMedia(isVideo);
       const pc = createPeerConnection();
 
@@ -170,6 +195,9 @@ export const CallProvider = ({ children }) => {
     try {
       activeCallTargetId.current = incomingCall.callerId;
       setCallStatus('connecting');
+      isInitiatorRef.current = false;
+      isVideoCallRef.current = incomingCall.isVideo;
+      
       const stream = await getMedia(incomingCall.isVideo);
       const pc = createPeerConnection();
 
@@ -199,15 +227,43 @@ export const CallProvider = ({ children }) => {
 
   const rejectCall = () => {
     if (incomingCall && socket) {
-      socket.emit('call:end', { targetId: incomingCall.callerId });
+      socket.emit('call:end', { targetId: incomingCall.callerId, reason: 'rejected' });
       setIncomingCall(null);
       setCallStatus('idle');
     }
   };
 
-  const endCall = useCallback(() => {
+  const endCall = useCallback((reason = 'ended') => {
     if (activeCallTargetId.current && socket) {
-      socket.emit('call:end', { targetId: activeCallTargetId.current });
+      // Determine call duration
+      let durationStr = "0:00";
+      if (callStartTimeRef.current) {
+        const diffMs = Date.now() - callStartTimeRef.current;
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+
+      // Determine log status based on states before reset
+      let logStatus = "ended";
+      if (callStatusRef.current === 'ringing' || callStatusRef.current === 'connecting') {
+        logStatus = reason === 'rejected' ? 'rejected' : 'missed';
+      }
+
+      // If I am the initiator, log this call to chat history
+      if (isInitiatorRef.current) {
+        const typeStr = isVideoCallRef.current ? "video" : "audio";
+        const logContent = JSON.stringify({ type: typeStr, status: logStatus, duration: durationStr });
+        
+        socket.emit('message:send', {
+          receiverId: activeCallTargetId.current,
+          content: logContent,
+          messageType: 'call-log'
+        });
+      }
+
+      socket.emit('call:end', { targetId: activeCallTargetId.current, reason });
     }
     
     if (peerConnection.current) {
@@ -225,6 +281,8 @@ export const CallProvider = ({ children }) => {
     activeCallTargetId.current = null;
     iceCandidateQueue.current = [];
     isRemoteDescriptionSet.current = false;
+    callStartTimeRef.current = null;
+    isInitiatorRef.current = false;
     setRemoteStream(null);
     setIsCalling(false);
     setIncomingCall(null);
@@ -263,8 +321,8 @@ export const CallProvider = ({ children }) => {
       }
     };
 
-    const handleEnded = () => {
-      endCall();
+    const handleEnded = (data) => {
+      endCall(data?.reason || 'ended');
     };
 
     const handleError = (data) => {
@@ -302,15 +360,17 @@ export const CallProvider = ({ children }) => {
   return (
     <CallContext.Provider value={value}>
       {children}
-      <VideoCallOverlay
-        localStream={localStream}
-        remoteStream={remoteStream}
-        callStatus={callStatus}
-        incomingCall={incomingCall}
-        onAccept={acceptCall}
-        onReject={rejectCall}
-        onEndCall={endCall}
-      />
+      {!isChatRoute && (
+        <VideoCallOverlay
+          localStream={localStream}
+          remoteStream={remoteStream}
+          callStatus={callStatus}
+          incomingCall={incomingCall}
+          onAccept={acceptCall}
+          onReject={rejectCall}
+          onEndCall={endCall}
+        />
+      )}
     </CallContext.Provider>
   );
 };

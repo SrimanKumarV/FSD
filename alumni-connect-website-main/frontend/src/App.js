@@ -62,10 +62,11 @@ function App() {
         <AuthProvider>
           <SocketProvider>
             <NotificationProvider>
-              <CallProvider>
-                <Router>
+              <Router>
+                <CallProvider>
                 <div className="App min-h-screen relative">
                   <div className="animated-bg"></div>
+
                   <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Home />} />
@@ -225,8 +226,9 @@ function App() {
                   }}
                 />
               </div>
-            </Router>
               </CallProvider>
+            </Router>
+
             </NotificationProvider>
           </SocketProvider>
       </AuthProvider>

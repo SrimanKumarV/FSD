@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Maximize, Minimize } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 const VideoCallOverlay = ({ 
   localStream, 
@@ -9,10 +10,13 @@ const VideoCallOverlay = ({
   incomingCall, 
   onAccept, 
   onReject, 
-  onEndCall 
+  onEndCall,
+  isEmbedded = false
 }) => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const location = useLocation();
+  const isChatRoute = location.pathname.includes('/chat');
   
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
@@ -91,9 +95,17 @@ const VideoCallOverlay = ({
 
   // Active or Connecting Call
   if (callStatus === 'connecting' || callStatus === 'connected') {
+    // If embedded (inside Chat.js), fill the parent container.
+    // Otherwise, render as a floating PiP window.
+    const layoutClasses = isEmbedded
+      ? "w-full h-full z-40 bg-gray-900" // Fills parent completely
+      : isFullscreen 
+        ? "fixed inset-0 z-50 bg-gray-900" // Fullscreen
+        : "fixed bottom-6 right-6 w-96 h-[500px] z-50 bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700/50"; // PiP
+
     return (
-      <div className={`fixed z-50 transition-all duration-300 ${isFullscreen ? 'inset-0' : 'bottom-6 right-6 w-96 h-[500px]'}`}>
-        <div className="relative w-full h-full bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700/50">
+      <div className={`${layoutClasses} transition-all duration-300`}>
+        <div className="relative w-full h-full flex items-center justify-center">
           
           {/* Remote Video (Main Background) */}
           {remoteStream ? (

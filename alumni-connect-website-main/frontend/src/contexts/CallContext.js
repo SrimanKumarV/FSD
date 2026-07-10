@@ -1,377 +1,344 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useSocket } from './SocketContext';
-import VideoCallOverlay from '../components/chat/VideoCallOverlay';
-import { useLocation } from 'react-router-dom';
 
 const CallContext = createContext();
 
 export const useCall = () => {
   const context = useContext(CallContext);
-  if (!context) {
-    throw new Error('useCall must be used within a CallProvider');
-  }
+  if (!context) throw new Error('useCall must be used within a CallProvider');
   return context;
+};
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' },
+  ],
 };
 
 export const CallProvider = ({ children }) => {
   const { socket } = useSocket();
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
-  const [isCalling, setIsCalling] = useState(false);
-  const [incomingCall, setIncomingCall] = useState(null);
+
+  // ── State ────────────────────────────────────────────────────────────
   const [callStatus, setCallStatus] = useState('idle');
+  // idle | ringing | outgoing | connecting | connected
+  const [incomingCall, setIncomingCall] = useState(null);  // { callerId, callerName, isVideo, offer }
+  const [localStream, setLocalStream]   = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [callInfo, setCallInfo]         = useState(null);  // { isVideo, targetId }
 
-  const peerConnection = useRef(null);
-  const activeCallTargetId = useRef(null);
-  const iceCandidateQueue = useRef([]);
-  const isRemoteDescriptionSet = useRef(false);
-  const callStatusRef = useRef('idle');
-  const ringtoneRef = useRef(null);
-  const location = useLocation();
-  const isChatRoute = location.pathname.includes('/chat');
-  
-  // Call History Logging Refs
-  const callStartTimeRef = useRef(null);
-  const isInitiatorRef = useRef(false);
-  const isVideoCallRef = useRef(true);
+  // ── Refs (never stale in callbacks) ──────────────────────────────────
+  const pcRef               = useRef(null);
+  const localStreamRef      = useRef(null);
+  const callStatusRef       = useRef('idle');
+  const targetIdRef         = useRef(null);
+  const iceQueueRef         = useRef([]);
+  const remoteSetRef        = useRef(false);
+  const ringtoneRef         = useRef(null);
+  const callStartRef        = useRef(null);
+  const isInitiatorRef      = useRef(false);
+  const isVideoCallRef      = useRef(true);
+  const logSentRef          = useRef(false);
 
-  // Initialize ringtone audio
+  // Keep callStatusRef in sync
+  useEffect(() => { callStatusRef.current = callStatus; }, [callStatus]);
+
+  // ── Ringtone ──────────────────────────────────────────────────────────
   useEffect(() => {
-    ringtoneRef.current = new Audio('/ringtone.mp3'); // We will use a standard sound or create one
-    ringtoneRef.current.loop = true;
+    const audio = new Audio('/ringtone.mp3');
+    audio.loop = true;
+    ringtoneRef.current = audio;
+    return () => { audio.pause(); };
   }, []);
 
-  // Handle playing/stopping ringtone based on status
   useEffect(() => {
-    callStatusRef.current = callStatus;
-    
+    const audio = ringtoneRef.current;
+    if (!audio) return;
     if (callStatus === 'ringing') {
-      // Play ringtone if there's an incoming call
-      if (ringtoneRef.current) {
-        // Try to play, but catch autoplay block and fallback to toast/banner
-        const playPromise = ringtoneRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(e => {
-            console.log('Audio autoplay blocked by browser', e);
-            toast('Incoming call! Click here to answer and enable audio.', {
-              icon: '📞',
-              duration: 10000,
-            });
-          });
-        }
-      }
+      audio.play().catch(() =>
+        toast('📞 Incoming call! Accept or decline below.', { duration: 8000 })
+      );
     } else {
-      // Stop ringtone for any other status
-      if (ringtoneRef.current) {
-        ringtoneRef.current.pause();
-        ringtoneRef.current.currentTime = 0;
-      }
+      audio.pause();
+      audio.currentTime = 0;
     }
   }, [callStatus]);
 
-  const iceServers = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
-      { urls: 'stun:stun4.l.google.com:19302' },
-    ],
-  };
+  // ── Helpers ──────────────────────────────────────────────────────────
+  const stopLocalStream = useCallback(() => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => t.stop());
+      localStreamRef.current = null;
+    }
+    setLocalStream(null);
+  }, []);
 
-  const getMedia = useCallback(async (isVideo = true) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: isVideo,
-        audio: true,
-      });
-      setLocalStream(stream);
-      return stream;
-    } catch (err) {
-      console.warn('Failed to get video+audio, falling back to audio only if possible...', err);
-      if (isVideo) {
-        try {
-          const audioStream = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: true,
-          });
-          toast.success('Camera not found. Falling back to audio only.');
-          setLocalStream(audioStream);
-          return audioStream;
-        } catch (audioErr) {
-          console.error('Audio fallback also failed', audioErr);
-        }
-      }
-      
-      console.error('Failed to get media devices completely', err);
-      if (err.name === 'NotAllowedError') {
-        toast.error('Camera/Microphone access was denied. Please grant permissions.');
-      } else if (err.name === 'NotFoundError') {
-        toast.error('No camera/microphone found on this device.');
-      } else {
-        toast.error('Failed to access media devices. Check permissions or use HTTPS.');
-      }
-      throw err;
+  const closePeer = useCallback(() => {
+    if (pcRef.current) {
+      pcRef.current.onicecandidate   = null;
+      pcRef.current.ontrack          = null;
+      pcRef.current.onconnectionstatechange = null;
+      pcRef.current.close();
+      pcRef.current = null;
     }
   }, []);
 
-  const createPeerConnection = useCallback(() => {
-    const pc = new RTCPeerConnection(iceServers);
-    isRemoteDescriptionSet.current = false;
-    
-    pc.onicecandidate = (event) => {
-      if (event.candidate && activeCallTargetId.current) {
-        socket?.emit('call:ice-candidate', {
-          targetId: activeCallTargetId.current,
-          candidate: event.candidate,
-        });
+  const resetCallState = useCallback(() => {
+    closePeer();
+    stopLocalStream();
+    setRemoteStream(null);
+    setIncomingCall(null);
+    setCallInfo(null);
+    targetIdRef.current   = null;
+    iceQueueRef.current   = [];
+    remoteSetRef.current  = false;
+    callStartRef.current  = null;
+    isInitiatorRef.current = false;
+    logSentRef.current    = false;
+    setCallStatus('idle');
+  }, [closePeer, stopLocalStream]);
+
+  const drainIceQueue = useCallback(async () => {
+    const pc = pcRef.current;
+    if (!pc || !remoteSetRef.current) return;
+    while (iceQueueRef.current.length > 0) {
+      const candidate = iceQueueRef.current.shift();
+      try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); }
+      catch (e) { console.warn('ICE candidate error', e); }
+    }
+  }, []);
+
+  const getMedia = useCallback(async (isVideo) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+      localStreamRef.current = stream;
+      setLocalStream(stream);
+      return stream;
+    } catch {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        localStreamRef.current = stream;
+        setLocalStream(stream);
+        toast('Camera unavailable — audio-only call.', { icon: '🎙️' });
+        return stream;
+      } catch (err) {
+        toast.error('Microphone/Camera access denied. Please allow and retry.');
+        throw err;
+      }
+    }
+  }, []);
+
+  // ── endCall ───────────────────────────────────────────────────────────
+  // Must be defined BEFORE createPeer so the onconnectionstatechange handler can call it safely via ref
+  const endCallRef = useRef(null);
+
+  const endCall = useCallback((reason = 'ended') => {
+    const targetId   = targetIdRef.current;
+    const wasInitiator = isInitiatorRef.current;
+    const wasVideo     = isVideoCallRef.current;
+    const status       = callStatusRef.current;
+
+    // Emit call:end to remote peer
+    if (targetId && socket) {
+      socket.emit('call:end', { targetId, reason });
+    }
+
+    // Emit call-log message (initiator only, once)
+    if (wasInitiator && socket && targetId && !logSentRef.current) {
+      logSentRef.current = true;
+      let durationStr = '0:00';
+      if (callStartRef.current) {
+        const secs = Math.floor((Date.now() - callStartRef.current) / 1000);
+        durationStr = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+      }
+      const logStatus = (status === 'ringing' || status === 'outgoing' || status === 'connecting')
+        ? (reason === 'rejected' ? 'rejected' : 'missed')
+        : 'ended';
+
+      socket.emit('message:send', {
+        receiverId: targetId,
+        content: JSON.stringify({ type: wasVideo ? 'video' : 'audio', status: logStatus, duration: durationStr }),
+        messageType: 'call-log',
+      });
+    }
+
+    resetCallState();
+  }, [socket, resetCallState]);
+
+  // Keep ref up to date so createPeer can use it without stale closure
+  endCallRef.current = endCall;
+
+  // ── createPeer ────────────────────────────────────────────────────────
+  const createPeer = useCallback(() => {
+    closePeer();
+    remoteSetRef.current = false;
+    const pc = new RTCPeerConnection(ICE_SERVERS);
+
+    pc.onicecandidate = ({ candidate }) => {
+      if (candidate && targetIdRef.current && socket) {
+        socket.emit('call:ice-candidate', { targetId: targetIdRef.current, candidate });
       }
     };
 
     pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
+      setRemoteStream(event.streams[0] || null);
     };
 
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') {
+        callStartRef.current = Date.now();
         setCallStatus('connected');
-        callStartTimeRef.current = Date.now();
-      } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        endCall();
+      } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        endCallRef.current('ended');
       }
     };
 
-    peerConnection.current = pc;
+    pcRef.current = pc;
     return pc;
-  }, [socket]);
+  }, [socket, closePeer]);
 
-  const processIceQueue = async () => {
-    if (peerConnection.current && isRemoteDescriptionSet.current) {
-      while (iceCandidateQueue.current.length > 0) {
-        const candidate = iceCandidateQueue.current.shift();
-        try {
-          await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (e) {
-          console.error('Error processing queued ICE candidate', e);
-        }
-      }
-    }
-  };
+  // ── startCall (caller side) ──────────────────────────────────────────
+  const startCall = useCallback(async (targetId, isVideo = true) => {
+    if (!socket || !targetId || callStatusRef.current !== 'idle') return;
 
-  const startCall = async (targetId, isVideo = true) => {
-    if (!targetId || !socket) return;
+    isInitiatorRef.current = true;
+    isVideoCallRef.current = isVideo;
+    targetIdRef.current    = targetId;
+    logSentRef.current     = false;
+    setCallInfo({ isVideo, targetId });
+    setCallStatus('outgoing');
+
     try {
-      activeCallTargetId.current = targetId;
-      setCallStatus('connecting');
-      setIsCalling(true);
-      isInitiatorRef.current = true;
-      isVideoCallRef.current = isVideo;
-      
       const stream = await getMedia(isVideo);
-      const pc = createPeerConnection();
+      const pc = createPeer();
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-
-      const offer = await pc.createOffer();
+      const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: isVideo });
       await pc.setLocalDescription(offer);
 
-      socket.emit('call:request', {
-        receiverId: targetId,
-        offer,
-        isVideo
-      });
-    } catch (error) {
-      console.error('Failed to start call', error);
-      setCallStatus('idle');
-      setIsCalling(false);
+      socket.emit('call:request', { receiverId: targetId, offer, isVideo });
+    } catch (err) {
+      console.error('startCall error', err);
+      resetCallState();
     }
-  };
+  }, [socket, getMedia, createPeer, resetCallState]);
 
-  const acceptCall = async () => {
+  // ── acceptCall (receiver side) ───────────────────────────────────────
+  const acceptCall = useCallback(async () => {
     if (!incomingCall || !socket) return;
+    const { callerId, offer, isVideo } = incomingCall;
+
+    isInitiatorRef.current = false;
+    isVideoCallRef.current = isVideo;
+    targetIdRef.current    = callerId;
+    setCallStatus('connecting');
+
     try {
-      activeCallTargetId.current = incomingCall.callerId;
-      setCallStatus('connecting');
-      isInitiatorRef.current = false;
-      isVideoCallRef.current = incomingCall.isVideo;
-      
-      const stream = await getMedia(incomingCall.isVideo);
-      const pc = createPeerConnection();
+      const stream = await getMedia(isVideo);
+      const pc = createPeer();
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-
-      await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
-      isRemoteDescriptionSet.current = true;
-      processIceQueue();
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      remoteSetRef.current = true;
+      await drainIceQueue();
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      socket.emit('call:answer', {
-        callerId: incomingCall.callerId,
-        answer
-      });
-      
-      setIsCalling(true);
+      socket.emit('call:answer', { callerId, answer });
       setIncomingCall(null);
-    } catch (error) {
-      console.error('Failed to accept call', error);
-      endCall();
+    } catch (err) {
+      console.error('acceptCall error', err);
+      endCall('ended');
     }
-  };
+  }, [incomingCall, socket, getMedia, createPeer, drainIceQueue, endCall]);
 
-  const rejectCall = () => {
-    if (incomingCall && socket) {
-      socket.emit('call:end', { targetId: incomingCall.callerId, reason: 'rejected' });
-      setIncomingCall(null);
-      setCallStatus('idle');
-    }
-  };
-
-  const endCall = useCallback((reason = 'ended') => {
-    if (activeCallTargetId.current && socket) {
-      // Determine call duration
-      let durationStr = "0:00";
-      if (callStartTimeRef.current) {
-        const diffMs = Date.now() - callStartTimeRef.current;
-        const totalSeconds = Math.floor(diffMs / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      }
-
-      // Determine log status based on states before reset
-      let logStatus = "ended";
-      if (callStatusRef.current === 'ringing' || callStatusRef.current === 'connecting') {
-        logStatus = reason === 'rejected' ? 'rejected' : 'missed';
-      }
-
-      // If I am the initiator, log this call to chat history exactly once
-      if (isInitiatorRef.current) {
-        isInitiatorRef.current = false; // Prevent multiple logs on double-clicks
-        const typeStr = isVideoCallRef.current ? "video" : "audio";
-        const logContent = JSON.stringify({ type: typeStr, status: logStatus, duration: durationStr });
-        
-        socket.emit('message:send', {
-          receiverId: activeCallTargetId.current,
-          content: logContent,
-          messageType: 'call-log'
-        });
-      }
-
-      socket.emit('call:end', { targetId: activeCallTargetId.current, reason });
-    }
-    
-    if (peerConnection.current) {
-      peerConnection.current.close();
-      peerConnection.current = null;
-    }
-    
-    setLocalStream(prev => {
-      if (prev) {
-        prev.getTracks().forEach(track => track.stop());
-      }
-      return null;
-    });
-
-    activeCallTargetId.current = null;
-    iceCandidateQueue.current = [];
-    isRemoteDescriptionSet.current = false;
-    callStartTimeRef.current = null;
-    isInitiatorRef.current = false;
-    setRemoteStream(null);
-    setIsCalling(false);
+  // ── rejectCall (receiver side) ───────────────────────────────────────
+  const rejectCall = useCallback(() => {
+    if (!incomingCall || !socket) return;
+    socket.emit('call:end', { targetId: incomingCall.callerId, reason: 'rejected' });
     setIncomingCall(null);
     setCallStatus('idle');
-  }, [socket]);
+  }, [incomingCall, socket]);
 
+  // ── Socket event listeners ───────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
-    const handleIncoming = (data) => {
-      if (callStatusRef.current === 'idle') {
-        setIncomingCall(data);
-        setCallStatus('ringing');
+    const onIncoming = (data) => {
+      if (callStatusRef.current !== 'idle') {
+        socket.emit('call:end', { targetId: data.callerId, reason: 'busy' });
+        return;
+      }
+      setIncomingCall(data);
+      setCallStatus('ringing');
+    };
+
+    const onAccepted = async ({ answer }) => {
+      const pc = pcRef.current;
+      if (!pc) return;
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        remoteSetRef.current = true;
+        setCallStatus('connecting');
+        await drainIceQueue();
+      } catch (e) { console.error('onAccepted error', e); }
+    };
+
+    const onIceCandidate = async ({ candidate }) => {
+      if (!candidate) return;
+      if (pcRef.current && remoteSetRef.current) {
+        try { await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate)); }
+        catch (e) { console.warn('addIceCandidate error', e); }
       } else {
-        socket.emit('call:end', { targetId: data.callerId });
+        iceQueueRef.current.push(candidate);
       }
     };
 
-    const handleAccepted = async (data) => {
-      if (peerConnection.current) {
-        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
-        isRemoteDescriptionSet.current = true;
-        processIceQueue();
-      }
+    const onEnded = (data) => {
+      endCallRef.current(data?.reason || 'ended');
     };
 
-    const handleIceCandidate = async (data) => {
-      if (peerConnection.current && isRemoteDescriptionSet.current) {
-        try {
-          await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } catch (e) {
-          console.error('Error adding received ice candidate', e);
-        }
-      } else {
-        iceCandidateQueue.current.push(data.candidate);
-      }
+    const onError = (data) => {
+      toast.error(data?.message || 'Call failed');
+      endCallRef.current('ended');
     };
 
-    const handleEnded = (data) => {
-      endCall(data?.reason || 'ended');
-    };
-
-    const handleError = (data) => {
-      toast.error(data.message || 'Call error');
-      endCall();
-    };
-
-    socket.on('call:incoming', handleIncoming);
-    socket.on('call:accepted', handleAccepted);
-    socket.on('call:ice-candidate', handleIceCandidate);
-    socket.on('call:ended', handleEnded);
-    socket.on('call:error', handleError);
+    socket.on('call:incoming',      onIncoming);
+    socket.on('call:accepted',      onAccepted);
+    socket.on('call:ice-candidate', onIceCandidate);
+    socket.on('call:ended',         onEnded);
+    socket.on('call:error',         onError);
 
     return () => {
-      socket.off('call:incoming', handleIncoming);
-      socket.off('call:accepted', handleAccepted);
-      socket.off('call:ice-candidate', handleIceCandidate);
-      socket.off('call:ended', handleEnded);
-      socket.off('call:error', handleError);
+      socket.off('call:incoming',      onIncoming);
+      socket.off('call:accepted',      onAccepted);
+      socket.off('call:ice-candidate', onIceCandidate);
+      socket.off('call:ended',         onEnded);
+      socket.off('call:error',         onError);
     };
-  }, [socket, endCall]);
+  }, [socket, drainIceQueue]);
 
   const value = {
+    callStatus,
+    incomingCall,
     localStream,
     remoteStream,
-    isCalling,
-    incomingCall,
-    callStatus,
+    callInfo,
+    isCalling: callStatus !== 'idle',
     startCall,
     acceptCall,
     rejectCall,
-    endCall
+    endCall,
   };
 
   return (
     <CallContext.Provider value={value}>
       {children}
-      {(!isChatRoute || callStatus === 'ringing') && (
-        <VideoCallOverlay
-          localStream={localStream}
-          remoteStream={remoteStream}
-          callStatus={callStatus}
-          incomingCall={incomingCall}
-          onAccept={acceptCall}
-          onReject={rejectCall}
-          onEndCall={endCall}
-        />
-      )}
     </CallContext.Provider>
   );
 };

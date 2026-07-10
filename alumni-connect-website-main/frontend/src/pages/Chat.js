@@ -30,7 +30,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { api } from '../utils/api';
 import { useCall } from '../contexts/CallContext';
-import VideoCallOverlay from '../components/chat/VideoCallOverlay';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -62,17 +61,7 @@ const Chat = () => {
   const otherParticipantId = rawOtherParticipantId ? String(rawOtherParticipantId) : null;
 
   // WebRTC Hook
-  const {
-    isCalling,
-    callStatus,
-    startCall,
-    localStream,
-    remoteStream,
-    incomingCall,
-    acceptCall,
-    rejectCall,
-    endCall
-  } = useCall();
+  const { isCalling, callStatus, startCall } = useCall();
 
   // Fetch messages for selected chat using the stable participant ID
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
@@ -552,21 +541,6 @@ const Chat = () => {
               </div>
             </div>
 
-            {/* Video Call Overlay Integration within Chat */}
-            {(callStatus === 'connecting' || callStatus === 'connected') && (
-              <div className="absolute inset-0 z-40 bg-gray-900 rounded-b-none border-t border-gray-700/50" style={{ top: '73px' }}>
-                <VideoCallOverlay
-                  localStream={localStream}
-                  remoteStream={remoteStream}
-                  callStatus={callStatus}
-                  incomingCall={incomingCall}
-                  onAccept={acceptCall}
-                  onReject={rejectCall}
-                  onEndCall={endCall}
-                  isEmbedded={true}
-                />
-              </div>
-            )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

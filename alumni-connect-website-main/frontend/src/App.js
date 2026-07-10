@@ -9,6 +9,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CallProvider } from './contexts/CallContext';
+import GlobalCallOverlay from './components/chat/VideoCallOverlay';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -64,6 +65,8 @@ function App() {
             <NotificationProvider>
               <Router>
                 <CallProvider>
+                  {/* Global call overlay — renders on top of everything, across all routes */}
+                  <GlobalCallOverlay />
                 <div className="App min-h-screen relative">
                   <div className="animated-bg"></div>
 

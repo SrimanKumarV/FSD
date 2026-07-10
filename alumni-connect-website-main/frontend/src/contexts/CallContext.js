@@ -44,6 +44,7 @@ export const CallProvider = ({ children }) => {
   // Expose CallManager methods and state to the rest of the app
   const value = {
     ...callState,
+    callStatus: callState.status, // Map 'status' to 'callStatus' for backward compatibility
     startCall: (targetId, isVideo) => callManager.startCall(targetId, isVideo),
     acceptCall: () => callManager.acceptCall(),
     rejectCall: () => callManager.rejectCall(),

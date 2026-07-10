@@ -4,6 +4,7 @@ const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 
 // Store online users
+// Map<userId, { socketIds: Set<string>, user: object, lastSeen: Date }>
 const onlineUsers = new Map();
 
 // Socket.IO handler
@@ -45,32 +46,43 @@ module.exports = (io) => {
     const userId = socket.user._id.toString();
     const userName = socket.user.name;
 
-    console.log(`User connected: ${userName} (${userId})`);
+    console.log(`User connected: ${userName} (${userId}) on socket ${socket.id}`);
 
-    // Add user to online users
-    onlineUsers.set(userId, {
-      socketId: socket.id,
-      user: socket.user,
-      lastSeen: new Date()
-    });
+    let userSession = onlineUsers.get(userId);
+    let isFirstConnection = false;
+
+    if (userSession) {
+      userSession.socketIds.add(socket.id);
+      userSession.lastSeen = new Date();
+    } else {
+      isFirstConnection = true;
+      userSession = {
+        socketIds: new Set([socket.id]),
+        user: socket.user,
+        lastSeen: new Date()
+      };
+      onlineUsers.set(userId, userSession);
+    }
 
     // Join user to their personal room
     socket.join(userId);
 
-    // Emit online status to all users
-    io.emit('user:online', {
-      userId: userId,
-      userName: userName,
-      timestamp: new Date()
-    });
+    // Emit online status to all users ONLY if it's their first active connection
+    if (isFirstConnection) {
+      io.emit('user:online', {
+        userId: userId,
+        userName: userName,
+        timestamp: new Date()
+      });
+    }
 
     // Send online users list to the connected user
     const sendOnlineUsersList = () => {
-      const onlineUsersList = Array.from(onlineUsers.values()).map(user => ({
-        userId: user.user._id.toString(),
-        userName: user.user.name,
-        role: user.user.role,
-        lastSeen: user.lastSeen
+      const onlineUsersList = Array.from(onlineUsers.values()).map(u => ({
+        userId: u.user._id.toString(),
+        userName: u.user.name,
+        role: u.user.role,
+        lastSeen: u.lastSeen
       }));
       socket.emit('users:online', onlineUsersList);
     };
@@ -113,18 +125,25 @@ module.exports = (io) => {
         await message.populate('sender', 'name photo role');
         await message.populate('receiver', 'name photo role');
 
-        // Emit to sender (confirmation)
-        socket.emit('message:sent', {
-          message: message,
-          timestamp: new Date()
-        });
+        // Emit to sender (confirmation) - in case they have multiple tabs open
+        const senderSession = onlineUsers.get(userId);
+        if (senderSession) {
+          senderSession.socketIds.forEach(id => {
+            io.to(id).emit('message:sent', {
+              message: message,
+              timestamp: new Date()
+            });
+          });
+        }
 
-        // Emit to receiver
-        const receiverSocketId = onlineUsers.get(receiverId)?.socketId;
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit('message:received', {
-            message: message,
-            timestamp: new Date()
+        // Emit to receiver's active devices
+        const receiverSession = onlineUsers.get(receiverId);
+        if (receiverSession) {
+          receiverSession.socketIds.forEach(id => {
+            io.to(id).emit('message:received', {
+              message: message,
+              timestamp: new Date()
+            });
           });
         }
 
@@ -149,9 +168,11 @@ module.exports = (io) => {
           timestamp: new Date()
         };
 
-        socket.emit('conversation:updated', conversationUpdate);
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit('conversation:updated', conversationUpdate);
+        if (senderSession) {
+          senderSession.socketIds.forEach(id => io.to(id).emit('conversation:updated', conversationUpdate));
+        }
+        if (receiverSession) {
+          receiverSession.socketIds.forEach(id => io.to(id).emit('conversation:updated', conversationUpdate));
         }
 
       } catch (error) {
@@ -172,16 +193,20 @@ module.exports = (io) => {
         await message.addReaction(userId, emoji);
         await message.populate('reactions.user', 'name');
 
-        const receiverSocketId = onlineUsers.get(message.receiver.toString())?.socketId;
-        const senderSocketId = onlineUsers.get(message.sender.toString())?.socketId;
+        const receiverSession = onlineUsers.get(message.receiver.toString());
+        const senderSession = onlineUsers.get(message.sender.toString());
 
         const reactionUpdate = {
           messageId: message._id,
           reactions: message.reactions
         };
 
-        if (receiverSocketId) io.to(receiverSocketId).emit('message:reacted', reactionUpdate);
-        if (senderSocketId) io.to(senderSocketId).emit('message:reacted', reactionUpdate);
+        if (receiverSession) {
+          receiverSession.socketIds.forEach(id => io.to(id).emit('message:reacted', reactionUpdate));
+        }
+        if (senderSession) {
+          senderSession.socketIds.forEach(id => io.to(id).emit('message:reacted', reactionUpdate));
+        }
       } catch (error) {
         console.error('Reaction error:', error);
       }
@@ -201,15 +226,19 @@ module.exports = (io) => {
 
         await message.deleteMessage(userId);
 
-        const receiverSocketId = onlineUsers.get(message.receiver.toString())?.socketId;
-        const senderSocketId = onlineUsers.get(message.sender.toString())?.socketId;
+        const receiverSession = onlineUsers.get(message.receiver.toString());
+        const senderSession = onlineUsers.get(message.sender.toString());
 
         const unsendUpdate = {
           messageId: message._id
         };
 
-        if (receiverSocketId) io.to(receiverSocketId).emit('message:unsent', unsendUpdate);
-        if (senderSocketId) io.to(senderSocketId).emit('message:unsent', unsendUpdate);
+        if (receiverSession) {
+          receiverSession.socketIds.forEach(id => io.to(id).emit('message:unsent', unsendUpdate));
+        }
+        if (senderSession) {
+          senderSession.socketIds.forEach(id => io.to(id).emit('message:unsent', unsendUpdate));
+        }
       } catch (error) {
         console.error('Unsend error:', error);
       }
@@ -241,12 +270,14 @@ module.exports = (io) => {
         await message.markAsRead(userId);
 
         // Emit read confirmation to sender
-        const senderSocketId = onlineUsers.get(message.sender.toString())?.socketId;
-        if (senderSocketId) {
-          io.to(senderSocketId).emit('message:read', {
-            messageId: messageId,
-            readBy: userId,
-            timestamp: new Date()
+        const senderSession = onlineUsers.get(message.sender.toString());
+        if (senderSession) {
+          senderSession.socketIds.forEach(id => {
+            io.to(id).emit('message:read', {
+              messageId: messageId,
+              readBy: userId,
+              timestamp: new Date()
+            });
           });
         }
 
@@ -261,11 +292,13 @@ module.exports = (io) => {
       const { receiverId } = data;
       
       if (receiverId) {
-        const receiverSocketId = onlineUsers.get(receiverId)?.socketId;
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit('typing:start', {
-            userId: userId,
-            userName: userName
+        const receiverSession = onlineUsers.get(receiverId);
+        if (receiverSession) {
+          receiverSession.socketIds.forEach(id => {
+            io.to(id).emit('typing:start', {
+              userId: userId,
+              userName: userName
+            });
           });
         }
       }
@@ -275,10 +308,12 @@ module.exports = (io) => {
       const { receiverId } = data;
       
       if (receiverId) {
-        const receiverSocketId = onlineUsers.get(receiverId)?.socketId;
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit('typing:stop', {
-            userId: userId
+        const receiverSession = onlineUsers.get(receiverId);
+        if (receiverSession) {
+          receiverSession.socketIds.forEach(id => {
+            io.to(id).emit('typing:stop', {
+              userId: userId
+            });
           });
         }
       }
@@ -399,14 +434,16 @@ module.exports = (io) => {
     // Caller initiates a call (sends offer)
     socket.on('call:request', (data) => {
       const { receiverId, offer, callerName, isVideo } = data;
-      const receiverSocketId = onlineUsers.get(receiverId)?.socketId;
+      const receiverSession = onlineUsers.get(receiverId);
       
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('call:incoming', {
-          callerId: userId,
-          callerName: callerName || userName,
-          isVideo: isVideo,
-          offer: offer
+      if (receiverSession && receiverSession.socketIds.size > 0) {
+        receiverSession.socketIds.forEach(id => {
+          io.to(id).emit('call:incoming', {
+            callerId: userId,
+            callerName: callerName || userName,
+            isVideo: isVideo,
+            offer: offer
+          });
         });
       } else {
         // If receiver is offline, immediately tell caller
@@ -417,11 +454,13 @@ module.exports = (io) => {
     // Receiver answers the call (sends answer)
     socket.on('call:answer', (data) => {
       const { callerId, answer } = data;
-      const callerSocketId = onlineUsers.get(callerId)?.socketId;
+      const callerSession = onlineUsers.get(callerId);
       
-      if (callerSocketId) {
-        io.to(callerSocketId).emit('call:accepted', {
-          answer: answer
+      if (callerSession) {
+        callerSession.socketIds.forEach(id => {
+          io.to(id).emit('call:accepted', {
+            answer: answer
+          });
         });
       }
     });
@@ -429,11 +468,13 @@ module.exports = (io) => {
     // Exchange ICE Candidates
     socket.on('call:ice-candidate', (data) => {
       const { targetId, candidate } = data;
-      const targetSocketId = onlineUsers.get(targetId)?.socketId;
+      const targetSession = onlineUsers.get(targetId);
       
-      if (targetSocketId) {
-        io.to(targetSocketId).emit('call:ice-candidate', {
-          candidate: candidate
+      if (targetSession) {
+        targetSession.socketIds.forEach(id => {
+          io.to(id).emit('call:ice-candidate', {
+            candidate: candidate
+          });
         });
       }
     });
@@ -441,45 +482,54 @@ module.exports = (io) => {
     // End call or reject call
     socket.on('call:end', (data) => {
       const { targetId } = data;
-      const targetSocketId = onlineUsers.get(targetId)?.socketId;
+      const targetSession = onlineUsers.get(targetId);
       
-      if (targetSocketId) {
-        io.to(targetSocketId).emit('call:ended');
+      if (targetSession) {
+        targetSession.socketIds.forEach(id => {
+          io.to(id).emit('call:ended');
+        });
       }
     });
 
     // Handle disconnect
     socket.on('disconnect', async () => {
-      console.log(`User disconnected: ${userName} (${userId})`);
+      console.log(`User disconnected: ${userName} (${userId}) on socket ${socket.id}`);
 
-      // Remove user from online users
-      onlineUsers.delete(userId);
+      const session = onlineUsers.get(userId);
+      if (session) {
+        session.socketIds.delete(socket.id);
 
-      // Update user's last active timestamp
-      try {
-        await User.findByIdAndUpdate(userId, {
-          lastActive: new Date()
-        });
-      } catch (error) {
-        console.error('Error updating last active:', error);
+        if (session.socketIds.size === 0) {
+          // All devices disconnected
+          onlineUsers.delete(userId);
+
+          // Update user's last active timestamp
+          try {
+            await User.findByIdAndUpdate(userId, {
+              lastActive: new Date()
+            });
+          } catch (error) {
+            console.error('Error updating last active:', error);
+          }
+
+          // Emit offline status to all users
+          io.emit('user:offline', {
+            userId: userId,
+            userName: userName,
+            timestamp: new Date()
+          });
+
+          // Send updated online users list to remaining users
+          const onlineUsersList = Array.from(onlineUsers.values()).map(u => ({
+            userId: u.user._id.toString(),
+            userName: u.user.name,
+            role: u.user.role,
+            lastSeen: u.lastSeen
+          }));
+
+          io.emit('users:online', onlineUsersList);
+        }
       }
-
-      // Emit offline status to all users
-      io.emit('user:offline', {
-        userId: userId,
-        userName: userName,
-        timestamp: new Date()
-      });
-
-      // Send updated online users list to remaining users
-      const onlineUsersList = Array.from(onlineUsers.values()).map(user => ({
-        userId: user.user._id.toString(),
-        userName: user.user.name,
-        role: user.user.role,
-        lastSeen: user.lastSeen
-      }));
-
-      io.emit('users:online', onlineUsersList);
     });
 
     // Handle error
@@ -493,18 +543,22 @@ module.exports = (io) => {
   return {
     // Send notification to specific user
     sendNotification: async (userId, notificationData) => {
-      const userSocketId = onlineUsers.get(userId)?.socketId;
-      if (userSocketId) {
-        io.to(userSocketId).emit('notification:received', notificationData);
+      const userSession = onlineUsers.get(userId);
+      if (userSession) {
+        userSession.socketIds.forEach(id => {
+          io.to(id).emit('notification:received', notificationData);
+        });
       }
     },
 
     // Send notification to multiple users
     sendNotificationToUsers: async (userIds, notificationData) => {
       userIds.forEach(userId => {
-        const userSocketId = onlineUsers.get(userId)?.socketId;
-        if (userSocketId) {
-          io.to(userSocketId).emit('notification:received', notificationData);
+        const userSession = onlineUsers.get(userId);
+        if (userSession) {
+          userSession.socketIds.forEach(id => {
+            io.to(id).emit('notification:received', notificationData);
+          });
         }
       });
     },
@@ -524,11 +578,11 @@ module.exports = (io) => {
 
     // Get online users list
     getOnlineUsers: () => {
-      return Array.from(onlineUsers.values()).map(user => ({
-        userId: user.user._id.toString(),
-        userName: user.user.name,
-        role: user.user.role,
-        lastSeen: user.lastSeen
+      return Array.from(onlineUsers.values()).map(u => ({
+        userId: u.user._id.toString(),
+        userName: u.user.name,
+        role: u.user.role,
+        lastSeen: u.lastSeen
       }));
     },
 

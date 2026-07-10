@@ -28,6 +28,8 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
+    const userId = user._id || user.id;
+
     // Create socket connection
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
     const defaultSocketUrl = apiUrl.replace(/\/api$/, '');
@@ -58,8 +60,8 @@ export const SocketProvider = ({ children }) => {
 
     // Join user to their personal room
     newSocket.on('connect', () => {
-      if (user?._id) {
-        newSocket.emit('join-user-room', { userId: user._id });
+      if (userId) {
+        newSocket.emit('join-user-room', { userId: userId });
         newSocket.emit('get:users:online');
       }
     });
@@ -94,14 +96,15 @@ export const SocketProvider = ({ children }) => {
   // Emit user status updates
   useEffect(() => {
     if (socket && user) {
-      socket.emit('user-online', { userId: user._id });
+      const userId = user._id || user.id;
+      socket.emit('user:back');
       
       // Handle page visibility change
       const handleVisibilityChange = () => {
         if (document.hidden) {
-          socket.emit('user-away', { userId: user._id });
+          socket.emit('user:away');
         } else {
-          socket.emit('user-online', { userId: user._id });
+          socket.emit('user:back');
         }
       };
 
@@ -109,7 +112,7 @@ export const SocketProvider = ({ children }) => {
 
       // Handle beforeunload
       const handleBeforeUnload = () => {
-        socket.emit('user-offline', { userId: user._id });
+        // Disconnect handled by socket.io automatically on unload
       };
 
       window.addEventListener('beforeunload', handleBeforeUnload);
@@ -117,7 +120,6 @@ export const SocketProvider = ({ children }) => {
       return () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('beforeunload', handleBeforeUnload);
-        socket.emit('user-offline', { userId: user._id });
       };
     }
   }, [socket, user]);

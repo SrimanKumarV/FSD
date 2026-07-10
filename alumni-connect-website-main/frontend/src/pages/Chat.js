@@ -157,7 +157,7 @@ const Chat = () => {
     if (!socket || !isConnected) return;
 
     const handleMessageReceived = (data) => {
-      const senderId = data.message.sender._id || data.message.sender;
+      const senderId = String(data.message.sender._id || data.message.sender);
       queryClient.setQueryData(['chat-messages', senderId], (oldData) => {
         if (!oldData || !oldData.data) return oldData;
         const messages = oldData.data.messages || [];
@@ -171,7 +171,7 @@ const Chat = () => {
     };
 
     const handleMessageSent = (data) => {
-      const msgReceiverId = (data.message.receiver._id || data.message.receiver).toString();
+      const msgReceiverId = String(data.message.receiver._id || data.message.receiver);
       if (msgReceiverId !== otherParticipantId) return;
 
       queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
@@ -488,7 +488,7 @@ const Chat = () => {
                   <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
                     {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  {(onlineUsersMap.has(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) && (
+                  {(onlineUsersMap.has(String(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id)) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) && (
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
                   )}
                 </div>

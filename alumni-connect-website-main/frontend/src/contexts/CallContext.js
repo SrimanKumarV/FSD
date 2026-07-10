@@ -25,6 +25,32 @@ export const CallProvider = ({ children }) => {
   const activeCallTargetId = useRef(null);
   const iceCandidateQueue = useRef([]);
   const isRemoteDescriptionSet = useRef(false);
+  const callStatusRef = useRef('idle');
+  const ringtoneRef = useRef(null);
+
+  // Initialize ringtone audio
+  useEffect(() => {
+    ringtoneRef.current = new Audio('/ringtone.mp3'); // We will use a standard sound or create one
+    ringtoneRef.current.loop = true;
+  }, []);
+
+  // Handle playing/stopping ringtone based on status
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+    
+    if (callStatus === 'ringing') {
+      // Play ringtone if there's an incoming call
+      if (ringtoneRef.current) {
+        ringtoneRef.current.play().catch(e => console.log('Audio autoplay blocked by browser', e));
+      }
+    } else {
+      // Stop ringtone for any other status
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.currentTime = 0;
+      }
+    }
+  }, [callStatus]);
 
   const iceServers = {
     iceServers: [
@@ -42,13 +68,28 @@ export const CallProvider = ({ children }) => {
       setLocalStream(stream);
       return stream;
     } catch (err) {
-      console.error('Failed to get media devices', err);
+      console.warn('Failed to get video+audio, falling back to audio only if possible...', err);
+      if (isVideo) {
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            video: false,
+            audio: true,
+          });
+          toast.success('Camera not found. Falling back to audio only.');
+          setLocalStream(audioStream);
+          return audioStream;
+        } catch (audioErr) {
+          console.error('Audio fallback also failed', audioErr);
+        }
+      }
+      
+      console.error('Failed to get media devices completely', err);
       if (err.name === 'NotAllowedError') {
         toast.error('Camera/Microphone access was denied. Please grant permissions.');
       } else if (err.name === 'NotFoundError') {
         toast.error('No camera/microphone found on this device.');
       } else {
-        toast.error('Failed to access media devices. Note: WebRTC requires an HTTPS connection on mobile devices.');
+        toast.error('Failed to access media devices. Check permissions or use HTTPS.');
       }
       throw err;
     }
@@ -56,7 +97,6 @@ export const CallProvider = ({ children }) => {
 
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection(iceServers);
-    iceCandidateQueue.current = [];
     isRemoteDescriptionSet.current = false;
     
     pc.onicecandidate = (event) => {
@@ -174,24 +214,28 @@ export const CallProvider = ({ children }) => {
       peerConnection.current.close();
       peerConnection.current = null;
     }
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-    }
+    
+    setLocalStream(prev => {
+      if (prev) {
+        prev.getTracks().forEach(track => track.stop());
+      }
+      return null;
+    });
+
     activeCallTargetId.current = null;
     iceCandidateQueue.current = [];
     isRemoteDescriptionSet.current = false;
-    setLocalStream(null);
     setRemoteStream(null);
     setIsCalling(false);
     setIncomingCall(null);
     setCallStatus('idle');
-  }, [localStream, socket]);
+  }, [socket]);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleIncoming = (data) => {
-      if (callStatus === 'idle') {
+      if (callStatusRef.current === 'idle') {
         setIncomingCall(data);
         setCallStatus('ringing');
       } else {
@@ -208,16 +252,14 @@ export const CallProvider = ({ children }) => {
     };
 
     const handleIceCandidate = async (data) => {
-      if (peerConnection.current) {
-        if (isRemoteDescriptionSet.current) {
-          try {
-            await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-          } catch (e) {
-            console.error('Error adding received ice candidate', e);
-          }
-        } else {
-          iceCandidateQueue.current.push(data.candidate);
+      if (peerConnection.current && isRemoteDescriptionSet.current) {
+        try {
+          await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (e) {
+          console.error('Error adding received ice candidate', e);
         }
+      } else {
+        iceCandidateQueue.current.push(data.candidate);
       }
     };
 
@@ -243,7 +285,7 @@ export const CallProvider = ({ children }) => {
       socket.off('call:ended', handleEnded);
       socket.off('call:error', handleError);
     };
-  }, [socket, callStatus, endCall]);
+  }, [socket, endCall]);
 
   const value = {
     localStream,

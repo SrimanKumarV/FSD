@@ -16,27 +16,26 @@ export const CallProvider = ({ children }) => {
   const { socket } = useSocket();
   const { user }   = useAuth();
 
-  // ── PeerJS instance ────────────────────────────────────────────────
-  const peerRef        = useRef(null);
-  const activePeerCall = useRef(null); // PeerJS MediaConnection
-  const pendingCall    = useRef(null); // incoming PeerJS call waiting for accept
+  // ── All state in plain refs so callbacks are NEVER stale ─────────────────
+  const stateRef = useRef({
+    status: 'idle',      // idle | ringing | outgoing | connecting | connected
+    incomingCall: null,  // { callerId, callerName, isVideo, callerPeerId }
+    localStream: null,
+    remoteStream: null,
+    callInfo: null,      // { isVideo, targetId }
+    activePeerCall: null,
+    pendingCall: null,
+    peer: null,
+  });
 
-  // ── Local media ────────────────────────────────────────────────────
-  const localStreamRef = useRef(null);
-
-  // ── React state (UI only) ─────────────────────────────────────────
+  // ── React state (for re-renders only) ───────────────────────────────────
   const [callStatus,   setCallStatus]   = useState('idle');
-  // idle | ringing | outgoing | connecting | connected
   const [incomingCall, setIncomingCall] = useState(null);
   const [localStream,  setLocalStream]  = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [callInfo,     setCallInfo]     = useState(null);
 
-  // Keep a ref to callStatus so socket handlers are never stale
-  const callStatusRef = useRef('idle');
-  const setStatus = (s) => { callStatusRef.current = s; setCallStatus(s); };
-
-  // ── Ringtone ───────────────────────────────────────────────────────
+  // ── Ringtone ─────────────────────────────────────────────────────────────
   const ringtoneRef = useRef(null);
   useEffect(() => {
     const a = new Audio('/ringtone.mp3');
@@ -45,24 +44,36 @@ export const CallProvider = ({ children }) => {
     return () => { try { a.pause(); } catch (_) {} };
   }, []);
 
-  const playRingtone  = () => ringtoneRef.current?.play().catch(() =>
-    toast('📞 Incoming call! Answer below.', { duration: 8000 })
-  );
-  const stopRingtone  = () => {
-    try { const a = ringtoneRef.current; if (a) { a.pause(); a.currentTime = 0; } }
-    catch (_) {}
+  const setStatus = (s) => {
+    stateRef.current.status = s;
+    setCallStatus(s);
+
+    const audio = ringtoneRef.current;
+    if (!audio) return;
+    if (s === 'ringing') {
+      audio.play().catch(() =>
+        toast('📞 Incoming call! Accept or Decline below.', { duration: 8000 })
+      );
+    } else {
+      try { audio.pause(); audio.currentTime = 0; } catch(_) {}
+    }
   };
 
   // ── Call timer state ────────────────────────────────────────────────
   const [elapsed, setElapsed]   = useState(0);
   const timerRef  = useRef(null);
   const startTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
   };
   const stopTimer = () => {
-    clearInterval(timerRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
     setElapsed(0);
   };
+  
+  // Ref for timer so endCall can read latest value
+  const elapsedRef = useRef(0);
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
 
   // ── Helper: get user media with audio-only fallback ─────────────────
   const getMedia = async (isVideo) => {
@@ -82,17 +93,52 @@ export const CallProvider = ({ children }) => {
 
   // ── Stop local stream ───────────────────────────────────────────────
   const stopLocalStream = () => {
-    localStreamRef.current?.getTracks().forEach(t => t.stop());
-    localStreamRef.current = null;
+    const s = stateRef.current.localStream;
+    if (s) { try { s.getTracks().forEach(t => t.stop()); } catch(_) {} }
+    stateRef.current.localStream = null;
     setLocalStream(null);
+  };
+
+  // ── endCall (must be defined early to be used in wireCall) ──────────
+  const endCall = (reason = 'ended', notifyRemote = true) => {
+    console.log('[endCall] reason:', reason);
+    const { targetId } = stateRef.current.callInfo || {};
+    const { callerId } = stateRef.current.incomingCall || {};
+    const remoteId = targetId || callerId;
+
+    if (notifyRemote && remoteId && socket) {
+      socket.emit('call:end', { targetId: remoteId, reason });
+    }
+
+    // Log call-log message in chat (if we started the call)
+    if (targetId && socket) {
+      const currentElapsed = elapsedRef.current;
+      const dur = currentElapsed > 0
+        ? `${Math.floor(currentElapsed / 60)}:${String(currentElapsed % 60).padStart(2, '0')}`
+        : '0:00';
+      const status = stateRef.current.status;
+      const logStatus = (status === 'outgoing' || status === 'connecting')
+        ? (reason === 'rejected' ? 'rejected' : 'missed')
+        : 'ended';
+      
+      const isVideo = stateRef.current.callInfo?.isVideo;
+      socket.emit('message:send', {
+        receiverId: targetId,
+        content: JSON.stringify({ type: isVideo ? 'video' : 'audio', status: logStatus, duration: dur }),
+        messageType: 'call-log',
+      });
+    }
+
+    resetState();
   };
 
   // ── Attach a PeerJS MediaConnection after answer/call ──────────────
   const wireCall = (peerCall) => {
-    activePeerCall.current = peerCall;
+    stateRef.current.activePeerCall = peerCall;
 
     peerCall.on('stream', (remote) => {
       console.log('[PeerJS] remote stream received');
+      stateRef.current.remoteStream = remote;
       setRemoteStream(remote);
       setStatus('connected');
       startTimer();
@@ -114,13 +160,17 @@ export const CallProvider = ({ children }) => {
   // ── Full reset ──────────────────────────────────────────────────────
   const resetState = () => {
     stopLocalStream();
-    stopRingtone();
     stopTimer();
-    if (activePeerCall.current) {
-      try { activePeerCall.current.close(); } catch (_) {}
-      activePeerCall.current = null;
+    const { activePeerCall } = stateRef.current;
+    if (activePeerCall) {
+      try { activePeerCall.close(); } catch (_) {}
+      stateRef.current.activePeerCall = null;
     }
-    pendingCall.current = null;
+    stateRef.current.pendingCall = null;
+    stateRef.current.remoteStream = null;
+    stateRef.current.incomingCall = null;
+    stateRef.current.callInfo = null;
+    
     setRemoteStream(null);
     setIncomingCall(null);
     setCallInfo(null);
@@ -132,9 +182,8 @@ export const CallProvider = ({ children }) => {
     if (!user) return;
     const userId = (user._id || user.id).toString();
 
-    // Destroy existing peer to prevent ID conflict on re-render
-    if (peerRef.current) {
-      try { peerRef.current.destroy(); } catch (_) {}
+    if (stateRef.current.peer) {
+      try { stateRef.current.peer.destroy(); } catch (_) {}
     }
 
     const peer = new Peer(userId, {
@@ -147,30 +196,36 @@ export const CallProvider = ({ children }) => {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-          // PeerJS Cloud adds its own TURN servers on top of these
         ],
       },
     });
 
-    peerRef.current = peer;
+    stateRef.current.peer = peer;
 
     peer.on('open', (id) => {
       console.log('[PeerJS] open, ID:', id);
     });
 
-    // Incoming PeerJS call (fires when caller does peer.call())
     peer.on('call', (peerCall) => {
       console.log('[PeerJS] incoming peer call from:', peerCall.peer);
-      // Store it — we'll answer when the user clicks Accept
-      pendingCall.current = peerCall;
+      
+      const { status, localStream } = stateRef.current;
+      if (status === 'connecting' && localStream) {
+        // We already accepted the call via socket, now the actual peer call arrived
+        console.log('[PeerJS] answering incoming call immediately');
+        peerCall.answer(localStream);
+        wireCall(peerCall);
+      } else {
+        // Store it — we'll answer when the user clicks Accept
+        stateRef.current.pendingCall = peerCall;
+      }
     });
 
     peer.on('error', (err) => {
       if (err.type === 'unavailable-id') {
         console.warn('[PeerJS] ID taken, reconnecting with random ID');
-        // Reconnect with a unique ID to avoid collision
         const altId = userId + '_' + Date.now();
-        peerRef.current = new Peer(altId, { host: '0.peerjs.com', port: 443, path: '/', secure: true });
+        stateRef.current.peer = new Peer(altId, { host: '0.peerjs.com', port: 443, path: '/', secure: true });
       } else {
         console.error('[PeerJS] error:', err.type, err.message);
       }
@@ -183,28 +238,30 @@ export const CallProvider = ({ children }) => {
 
     return () => {
       try { peer.destroy(); } catch (_) {}
-      peerRef.current = null;
+      stateRef.current.peer = null;
     };
   }, [user]);
 
   // ── startCall (caller side) ─────────────────────────────────────────
   const startCall = async (targetUserId, isVideo = true) => {
-    if (!socket || !targetUserId || callStatusRef.current !== 'idle') return;
+    if (!socket || !targetUserId || stateRef.current.status !== 'idle') return;
 
     console.log('[startCall] target:', targetUserId, 'video:', isVideo);
-    setCallInfo({ isVideo, targetId: targetUserId });
+    
+    const info = { isVideo, targetId: targetUserId };
+    stateRef.current.callInfo = info;
+    setCallInfo(info);
     setStatus('outgoing');
 
     try {
       const stream = await getMedia(isVideo);
-      localStreamRef.current = stream;
+      stateRef.current.localStream = stream;
       setLocalStream(stream);
 
-      // Emit Socket.IO signal so receiver sees the ring UI
       socket.emit('call:request', {
         receiverId: targetUserId,
         callerName: user?.name || 'Unknown',
-        callerPeerId: peerRef.current?.id || (user._id || user.id).toString(),
+        callerPeerId: stateRef.current.peer?.id || (user._id || user.id).toString(),
         isVideo,
       });
     } catch (err) {
@@ -215,35 +272,36 @@ export const CallProvider = ({ children }) => {
 
   // ── acceptCall (receiver side) ──────────────────────────────────────
   const acceptCall = async () => {
-    if (!incomingCall || !socket) return;
-    const { callerId, callerPeerId, isVideo } = incomingCall;
-
+    const ic = stateRef.current.incomingCall;
+    if (!ic || !socket) return;
+    
+    const { callerId, callerPeerId, isVideo } = ic;
     console.log('[acceptCall] caller:', callerId, 'peerId:', callerPeerId);
-    stopRingtone();
+    
     setStatus('connecting');
 
     try {
       const stream = await getMedia(isVideo);
-      localStreamRef.current = stream;
+      stateRef.current.localStream = stream;
       setLocalStream(stream);
 
-      // Tell the caller we accepted so they can do peer.call()
       socket.emit('call:answer', {
         callerId,
         answererId: (user._id || user.id).toString(),
-        answererPeerId: peerRef.current?.id || (user._id || user.id).toString(),
+        answererPeerId: stateRef.current.peer?.id || (user._id || user.id).toString(),
       });
 
+      stateRef.current.incomingCall = null;
       setIncomingCall(null);
 
       // If PeerJS call already arrived (race condition handled), answer immediately
-      if (pendingCall.current) {
+      const pc = stateRef.current.pendingCall;
+      if (pc) {
         console.log('[acceptCall] answering pending PeerJS call');
-        pendingCall.current.answer(stream);
-        wireCall(pendingCall.current);
-        pendingCall.current = null;
+        pc.answer(stream);
+        wireCall(pc);
+        stateRef.current.pendingCall = null;
       }
-      // Otherwise wireCall will be set up after peer.call() from caller
     } catch (err) {
       console.error('[acceptCall] error', err);
       endCall('ended');
@@ -252,39 +310,14 @@ export const CallProvider = ({ children }) => {
 
   // ── rejectCall (receiver) ───────────────────────────────────────────
   const rejectCall = () => {
-    if (!incomingCall || !socket) return;
-    socket.emit('call:end', { targetId: incomingCall.callerId, reason: 'rejected' });
-    stopRingtone();
-    pendingCall.current = null;
+    const ic = stateRef.current.incomingCall;
+    if (!ic || !socket) return;
+    socket.emit('call:end', { targetId: ic.callerId, reason: 'rejected' });
+    
+    stateRef.current.pendingCall = null;
+    stateRef.current.incomingCall = null;
     setIncomingCall(null);
     setStatus('idle');
-  };
-
-  // ── endCall ──────────────────────────────────────────────────────────
-  const endCall = (reason = 'ended', notifyRemote = true) => {
-    console.log('[endCall] reason:', reason);
-
-    const targetId = callInfo?.targetId || incomingCall?.callerId;
-    if (notifyRemote && targetId && socket) {
-      socket.emit('call:end', { targetId, reason });
-    }
-
-    // Log call-log message in chat (if we started the call)
-    if (callInfo?.targetId && socket) {
-      const dur = elapsed > 0
-        ? `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`
-        : '0:00';
-      const logStatus = (callStatus === 'outgoing' || callStatus === 'connecting')
-        ? (reason === 'rejected' ? 'rejected' : 'missed')
-        : 'ended';
-      socket.emit('message:send', {
-        receiverId: callInfo.targetId,
-        content: JSON.stringify({ type: callInfo.isVideo ? 'video' : 'audio', status: logStatus, duration: dur }),
-        messageType: 'call-log',
-      });
-    }
-
-    resetState();
   };
 
   // ── Socket.IO event listeners ────────────────────────────────────────
@@ -293,20 +326,20 @@ export const CallProvider = ({ children }) => {
 
     const onIncoming = (data) => {
       console.log('[socket] call:incoming', data);
-      if (callStatusRef.current !== 'idle') {
+      if (stateRef.current.status !== 'idle') {
         socket.emit('call:end', { targetId: data.callerId, reason: 'busy' });
         return;
       }
+      stateRef.current.incomingCall = data;
       setIncomingCall(data);
       setStatus('ringing');
-      playRingtone();
     };
 
-    // Caller receives this when receiver accepted → now initiate PeerJS call
     const onAccepted = ({ answererPeerId }) => {
       console.log('[socket] call:accepted, answererId:', answererPeerId);
-      const stream = localStreamRef.current;
-      const peer = peerRef.current;
+      const stream = stateRef.current.localStream;
+      const peer = stateRef.current.peer;
+      
       if (!stream || !peer || !answererPeerId) return;
 
       setStatus('connecting');
@@ -314,14 +347,11 @@ export const CallProvider = ({ children }) => {
       console.log('[PeerJS] calling peer:', answererPeerId);
       const peerCall = peer.call(answererPeerId, stream);
       wireCall(peerCall);
-
-      // If receiver already answered the PeerJS call before we called (unlikely but safe)
     };
 
     const onEnded = ({ reason } = {}) => {
       console.log('[socket] call:ended reason:', reason);
-      stopRingtone();
-      pendingCall.current = null;
+      stateRef.current.pendingCall = null;
       resetState();
     };
 
@@ -341,8 +371,9 @@ export const CallProvider = ({ children }) => {
       socket.off('call:ended',     onEnded);
       socket.off('call:error',     onError);
     };
+    // ONLY depend on socket, so listeners are NEVER detached/re-attached!
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, callInfo, callStatus, elapsed]);
+  }, [socket]);
 
   const value = {
     callStatus, incomingCall, localStream, remoteStream,

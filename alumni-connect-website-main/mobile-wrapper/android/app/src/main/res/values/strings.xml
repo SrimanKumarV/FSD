@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Alumnex Connect</string>
+    <string name="title_activity_main">Alumnex Connect</string>
+    <string name="package_name">com.alumnex.connect</string>
+    <string name="custom_url_scheme">com.alumnex.connect</string>
+</resources>

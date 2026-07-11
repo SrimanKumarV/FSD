@@ -1,0 +1,62 @@
+name: Build Android APK
+
+on:
+  push:
+    paths:
+      - 'mobile-wrapper/**'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci || npm install
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          CI: false
+
+      - name: Install Mobile Dependencies
+        working-directory: ./mobile-wrapper
+        run: npm install
+
+      - name: Sync Capacitor
+        working-directory: ./mobile-wrapper
+        run: |
+          # Manually clean and copy instead of running the JS script to avoid path issues
+          rm -rf www
+          mkdir -p www
+          cp -R ../frontend/build/* www/
+          npx cap sync android
+
+      - name: Build Android APK
+        working-directory: ./mobile-wrapper/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alumnex-connect-app
+          path: mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk

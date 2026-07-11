@@ -1,5 +1,9 @@
 {
   "appId": "com.alumnex.connect",
   "appName": "Alumnex Connect",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
 }

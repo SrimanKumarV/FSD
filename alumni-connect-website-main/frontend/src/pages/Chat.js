@@ -29,6 +29,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { api } from '../utils/api';
+import { useCall } from '../contexts/CallContext';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -58,6 +59,8 @@ const Chat = () => {
 
   const rawOtherParticipantId = selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id;
   const otherParticipantId = rawOtherParticipantId ? String(rawOtherParticipantId) : null;
+
+  const { isCalling, callStatus, startCall } = useCall();
 
 
   // Fetch messages for selected chat using the stable participant ID
@@ -303,57 +306,6 @@ const Chat = () => {
     }
   };
 
-  const handleMeetLink = (isVideo) => {
-    if (!otherParticipantId) return;
-    const meetId = `AlumnexConnect_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    const meetUrl = `https://meet.jit.si/${meetId}`;
-    
-    // Open in a new tab for the initiator
-    window.open(meetUrl, '_blank');
-    
-    // Send message to the other participant
-    const messageContent = `🎥 ${isVideo ? 'Video' : 'Voice'} Call Started! Join here: ${meetUrl}`;
-    
-    const payload = {
-      receiverId: otherParticipantId,
-      content: messageContent,
-      messageType: 'text',
-      attachments: [],
-      replyTo: null
-    };
-
-    if (socket && isConnected) {
-      const tempMessage = {
-        _id: 'temp_' + Date.now(),
-        sender: user?._id || user?.id,
-        receiver: otherParticipantId,
-        content: payload.content,
-        messageType: payload.messageType,
-        attachments: payload.attachments,
-        replyTo: null,
-        createdAt: new Date().toISOString()
-      };
-      
-      queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
-        if (!oldData || !oldData.data) return oldData;
-        const messages = oldData.data.messages || [];
-        return {
-          ...oldData,
-          data: { ...oldData.data, messages: [tempMessage, ...messages] }
-        };
-      });
-
-      socket.emit('message:send', payload);
-    } else {
-      const messageData = {
-        receiver: otherParticipantId,
-        ...payload
-      };
-      delete messageData.receiverId;
-      sendMessageMutation.mutate(messageData);
-    }
-  };
-
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -571,15 +523,17 @@ const Chat = () => {
               
               <div className="flex items-center space-x-2">
                 <button 
-                  onClick={() => handleMeetLink(false)}
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
+                  onClick={() => startCall(otherParticipantId, false)}
+                  disabled={isCalling || callStatus !== 'idle'}
+                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
                   title="Start Voice Call"
                 >
                   <Phone className="w-5 h-5" />
                 </button>
                 <button 
-                  onClick={() => handleMeetLink(true)}
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
+                  onClick={() => startCall(otherParticipantId, true)}
+                  disabled={isCalling || callStatus !== 'idle'}
+                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
                   title="Start Video Call"
                 >
                   <Video className="w-5 h-5" />

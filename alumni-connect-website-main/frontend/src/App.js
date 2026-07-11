@@ -8,7 +8,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-
+import { CallProvider } from './contexts/CallContext';
+import GlobalCallOverlay from './components/chat/VideoCallOverlay';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -103,9 +104,11 @@ function App() {
           <SocketProvider>
             <NotificationProvider>
               <Router>
-                <div className="App min-h-screen relative">
-                  <OfflineBanner />
-                  <div className="animated-bg"></div>
+                <CallProvider>
+                  <div className="App min-h-screen relative">
+                    <OfflineBanner />
+                    <GlobalCallOverlay />
+                    <div className="animated-bg"></div>
 
                   <ErrorBoundary>
                     <Routes>
@@ -291,7 +294,8 @@ function App() {
                     },
                   }}
                 />
-                </div>
+                  </div>
+                </CallProvider>
               </Router>
 
             </NotificationProvider>

@@ -35,6 +35,7 @@ jobs:
         run: npm run build
         env:
           CI: "false"
+          REACT_APP_API_URL: "https://alumnex-backend-9y5t.onrender.com/api"
 
       - name: Install Mobile Dependencies
         working-directory: ./alumni-connect-website-main/mobile-wrapper

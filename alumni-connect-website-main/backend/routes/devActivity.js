@@ -11,6 +11,31 @@ const {
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+// @route   GET /api/dev-activity/public/:userId
+// @desc    Get public dev activity stats for any user (by userId)
+// @access  Private (must be logged in, but can view any user's stats)
+router.get('/public/:userId', protect, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const targetUser = await User.findById(req.params.userId).select('email');
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    const profile = await DevProfile.findOne({ email: targetUser.email });
+    if (!profile) return res.status(404).json({ message: 'No dev profile found' });
+
+    // Return cached stats only (no background refresh for other users' profiles)
+    return res.json({
+      usernames: profile.usernames,
+      stats: profile.stats,
+      lastUpdated: profile.lastUpdated,
+      alumnexScore: profile.alumnexScore,
+    });
+  } catch (error) {
+    console.error('Error fetching public dev activity:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/dev-activity/:email
 // @desc    Get dev activity stats for a user
 // @access  Private

@@ -85,7 +85,7 @@ const fetchHackerRankStats = async (username) => {
       level: model.level,
       followers: model.followers_count,
       badgesCount: badgesCount,
-      url: `https://www.hackerrank.com/${username}`
+      url: `https://www.hackerrank.com/profile/${username}`
     };
   } catch (error) {
     console.error(`Error fetching HackerRank stats for ${username}:`, error.message);
@@ -112,7 +112,7 @@ const fetchGFGStats = async (username) => {
     return {
       codingScore: parseInt(codingScore, 10) || 0,
       problemsSolved: parseInt(problemsSolved, 10) || 0,
-      url: url
+      url: `https://www.geeksforgeeks.org/user/${username}/`
     };
   } catch (error) {
     console.error(`Error fetching GFG stats for ${username}:`, error.message);

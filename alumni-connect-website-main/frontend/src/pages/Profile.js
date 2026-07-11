@@ -534,7 +534,10 @@ const Profile = () => {
                 ) : (
                   network.followers.map(follower => (
                     <div key={follower._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
+                      <div
+                        className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-1"
+                        onClick={() => navigate(`/users/${follower._id}`)}
+                      >
                         {follower.photo && follower.photo !== 'default-avatar.png' ? (
                           <img src={follower.photo} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
@@ -571,7 +574,10 @@ const Profile = () => {
                 ) : (
                   network.following.map(followingUser => (
                     <div key={followingUser._id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
+                      <div
+                        className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-1"
+                        onClick={() => navigate(`/users/${followingUser._id}`)}
+                      >
                         {followingUser.photo && followingUser.photo !== 'default-avatar.png' ? (
                           <img src={followingUser.photo} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
                         ) : (

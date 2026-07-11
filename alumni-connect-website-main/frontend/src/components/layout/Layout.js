@@ -21,7 +21,9 @@ import {
   Activity,
   Trophy,
   Settings,
-  Check
+  Check,
+  MessageSquarePlus,
+  LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -56,6 +58,8 @@ const Layout = ({ children }) => {
     { name: 'DevPulse', href: '/devpulse', icon: Activity },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Chat', href: '/chat', icon: MessageSquare },
+    { name: 'Feedback', href: '/feedback', icon: MessageSquarePlus },
+    { name: 'Help Centre', href: '/help-centre', icon: LifeBuoy },
     ...(isAdmin() ? [{ name: 'Admin', href: '/admin', icon: Settings }] : [])
   ];
 
@@ -348,6 +352,20 @@ const Layout = ({ children }) => {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         Settings
+                      </Link>
+                      <Link
+                        to="/feedback"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        Feedback
+                      </Link>
+                      <Link
+                        to="/help-centre"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        Help Centre
                       </Link>
                       <button
                         onClick={handleLogout}

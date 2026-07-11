@@ -36,6 +36,9 @@ import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import DevPulse from './pages/DevPulse';
 import Leaderboard from './pages/Leaderboard';
+import UserProfile from './pages/UserProfile';
+import Feedback from './pages/Feedback';
+import HelpCentrePage from './pages/HelpCentrePage';
 
 // Legal and Support Pages
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
@@ -99,6 +102,30 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Profile />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/users/:id" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UserProfile />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/feedback" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Feedback />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/help-centre" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <HelpCentrePage />
                       </Layout>
                     </ProtectedRoute>
                   } />

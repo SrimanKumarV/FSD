@@ -34,7 +34,7 @@ jobs:
         working-directory: ./alumni-connect-website-main/frontend
         run: npm run build
         env:
-          CI: false
+          CI: "false"
 
       - name: Install Mobile Dependencies
         working-directory: ./alumni-connect-website-main/mobile-wrapper

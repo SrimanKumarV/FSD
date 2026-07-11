@@ -13,7 +13,8 @@ import {
   ArrowRight,
   CheckCircle,
   AlertCircle,
-  Info
+  Info,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';

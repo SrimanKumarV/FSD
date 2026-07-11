@@ -14,6 +14,7 @@ import GlobalCallOverlay from './components/chat/VideoCallOverlay';
 // Components
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
 import Home from './pages/Home';
@@ -82,8 +83,9 @@ function App() {
                   <GlobalCallOverlay />
                   <div className="animated-bg"></div>
 
-                  <Routes>
-                  {/* Public Routes */}
+                  <ErrorBoundary>
+                    <Routes>
+                    {/* Public Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
@@ -238,6 +240,7 @@ function App() {
                   {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </ErrorBoundary>
                 
                 {/* Toast Notifications */}
                 <Toaster

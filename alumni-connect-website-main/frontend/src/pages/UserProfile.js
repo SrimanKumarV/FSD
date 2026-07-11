@@ -91,10 +91,10 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('about');
 
   // Fetch the target user's profile
-  const { data: profileData, isLoading: profileLoading } = useQuery(
+  const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery(
     ['user-profile', id],
     () => api.get(`/users/${id}`),
-    { enabled: !!id }
+    { enabled: !!id, retry: false }
   );
 
   // Fetch their dev stats
@@ -142,13 +142,22 @@ const UserProfile = () => {
     );
   }
 
-  if (!targetUser) {
+  if (profileError) {
+    if (profileError.response?.status === 404) {
+      const NotFound = require('./NotFound').default;
+      return <NotFound />;
+    }
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="text-2xl font-bold text-slate-300 mb-2">User not found</p>
-        <button onClick={() => navigate(-1)} className="text-indigo-400 hover:underline mt-2">Go back</button>
+        <p className="text-2xl font-bold text-red-400 mb-2">Failed to load profile</p>
+        <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-white mt-2 transition-colors">Go back</button>
       </div>
     );
+  }
+
+  if (!targetUser) {
+    const NotFound = require('./NotFound').default;
+    return <NotFound />;
   }
 
   const tabs = [

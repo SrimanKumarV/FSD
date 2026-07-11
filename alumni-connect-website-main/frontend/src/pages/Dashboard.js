@@ -147,7 +147,7 @@ const Dashboard = () => {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {stats.map((stat, index) => {
+        {(stats || []).map((stat, index) => {
           const Icon = iconMap[stat.iconName] || Info;
           return (
             <motion.div
@@ -194,8 +194,14 @@ const Dashboard = () => {
           </div>
           <div className="p-6">
             <div className="space-y-6">
-              {recentActivities.map((activity) => {
-                const Icon = iconMap[activity.iconName] || Info;
+              {(!recentActivities || recentActivities.length === 0) ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <p>No recent activity found.</p>
+                </div>
+              ) : (
+                recentActivities.map((activity) => {
+                  const Icon = iconMap[activity.iconName] || Info;
                 return (
                   <motion.div whileHover={{ x: 5 }} key={activity.id} className="flex items-start space-x-4 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors">
                     <div className="flex-shrink-0 mt-1">
@@ -216,7 +222,7 @@ const Dashboard = () => {
                     </div>
                   </motion.div>
                 );
-              })}
+              }))}
             </div>
             <div className="mt-8">
               <Link to="/notifications" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-3 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300">
@@ -240,18 +246,25 @@ const Dashboard = () => {
             </div>
             <div className="p-6">
               <div className="space-y-5">
-                {upcomingEvents.map((event) => (
-                  <motion.div whileHover={{ x: 5 }} key={event.id} className="flex items-start space-x-4 p-2 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors">
-                    <div className="flex-shrink-0">
-                      <div className="w-3 h-3 bg-primary-500 rounded-full mt-1.5 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{event.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center"><Calendar className="w-3 h-3 mr-1"/> {event.date}</p>
-                      <p className="text-xs font-medium text-primary-600 dark:text-primary-400 mt-1">{event.host}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                {(!upcomingEvents || upcomingEvents.length === 0) ? (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    <Calendar className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                    <p className="text-sm">No upcoming events.</p>
+                  </div>
+                ) : (
+                  upcomingEvents.map((event) => (
+                    <motion.div whileHover={{ x: 5 }} key={event.id} className="flex items-start space-x-4 p-2 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors">
+                      <div className="flex-shrink-0">
+                        <div className="w-3 h-3 bg-primary-500 rounded-full mt-1.5 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{event.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center"><Calendar className="w-3 h-3 mr-1"/> {event.date}</p>
+                        <p className="text-xs font-medium text-primary-600 dark:text-primary-400 mt-1">{event.host}</p>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
               </div>
               <div className="mt-6">
                 <Link to="/events" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-3 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 transition-all duration-300">

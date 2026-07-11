@@ -89,7 +89,7 @@ export const CallProvider = ({ children }) => {
       });
 
       peer.on('signal', signal => {
-        socket.emit('call:signal', { targetId: callInfo.targetId, signal });
+        socket.emit('call:ice-candidate', { targetId: callInfo.targetId, candidate: signal });
       });
 
       peer.on('stream', stream => {
@@ -105,10 +105,10 @@ export const CallProvider = ({ children }) => {
       peerRef.current = peer;
     };
 
-    const handleSignal = ({ signal, senderId }) => {
-      console.log('[CallContext] Signal received from', senderId);
+    const handleSignal = ({ candidate }) => {
+      console.log('[CallContext] Signal received');
       if (peerRef.current) {
-        peerRef.current.signal(signal);
+        peerRef.current.signal(candidate);
       }
     };
 
@@ -119,13 +119,13 @@ export const CallProvider = ({ children }) => {
 
     socket.on('call:incoming', handleIncoming);
     socket.on('call:accepted', handleAnswered); // When receiver clicks accept
-    socket.on('call:signal', handleSignal); // ICE/SDP exchange
+    socket.on('call:ice-candidate', handleSignal); // ICE/SDP exchange
     socket.on('call:ended', handleEnded);
 
     return () => {
       socket.off('call:incoming', handleIncoming);
       socket.off('call:accepted', handleAnswered);
-      socket.off('call:signal', handleSignal);
+      socket.off('call:ice-candidate', handleSignal);
       socket.off('call:ended', handleEnded);
     };
   }, [socket, isConnected, callStatus, callInfo, localStream]);
@@ -182,7 +182,7 @@ export const CallProvider = ({ children }) => {
       });
 
       peer.on('signal', signal => {
-        socket.emit('call:signal', { targetId: incomingCall.callerId, signal });
+        socket.emit('call:ice-candidate', { targetId: incomingCall.callerId, candidate: signal });
       });
 
       peer.on('stream', remoteStream => {

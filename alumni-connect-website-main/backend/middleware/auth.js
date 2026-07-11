@@ -25,8 +25,8 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'User account is deactivated' });
       }
 
-      // Update last active timestamp
-      req.user.updateLastActive();
+      // Update last active — fire and forget, never block the request
+      req.user.updateLastActive().catch(() => {});
 
       next();
     } catch (error) {

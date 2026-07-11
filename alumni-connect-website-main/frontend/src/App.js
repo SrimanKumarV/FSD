@@ -52,9 +52,18 @@ import FAQ from './pages/support/FAQ';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      // Don't retry auth errors — they won't resolve without a fresh login
+      retry: (failureCount, error) => {
+        const status = error?.response?.status;
+        if (status === 401 || status === 403 || status === 404) return false;
+        return failureCount < 2; // retry other errors up to 2 times
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // exponential backoff
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+    mutations: {
+      retry: false, // never auto-retry mutations
     },
   },
 });

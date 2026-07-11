@@ -109,18 +109,22 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated on mount
   useEffect(() => {
+    const controller = new AbortController();
+
     const checkAuth = async () => {
       if (state.token) {
         try {
-          const response = await api.get('/auth/me');
-          dispatch({
-            type: AUTH_ACTIONS.LOGIN_SUCCESS,
-            payload: {
-              user: response.data.user,
-              token: state.token
-            }
+          const response = await api.get('/auth/me', {
+            signal: controller.signal
           });
+          if (!controller.signal.aborted) {
+            dispatch({
+              type: AUTH_ACTIONS.LOGIN_SUCCESS,
+              payload: { user: response.data.user, token: state.token }
+            });
+          }
         } catch (error) {
+          if (error.name === 'CanceledError' || error.name === 'AbortError') return;
           console.error('Auth check failed:', error);
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
@@ -130,6 +134,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuth();
+
+    // Listen for forced logout fired by the API interceptor on 401
+    const handleForceLogout = () => {
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    };
+    window.addEventListener('auth:logout', handleForceLogout);
+
+    return () => {
+      controller.abort();
+      window.removeEventListener('auth:logout', handleForceLogout);
+    };
   }, []);
 
   // Login function

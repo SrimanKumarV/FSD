@@ -43,6 +43,7 @@ const Login = () => {
       hasProcessedCode.current = true;
       handleGithubCallback(code);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGithubCallback = async (code) => {

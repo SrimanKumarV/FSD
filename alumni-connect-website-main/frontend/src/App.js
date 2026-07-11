@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
@@ -8,8 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { CallProvider } from './contexts/CallContext';
-import GlobalCallOverlay from './components/chat/VideoCallOverlay';
+
 
 // Components
 import Layout from './components/layout/Layout';
@@ -49,6 +48,9 @@ import HelpCentre from './pages/support/HelpCentre';
 import ContactUs from './pages/support/ContactUs';
 import FAQ from './pages/support/FAQ';
 
+
+import { WifiOff } from 'lucide-react';
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +71,30 @@ const queryClient = new QueryClient({
   },
 });
 
+const OfflineBanner = () => {
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  if (!isOffline) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[10000] bg-red-500 text-white text-center py-2 flex items-center justify-center gap-2 shadow-lg">
+      <WifiOff className="w-4 h-4 animate-pulse" />
+      <span className="text-sm font-medium">You are currently offline. Some features may not work.</span>
+    </div>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -77,10 +103,8 @@ function App() {
           <SocketProvider>
             <NotificationProvider>
               <Router>
-                <CallProvider>
                 <div className="App min-h-screen relative">
-                  {/* Global call overlay — renders on top of everything, across all routes */}
-                  <GlobalCallOverlay />
+                  <OfflineBanner />
                   <div className="animated-bg"></div>
 
                   <ErrorBoundary>
@@ -268,8 +292,7 @@ function App() {
                   }}
                 />
                 </div>
-              </CallProvider>
-            </Router>
+              </Router>
 
             </NotificationProvider>
           </SocketProvider>

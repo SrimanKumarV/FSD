@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { motion } from 'framer-motion';
 import {
-  MapPin, Briefcase, MessageSquare, Users, FileText,
+  MapPin, Briefcase, MessageSquare, Users,
   Activity, Code, GitCommit, Trophy, TrendingUp,
   ExternalLink, Zap, Target
 } from 'lucide-react';

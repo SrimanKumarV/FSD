@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { 
-  User, 
   Mail, 
   MapPin, 
   Briefcase, 
-  GraduationCap, 
-  Calendar,
   Edit3,
-  Save,
   X,
   Camera,
   Linkedin,
@@ -27,9 +22,8 @@ import { useQuery } from 'react-query';
 import DefaultAvatar from '../components/DefaultAvatar';
 
 const Profile = () => {
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [isEditingRole, setIsEditingRole] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -43,10 +37,7 @@ const Profile = () => {
       website: ''
     }
   });
-  const [roleFormData, setRoleFormData] = useState({
-    alumniInfo: {},
-    studentInfo: {}
-  });
+
   const [newSkill, setNewSkill] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
@@ -111,10 +102,7 @@ const Profile = () => {
         }
       });
 
-      setRoleFormData({
-        alumniInfo: user.alumniInfo || {},
-        studentInfo: user.studentInfo || {}
-      });
+
       fetchNetwork(user._id);
     }
   }, [user]);
@@ -138,19 +126,7 @@ const Profile = () => {
     }
   };
 
-  const handleRoleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setRoleFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
-    }
-  };
+
 
   const addSkill = () => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
@@ -182,19 +158,7 @@ const Profile = () => {
     }
   };
 
-  const handleRoleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const role = user.role;
-      await updateUser(roleFormData, role);
-      setIsEditingRole(false);
-    } catch (error) {
-      console.error('Error updating role profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const getStatusColor = (status) => {
     switch (status) {

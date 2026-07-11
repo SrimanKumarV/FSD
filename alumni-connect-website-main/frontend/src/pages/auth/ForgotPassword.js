@@ -23,8 +23,7 @@ const ForgotPassword = () => {
   const {
     register: registerReset,
     handleSubmit: handleResetSubmit,
-    formState: { errors: resetErrors },
-    watch
+    formState: { errors: resetErrors }
   } = useForm();
 
   const onEmailSubmit = async (data) => {

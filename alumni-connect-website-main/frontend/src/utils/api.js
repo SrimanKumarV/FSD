@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 const api = axios.create({
@@ -111,11 +112,19 @@ api.interceptors.response.use(
     if (!error.response) {
       // Server unreachable or timed out
       console.warn('Network error or server unavailable:', error.message);
+      if (!error.config._toastShown) {
+        toast.error('Network error. Please check your connection.');
+        error.config._toastShown = true;
+      }
     }
 
     // ── 5xx: Server errors ──
     if (error.response?.status >= 500) {
       console.error('Server error:', error.response.status, error.response.data?.message);
+      if (!error.config._toastShown) {
+        toast.error('Server error. Please try again later.');
+        error.config._toastShown = true;
+      }
     }
 
     return Promise.reject(error);

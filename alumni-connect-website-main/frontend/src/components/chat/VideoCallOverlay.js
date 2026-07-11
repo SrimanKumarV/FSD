@@ -1,26 +1,56 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Video, PhoneOff, User } from 'lucide-react';
+import { Phone, Video, PhoneOff, User, Mic, MicOff, VideoOff, Maximize, Minimize } from 'lucide-react';
 import { useCall } from '../../contexts/CallContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { JitsiMeeting } from '@jitsi/react-sdk';
 
 const VideoCallOverlay = () => {
   const { 
     callStatus, 
     incomingCall, 
     callInfo, 
+    localStream,
+    remoteStream,
     acceptCall, 
     rejectCall, 
-    endCall 
+    endCall,
+    toggleVideo,
+    toggleAudio
   } = useCall();
-  const { user } = useAuth();
+
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, callStatus]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream, callStatus]);
+
+  const handleToggleAudio = () => {
+    toggleAudio();
+    setIsMuted(!isMuted);
+  };
+
+  const handleToggleVideo = () => {
+    toggleVideo();
+    setIsVideoOff(!isVideoOff);
+  };
 
   if (callStatus === 'idle') return null;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+      <div className={`fixed inset-0 z-[9999] flex items-center justify-center ${callStatus === 'connected' ? 'bg-gray-900' : 'bg-black/40 backdrop-blur-sm pointer-events-none'}`}>
         
         {/* Ringing State */}
         {callStatus === 'ringing' && incomingCall && (
@@ -73,12 +103,22 @@ const VideoCallOverlay = () => {
             className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl flex flex-col items-center space-y-6 pointer-events-auto border border-gray-200 dark:border-gray-700 min-w-[320px]"
           >
             <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center relative overflow-hidden">
-              <User className="w-12 h-12 text-gray-400" />
-              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-white/20 backdrop-blur-sm flex justify-center items-center">
+              {callInfo.isVideo && localStream ? (
+                <video 
+                  ref={localVideoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <User className="w-12 h-12 text-gray-400" />
+              )}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-black/40 backdrop-blur-sm flex justify-center items-center">
                 <div className="flex space-x-1">
-                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                 </div>
               </div>
             </div>
@@ -97,39 +137,66 @@ const VideoCallOverlay = () => {
           </motion.div>
         )}
 
-        {/* Connected State (Jitsi Embedded) */}
-        {callStatus === 'connected' && callInfo && (
-          <div className="fixed inset-0 bg-black z-[10000] pointer-events-auto flex flex-col">
-            <JitsiMeeting
-              domain="meet.jit.si"
-              roomName={callInfo.roomName}
-              configOverwrite={{
-                startWithAudioMuted: false,
-                startWithVideoMuted: !callInfo.isVideo,
-                disableModeratorIndicator: true,
-                startScreenSharing: false,
-                enableEmailInStats: false,
-                prejoinPageEnabled: false, // Skip lobby!
-                disableInviteFunctions: true,
-              }}
-              interfaceConfigOverwrite={{
-                DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-                SHOW_CHROME_EXTENSION_BANNER: false,
-              }}
-              userInfo={{
-                displayName: user?.name || 'Alumni User'
-              }}
-              onApiReady={(externalApi) => {
-                // When the user hangs up in Jitsi, also end the call in our system
-                externalApi.addListener('videoConferenceLeft', () => {
-                  endCall('ended');
-                });
-              }}
-              getIFrameRef={(iframeRef) => {
-                iframeRef.style.height = '100%';
-                iframeRef.style.width = '100%';
-              }}
-            />
+        {/* Connected State (Simple-Peer Native) */}
+        {callStatus === 'connected' && (
+          <div className="absolute inset-0 w-full h-full pointer-events-auto flex flex-col bg-gray-900 text-white">
+            
+            {/* Main Remote Video */}
+            <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
+              {!remoteStream ? (
+                <div className="flex flex-col items-center text-gray-400">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+                  <p>Connecting P2P Video...</p>
+                </div>
+              ) : (
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              )}
+
+              {/* Floating Local Video */}
+              <div className={`absolute ${isFullscreen ? 'bottom-24 right-4' : 'top-4 right-4'} w-32 md:w-48 aspect-[3/4] bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700 transition-all duration-300 z-10`}>
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : 'block'} -scale-x-100`}
+                />
+                {isVideoOff && (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                    <User className="w-8 h-8 text-gray-500" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="h-20 bg-gray-900/90 backdrop-blur-md flex items-center justify-center space-x-6 px-4 pb-safe">
+              <button
+                onClick={handleToggleAudio}
+                className={`p-4 rounded-full transition-colors ${isMuted ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
+              >
+                {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+              </button>
+              
+              <button
+                onClick={() => endCall('ended')}
+                className="p-5 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-transform hover:scale-105"
+              >
+                <PhoneOff className="w-7 h-7" />
+              </button>
+
+              <button
+                onClick={handleToggleVideo}
+                className={`p-4 rounded-full transition-colors ${isVideoOff ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
+              >
+                {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         )}
       </div>

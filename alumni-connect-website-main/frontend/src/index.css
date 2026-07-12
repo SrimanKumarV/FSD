@@ -61,14 +61,24 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Hide Google Translate UI */
+/* Hide Google Translate UI Aggressively */
 .goog-te-banner-frame.skiptranslate, 
 .goog-te-gadget-icon, 
-#goog-gt-tt {
+.goog-te-gadget-simple,
+.goog-te-gadget,
+#goog-gt-tt,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.skiptranslate > iframe,
+#google_translate_element {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
 }
 body {
   top: 0px !important;
+  position: static !important;
 }
 .goog-tooltip {
   display: none !important;

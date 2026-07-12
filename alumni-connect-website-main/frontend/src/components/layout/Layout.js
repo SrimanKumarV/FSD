@@ -325,7 +325,7 @@ const Layout = ({ children }) => {
                     <DefaultAvatar className="w-9 h-9 flex-shrink-0" />
                   )}
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white notranslate">{user?.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 capitalize font-medium">{user?.role}</p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />

@@ -57,21 +57,21 @@ const Admin = () => {
   // Fetch admin dashboard data
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery(
     ['admin-dashboard'],
-    () => api.get('/admin/dashboard'),
+    () => api.get('/admin/dashboard').then(res => res.data),
     { enabled: !!user }
   );
 
   // Fetch admin analytics data for charts
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery(
     ['admin-analytics'],
-    () => api.get('/admin/analytics'),
+    () => api.get('/admin/analytics').then(res => res.data),
     { enabled: !!user }
   );
 
   // Fetch users for management
   const { data: usersData, isLoading: usersLoading } = useQuery(
     ['admin-users', filters],
-    () => api.get('/admin/users', { params: filters }),
+    () => api.get('/admin/users', { params: filters }).then(res => res.data),
     { enabled: !!user }
   );
 
@@ -80,7 +80,7 @@ const Admin = () => {
   const [fbStatus, setFbStatus] = useState('');
   const { data: feedbackData, isLoading: feedbackLoading, refetch: refetchFeedback } = useQuery(
     ['admin-feedback', fbPage, fbStatus, activeTab],
-    () => api.get('/feedback', { params: { page: fbPage, status: fbStatus } }),
+    () => api.get('/feedback', { params: { page: fbPage, status: fbStatus } }).then(res => res.data),
     { enabled: activeTab === 'feedback' && !!user }
   );
 
@@ -89,7 +89,7 @@ const Admin = () => {
   const [hdStatus, setHdStatus] = useState('');
   const { data: helpdeskData, isLoading: helpdeskLoading, refetch: refetchHelpdesk } = useQuery(
     ['admin-helpdesk', hdPage, hdStatus, activeTab],
-    () => api.get('/helpdesk', { params: { page: hdPage, status: hdStatus } }),
+    () => api.get('/helpdesk', { params: { page: hdPage, status: hdStatus } }).then(res => res.data),
     { enabled: activeTab === 'helpdesk' && !!user }
   );
 
@@ -633,7 +633,7 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
                       
                       {user.role === 'alumni' && !user.isApproved && (
                         <button
-                          onClick={() => onApproveUser(user._id)}
+                          onClick={() => onApproveUser(user._id, true)}
                           className="text-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg"
                           title="Approve Alumni"
                         >

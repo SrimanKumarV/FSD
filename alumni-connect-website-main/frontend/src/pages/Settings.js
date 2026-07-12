@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Trash2, ShieldAlert } from 'lucide-react';
+import { Sun, Moon, Trash2, ShieldAlert, Globe } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../utils/api';
@@ -12,6 +12,18 @@ const Settings = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  const handleLanguageChange = (e) => {
+    const langCode = e.target.value;
+    const selectElement = document.querySelector('.goog-te-combo');
+    if (selectElement) {
+      selectElement.value = langCode;
+      selectElement.dispatchEvent(new Event('change'));
+      toast.success('Language updated!');
+    } else {
+      toast.error('Translation service is still loading or unavailable.');
+    }
+  };
 
   // State for Account Deletion
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -137,6 +149,34 @@ const Settings = () => {
                   </>
                 )}
               </button>
+            </div>
+            {/* Language Switcher */}
+            <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+              <div className="mb-4 md:mb-0">
+                <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-primary-500" />
+                  Language
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Instantly translate the entire platform.</p>
+              </div>
+              <select
+                onChange={handleLanguageChange}
+                className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white font-medium outline-none transition-all shadow-sm cursor-pointer min-w-[200px]"
+                defaultValue="en"
+              >
+                <option value="en">English (Default)</option>
+                <option value="es">Español (Spanish)</option>
+                <option value="fr">Français (French)</option>
+                <option value="de">Deutsch (German)</option>
+                <option value="zh-CN">中文 (Chinese Simplified)</option>
+                <option value="ja">日本語 (Japanese)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="ar">العربية (Arabic)</option>
+                <option value="ru">Русский (Russian)</option>
+                <option value="pt">Português (Portuguese)</option>
+                <option value="it">Italiano (Italian)</option>
+                <option value="ko">한국어 (Korean)</option>
+              </select>
             </div>
           </div>
 

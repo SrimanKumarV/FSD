@@ -13,15 +13,28 @@ const Settings = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
+  const getCookieLanguage = () => {
+    const match = document.cookie.match(/googtrans=\/en\/([a-zA-Z-]+)/);
+    return match ? match[1] : 'en';
+  };
+  const [currentLang, setCurrentLang] = useState(getCookieLanguage());
+
   const handleLanguageChange = (e) => {
     const langCode = e.target.value;
+    setCurrentLang(langCode);
+    
+    // Set cookie explicitly for stateful behavior across domain and subdomain
+    document.cookie = `googtrans=/en/${langCode}; path=/;`;
+    document.cookie = `googtrans=/en/${langCode}; path=/; domain=${window.location.hostname};`;
+
     const selectElement = document.querySelector('.goog-te-combo');
     if (selectElement) {
       selectElement.value = langCode;
-      selectElement.dispatchEvent(new Event('change'));
+      selectElement.dispatchEvent(new Event('change', { bubbles: true }));
       toast.success('Language updated!');
     } else {
-      toast.error('Translation service is still loading or unavailable.');
+      // If widget isn't loaded yet, reload the page to apply the cookie
+      window.location.reload();
     }
   };
 
@@ -160,22 +173,46 @@ const Settings = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">Instantly translate the entire platform.</p>
               </div>
               <select
+                value={currentLang}
                 onChange={handleLanguageChange}
                 className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white font-medium outline-none transition-all shadow-sm cursor-pointer min-w-[200px]"
-                defaultValue="en"
               >
-                <option value="en">English (Default)</option>
-                <option value="es">Español (Spanish)</option>
-                <option value="fr">Français (French)</option>
-                <option value="de">Deutsch (German)</option>
-                <option value="zh-CN">中文 (Chinese Simplified)</option>
-                <option value="ja">日本語 (Japanese)</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-                <option value="ar">العربية (Arabic)</option>
-                <option value="ru">Русский (Russian)</option>
-                <option value="pt">Português (Portuguese)</option>
-                <option value="it">Italiano (Italian)</option>
-                <option value="ko">한국어 (Korean)</option>
+                <optgroup label="Global Languages">
+                  <option value="en">English (Default)</option>
+                  <option value="es">Español (Spanish)</option>
+                  <option value="fr">Français (French)</option>
+                  <option value="de">Deutsch (German)</option>
+                  <option value="zh-CN">中文 (Chinese Simplified)</option>
+                  <option value="ja">日本語 (Japanese)</option>
+                  <option value="ar">العربية (Arabic)</option>
+                  <option value="ru">Русский (Russian)</option>
+                  <option value="pt">Português (Portuguese)</option>
+                  <option value="it">Italiano (Italian)</option>
+                  <option value="ko">한국어 (Korean)</option>
+                </optgroup>
+                <optgroup label="Indian Regional Languages">
+                  <option value="hi">हिन्दी (Hindi)</option>
+                  <option value="bn">বাংলা (Bengali)</option>
+                  <option value="te">తెలుగు (Telugu)</option>
+                  <option value="mr">मराठी (Marathi)</option>
+                  <option value="ta">தமிழ் (Tamil)</option>
+                  <option value="ur">اردو (Urdu)</option>
+                  <option value="gu">ગુજરાતી (Gujarati)</option>
+                  <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                  <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                  <option value="ml">മലയാളം (Malayalam)</option>
+                  <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                  <option value="as">অসমীয়া (Assamese)</option>
+                  <option value="mai">मैथिली (Maithili)</option>
+                  <option value="sd">सिन्धी (Sindhi)</option>
+                  <option value="ne">नेपाली (Nepali)</option>
+                  <option value="sa">संस्कृतम् (Sanskrit)</option>
+                  <option value="gom">कोंकणी (Konkani)</option>
+                  <option value="doi">डोगरी (Dogri)</option>
+                  <option value="brx">बड़ो (Bodo)</option>
+                  <option value="ks">کأشُر (Kashmiri)</option>
+                  <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                </optgroup>
               </select>
             </div>
           </div>

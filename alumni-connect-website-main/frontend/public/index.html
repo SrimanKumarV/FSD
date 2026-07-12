@@ -17,15 +17,15 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     
-    <!-- Stateless Google Translate Integration -->
+    <!-- Stateful Google Translate Integration -->
     <div id="google_translate_element" style="display: none;"></div>
     <script type="text/javascript">
-      // Clear translation cookie on hard reload to keep it stateless (default English)
-      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname + ";";
-      
       function googleTranslateElementInit() {
-        new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+        new google.translate.TranslateElement({
+          pageLanguage: 'en', 
+          autoDisplay: false,
+          includedLanguages: 'en,es,fr,de,zh-CN,ja,hi,bn,te,mr,ta,ur,gu,kn,or,ml,pa,as,mai,sd,ne,sa,gom,doi,brx,ks,sat,ar,ru,pt,it,ko'
+        }, 'google_translate_element');
       }
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

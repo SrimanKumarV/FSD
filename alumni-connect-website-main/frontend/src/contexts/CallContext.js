@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
-import Peer from 'simple-peer';
 
 const CallContext = createContext();
 
@@ -9,6 +8,13 @@ export const useCall = () => {
   const ctx = useContext(CallContext);
   if (!ctx) throw new Error('useCall must be inside CallProvider');
   return ctx;
+};
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
+  ]
 };
 
 export const CallProvider = ({ children }) => {
@@ -21,8 +27,20 @@ export const CallProvider = ({ children }) => {
   
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const peerRef = useRef(null);
+  
+  const pcRef = useRef(null);
   const ringtoneRef = useRef(null);
+  
+  // Keep refs for state used inside socket callbacks to avoid re-binding listeners
+  const callInfoRef = useRef(null);
+  const incomingCallRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const callStatusRef = useRef('idle');
+
+  useEffect(() => { callInfoRef.current = callInfo; }, [callInfo]);
+  useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
+  useEffect(() => { localStreamRef.current = localStream; }, [localStream]);
+  useEffect(() => { callStatusRef.current = callStatus; }, [callStatus]);
 
   useEffect(() => {
     ringtoneRef.current = new Audio('/ringtone.mp3');
@@ -45,100 +63,16 @@ export const CallProvider = ({ children }) => {
   };
 
   const cleanupMedia = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
       setLocalStream(null);
     }
     setRemoteStream(null);
-    if (peerRef.current) {
-      peerRef.current.destroy();
-      peerRef.current = null;
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
     }
   };
-
-  useEffect(() => {
-    if (!socket || !isConnected) return;
-
-    const handleIncoming = (data) => {
-      console.log('[CallContext] Incoming call:', data);
-      if (callStatus !== 'idle') {
-        socket.emit('call:end', { targetId: data.callerId, reason: 'busy' });
-        return;
-      }
-      setIncomingCall(data);
-      setCallStatus('ringing');
-      playRingtone();
-    };
-
-    const handleAnswered = (data) => {
-      console.log('[CallContext] Call answered by remote, signaling...');
-      stopRingtone();
-      setCallStatus('connected');
-      
-      // Initialize Peer (Initiator)
-      const peer = new Peer({
-        initiator: true,
-        trickle: true,
-        stream: localStream,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' },
-            {
-              urls: 'turn:openrelay.metered.ca:80',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            },
-            {
-              urls: 'turn:openrelay.metered.ca:443',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            }
-          ]
-        }
-      });
-
-      peer.on('signal', signal => {
-        socket.emit('call:ice-candidate', { targetId: callInfo.targetId, candidate: signal });
-      });
-
-      peer.on('stream', stream => {
-        console.log('[CallContext] Remote stream received (initiator)');
-        setRemoteStream(stream);
-      });
-
-      peer.on('error', err => {
-        console.error('Peer error (initiator):', err);
-        endCall('error');
-      });
-
-      peerRef.current = peer;
-    };
-
-    const handleSignal = ({ candidate }) => {
-      console.log('[CallContext] Signal received');
-      if (peerRef.current) {
-        peerRef.current.signal(candidate);
-      }
-    };
-
-    const handleEnded = ({ reason }) => {
-      console.log('[CallContext] Call ended by remote. Reason:', reason);
-      resetCall();
-    };
-
-    socket.on('call:incoming', handleIncoming);
-    socket.on('call:accepted', handleAnswered); // When receiver clicks accept
-    socket.on('call:ice-candidate', handleSignal); // ICE/SDP exchange
-    socket.on('call:ended', handleEnded);
-
-    return () => {
-      socket.off('call:incoming', handleIncoming);
-      socket.off('call:accepted', handleAnswered);
-      socket.off('call:ice-candidate', handleSignal);
-      socket.off('call:ended', handleEnded);
-    };
-  }, [socket, isConnected, callStatus, callInfo, localStream]);
 
   const resetCall = () => {
     stopRingtone();
@@ -148,9 +82,122 @@ export const CallProvider = ({ children }) => {
     setCallInfo(null);
   };
 
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleIncoming = (data) => {
+      console.log('[CallContext] Incoming call:', data);
+      if (callStatusRef.current !== 'idle') {
+        socket.emit('call:end', { targetId: data.callerId, reason: 'busy' });
+        return;
+      }
+      setIncomingCall(data);
+      setCallStatus('ringing');
+      playRingtone();
+    };
+
+    const handleAnswered = async () => {
+      console.log('[CallContext] Call answered by remote, creating offer...');
+      stopRingtone();
+      setCallStatus('connected');
+      
+      const targetId = callInfoRef.current?.targetId;
+      if (!targetId) return;
+
+      const pc = new RTCPeerConnection(ICE_SERVERS);
+      pcRef.current = pc;
+
+      // Add local tracks
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
+      }
+
+      pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.emit('call:ice-candidate', { targetId, candidate: { type: 'ice', candidate: e.candidate } });
+        }
+      };
+
+      pc.ontrack = (e) => {
+        setRemoteStream(e.streams[0]);
+      };
+
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('call:ice-candidate', { targetId, candidate: { type: 'offer', sdp: offer } });
+      } catch (err) {
+        console.error('Error creating offer:', err);
+      }
+    };
+
+    const handleSignal = async ({ candidate }) => {
+      console.log('[CallContext] Signal received:', candidate.type);
+      try {
+        if (candidate.type === 'offer') {
+          const targetId = incomingCallRef.current?.callerId || callInfoRef.current?.targetId;
+          if (!targetId) return;
+
+          let pc = pcRef.current;
+          if (!pc) {
+            pc = new RTCPeerConnection(ICE_SERVERS);
+            pcRef.current = pc;
+            
+            if (localStreamRef.current) {
+              localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
+            }
+
+            pc.onicecandidate = (e) => {
+              if (e.candidate) {
+                socket.emit('call:ice-candidate', { targetId, candidate: { type: 'ice', candidate: e.candidate } });
+              }
+            };
+
+            pc.ontrack = (e) => {
+              setRemoteStream(e.streams[0]);
+            };
+          }
+
+          await pc.setRemoteDescription(new RTCSessionDescription(candidate.sdp));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('call:ice-candidate', { targetId, candidate: { type: 'answer', sdp: answer } });
+        } 
+        else if (candidate.type === 'answer') {
+          if (pcRef.current) {
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(candidate.sdp));
+          }
+        } 
+        else if (candidate.type === 'ice') {
+          if (pcRef.current && candidate.candidate) {
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate.candidate));
+          }
+        }
+      } catch (err) {
+        console.error('Signal handling error:', err);
+      }
+    };
+
+    const handleEnded = ({ reason }) => {
+      console.log('[CallContext] Call ended by remote. Reason:', reason);
+      resetCall();
+    };
+
+    socket.on('call:incoming', handleIncoming);
+    socket.on('call:accepted', handleAnswered);
+    socket.on('call:ice-candidate', handleSignal);
+    socket.on('call:ended', handleEnded);
+
+    return () => {
+      socket.off('call:incoming', handleIncoming);
+      socket.off('call:accepted', handleAnswered);
+      socket.off('call:ice-candidate', handleSignal);
+      socket.off('call:ended', handleEnded);
+    };
+  }, [socket, isConnected]);
+
   const startCall = async (targetId, isVideo = true) => {
-    if (!socket || !targetId || callStatus !== 'idle') return;
-    
+    if (!socket || !targetId || callStatusRef.current !== 'idle') return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
       setLocalStream(stream);
@@ -169,59 +216,18 @@ export const CallProvider = ({ children }) => {
   };
 
   const acceptCall = async () => {
-    if (!incomingCall || !socket) return;
-    
+    const incCall = incomingCallRef.current;
+    if (!incCall || !socket) return;
     try {
       stopRingtone();
-      const stream = await navigator.mediaDevices.getUserMedia({ video: incomingCall.isVideo, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: incCall.isVideo, audio: true });
       setLocalStream(stream);
-      setCallInfo({ targetId: incomingCall.callerId, isVideo: incomingCall.isVideo });
+      setCallInfo({ targetId: incCall.callerId, isVideo: incCall.isVideo });
       setCallStatus('connected');
       
-      // Initialize Peer (Receiver)
-      const peer = new Peer({
-        initiator: false,
-        trickle: true,
-        stream: stream,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' },
-            {
-              urls: 'turn:openrelay.metered.ca:80',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            },
-            {
-              urls: 'turn:openrelay.metered.ca:443',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            }
-          ]
-        }
-      });
-
-      peer.on('signal', signal => {
-        socket.emit('call:ice-candidate', { targetId: incomingCall.callerId, candidate: signal });
-      });
-
-      peer.on('stream', remoteStream => {
-        console.log('[CallContext] Remote stream received (receiver)');
-        setRemoteStream(remoteStream);
-      });
-
-      peer.on('error', err => {
-        console.error('Peer error (receiver):', err);
-        endCall('error');
-      });
-
-      peerRef.current = peer;
-
-      // Tell the initiator we accepted so they can start signaling
       socket.emit('call:answer', {
-        callerId: incomingCall.callerId
+        callerId: incCall.callerId
       });
-      setIncomingCall(null);
     } catch (err) {
       console.error('Failed to get local media on answer:', err);
       rejectCall();
@@ -229,21 +235,20 @@ export const CallProvider = ({ children }) => {
   };
 
   const rejectCall = () => {
-    if (!incomingCall || !socket) return;
-    socket.emit('call:end', { targetId: incomingCall.callerId, reason: 'rejected' });
+    const incCall = incomingCallRef.current;
+    if (!incCall || !socket) return;
+    socket.emit('call:end', { targetId: incCall.callerId, reason: 'rejected' });
     resetCall();
   };
 
   const endCall = (reason = 'ended') => {
-    const targetId = callInfo?.targetId || incomingCall?.callerId;
+    const targetId = callInfoRef.current?.targetId || incomingCallRef.current?.callerId;
     if (targetId && socket) {
       socket.emit('call:end', { targetId, reason });
-      
-      // If we initiated and they didn't answer
-      if (callStatus === 'outgoing') {
+      if (callStatusRef.current === 'outgoing') {
         socket.emit('message:send', {
           receiverId: targetId,
-          content: JSON.stringify({ type: callInfo?.isVideo ? 'video' : 'audio', status: 'missed', duration: '0:00' }),
+          content: JSON.stringify({ type: callInfoRef.current?.isVideo ? 'video' : 'audio', status: 'missed', duration: '0:00' }),
           messageType: 'call-log',
         });
       }
@@ -252,16 +257,16 @@ export const CallProvider = ({ children }) => {
   };
 
   const toggleVideo = () => {
-    if (localStream) {
-      localStream.getVideoTracks().forEach(track => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getVideoTracks().forEach(track => {
         track.enabled = !track.enabled;
       });
     }
   };
 
   const toggleAudio = () => {
-    if (localStream) {
-      localStream.getAudioTracks().forEach(track => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(track => {
         track.enabled = !track.enabled;
       });
     }

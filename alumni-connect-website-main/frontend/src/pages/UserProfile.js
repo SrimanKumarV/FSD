@@ -181,7 +181,7 @@ const UserProfile = () => {
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl">
                 {targetUser.photo && targetUser.photo !== 'default-avatar.png' ? (
-                  <img src={targetUser.photo} alt={targetUser.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={targetUser.photo} alt={targetUser.name} className="w-full h-full object-cover" />
                 ) : (
                   <DefaultAvatar className="w-full h-full" />
                 )}
@@ -394,7 +394,7 @@ const UserProfile = () => {
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors"
                   >
                     {u.photo && u.photo !== 'default-avatar.png' ? (
-                      <img src={u.photo} alt={u.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                      <img loading="lazy" src={u.photo} alt={u.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                     ) : (
                       <DefaultAvatar className="w-9 h-9 flex-shrink-0" />
                     )}

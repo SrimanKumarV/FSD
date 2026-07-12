@@ -146,7 +146,7 @@ const Layout = ({ children }) => {
           >
             <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
+                <img loading="lazy" src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
                 <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
                   Alumnex Connect
                 </h1>
@@ -190,7 +190,7 @@ const Layout = ({ children }) => {
         <div className="flex flex-col flex-grow glass-card border-none rounded-3xl shadow-xl overflow-hidden">
           <div className="flex items-center h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
+              <img loading="lazy" src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
                 Alumnex Connect
               </h1>
@@ -320,7 +320,7 @@ const Layout = ({ children }) => {
                   className="flex items-center space-x-3 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
                 >
                   {user?.photo && user?.photo !== 'default-avatar.png' ? (
-                    <img src={user.photo} alt={user.name} className="w-9 h-9 rounded-full object-cover shadow-soft" />
+                    <img loading="lazy" src={user.photo} alt={user.name} className="w-9 h-9 rounded-full object-cover shadow-soft" />
                   ) : (
                     <DefaultAvatar className="w-9 h-9 flex-shrink-0" />
                   )}

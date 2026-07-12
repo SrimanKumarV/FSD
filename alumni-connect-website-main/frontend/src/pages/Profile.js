@@ -202,7 +202,7 @@ const Profile = () => {
             <div className="relative">
               <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
                 {(isEditing ? formData.photo : user.photo) && (isEditing ? formData.photo : user.photo) !== 'default-avatar.png' ? (
-                  <img src={isEditing ? formData.photo : user.photo} alt={user.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={isEditing ? formData.photo : user.photo} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   <DefaultAvatar className="w-full h-full" />
                 )}
@@ -503,7 +503,7 @@ const Profile = () => {
                         onClick={() => navigate(`/users/${follower._id}`)}
                       >
                         {follower.photo && follower.photo !== 'default-avatar.png' ? (
-                          <img src={follower.photo} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
+                          <img loading="lazy" src={follower.photo} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
                           <DefaultAvatar className="w-12 h-12 flex-shrink-0" />
                         )}
@@ -543,7 +543,7 @@ const Profile = () => {
                         onClick={() => navigate(`/users/${followingUser._id}`)}
                       >
                         {followingUser.photo && followingUser.photo !== 'default-avatar.png' ? (
-                          <img src={followingUser.photo} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
+                          <img loading="lazy" src={followingUser.photo} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
                           <DefaultAvatar className="w-12 h-12 flex-shrink-0" />
                         )}

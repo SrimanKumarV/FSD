@@ -29,7 +29,7 @@ const JobLogo = ({ logo, company }) => {
   }
 
   return (
-    <img 
+    <img loading="lazy" 
       src={logo} 
       alt={company} 
       className="w-full h-full object-contain bg-white dark:bg-white/95 p-1" 

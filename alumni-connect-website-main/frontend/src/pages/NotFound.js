@@ -1,18 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, ArrowLeft, Users, Briefcase, Calendar } from 'lucide-react';
+import { Home, ArrowLeft, Users, Briefcase, Calendar, MessageSquare } from 'lucide-react';
 
 const NotFound = () => {
   const quickLinks = [
-    { name: 'Home', href: '/', icon: Home, description: 'Return to homepage' },
+    { name: 'Forum', href: '/forum', icon: MessageSquare, description: 'Join the discussion' },
     { name: 'Dashboard', href: '/dashboard', icon: Users, description: 'Access your dashboard' },
     { name: 'Jobs', href: '/jobs', icon: Briefcase, description: 'Browse job opportunities' },
     { name: 'Events', href: '/events', icon: Calendar, description: 'View upcoming events' }
   ];
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-900">
+    <main className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-900">
       
       {/* Background elements */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2"></div>
@@ -46,7 +46,7 @@ const NotFound = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <h2 className="text-3xl font-bold text-white mb-3">Page Not Found</h2>
+            <h1 className="text-3xl font-bold text-white mb-3">Page Not Found</h1>
             <p className="text-slate-400 mb-8 max-w-lg mx-auto leading-relaxed">
               We explored deep into the servers but couldn't find the page you're looking for. It might have been moved, deleted, or never existed.
             </p>
@@ -110,7 +110,7 @@ const NotFound = () => {
           </motion.div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

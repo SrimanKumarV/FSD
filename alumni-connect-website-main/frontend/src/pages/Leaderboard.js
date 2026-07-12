@@ -115,7 +115,7 @@ const Leaderboard = () => {
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-500 to-alumni-500 flex items-center justify-center text-white font-medium shadow-sm">
                             {profile.photo ? (
-                              <img src={profile.photo} alt={profile.name} className="w-full h-full rounded-full object-cover" />
+                              <img loading="lazy" src={profile.photo} alt={profile.name} className="w-full h-full rounded-full object-cover" />
                             ) : (
                               profile.name?.charAt(0).toUpperCase()
                             )}

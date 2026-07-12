@@ -566,7 +566,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit }) =
           {/* Author Avatar */}
           <div className="flex-shrink-0">
             {post.author?.photo && post.author?.photo !== 'default-avatar.png' ? (
-              <img src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
+              <img loading="lazy" src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
             ) : (
               <DefaultAvatar className="w-10 h-10" />
             )}
@@ -606,7 +606,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit }) =
                   <span className="text-gray-500">🎥 Video Attachment</span>
                 </div>
               ) : (
-                <img 
+                <img loading="lazy" 
                   src={post.attachments[0].fileUrl || post.attachments[0].url} 
                   alt={post.attachments[0].fileName || post.attachments[0].filename} 
                   className="w-full h-48 object-cover rounded-xl border border-gray-100 dark:border-gray-700" 
@@ -924,7 +924,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes, initialData
                     {file.fileType === 'video' ? (
                       <video src={file.fileUrl || file.url} controls className="w-full h-32 object-contain" />
                     ) : (
-                      <img src={file.fileUrl || file.url} alt={file.fileName || file.filename} className="w-full h-32 object-contain bg-gray-100" />
+                      <img loading="lazy" src={file.fileUrl || file.url} alt={file.fileName || file.filename} className="w-full h-32 object-contain bg-gray-100" />
                     )}
                     <button
                       type="button"
@@ -1129,7 +1129,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                     {file.fileType === 'video' ? (
                       <video src={file.fileUrl || file.url} controls className="w-full max-h-[500px] bg-black" />
                     ) : (
-                      <img src={file.fileUrl || file.url} alt={file.fileName || file.filename} className="w-full h-auto max-h-[500px] object-contain bg-gray-50 dark:bg-gray-900" />
+                      <img loading="lazy" src={file.fileUrl || file.url} alt={file.fileName || file.filename} className="w-full h-auto max-h-[500px] object-contain bg-gray-50 dark:bg-gray-900" />
                     )}
                   </div>
                 ))}
@@ -1162,7 +1162,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                   <div className="flex space-x-3">
                     <div className="flex-shrink-0">
                       {comment.author?.photo && comment.author?.photo !== 'default-avatar.png' ? (
-                        <img src={comment.author.photo} alt={comment.author.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
+                        <img loading="lazy" src={comment.author.photo} alt={comment.author.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
                       ) : (
                         <DefaultAvatar className="w-8 h-8" />
                       )}

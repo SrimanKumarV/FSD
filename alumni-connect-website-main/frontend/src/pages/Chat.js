@@ -613,7 +613,7 @@ const Chat = () => {
               {attachment && (
                 <div className="absolute bottom-full left-4 mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2">
                   {attachment.fileType === 'image' ? (
-                    <img src={attachment.fileUrl} alt="attachment" className="h-16 w-16 object-cover rounded" />
+                    <img loading="lazy" src={attachment.fileUrl} alt="attachment" className="h-16 w-16 object-cover rounded" />
                   ) : (
                     <div className="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-xs text-gray-500">File</div>
                   )}
@@ -812,7 +812,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
         >
           {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType === 'image' && (
             <div className="mb-2">
-              <img src={message.attachments[0].fileUrl} alt="attachment" className="rounded-lg max-w-full h-auto object-cover max-h-48" />
+              <img loading="lazy" src={message.attachments[0].fileUrl} alt="attachment" className="rounded-lg max-w-full h-auto object-cover max-h-48" />
             </div>
           )}
           {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType !== 'image' && (

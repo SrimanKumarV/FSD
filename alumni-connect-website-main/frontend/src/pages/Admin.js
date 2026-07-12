@@ -589,7 +589,7 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {user.photo && user.photo !== 'default-avatar.png' ? (
-                          <img src={user.photo} alt={user.name} className="w-10 h-10 rounded-xl object-cover shadow-sm border border-gray-200 dark:border-gray-700" />
+                          <img loading="lazy" src={user.photo} alt={user.name} className="w-10 h-10 rounded-xl object-cover shadow-sm border border-gray-200 dark:border-gray-700" />
                         ) : (
                           <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
                         )}
@@ -1016,115 +1016,229 @@ const SystemSettingsTab = () => {
 // User Detail Modal Component
 const UserDetailModal = ({ user, onClose, onApproveUser, onSuspendUser, onUpdateRole }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">User Details</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-3xl glass-card rounded-3xl overflow-hidden border border-white/20 dark:border-gray-700/50 shadow-2xl flex flex-col max-h-[90vh]"
+      >
+        {/* Header Background Gradient */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-primary-600 to-indigo-700 opacity-90 dark:opacity-100" />
+        
+        {/* Header Content */}
+        <div className="relative pt-6 px-6 sm:px-8 flex justify-between items-start z-10">
+          <div className="flex-1" />
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors backdrop-blur-md"
+          >
+            <XCircle className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* User Info */}
-          <div className="flex items-center space-x-4">
-            {user.photo && user.photo !== 'default-avatar.png' ? (
-              <img src={user.photo} alt={user.name} className="w-20 h-20 rounded-full object-cover" />
-            ) : (
-              <DefaultAvatar className="w-20 h-20 flex-shrink-0" />
-            )}
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">{user.name}</h3>
-              <p className="text-gray-600">{user.email}</p>
-              <p className="text-sm text-gray-500">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
+        <div className="relative px-6 sm:px-8 pb-6 sm:pb-8 flex-1 overflow-y-auto z-10">
+          {/* User Profile Header */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-10 sm:-mt-12 mb-8">
+            <div className="relative">
+              {user.photo && user.photo !== 'default-avatar.png' ? (
+                <img src={user.photo} alt={user.name} className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white dark:border-gray-800 shadow-xl" loading="lazy" />
+              ) : (
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-white dark:border-gray-800 shadow-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400">
+                  <UserCheck className="w-12 h-12" />
+                </div>
+              )}
+              {user.isSuspended && (
+                <div className="absolute -bottom-2 -right-2 bg-red-500 text-white p-1.5 rounded-lg shadow-lg border-2 border-white dark:border-gray-800" title="Suspended">
+                  <Ban className="w-4 h-4" />
+                </div>
+              )}
+            </div>
+            
+            <div className="text-center sm:text-left flex-1">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center justify-center sm:justify-start gap-2">
+                {user.name}
+                {user.isVerified && <CheckCircle className="w-6 h-6 text-blue-500" title="Verified" />}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">{user.email}</p>
+              
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                <span className={`px-3 py-1 text-xs font-bold rounded-lg ${
+                  user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                  user.role === 'alumni' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                }`}>
+                  {user.role.toUpperCase()}
+                </span>
+                
+                <span className="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" /> Joined {new Date(user.createdAt).toLocaleDateString()}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* User Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Role</h4>
-              <select
-                value={user.role}
-                onChange={(e) => onUpdateRole(user._id, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="student">Student</option>
-                <option value="alumni">Alumni</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Actions</h4>
-              <div className="flex space-x-2">
-                {user.role === 'alumni' && !user.isApproved && (
-                  <button
-                    onClick={() => onApproveUser(user._id, true)}
-                    className="w-full text-sm bg-green-100 text-green-700 px-3 py-2 rounded-lg hover:bg-green-200 font-semibold transition-colors"
-                  >
-                    Approve Alumni
-                  </button>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column: Details */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Bio Section */}
+              <div className="bg-white/50 dark:bg-gray-900/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-primary-500" /> About
+                </h4>
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                  {user.bio || "No biography provided by this user."}
+                </p>
+                {user.location && (
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-3 flex items-center gap-2">
+                    <Flag className="w-4 h-4" /> {user.location}
+                  </p>
                 )}
-                {!user.isSuspended ? (
-                  <button
-                    onClick={() => onSuspendUser(user._id, true)}
-                    className="w-full text-sm bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 font-semibold transition-colors"
-                  >
-                    Suspend User
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onSuspendUser(user._id, false)}
-                    className="w-full text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 font-semibold transition-colors"
-                  >
-                    Unsuspend User
-                  </button>
-                )}
+              </div>
+
+              {/* Skills Section */}
+              {user.skills && user.skills.length > 0 && (
+                <div className="bg-white/50 dark:bg-gray-900/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-primary-500" /> Skills
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {user.skills.map((skill, idx) => (
+                      <span key={idx} className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Role-Specific Info */}
+              {user.role === 'alumni' && user.alumniInfo && (
+                <div className="bg-white/50 dark:bg-gray-900/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-primary-500" /> Alumni Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">Company</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.alumniInfo.company || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">Position</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.alumniInfo.position || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">Industry</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.alumniInfo.industry || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">Graduation Year</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.alumniInfo.graduationYear || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {user.role === 'student' && user.studentInfo && (
+                <div className="bg-white/50 dark:bg-gray-900/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-primary-500" /> Student Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">University</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.studentInfo.university || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">Course</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.studentInfo.course || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">Year</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{user.studentInfo.year || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Actions & Stats */}
+            <div className="space-y-6">
+              {/* Network Stats */}
+              <div className="bg-white/50 dark:bg-gray-900/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 flex justify-between text-center">
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{user.connections?.length || 0}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Connections</p>
+                </div>
+                <div className="w-px bg-gray-200 dark:bg-gray-700" />
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{user.followers?.length || 0}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Followers</p>
+                </div>
+              </div>
+
+              {/* Admin Actions */}
+              <div className="bg-white/50 dark:bg-gray-900/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary-500" /> Admin Controls
+                </h4>
+                
+                <div className="space-y-4">
+                  {/* Role Selection */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 block uppercase tracking-wider">Change Role</label>
+                    <select
+                      value={user.role}
+                      onChange={(e) => onUpdateRole(user._id, e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white font-medium outline-none transition-all cursor-pointer"
+                    >
+                      <option value="student">Student</option>
+                      <option value="alumni">Alumni</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2 space-y-2">
+                    {/* Approve Action */}
+                    {user.role === 'alumni' && !user.isApproved && (
+                      <button
+                        onClick={() => onApproveUser(user._id, true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-colors shadow-lg shadow-emerald-500/30"
+                      >
+                        <CheckCircle className="w-4 h-4" /> Approve Alumni
+                      </button>
+                    )}
+
+                    {/* Suspend Action */}
+                    {!user.isSuspended ? (
+                      <button
+                        onClick={() => onSuspendUser(user._id, true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 rounded-xl font-bold transition-colors border border-red-200 dark:border-red-900/50"
+                      >
+                        <Ban className="w-4 h-4" /> Suspend Account
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onSuspendUser(user._id, false)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 rounded-xl font-bold transition-colors border border-gray-200 dark:border-gray-700"
+                      >
+                        <Unlock className="w-4 h-4" /> Lift Suspension
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Additional Info */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Additional Information</h4>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Last Login:</span>
-                <span className="text-sm text-gray-900">
-                  {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Email Verified:</span>
-                <span className="text-sm text-gray-900">
-                  {user.emailVerified ? 'Yes' : 'No'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Profile Complete:</span>
-                <span className="text-sm text-gray-900">
-                  {user.profileComplete ? 'Yes' : 'No'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Close
-            </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -1216,7 +1330,7 @@ const FeedbackAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
               <div className="flex items-start justify-between p-4 gap-4">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   {fb.user?.photo && fb.user.photo !== 'default-avatar.png'
-                    ? <img src={fb.user.photo} alt={fb.user.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                    ? <img loading="lazy" src={fb.user.photo} alt={fb.user.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                     : <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center text-sm font-bold text-gray-500">{(fb.user?.name || fb.name || '?')[0].toUpperCase()}</div>
                   }
                   <div className="min-w-0">

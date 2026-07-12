@@ -140,7 +140,7 @@ const Network = () => {
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
-                      <img src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
+                      <img loading="lazy" src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
                     ) : (
                       <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
                     )}
@@ -182,7 +182,7 @@ const Network = () => {
                 <div className="flex items-start space-x-4 mb-4">
                   <div className="relative">
                     {user.photo && user.photo !== 'default-avatar.png' ? (
-                      <img src={user.photo} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-soft flex-shrink-0" />
+                      <img loading="lazy" src={user.photo} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-soft flex-shrink-0" />
                     ) : (
                       <DefaultAvatar className="w-16 h-16 flex-shrink-0" />
                     )}

@@ -37,7 +37,12 @@ const notificationSchema = new mongoose.Schema({
       'profile-view',
       'system-announcement',
       'admin-approval',
-      'admin-rejection'
+      'admin-rejection',
+      'account_approved',
+      'account_rejected',
+      'role_changed',
+      'account_suspended',
+      'account_unsuspended'
     ],
     required: [true, 'Notification type is required']
   },

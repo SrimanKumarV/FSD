@@ -25,7 +25,17 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  frameguard: {
+    action: 'deny'
+  },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      frameAncestors: ["'none'"]
+    }
+  }
+}));
 app.use(compression());
 app.use(morgan('combined'));
 app.use(cors({

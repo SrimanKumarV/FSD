@@ -323,7 +323,7 @@ const Mentorship = () => {
                     <div className="relative z-10 flex items-start space-x-4 mb-4">
                       <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
                         {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
-                          <img src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
                         ) : (
                           <DefaultAvatar className="w-full h-full" />
                         )}
@@ -427,7 +427,7 @@ const Mentorship = () => {
                           {user.role === 'alumni' ? (
                             <>
                               {mentorship.student?.photo && mentorship.student.photo !== 'default-avatar.png' ? (
-                                <img src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
+                                <img loading="lazy" src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
                                 <DefaultAvatar className="w-6 h-6" />
                               )}
@@ -436,7 +436,7 @@ const Mentorship = () => {
                           ) : (
                             <>
                               {mentorship.mentor?.photo && mentorship.mentor.photo !== 'default-avatar.png' ? (
-                                <img src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
+                                <img loading="lazy" src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
                               ) : (
                                 <DefaultAvatar className="w-6 h-6" />
                               )}

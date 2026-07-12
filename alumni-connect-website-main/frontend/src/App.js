@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
@@ -10,47 +10,45 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CallProvider } from './contexts/CallContext';
 import GlobalCallOverlay from './components/chat/VideoCallOverlay';
+import { WifiOff } from 'lucide-react';
 
 // Components
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Pages
-import Home from './pages/Home';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import VerifyEmail from './pages/auth/VerifyEmail';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Mentorship from './pages/Mentorship';
-import Jobs from './pages/Jobs';
-import Events from './pages/Events';
-import Forum from './pages/Forum';
-import Contests from './pages/Contests';
-import Chat from './pages/Chat';
-import Admin from './pages/Admin';
-import NotFound from './pages/NotFound';
-import Network from './pages/Network';
-import Settings from './pages/Settings';
-import Notifications from './pages/Notifications';
-import DevPulse from './pages/DevPulse';
-import Leaderboard from './pages/Leaderboard';
-import UserProfile from './pages/UserProfile';
-import Feedback from './pages/Feedback';
-import HelpCentrePage from './pages/HelpCentrePage';
+// Pages - Lazy Loaded for Performance
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const Register = lazy(() => import('./pages/auth/Register'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const VerifyEmail = lazy(() => import('./pages/auth/VerifyEmail'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Mentorship = lazy(() => import('./pages/Mentorship'));
+const Jobs = lazy(() => import('./pages/Jobs'));
+const Events = lazy(() => import('./pages/Events'));
+const Forum = lazy(() => import('./pages/Forum'));
+const Contests = lazy(() => import('./pages/Contests'));
+const Chat = lazy(() => import('./pages/Chat'));
+const Admin = lazy(() => import('./pages/Admin'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Network = lazy(() => import('./pages/Network'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const DevPulse = lazy(() => import('./pages/DevPulse'));
+const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const Feedback = lazy(() => import('./pages/Feedback'));
+const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 
-// Legal and Support Pages
-import PrivacyPolicy from './pages/legal/PrivacyPolicy';
-import TermsConditions from './pages/legal/TermsConditions';
-import CookiePolicy from './pages/legal/CookiePolicy';
-import HelpCentre from './pages/support/HelpCentre';
-import ContactUs from './pages/support/ContactUs';
-import FAQ from './pages/support/FAQ';
-
-
-import { WifiOff } from 'lucide-react';
+// Legal and Support Pages - Lazy Loaded
+const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
+const TermsConditions = lazy(() => import('./pages/legal/TermsConditions'));
+const CookiePolicy = lazy(() => import('./pages/legal/CookiePolicy'));
+const HelpCentre = lazy(() => import('./pages/support/HelpCentre'));
+const ContactUs = lazy(() => import('./pages/support/ContactUs'));
+const FAQ = lazy(() => import('./pages/support/FAQ'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -111,7 +109,12 @@ function App() {
                     <div className="animated-bg"></div>
 
                   <ErrorBoundary>
-                    <Routes>
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center min-h-screen">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                      </div>
+                    }>
+                      <Routes>
                     {/* Public Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
@@ -267,6 +270,7 @@ function App() {
                   {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
                 </ErrorBoundary>
                 
                 {/* Toast Notifications */}

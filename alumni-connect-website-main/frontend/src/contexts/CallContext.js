@@ -36,6 +36,7 @@ export const CallProvider = ({ children }) => {
   const incomingCallRef = useRef(null);
   const localStreamRef = useRef(null);
   const callStatusRef = useRef('idle');
+  const pendingCandidatesRef = useRef([]);
 
   useEffect(() => { callInfoRef.current = callInfo; }, [callInfo]);
   useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
@@ -72,6 +73,7 @@ export const CallProvider = ({ children }) => {
       pcRef.current.close();
       pcRef.current = null;
     }
+    pendingCandidatesRef.current = [];
   };
 
   const resetCall = () => {
@@ -162,15 +164,29 @@ export const CallProvider = ({ children }) => {
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           socket.emit('call:ice-candidate', { targetId, candidate: { type: 'answer', sdp: answer } });
+
+          // Process queued ICE candidates
+          pendingCandidatesRef.current.forEach(async (c) => {
+            try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
+          });
+          pendingCandidatesRef.current = [];
         } 
         else if (candidate.type === 'answer') {
           if (pcRef.current) {
             await pcRef.current.setRemoteDescription(new RTCSessionDescription(candidate.sdp));
+            // Process queued ICE candidates
+            pendingCandidatesRef.current.forEach(async (c) => {
+              try { await pcRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
+            });
+            pendingCandidatesRef.current = [];
           }
         } 
         else if (candidate.type === 'ice') {
-          if (pcRef.current && candidate.candidate) {
+          if (pcRef.current && pcRef.current.remoteDescription && candidate.candidate) {
             await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate.candidate));
+          } else if (candidate.candidate) {
+            // Queue ICE candidates that arrive before remote description is set
+            pendingCandidatesRef.current.push(candidate.candidate);
           }
         }
       } catch (err) {
@@ -180,6 +196,15 @@ export const CallProvider = ({ children }) => {
 
     const handleEnded = ({ reason }) => {
       console.log('[CallContext] Call ended by remote. Reason:', reason);
+      if (callInfoRef.current?.isInitiator && callStatusRef.current === 'outgoing') {
+        const targetId = callInfoRef.current.targetId;
+        const status = reason === 'rejected' ? 'rejected' : 'missed';
+        socket.emit('message:send', {
+          receiverId: targetId,
+          content: JSON.stringify({ type: callInfoRef.current.isVideo ? 'video' : 'audio', status, duration: '0:00' }),
+          messageType: 'call-log',
+        });
+      }
       resetCall();
     };
 
@@ -201,7 +226,8 @@ export const CallProvider = ({ children }) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
       setLocalStream(stream);
-      setCallInfo({ targetId, isVideo });
+      localStreamRef.current = stream; // Immediately set ref for socket callbacks
+      setCallInfo({ targetId, isVideo, isInitiator: true });
       setCallStatus('outgoing');
       
       socket.emit('call:request', {
@@ -222,7 +248,8 @@ export const CallProvider = ({ children }) => {
       stopRingtone();
       const stream = await navigator.mediaDevices.getUserMedia({ video: incCall.isVideo, audio: true });
       setLocalStream(stream);
-      setCallInfo({ targetId: incCall.callerId, isVideo: incCall.isVideo });
+      localStreamRef.current = stream; // Immediately set ref for signal generation
+      setCallInfo({ targetId: incCall.callerId, isVideo: incCall.isVideo, isInitiator: false });
       setCallStatus('connected');
       
       socket.emit('call:answer', {
@@ -245,10 +272,10 @@ export const CallProvider = ({ children }) => {
     const targetId = callInfoRef.current?.targetId || incomingCallRef.current?.callerId;
     if (targetId && socket) {
       socket.emit('call:end', { targetId, reason });
-      if (callStatusRef.current === 'outgoing') {
+      if (callInfoRef.current?.isInitiator && callStatusRef.current === 'outgoing') {
         socket.emit('message:send', {
           receiverId: targetId,
-          content: JSON.stringify({ type: callInfoRef.current?.isVideo ? 'video' : 'audio', status: 'missed', duration: '0:00' }),
+          content: JSON.stringify({ type: callInfoRef.current.isVideo ? 'video' : 'audio', status: 'missed', duration: '0:00' }),
           messageType: 'call-log',
         });
       }

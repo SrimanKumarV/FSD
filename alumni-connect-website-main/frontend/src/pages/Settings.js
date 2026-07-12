@@ -27,15 +27,9 @@ const Settings = () => {
     document.cookie = `googtrans=/en/${langCode}; path=/;`;
     document.cookie = `googtrans=/en/${langCode}; path=/; domain=${window.location.hostname};`;
 
-    const selectElement = document.querySelector('.goog-te-combo');
-    if (selectElement) {
-      selectElement.value = langCode;
-      selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-      toast.success('Language updated!');
-    } else {
-      // If widget isn't loaded yet, reload the page to apply the cookie
-      window.location.reload();
-    }
+    // The most robust way to ensure Google Translate picks up the new language
+    // and translates the entire DOM instantly is to reload the page.
+    window.location.reload();
   };
 
   // State for Account Deletion

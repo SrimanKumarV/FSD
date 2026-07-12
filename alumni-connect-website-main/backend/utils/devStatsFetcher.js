@@ -4,7 +4,11 @@ const cheerio = require('cheerio');
 const fetchGitHubStats = async (username) => {
   if (!username) return null;
   try {
-    const response = await axios.get(`https://api.github.com/users/${username}`);
+    const headers = { 'User-Agent': 'AlumnexConnect-App' };
+    if (process.env.GITHUB_TOKEN) {
+      headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
+    }
+    const response = await axios.get(`https://api.github.com/users/${username}`, { headers });
     return {
       publicRepos: response.data.public_repos,
       followers: response.data.followers,
@@ -72,12 +76,13 @@ const fetchLeetCodeStats = async (username) => {
 const fetchHackerRankStats = async (username) => {
   if (!username) return null;
   try {
+    const headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' };
     // HackerRank provides a REST endpoint for profiles
-    const response = await axios.get(`https://www.hackerrank.com/rest/hackers/${username}/profile`);
+    const response = await axios.get(`https://www.hackerrank.com/rest/hackers/${username}/profile`, { headers });
     const model = response.data.model;
     
     // Fetch badges
-    const badgesResponse = await axios.get(`https://www.hackerrank.com/rest/hackers/${username}/badges`);
+    const badgesResponse = await axios.get(`https://www.hackerrank.com/rest/hackers/${username}/badges`, { headers });
     const badgesCount = badgesResponse.data.models ? badgesResponse.data.models.length : 0;
 
     return {

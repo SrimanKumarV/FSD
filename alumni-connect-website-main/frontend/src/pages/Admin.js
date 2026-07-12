@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
@@ -299,14 +299,7 @@ const DashboardTab = ({ data, analyticsData, stats }) => {
     contentData.push({ name: 'No New Content', value: 1 });
   }
 
-  // Mock time-series data for user growth (since backend only returns totals)
-  // In a real scenario, the backend should return daily/weekly historical data.
-  const userGrowthData = [
-    { name: 'Week 1', Users: Math.floor((analyticsData?.analytics?.userGrowth?.total || 100) * 0.8) },
-    { name: 'Week 2', Users: Math.floor((analyticsData?.analytics?.userGrowth?.total || 100) * 0.85) },
-    { name: 'Week 3', Users: Math.floor((analyticsData?.analytics?.userGrowth?.total || 100) * 0.92) },
-    { name: 'Week 4', Users: analyticsData?.analytics?.userGrowth?.total || 100 },
-  ];
+  const userGrowthData = analyticsData?.analytics?.userGrowthSeries || [];
 
   return (
     <div className="space-y-6">
@@ -820,6 +813,21 @@ const SystemSettingsTab = () => {
   const [content, setContent] = useState('');
   const [type, setType] = useState('announcement');
   const [recipients, setRecipients] = useState('all');
+  const [specificUsers, setSpecificUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState('');
+  
+  // Debounce search value to avoid spamming the API
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(userSearch), 300);
+    return () => clearTimeout(timer);
+  }, [userSearch]);
+
+  const { data: searchResults, isLoading: searching } = useQuery(
+    ['admin-users-search', debouncedSearch],
+    () => api.get('/admin/users', { params: { q: debouncedSearch, limit: 10 } }).then(res => res.data),
+    { enabled: recipients === 'specific' && debouncedSearch.length >= 2 }
+  );
 
   const sendNotificationMutation = useMutation(
     (data) => api.post('/admin/notifications', data),
@@ -828,6 +836,8 @@ const SystemSettingsTab = () => {
         toast.success('System notification sent successfully!');
         setTitle('');
         setContent('');
+        setSpecificUsers([]);
+        setUserSearch('');
         queryClient.invalidateQueries(['notifications']);
       },
       onError: (error) => {
@@ -842,7 +852,17 @@ const SystemSettingsTab = () => {
       toast.error('Title and content are required');
       return;
     }
-    sendNotificationMutation.mutate({ title, content, type, recipients });
+    if (recipients === 'specific' && specificUsers.length === 0) {
+      toast.error('Please select at least one specific user');
+      return;
+    }
+    sendNotificationMutation.mutate({ 
+      title, 
+      content, 
+      type, 
+      recipients,
+      specificUsers: specificUsers.map(u => u._id)
+    });
   };
 
   return (
@@ -885,9 +905,77 @@ const SystemSettingsTab = () => {
                   <option value="all">All Users</option>
                   <option value="alumni">Alumni Only</option>
                   <option value="students">Students Only</option>
+                  <option value="specific">Specific Users</option>
                 </select>
               </div>
             </div>
+
+            {/* Specific Users Selection */}
+            {recipients === 'specific' && (
+              <div className="bg-white/50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Search Users</label>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="Search by name or email..."
+                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm outline-none"
+                  />
+                </div>
+                
+                {/* Search Results */}
+                {userSearch.length >= 2 && (
+                  <div className="mb-4 max-h-40 overflow-y-auto space-y-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2">
+                    {searching ? (
+                      <div className="text-center text-xs text-gray-500 py-2">Searching...</div>
+                    ) : searchResults?.users?.length > 0 ? (
+                      searchResults.users.map(u => (
+                        <div key={u._id} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md">
+                          <span className="text-sm font-medium dark:text-gray-200">{u.name} <span className="text-xs text-gray-400">({u.email})</span></span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!specificUsers.find(su => su._id === u._id)) {
+                                setSpecificUsers([...specificUsers, u]);
+                              }
+                              setUserSearch('');
+                            }}
+                            className="text-primary-600 hover:text-primary-700 text-xs font-semibold px-2 py-1 bg-primary-50 dark:bg-primary-900/30 rounded"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-xs text-gray-500 py-2">No users found</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Selected Users */}
+                {specificUsers.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-2">Selected Users ({specificUsers.length})</label>
+                    <div className="flex flex-wrap gap-2">
+                      {specificUsers.map(u => (
+                        <div key={u._id} className="flex items-center gap-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-md text-xs font-medium">
+                          {u.name}
+                          <button
+                            type="button"
+                            onClick={() => setSpecificUsers(specificUsers.filter(su => su._id !== u._id))}
+                            className="hover:text-primary-900 dark:hover:text-primary-100 ml-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Broadcast Title</label>

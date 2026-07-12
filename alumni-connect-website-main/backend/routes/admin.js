@@ -501,6 +501,27 @@ router.get('/analytics', [protect, admin], async (req, res) => {
         startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     }
 
+    // Calculate real user growth series (cumulative for last 4 weeks)
+    const now = Date.now();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    
+    const week1Date = new Date(now - 3 * oneWeek);
+    const week2Date = new Date(now - 2 * oneWeek);
+    const week3Date = new Date(now - 1 * oneWeek);
+    const week4Date = new Date(now);
+
+    const week1Users = await User.countDocuments({ createdAt: { $lte: week1Date } });
+    const week2Users = await User.countDocuments({ createdAt: { $lte: week2Date } });
+    const week3Users = await User.countDocuments({ createdAt: { $lte: week3Date } });
+    const week4Users = await User.countDocuments({ createdAt: { $lte: week4Date } });
+
+    const userGrowthSeries = [
+      { name: 'Week 1', Users: week1Users },
+      { name: 'Week 2', Users: week2Users },
+      { name: 'Week 3', Users: week3Users },
+      { name: 'Week 4', Users: week4Users }
+    ];
+
     const analytics = {
       userGrowth: {
         total: await User.countDocuments(),
@@ -519,7 +540,8 @@ router.get('/analytics', [protect, admin], async (req, res) => {
         ]).then(result => result[0]?.total || 0),
         totalMentorships: await require('../models/Mentorship').countDocuments(),
         totalMessages: await require('../models/Message').countDocuments()
-      }
+      },
+      userGrowthSeries
     };
 
     res.json({ analytics });

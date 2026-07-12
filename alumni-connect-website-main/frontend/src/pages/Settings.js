@@ -9,13 +9,64 @@ import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
 
 const Settings = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
+  // State for Account Deletion
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteOtp, setDeleteOtp] = useState('');
   const [deletingAccount, setDeletingAccount] = useState(false);
+
+  // State for Password Change
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordOtp, setPasswordOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const requestPasswordOtp = async () => {
+    try {
+      setIsRequestingOtp(true);
+      await api.post('/auth/forgot-password', { email: user.email });
+      setShowPasswordModal(true);
+      toast.success('Security code sent to your email');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send security code');
+    } finally {
+      setIsRequestingOtp(false);
+    }
+  };
+
+  const confirmPasswordChange = async () => {
+    if (!passwordOtp || passwordOtp.length !== 6) {
+      toast.error('Please enter a valid 6-digit security code');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+    
+    try {
+      setIsChangingPassword(true);
+      await api.post('/auth/reset-password', { 
+        email: user.email, 
+        otp: passwordOtp, 
+        newPassword: newPassword 
+      });
+      toast.success('Password changed successfully');
+      setShowPasswordModal(false);
+      setPasswordOtp('');
+      setNewPassword('');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+
 
   const requestDeleteAccount = async () => {
     try {
@@ -94,10 +145,36 @@ const Settings = () => {
             <DevProfileSettings />
           </div>
 
+          {/* Security & Authentication */}
+          <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <ShieldAlert className="w-5 h-5 mr-2 text-primary-500" />
+              Security & Authentication
+            </h3>
+            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">Change Password</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Securely update your password. We will send a confirmation code to <strong>{user?.email}</strong>.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={requestPasswordOtp}
+                  disabled={isRequestingOtp}
+                  className="mt-4 md:mt-0 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center shadow-sm"
+                >
+                  {isRequestingOtp && !showPasswordModal ? 'Sending Code...' : 'Change Password'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Danger Zone */}
           <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
             <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4 flex items-center">
-              <ShieldAlert className="w-5 h-5 mr-2" />
+              <Trash2 className="w-5 h-5 mr-2" />
               Danger Zone
             </h3>
             <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30">
@@ -158,6 +235,70 @@ const Settings = () => {
                 className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
               >
                 {deletingAccount ? 'Deleting...' : 'Confirm Deletion'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-700"
+          >
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Verify Identity</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm">
+              We've sent a 6-digit security code to <strong>{user?.email}</strong>. Please enter it below along with your new password.
+            </p>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Security Code (OTP)</label>
+                <input
+                  type="text"
+                  value={passwordOtp}
+                  onChange={(e) => setPasswordOtp(e.target.value)}
+                  placeholder="Enter 6-digit code"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
+                  maxLength={6}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordOtp('');
+                  setNewPassword('');
+                }}
+                disabled={isChangingPassword}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmPasswordChange}
+                disabled={isChangingPassword || passwordOtp.length !== 6 || newPassword.length < 6}
+                className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
+              >
+                {isChangingPassword ? 'Updating...' : 'Change Password'}
               </button>
             </div>
           </motion.div>

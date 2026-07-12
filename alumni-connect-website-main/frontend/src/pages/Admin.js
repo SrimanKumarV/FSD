@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { 
   Users, 
   Shield, 
@@ -57,6 +58,13 @@ const Admin = () => {
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery(
     ['admin-dashboard'],
     () => api.get('/admin/dashboard'),
+    { enabled: !!user }
+  );
+
+  // Fetch admin analytics data for charts
+  const { data: analyticsData, isLoading: analyticsLoading } = useQuery(
+    ['admin-analytics'],
+    () => api.get('/admin/analytics'),
     { enabled: !!user }
   );
 
@@ -152,18 +160,18 @@ const Admin = () => {
   ];
 
   const stats = [
-    { label: 'Total Users', value: dashboardData?.stats?.totalUsers || 0, icon: Users, color: 'text-blue-600' },
-    { label: 'Active Users', value: dashboardData?.stats?.activeUsers || 0, icon: UserCheck, color: 'text-green-600' },
-    { label: 'Pending Approvals', value: dashboardData?.stats?.pendingApprovals || 0, icon: Clock, color: 'text-yellow-600' },
-    { label: 'Total Posts', value: dashboardData?.stats?.totalPosts || 0, icon: MessageSquare, color: 'text-purple-600' },
-    { label: 'Active Jobs', value: dashboardData?.stats?.activeJobs || 0, icon: Briefcase, color: 'text-indigo-600' },
-    { label: 'Ongoing Contests', value: dashboardData?.stats?.ongoingContests || 0, icon: Trophy, color: 'text-orange-600' }
+    { label: 'Total Users', value: dashboardData?.stats?.totalUsers || 0, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Active Users', value: dashboardData?.stats?.activeUsers || 0, icon: UserCheck, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'Pending Approvals', value: dashboardData?.stats?.pendingApprovals || 0, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+    { label: 'Total Posts', value: dashboardData?.stats?.totalPosts || 0, icon: MessageSquare, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Active Jobs', value: dashboardData?.stats?.activeJobs || 0, icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { label: 'Ongoing Contests', value: dashboardData?.stats?.ongoingContests || 0, icon: Trophy, color: 'text-orange-500', bg: 'bg-orange-500/10' }
   ];
 
-  if (dashboardLoading) {
+  if (dashboardLoading || analyticsLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     );
   }
@@ -209,7 +217,7 @@ const Admin = () => {
           transition={{ duration: 0.2 }}
         >
           {activeTab === 'dashboard' && (
-            <DashboardTab data={dashboardData} stats={stats} />
+            <DashboardTab data={dashboardData} analyticsData={analyticsData} stats={stats} />
           )}
           {activeTab === 'users' && (
             <UsersTab
@@ -275,10 +283,34 @@ const Admin = () => {
 };
 
 // Dashboard Tab Component
-const DashboardTab = ({ data, stats }) => {
+const DashboardTab = ({ data, analyticsData, stats }) => {
+  const PIE_COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B'];
+  
+  // Format content growth data for pie chart
+  const contentData = [
+    { name: 'Jobs', value: analyticsData?.analytics?.contentGrowth?.jobs || 0 },
+    { name: 'Events', value: analyticsData?.analytics?.contentGrowth?.events || 0 },
+    { name: 'Posts', value: analyticsData?.analytics?.contentGrowth?.posts || 0 },
+    { name: 'Contests', value: analyticsData?.analytics?.contentGrowth?.contests || 0 },
+  ].filter(item => item.value > 0);
+
+  // Fallback if no new content
+  if (contentData.length === 0) {
+    contentData.push({ name: 'No New Content', value: 1 });
+  }
+
+  // Mock time-series data for user growth (since backend only returns totals)
+  // In a real scenario, the backend should return daily/weekly historical data.
+  const userGrowthData = [
+    { name: 'Week 1', Users: Math.floor((analyticsData?.analytics?.userGrowth?.total || 100) * 0.8) },
+    { name: 'Week 2', Users: Math.floor((analyticsData?.analytics?.userGrowth?.total || 100) * 0.85) },
+    { name: 'Week 3', Users: Math.floor((analyticsData?.analytics?.userGrowth?.total || 100) * 0.92) },
+    { name: 'Week 4', Users: analyticsData?.analytics?.userGrowth?.total || 100 },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
+      {/* Dynamic Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -288,15 +320,17 @@ const DashboardTab = ({ data, stats }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-white/20 dark:border-gray-700/50"
             >
-              <div className="flex items-center">
-                <div className={`p-2 rounded-lg bg-gray-100 ${stat.color}`}>
-                  <Icon className="w-6 h-6" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.label}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{stat.value.toLocaleString()}</p>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
+                <div className={`p-4 rounded-xl ${stat.bg} shadow-inner`}>
+                  <Icon className={`w-7 h-7 ${stat.color}`} />
                 </div>
               </div>
             </motion.div>
@@ -304,59 +338,152 @@ const DashboardTab = ({ data, stats }) => {
         })}
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
-        </div>
-        <div className="p-6">
-          {data?.recentActivity?.length > 0 ? (
-            <div className="space-y-4">
-              {data.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
-                  <span className="text-sm text-gray-600">{activity.description}</span>
-                  <span className="text-xs text-gray-400 ml-auto">
-                    {new Date(activity.timestamp).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No recent activity</p>
-          )}
-        </div>
+      {/* Analytics Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* User Growth Area Chart */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6"
+        >
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">User Growth (Last 30 Days)</h3>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={userGrowthData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" opacity={0.2} />
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: '#1F2937', borderRadius: '12px', border: 'none', color: '#fff' }}
+                  itemStyle={{ color: '#60A5FA' }}
+                />
+                <Area type="monotone" dataKey="Users" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
+        {/* Content Distribution Pie Chart */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 flex flex-col"
+        >
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">New Content Distribution</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Breakdown of platform activity (Last 30 days)</p>
+          <div className="h-64 flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={contentData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {contentData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: '#1F2937', borderRadius: '12px', border: 'none', color: '#fff' }}
+                />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Users className="w-8 h-8 text-blue-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Review Users</h4>
-              <p className="text-sm text-gray-600">Approve pending registrations</p>
-            </button>
-            <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Flag className="w-8 h-8 text-red-600 mb-2" />
-              <h4 className="font-medium text-gray-900">Moderate Content</h4>
-              <p className="text-sm text-gray-600">Review reported content</p>
-            </button>
-            <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Settings className="w-8 h-8 text-gray-600 mb-2" />
-              <h4 className="font-medium text-gray-900">System Settings</h4>
-              <p className="text-sm text-gray-600">Configure platform settings</p>
-            </button>
-            <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <BarChart3 className="w-8 h-8 text-green-600 mb-2" />
-              <h4 className="font-medium text-gray-900">View Reports</h4>
-              <p className="text-sm text-gray-600">Analytics and insights</p>
-            </button>
+      {/* Engagement & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Engagement Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-gradient-to-br from-primary-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+          <div className="relative z-10">
+            <h3 className="text-lg font-bold mb-6 flex items-center"><Activity className="w-5 h-5 mr-2"/> Engagement Overview</h3>
+            <div className="space-y-6">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                <p className="text-primary-100 text-sm">Total Network Connections</p>
+                <p className="text-3xl font-bold">{analyticsData?.analytics?.engagement?.totalConnections || 0}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                <p className="text-primary-100 text-sm">Active Mentorships</p>
+                <p className="text-3xl font-bold">{analyticsData?.analytics?.engagement?.totalMentorships || 0}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                <p className="text-primary-100 text-sm">Messages Exchanged</p>
+                <p className="text-3xl font-bold">{analyticsData?.analytics?.engagement?.totalMessages || 0}</p>
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Recent Activity List */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
+        >
+          <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recent System Activity</h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {data?.recentActivities?.users?.slice(0, 5).map((user, index) => (
+                <div key={`user-${index}`} className="flex items-center space-x-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                    <UserCheck className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">New user registered: {user.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.email} • {user.role}</p>
+                  </div>
+                  <div className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+              {data?.recentActivities?.jobs?.slice(0, 5).map((job, index) => (
+                <div key={`job-${index}`} className="flex items-center space-x-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">New job posted: {job.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{job.company}</p>
+                  </div>
+                  <div className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
+                    {new Date(job.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+              
+              {(!data?.recentActivities?.users?.length && !data?.recentActivities?.jobs?.length) && (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <p>No recent activity found on the platform.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

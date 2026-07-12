@@ -492,9 +492,9 @@ const DashboardTab = ({ data, analyticsData, stats }) => {
 // Users Tab Component
 const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspendUser, onUpdateRole, onSelectUser, onShowModal }) => {
   const getStatusColor = (user) => {
-    if (user.isSuspended) return 'bg-red-100 text-red-800';
-    if (user.role === 'alumni' && !user.isApproved) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
+    if (user.isSuspended) return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
+    if (user.role === 'alumni' && !user.isApproved) return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
+    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
   };
 
   const getStatusText = (user) => {
@@ -505,38 +505,38 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'admin':
-        return 'bg-purple-100 text-purple-800';
-      case 'alumni':
-        return 'bg-blue-100 text-blue-800';
-      case 'student':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
+      case 'alumni': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+      case 'student': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+      default: return 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20';
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      {/* Filters (Glassmorphism) */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-2xl border border-white/20 dark:border-gray-700/50 p-6"
+      >
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder="Search users by name or email..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none text-gray-900 dark:text-white"
               />
             </div>
           </div>
           <select
             value={filters.role}
             onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="px-4 py-3 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
           >
             <option value="">All Roles</option>
             <option value="admin">Admin</option>
@@ -546,7 +546,7 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="px-4 py-3 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
@@ -554,117 +554,100 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
             <option value="suspended">Suspended</option>
           </select>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">User Management</h3>
+      {/* Users Modern Table */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass-card rounded-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden"
+      >
+        <div className="px-6 py-5 border-b border-gray-200/50 dark:border-gray-700/50 flex justify-between items-center bg-white/30 dark:bg-gray-800/30">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">User Directory</h3>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{data?.users?.length || 0} users found</span>
         </div>
         
         {loading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="p-12 flex justify-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500"></div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
+              <thead className="bg-gray-50/50 dark:bg-gray-800/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data?.users?.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50">
+              <tbody className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                {data?.users?.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                      No users found matching the filters.
+                    </td>
+                  </tr>
+                ) : data?.users?.map((user) => (
+                  <tr key={user._id} className="hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {user.photo && user.photo !== 'default-avatar.png' ? (
-                          <img src={user.photo} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                          <img src={user.photo} alt={user.name} className="w-10 h-10 rounded-xl object-cover shadow-sm border border-gray-200 dark:border-gray-700" />
                         ) : (
                           <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
                         )}
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-white">{user.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                        {user.role === 'admin' && <Crown className="w-3 h-3 mr-1" />}
-                        {user.role}
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg border ${getRoleColor(user.role)}`}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user)}`}>
-                        {getStatusText(user) === 'Active' && <CheckCircle className="w-3 h-3 mr-1" />}
-                        {getStatusText(user) === 'Suspended' && <XCircle className="w-3 h-3 mr-1" />}
-                        {getStatusText(user) === 'Pending Approval' && <Clock className="w-3 h-3 mr-1" />}
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg border ${getStatusColor(user)}`}>
                         {getStatusText(user)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <button
+                        onClick={() => {
+                          onSelectUser(user);
+                          onShowModal(true);
+                        }}
+                        className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                        title="Edit User"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </button>
+                      
+                      {user.role === 'alumni' && !user.isApproved && (
                         <button
-                          onClick={() => {
-                            onSelectUser(user);
-                            onShowModal(true);
-                          }}
-                          className="text-primary-600 hover:text-primary-900"
+                          onClick={() => onApproveUser(user._id)}
+                          className="text-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg"
+                          title="Approve Alumni"
                         >
-                          <Eye className="w-4 h-4" />
+                          <CheckCircle className="w-4 h-4" />
                         </button>
-                        <select
-                          value={user.role}
-                          onChange={(e) => onUpdateRole(user._id, e.target.value)}
-                          className="text-xs border border-gray-300 rounded px-2 py-1"
-                        >
-                          <option value="student">Student</option>
-                          <option value="alumni">Alumni</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                        {user.role === 'alumni' && !user.isApproved && (
-                          <button
-                            onClick={() => onApproveUser(user._id, true)}
-                            className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-md hover:bg-green-200 font-semibold"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {!user.isSuspended ? (
-                          <button
-                            onClick={() => onSuspendUser(user._id, true)}
-                            className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-md hover:bg-red-200 font-semibold"
-                          >
-                            Suspend
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => onSuspendUser(user._id, false)}
-                            className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-200 font-semibold"
-                          >
-                            Unsuspend
-                          </button>
-                        )}
-                      </div>
+                      )}
+                      
+                      <button
+                        onClick={() => onSuspendUser(user._id, !user.isSuspended)}
+                        className={`${user.isSuspended ? 'text-green-500 hover:text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'} transition-colors p-2 rounded-lg`}
+                        title={user.isSuspended ? "Unsuspend User" : "Suspend User"}
+                      >
+                        {user.isSuspended ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -672,19 +655,160 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
             </table>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 // Content Moderation Tab Component
 const ContentModerationTab = () => {
+  const queryClient = useQueryClient();
+  const [activeModTab, setActiveModTab] = useState('jobs');
+  
+  // Fetch flagged content
+  const { data: moderationData, isLoading } = useQuery(
+    ['admin-moderation'],
+    () => api.get('/admin/moderation')
+  );
+
+  // Moderate content mutation
+  const moderateMutation = useMutation(
+    ({ type, id, action, reason }) => api.post(`/admin/moderate/${type}/${id}`, { action, reason }),
+    {
+      onSuccess: () => {
+        toast.success('Action applied successfully');
+        queryClient.invalidateQueries(['admin-moderation']);
+      },
+      onError: (error) => toast.error(error.response?.data?.message || 'Failed to apply action')
+    }
+  );
+
+  const handleModerate = (type, id, action) => {
+    let reason = '';
+    if (action === 'reject' || action === 'warn') {
+      reason = window.prompt(`Please provide a reason for this ${action}:`);
+      if (reason === null) return; // User cancelled
+    }
+    moderateMutation.mutate({ type, id, action, reason });
+  };
+
+  const modTabs = [
+    { id: 'jobs', label: 'Jobs', icon: Briefcase },
+    { id: 'events', label: 'Events', icon: Calendar },
+    { id: 'posts', label: 'Forum Posts', icon: MessageSquare },
+    { id: 'contests', label: 'Contests', icon: Trophy }
+  ];
+
+  const renderContentList = (items, type) => {
+    if (!items || items.length === 0) {
+      return (
+        <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+          <Shield className="w-12 h-12 mx-auto mb-4 opacity-20" />
+          <p>No flagged {type} found. Queue is clean!</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {items.map((item) => (
+          <div key={item._id} className="p-5 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+            <div className="flex justify-between items-start">
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white">{item.title || item.content?.substring(0, 50)}</h4>
+                <p className="text-sm text-gray-500 mt-1">Posted by: {item.author?.name || item.creator?.name || 'Unknown User'}</p>
+                <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-900 p-3 rounded-lg">
+                  {item.description || item.content}
+                </div>
+                {item.moderationFlags?.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {item.moderationFlags.map((flag, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-semibold rounded-md flex items-center">
+                        <Flag className="w-3 h-3 mr-1" /> {flag.reason}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col space-y-2 ml-4">
+                <button
+                  onClick={() => handleModerate(type, item._id, 'approve')}
+                  disabled={moderateMutation.isLoading}
+                  className="px-4 py-2 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-sm font-bold flex items-center justify-center transition-colors"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                </button>
+                <button
+                  onClick={() => handleModerate(type, item._id, 'reject')}
+                  disabled={moderateMutation.isLoading}
+                  className="px-4 py-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 rounded-lg text-sm font-bold flex items-center justify-center transition-colors"
+                >
+                  <Ban className="w-4 h-4 mr-1" /> Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Content Moderation</h3>
-        <p className="text-gray-600 dark:text-gray-400">Content moderation features will be implemented here.</p>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden"
+      >
+        <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+              <Shield className="w-5 h-5 mr-2 text-primary-500" />
+              Content Moderation Queue
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Review flagged content reported by users or automated systems.</p>
+          </div>
+        </div>
+
+        <div className="border-b border-gray-200 dark:border-gray-700 px-6">
+          <nav className="-mb-px flex space-x-6 overflow-x-auto">
+            {modTabs.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeModTab === tab.id;
+              const count = moderationData?.data?.[tab.id]?.length || 0;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveModTab(tab.id)}
+                  className={`py-4 px-1 inline-flex items-center text-sm font-bold border-b-2 transition-colors ${
+                    isActive
+                      ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {tab.label}
+                  {count > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700'}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="p-6 bg-gray-50/50 dark:bg-gray-900/20">
+          {isLoading ? (
+            <div className="p-12 flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+            </div>
+          ) : (
+            renderContentList(moderationData?.data?.[activeModTab], activeModTab)
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };
@@ -705,7 +829,6 @@ const SystemSettingsTab = () => {
         setTitle('');
         setContent('');
         queryClient.invalidateQueries(['notifications']);
-        queryClient.invalidateQueries(['messages']); // For the inbox
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to send notification');
@@ -724,80 +847,80 @@ const SystemSettingsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Send System Announcement</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Send a notification and email to users across the platform.</p>
-        
-        <form onSubmit={handleSendNotification} className="space-y-4 max-w-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="announcement">Announcement</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="update">Update</option>
-                <option value="warning">Warning</option>
-              </select>
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-2xl border border-white/20 dark:border-gray-700/50 p-6 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="relative z-10">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center">
+            <Settings className="w-6 h-6 mr-2 text-primary-500" />
+            System Broadcasts
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-8 text-sm">Send a priority notification or email broadcast to users across the platform.</p>
+          
+          <form onSubmit={handleSendNotification} className="space-y-6 max-w-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Notification Type</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                >
+                  <option value="announcement">Public Announcement</option>
+                  <option value="maintenance">System Maintenance</option>
+                  <option value="update">Feature Update</option>
+                  <option value="warning">System Warning</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Target Audience</label>
+                <select
+                  value={recipients}
+                  onChange={(e) => setRecipients(e.target.value)}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                >
+                  <option value="all">All Users</option>
+                  <option value="alumni">Alumni Only</option>
+                  <option value="students">Students Only</option>
+                </select>
+              </div>
             </div>
+            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Recipients</label>
-              <select
-                value={recipients}
-                onChange={(e) => setRecipients(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="all">All Users</option>
-                <option value="alumni">Alumni Only</option>
-                <option value="students">Students Only</option>
-              </select>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Broadcast Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Scheduled Maintenance Notice"
+                className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+              />
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="E.g., Scheduled Maintenance"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={4}
-              placeholder="Write your announcement here..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              required
-            />
-          </div>
-          
-          <div className="flex justify-end pt-2">
+            
+            <div>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Message Body</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows="4"
+                placeholder="Type the full message here..."
+                className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none resize-none"
+              ></textarea>
+            </div>
+            
             <button
               type="submit"
               disabled={sendNotificationMutation.isLoading}
-              className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 transition-all disabled:opacity-50 flex items-center justify-center w-full md:w-auto"
             >
-              <Bell className="w-4 h-4 mr-2" />
-              {sendNotificationMutation.isLoading ? 'Sending...' : 'Send Announcement'}
+              {sendNotificationMutation.isLoading ? 'Broadcasting...' : 'Send Broadcast Notification'}
             </button>
-          </div>
-        </form>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 opacity-50">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Other Settings</h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">System configuration options will be implemented here.</p>
-      </div>
+          </form>
+        </div>
+      </motion.div>
     </div>
   );
 };

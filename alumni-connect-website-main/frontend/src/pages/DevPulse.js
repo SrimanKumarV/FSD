@@ -137,7 +137,14 @@ const PlatformCard = ({ platform, icon: Icon, label, color, bgGradient, stats, u
         </div>
       ) : (
         <div className="relative z-10">
-          <p className="text-slate-500 text-sm">Not linked yet</p>
+          {username ? (
+            <div className="space-y-1">
+              <p className="text-slate-400 text-sm">Linked: @{username}</p>
+              <p className="text-slate-500 text-xs italic">Stats unavailable or refreshing...</p>
+            </div>
+          ) : (
+            <p className="text-slate-500 text-sm">Not linked yet</p>
+          )}
         </div>
       )}
 

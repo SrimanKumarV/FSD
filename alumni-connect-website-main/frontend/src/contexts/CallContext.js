@@ -13,7 +13,17 @@ export const useCall = () => {
 const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:global.stun.twilio.com:3478' }
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
   ]
 };
 
@@ -124,6 +134,14 @@ export const CallProvider = ({ children }) => {
         setRemoteStream(e.streams[0]);
       };
 
+      pc.oniceconnectionstatechange = () => {
+        console.log('[WebRTC Initiator] ICE State:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+          console.error('[WebRTC] ICE Connection Failed');
+          endCall('network_error');
+        }
+      };
+
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -157,6 +175,14 @@ export const CallProvider = ({ children }) => {
 
             pc.ontrack = (e) => {
               setRemoteStream(e.streams[0]);
+            };
+
+            pc.oniceconnectionstatechange = () => {
+              console.log('[WebRTC Receiver] ICE State:', pc.iceConnectionState);
+              if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                console.error('[WebRTC] ICE Connection Failed');
+                endCall('network_error');
+              }
             };
           }
 

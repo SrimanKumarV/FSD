@@ -145,7 +145,7 @@ export const CallProvider = ({ children }) => {
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        socket.emit('call:ice-candidate', { targetId, candidate: { type: 'offer', sdp: offer } });
+        socket.emit('call:ice-candidate', { targetId, candidate: offer });
       } catch (err) {
         console.error('Error creating offer:', err);
       }
@@ -186,10 +186,10 @@ export const CallProvider = ({ children }) => {
             };
           }
 
-          await pc.setRemoteDescription(new RTCSessionDescription(candidate.sdp));
+          await pc.setRemoteDescription(new RTCSessionDescription(candidate));
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
-          socket.emit('call:ice-candidate', { targetId, candidate: { type: 'answer', sdp: answer } });
+          socket.emit('call:ice-candidate', { targetId, candidate: answer });
 
           // Process queued ICE candidates
           pendingCandidatesRef.current.forEach(async (c) => {
@@ -199,7 +199,7 @@ export const CallProvider = ({ children }) => {
         } 
         else if (candidate.type === 'answer') {
           if (pcRef.current) {
-            await pcRef.current.setRemoteDescription(new RTCSessionDescription(candidate.sdp));
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(candidate));
             // Process queued ICE candidates
             pendingCandidatesRef.current.forEach(async (c) => {
               try { await pcRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
@@ -283,6 +283,7 @@ export const CallProvider = ({ children }) => {
       });
     } catch (err) {
       console.error('Failed to get local media on answer:', err);
+      alert('Could not access camera/microphone to answer the call. It may be in use by another tab or blocked by your browser.');
       rejectCall();
     }
   };

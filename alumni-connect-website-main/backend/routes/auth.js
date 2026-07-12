@@ -52,6 +52,26 @@ router.post('/google', async (req, res) => {
       });
       await user.save();
       isNewUser = true;
+
+      // Send Welcome Email for OAuth
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Welcome to Alumnex Connect!',
+          message: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
+              <p>Hi ${user.name},</p>
+              <p>Your account has been successfully created via Google.</p>
+              <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
+              <br/>
+              <p>Best regards,<br/>The Alumnex Connect Team</p>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.error('Welcome email send error:', err);
+      }
     } else {
       let needsSave = false;
       if (!user.photo && picture) {
@@ -177,6 +197,26 @@ router.post('/github', async (req, res) => {
       });
       await user.save();
       isNewUser = true;
+
+      // Send Welcome Email for OAuth
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Welcome to Alumnex Connect!',
+          message: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
+              <p>Hi ${user.name},</p>
+              <p>Your account has been successfully created via GitHub.</p>
+              <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
+              <br/>
+              <p>Best regards,<br/>The Alumnex Connect Team</p>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.error('Welcome email send error:', err);
+      }
     } else {
       let needsSave = false;
       if (!user.photo && picture) {
@@ -669,6 +709,26 @@ router.post('/verify-email', [
     user.verificationOtp = undefined;
     user.verificationOtpExpires = undefined;
     await user.save();
+
+    // Send Welcome Email
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Welcome to Alumnex Connect!',
+        message: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
+            <p>Hi ${user.name},</p>
+            <p>Your email has been successfully verified, and your account is now active.</p>
+            <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
+            <br/>
+            <p>Best regards,<br/>The Alumnex Connect Team</p>
+          </div>
+        `
+      });
+    } catch (err) {
+      console.error('Welcome email send error:', err);
+    }
 
     const token = generateToken(user._id);
 

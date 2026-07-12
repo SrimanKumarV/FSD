@@ -625,29 +625,32 @@ router.post('/notifications', [protect, admin], [
     // Create the messages
     await Message.insertMany(messages);
 
-    // Send emails asynchronously without blocking the request
-    targetUsers.forEach(user => {
-      if (user.email) {
-        sendEmail({
-          email: user.email,
-          subject: title,
-          message: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
-              <p>Hello ${user.name || 'User'},</p>
-              <p>You have a new notification from the admin team:</p>
-              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
-                <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
+    // Send emails asynchronously only for feature updates or announcements
+    // Do not send for maintenance (bug fixes) or warnings
+    if (type === 'update' || type === 'announcement') {
+      targetUsers.forEach(user => {
+        if (user.email) {
+          sendEmail({
+            email: user.email,
+            subject: title,
+            message: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
+                <p>Hello ${user.name || 'User'},</p>
+                <p>We have a new update for you:</p>
+                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
+                  <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
+                </div>
+                <p>Log in to <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">your portal</a> to view more details.</p>
+                <br/>
+                <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
               </div>
-              <p>Log in to <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">your portal</a> to view more details.</p>
-              <br/>
-              <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
-            </div>
-          `
-        });
-      }
-    });
+            `
+          });
+        }
+      });
+    }
 
     res.json({ 
       message: `System notification sent to ${targetUsers.length} users`,

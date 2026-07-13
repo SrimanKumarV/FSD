@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, Check } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -13,7 +13,36 @@ const Notifications = () => {
     formatNotificationTime 
   } = useNotifications();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('all');
 
+  const TABS = [
+    { id: 'all', label: 'All' },
+    { id: 'social', label: 'Social' },
+    { id: 'chat', label: 'Chat' },
+    { id: 'system', label: 'System' }
+  ];
+
+  const filteredNotifications = notifications?.filter(notification => {
+    if (activeTab === 'all') return true;
+    switch (activeTab) {
+      case 'social':
+        return [
+          'forum-reply', 'forum-like', 'forum_reply',
+          'follow_request', 'follow_accept', 'follow_decline',
+          'connection-request', 'connection-accepted', 'profile-view'
+        ].includes(notification.type);
+      case 'chat':
+        return ['message-received'].includes(notification.type);
+      case 'system':
+        return [
+          'system-announcement', 'admin-approval', 'admin-rejection',
+          'account_approved', 'account_rejected', 'role_changed',
+          'account_suspended', 'account_unsuspended'
+        ].includes(notification.type);
+      default:
+        return true;
+    }
+  }) || [];
   const handleNotificationClick = (notification) => {
     if (!notification.isRead) markAsRead(notification._id);
     
@@ -78,8 +107,27 @@ const Notifications = () => {
           )}
         </div>
 
+        {/* Categories Tab Switcher */}
+        <div className="px-6 py-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/20">
+          <div className="flex space-x-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="p-0">
-          {(!notifications || notifications.length === 0) ? (
+          {filteredNotifications.length === 0 ? (
             <div className="py-16 text-center flex flex-col items-center">
               <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                 <Bell className="w-8 h-8 text-gray-400 dark:text-gray-500" />
@@ -89,7 +137,7 @@ const Notifications = () => {
             </div>
           ) : (
             <div className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
-              {notifications.map((notification) => (
+              {filteredNotifications.map((notification) => (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}

@@ -194,115 +194,127 @@ const Mentorship = () => {
           </div>
         </motion.div>
 
-        {/* Tabs */}
-        <div className="glass-card rounded-2xl mb-8 overflow-hidden">
-          <div className="border-b border-gray-200/50 dark:border-gray-700/50">
-            <nav className="flex space-x-8 px-6">
-              <button
-                onClick={() => setActiveTab('find')}
-                className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
-                  activeTab === 'find'
-                    ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                }`}
+        {/* Sticky Navigation and Search Area */}
+        <div className="sticky top-16 z-30 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md pt-4 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 border-b border-gray-200/50 dark:border-gray-800/50">
+          <div className="max-w-7xl mx-auto space-y-4">
+            {/* Tabs */}
+            <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+              <div className="border-b border-gray-200/50 dark:border-gray-700/50">
+                <nav className="flex space-x-8 px-6">
+                  <button
+                    onClick={() => setActiveTab('find')}
+                    className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                      activeTab === 'find'
+                        ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                  >
+                    {user.role === 'alumni' ? 'Find Students' : 'Find Mentors'}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('my-mentorships')}
+                    className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                      activeTab === 'my-mentorships'
+                        ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                  >
+                    My Mentorships
+                  </button>
+                </nav>
+              </div>
+            </div>
+
+            {/* Search and Filters for Find Tab */}
+            {activeTab === 'find' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm"
               >
-                {user.role === 'alumni' ? 'Find Students' : 'Find Mentors'}
-              </button>
-              <button
-                onClick={() => setActiveTab('my-mentorships')}
-                className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
-                  activeTab === 'my-mentorships'
-                    ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                }`}
-              >
-                My Mentorships
-              </button>
-            </nav>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search mentors by skills, industry, or location..."
+                      className="glass-input w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none"
+                      value={filters.skills}
+                      onChange={(e) => handleFilterChange('skills', e.target.value)}
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center justify-center px-6 py-3 glass-card rounded-xl hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all font-semibold text-gray-700 dark:text-gray-200"
+                  >
+                    <Filter className="w-5 h-5 mr-2" />
+                    Filters
+                  </button>
+                </div>
+
+                {showFilters && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Industry
+                        </label>
+                        <select
+                          value={filters.industry}
+                          onChange={(e) => handleFilterChange('industry', e.target.value)}
+                          className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
+                        >
+                          <option value="">All Industries</option>
+                          <option value="Technology">Technology</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Healthcare">Healthcare</option>
+                          <option value="Education">Education</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="City, State"
+                          value={filters.location}
+                          onChange={(e) => handleFilterChange('location', e.target.value)}
+                          className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Availability
+                        </label>
+                        <select
+                          value={filters.availability}
+                          onChange={(e) => handleFilterChange('availability', e.target.value)}
+                          className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
+                        >
+                          <option value="all">All Mentors</option>
+                          <option value="available">Available Now</option>
+                        </select>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
           </div>
         </div>
 
-        {/* Find Mentors Tab */}
+        {/* Find Mentors Tab Content */}
         {activeTab === 'find' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            {/* Search and Filters */}
-            <div className="glass-card rounded-2xl p-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Search mentors by skills, industry, or location..."
-                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none"
-                    value={filters.skills}
-                    onChange={(e) => handleFilterChange('skills', e.target.value)}
-                  />
-                </div>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center justify-center px-6 py-3 glass-card rounded-xl hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all font-semibold text-gray-700 dark:text-gray-200"
-                >
-                  <Filter className="w-5 h-5 mr-2" />
-                  Filters
-                </button>
-              </div>
-
-              {showFilters && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-4 pt-4 border-t border-gray-200"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Industry
-                      </label>
-                      <select
-                        value={filters.industry}
-                        onChange={(e) => handleFilterChange('industry', e.target.value)}
-                        className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
-                      >
-                        <option value="">All Industries</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Education">Education</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Location
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="City, State"
-                        value={filters.location}
-                        onChange={(e) => handleFilterChange('location', e.target.value)}
-                        className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Availability
-                      </label>
-                      <select
-                        value={filters.availability}
-                        onChange={(e) => handleFilterChange('availability', e.target.value)}
-                        className="glass-input w-full px-4 py-2.5 rounded-xl focus:outline-none"
-                      >
-                        <option value="all">All Mentors</option>
-                        <option value="available">Available Now</option>
-                      </select>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
 
             {/* Mentors Grid */}
             {loading ? (

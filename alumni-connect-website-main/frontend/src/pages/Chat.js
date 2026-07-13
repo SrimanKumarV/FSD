@@ -869,6 +869,11 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
             </p>
           )}
 
+          {/* Timestamp */}
+          <div className={`text-[10px] mt-1 flex justify-end items-center space-x-1 ${isOwn ? 'text-primary-100' : 'text-gray-500 dark:text-gray-400'}`}>
+            <span>{getMessageTime(message.createdAt)}</span>
+          </div>
+
           {/* Floating Reaction */}
           {hasHeartReaction && (
             <div className={`absolute -bottom-3 ${isOwn ? 'left-2' : 'right-2'} bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-full p-1 text-sm z-20`}>

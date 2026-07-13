@@ -211,32 +211,35 @@ const Jobs = () => {
           </div>
         </motion.div>
 
-        {/* Source Toggle */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8"
-        >
-          <button
-            onClick={() => setJobSource('internal')}
-            className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'internal' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
-          >
-            Jobs and Internships
-          </button>
-          <button
-            onClick={() => setJobSource('external')}
-            className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'external' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
-          >
-            Global Remote Jobs (External)
-          </button>
-        </motion.div>
+        {/* Sticky Filters Area */}
+        <div className="sticky top-16 z-30 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md pt-4 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 border-b border-gray-200/50 dark:border-gray-800/50">
+          <div className="max-w-7xl mx-auto">
+            {/* Source Toggle */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6"
+            >
+              <button
+                onClick={() => setJobSource('internal')}
+                className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'internal' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
+              >
+                Jobs and Internships
+              </button>
+              <button
+                onClick={() => setJobSource('external')}
+                className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold transition-all duration-300 ${jobSource === 'external' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-700'}`}
+              >
+                Global Remote Jobs (External)
+              </button>
+            </motion.div>
 
-        {/* Search and Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-2xl p-6 mb-8"
-        >
+            {/* Search and Filters */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm"
+            >
           <div className="flex flex-col lg:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -379,7 +382,9 @@ const Jobs = () => {
               </div>
             </motion.div>
           )}
-        </motion.div>
+            </motion.div>
+          </div>
+        </div>
 
         {/* Jobs List */}
         {loading ? (

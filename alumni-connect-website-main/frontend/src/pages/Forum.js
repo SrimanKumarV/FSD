@@ -244,52 +244,52 @@ const Forum = () => {
   }
 
   return (
-    <div className="space-y-6 min-h-screen py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Community Forum</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">Connect, learn, and share with fellow alumni and students</p>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg hover:-translate-y-0.5"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          New Post
-        </button>
-      </div>
+    <div className="min-h-screen pb-8">
+      {/* Sticky Header Container */}
+      <div className="sticky top-16 z-20 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md pt-6 pb-4 mb-6 border-b border-gray-200/50 dark:border-gray-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Community Forum</h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">Connect, learn, and share with fellow alumni and students</p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              New Post
+            </button>
+          </div>
 
-      {/* Tab Switcher */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-1 glass-card rounded-2xl p-1.5 w-fit">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'all'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            All Posts
-          </button>
-          <button
-            onClick={() => setActiveTab('feed')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'feed'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            My Feed
-          </button>
-        </div>
-      </div>
+          {/* Tab Switcher */}
+          <div className="flex space-x-1 glass-card rounded-2xl p-1.5 w-fit">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === 'all'
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              All Posts
+            </button>
+            <button
+              onClick={() => setActiveTab('feed')}
+              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeTab === 'feed'
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              My Feed
+            </button>
+          </div>
 
-      {/* Search and Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="glass-card rounded-3xl p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Search and Filters */}
+          <div className="glass-card rounded-3xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
@@ -375,9 +375,11 @@ const Forum = () => {
           )}
         </AnimatePresence>
       </div>
+        </div>
+      </div>
 
       {/* Posts List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
         {(() => {
           const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
           const currentPosts = activeTab === 'all' ? postsData?.data?.posts : feedData?.data?.posts;
@@ -437,7 +439,6 @@ const Forum = () => {
             </div>
           );
         })()}
-      </div>
       </div>
 
       {/* Pagination */}

@@ -197,10 +197,8 @@ router.post('/', [protect, verified], [
           </div>
           <div style="padding: 20px;">
             <p style="color: #374151; font-size: 16px;">Hi <strong>${receiverUser.name}</strong>,</p>
-            <p style="color: #374151; font-size: 16px;">You have received a new message from <strong>${req.user.name}</strong>:</p>
-            <div style="background-color: #f9fafb; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-              <p style="margin: 0; color: #4b5563; font-style: italic;">${content}</p>
-            </div>
+            <p style="color: #374151; font-size: 16px;">You have received a new message from <strong>${req.user.name}</strong>.</p>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">For your privacy and security, the content of this message is not included in this email.</p>
             <div style="text-align: center; margin-top: 30px;">
               <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/chat?startChat=${req.user.email}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reply to Message</a>
             </div>

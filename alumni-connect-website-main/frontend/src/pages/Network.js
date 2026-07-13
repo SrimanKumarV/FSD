@@ -123,26 +123,33 @@ const Network = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Network</h1>
-          <p className="text-gray-600 dark:text-gray-400">Discover and connect with fellow alumni and students</p>
+    <div className="min-h-screen pb-8">
+      {/* Sticky Header Container */}
+      <div className="sticky top-16 z-20 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md pt-6 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 border-b border-gray-200/50 dark:border-gray-800/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Network</h1>
+              <p className="text-gray-600 dark:text-gray-400">Discover and connect with fellow alumni and students</p>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 sm:p-6 shadow-sm">
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search by name, skills, or role..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="glass-card p-6 mb-8">
-        <div className="relative max-w-2xl">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search by name, skills, or role..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       {pendingRequests.length > 0 && (
         <div className="mb-8">
@@ -333,6 +340,7 @@ const Network = () => {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };

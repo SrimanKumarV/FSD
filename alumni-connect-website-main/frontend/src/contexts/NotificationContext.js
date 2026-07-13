@@ -25,7 +25,7 @@ export const NotificationProvider = ({ children }) => {
   // Fetch notifications
   const { data: notificationsData, isLoading } = useQuery(
     ['notifications'],
-    () => api.get('/notifications').then(res => res.data),
+    () => api.get('/notifications?limit=100').then(res => res.data),
     { 
       enabled: !!user,
       refetchInterval: 30000, // Refetch every 30 seconds

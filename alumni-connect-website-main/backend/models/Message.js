@@ -1,5 +1,38 @@
 const mongoose = require('mongoose');
 
+const crypto = require('crypto');
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default_secret_key_32_chars_long!'; 
+const IV_LENGTH = 16;
+
+function encrypt(text) {
+  if (!text) return text;
+  try {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)), iv);
+    let encrypted = cipher.update(text);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return iv.toString('hex') + ':' + encrypted.toString('hex');
+  } catch (err) {
+    return text;
+  }
+}
+
+function decrypt(text) {
+  if (!text) return text;
+  try {
+    const textParts = text.split(':');
+    if (textParts.length !== 2) return text;
+    const iv = Buffer.from(textParts[0], 'hex');
+    const encryptedText = Buffer.from(textParts[1], 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  } catch (err) {
+    return text;
+  }
+}
+
 const messageSchema = new mongoose.Schema({
   // Sender and Receiver
   sender: {
@@ -21,7 +54,9 @@ const messageSchema = new mongoose.Schema({
   content: {
     type: String,
     required: [true, 'Message content is required'],
-    maxlength: [2000, 'Message cannot exceed 2000 characters']
+    maxlength: [4000, 'Message cannot exceed 4000 characters'],
+    get: decrypt,
+    set: encrypt
   },
   
   // Message Type
@@ -126,7 +161,9 @@ const messageSchema = new mongoose.Schema({
     default: false
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { getters: true },
+  toObject: { getters: true }
 });
 
 // Indexes for better performance

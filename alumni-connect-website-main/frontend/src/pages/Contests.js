@@ -179,28 +179,30 @@ const Contests = () => {
   }
 
   return (
-    <div className="space-y-6 min-h-screen py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contests & Challenges</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">Compete, showcase your skills, and win exciting prizes</p>
-        </div>
-        {isAdmin() && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Create Contest
-          </button>
-        )}
-      </div>
+    <div className="min-h-screen pb-8">
+      {/* Sticky Header Area */}
+      <div className="sticky top-16 z-30 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md pt-6 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 border-b border-gray-200/50 dark:border-gray-800/50">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contests & Challenges</h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">Compete, showcase your skills, and win exciting prizes</p>
+            </div>
+            {isAdmin() && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create Contest
+              </button>
+            )}
+          </div>
 
-      {/* Search and Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="glass-card rounded-2xl p-4">
-        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Search and Filters */}
+          <div className="glass-card rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
@@ -272,10 +274,11 @@ const Contests = () => {
           )}
         </AnimatePresence>
       </div>
+        </div>
       </div>
 
       {/* Contests Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           [...Array(6)].map((_, i) => (

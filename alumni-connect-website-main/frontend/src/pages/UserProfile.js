@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   MapPin, Briefcase, MessageSquare, Users,
   Activity, Code, GitCommit, Trophy, TrendingUp,
-  ExternalLink, Zap, Target
+  ExternalLink, Zap, Target, FolderGit2
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -111,6 +111,13 @@ const UserProfile = () => {
     { enabled: !!id }
   );
 
+  // Fetch user projects
+  const { data: projectsData, isLoading: projectsLoading } = useQuery(
+    ['user-projects', id],
+    () => api.get(`/projects/user/${id}`).then(res => res.data),
+    { enabled: !!id }
+  );
+
   const targetUser = profileData?.data?.user;
   const stats = devData?.data?.stats;
   const usernames = devData?.data?.usernames;
@@ -163,6 +170,7 @@ const UserProfile = () => {
   const tabs = [
     { key: 'about', label: 'About' },
     { key: 'devpulse', label: '⚡ DevPulse' },
+    { key: 'projects', label: 'Projects' },
     { key: 'network', label: 'Network' },
   ];
 
@@ -369,6 +377,42 @@ const UserProfile = () => {
                 </div>
               </div>
             </>
+          )}
+        </motion.div>
+      )}
+
+      {/* ── Projects Tab ── */}
+      {activeTab === 'projects' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+          {projectsLoading ? (
+            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div></div>
+          ) : projectsData?.projects?.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {projectsData.projects.map(project => (
+                <div key={project._id} className="rounded-2xl p-5 border border-slate-700/50 flex flex-col h-full" style={{ background: '#0f172a' }}>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-lg font-bold text-white line-clamp-1">{project.title}</h3>
+                    <div className="flex space-x-2">
+                      {project.githubLink && <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors"><Code className="w-4 h-4"/></a>}
+                      {project.liveLink && <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors"><ExternalLink className="w-4 h-4"/></a>}
+                    </div>
+                  </div>
+                  <p className="text-slate-400 text-sm mb-4 line-clamp-3 flex-1">{project.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags?.slice(0, 3).map((tag, i) => (
+                      <span key={i} className="px-2 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-medium rounded-lg border border-indigo-500/20">{tag}</span>
+                    ))}
+                    {project.tags?.length > 3 && <span className="px-2 py-1 bg-slate-800 text-slate-400 text-xs font-medium rounded-lg">+{project.tags.length - 3}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <FolderGit2 className="w-12 h-12 text-slate-600 mb-4" />
+              <p className="text-slate-400 text-lg font-semibold">No Projects</p>
+              <p className="text-slate-500 text-sm mt-1">{targetUser.name} hasn't added any projects yet.</p>
+            </div>
           )}
         </motion.div>
       )}

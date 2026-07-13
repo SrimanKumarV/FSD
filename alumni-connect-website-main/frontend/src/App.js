@@ -41,6 +41,7 @@ const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
+const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 
 // Legal and Support Pages - Lazy Loaded
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
@@ -247,6 +248,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Contests />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/projects" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ProjectShowcase />
                       </Layout>
                     </ProtectedRoute>
                   } />

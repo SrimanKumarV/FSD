@@ -14,7 +14,10 @@ import {
   Twitter,
   MessageSquare,
   Users,
-  FileText
+  FileText,
+  FolderGit2,
+  ExternalLink,
+  Code
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
@@ -84,6 +87,13 @@ const Profile = () => {
     ['user-posts', user?._id],
     () => api.get(`/forum`, { params: { author: user?._id } }),
     { enabled: !!user?._id && activeTab === 'posts' }
+  );
+
+  // Fetch user projects
+  const { data: projectsData, isLoading: projectsLoading } = useQuery(
+    ['user-projects', user?._id],
+    () => api.get(`/projects/user/${user?._id}`).then(res => res.data),
+    { enabled: !!user?._id && activeTab === 'projects' }
   );
 
   useEffect(() => {
@@ -282,6 +292,13 @@ const Profile = () => {
           >
             Posts
             {activeTab === 'posts' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+          </button>
+          <button
+            onClick={() => setActiveTab('projects')}
+            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'projects' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            Projects
+            {activeTab === 'projects' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
           </button>
         </div>
 
@@ -605,6 +622,66 @@ const Profile = () => {
               </div>
             ) : (
               <p className="text-gray-500 italic text-center py-8">You haven't created any posts yet.</p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Projects Tab */}
+        {!isEditing && activeTab === 'projects' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                <FolderGit2 className="w-5 h-5 mr-2 text-primary" />
+                My Projects
+              </h3>
+              <button
+                onClick={() => navigate('/projects')}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
+              >
+                Add Project
+              </button>
+            </div>
+            
+            {projectsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : projectsData?.projects?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {projectsData.projects.map(project => (
+                  <div key={project._id} className="border border-gray-100 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+                    <div className="flex justify-between items-start mb-3">
+                      <h4 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1">{project.title}</h4>
+                      <div className="flex space-x-2">
+                        {project.githubLink && <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"><Code className="w-4 h-4"/></a>}
+                        {project.liveLink && <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"><ExternalLink className="w-4 h-4"/></a>}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3 flex-1">{project.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {project.tags?.slice(0, 3).map((tag, i) => (
+                        <span key={i} className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-lg border border-primary/20">{tag}</span>
+                      ))}
+                      {project.tags?.length > 3 && <span className="px-2 py-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-lg">+{project.tags.length - 3}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FolderGit2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 italic mb-4">You haven't added any projects yet.</p>
+                <button
+                  onClick={() => navigate('/projects')}
+                  className="px-6 py-2 bg-primary/10 text-primary rounded-lg font-medium hover:bg-primary hover:text-white transition-colors"
+                >
+                  Go to Project Dashboard
+                </button>
+              </div>
             )}
           </motion.div>
         )}

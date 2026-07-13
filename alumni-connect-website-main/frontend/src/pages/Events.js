@@ -26,6 +26,7 @@ import {
   startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays 
 } from 'date-fns';
 import { api } from '../utils/api';
+import PlatformIcon from '../components/PlatformIcon';
 import toast from 'react-hot-toast';
 
 const Events = () => {
@@ -600,9 +601,9 @@ const Events = () => {
                     </div>
                     <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
                       <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-3">
-                        {event.isVirtual ? <Video className="w-4 h-4 text-green-600 dark:text-green-400" /> : <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />}
+                        {event.isVirtual ? <PlatformIcon platform={event.virtualPlatform} className="w-4 h-4 text-green-600 dark:text-green-400" /> : <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />}
                       </div>
-                      {event.isVirtual ? `Virtual (${event.virtualPlatform})` : event.location}
+                      {event.isVirtual ? `Virtual (${event.virtualPlatform || 'Online'})` : event.location}
                     </div>
                     <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
                       <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-3">

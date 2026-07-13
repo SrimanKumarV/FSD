@@ -29,6 +29,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
+import PlatformIcon from '../components/PlatformIcon';
 
 const Contests = () => {
   const { user, isAdmin } = useAuth();
@@ -419,9 +420,11 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
             contest.platform === 'LeetCode' ? 'bg-orange-100 text-orange-800 border-orange-200' :
             contest.platform === 'CodeChef' ? 'bg-amber-100 text-amber-900 border-amber-200' :
             contest.platform === 'GeeksForGeeks' ? 'bg-green-100 text-green-800 border-green-200' :
+            contest.platform === 'Codeforces' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+            contest.platform === 'HackerRank' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
             'bg-indigo-100 text-indigo-800 border-indigo-200'
           }`}>
-            <Globe className="w-3 h-3 mr-1" />
+            <PlatformIcon platform={contest.platform} className="w-3 h-3 mr-1" />
             {contest.platform}
           </span>
         )}

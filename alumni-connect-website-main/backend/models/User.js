@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  interests: [{
+    type: String,
+    trim: true
+  }],
   location: {
     type: String,
     trim: true

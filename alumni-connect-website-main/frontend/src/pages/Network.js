@@ -40,6 +40,19 @@ const Network = () => {
   );
 
   const followingIds = connectionsData?.data?.following?.map(f => f._id) || [];
+  const connectionIds = connectionsData?.data?.connections?.map(f => f._id) || [];
+
+  // Fetch suggested users based on interests/skills
+  const userInterests = currentUser?.interests?.join(',') || currentUser?.skills?.join(',') || '';
+  const { data: suggestionsData } = useQuery(
+    ['suggested-users', userInterests],
+    () => api.get(`/users/search?skills=${userInterests}&limit=4`),
+    { enabled: !!userInterests }
+  );
+  // Filter out already connected/following users from suggestions
+  const suggestedUsers = (suggestionsData?.data?.users || []).filter(u => 
+    !followingIds.includes(u._id) && !connectionIds.includes(u._id)
+  );
 
   // Follow mutation
   const followMutation = useMutation(
@@ -159,6 +172,36 @@ const Network = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {suggestedUsers && suggestedUsers.length > 0 && !searchQuery && (
+        <div className="mb-10">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Suggested for You</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {suggestedUsers.map(user => {
+              const isRequested = user.followRequests?.some(id => id.toString() === (currentUser?._id || currentUser?.id)?.toString());
+              return (
+                <div key={user._id} className="glass-card p-5 flex flex-col items-center text-center">
+                  <img loading="lazy" src={user.photo !== 'default-avatar.png' ? user.photo : '/default-avatar.png'} alt={user.name} className="w-16 h-16 rounded-full object-cover mb-3 shadow-sm" />
+                  <h4 className="font-bold text-gray-900 dark:text-white truncate w-full">{user.name}</h4>
+                  <p className="text-xs text-primary-600 dark:text-primary-400 capitalize mb-3">{user.role}</p>
+                  
+                  <button
+                    onClick={() => handleFollowToggle(user._id, false, isRequested)}
+                    disabled={followMutation.isLoading || isRequested}
+                    className={`w-full py-2 rounded-xl text-sm font-medium transition-all ${
+                      isRequested
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
+                        : 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40'
+                    }`}
+                  >
+                    {isRequested ? 'Requested' : 'Connect'}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

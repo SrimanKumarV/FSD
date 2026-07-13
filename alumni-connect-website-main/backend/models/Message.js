@@ -10,7 +10,11 @@ const messageSchema = new mongoose.Schema({
   receiver: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Receiver is required']
+    required: function() { return !this.isGlobal; }
+  },
+  isGlobal: {
+    type: Boolean,
+    default: false
   },
   
   // Message Content

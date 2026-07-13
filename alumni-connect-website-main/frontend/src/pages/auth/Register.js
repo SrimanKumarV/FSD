@@ -10,9 +10,12 @@ import {
   GraduationCap, 
   Building,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Briefcase,
+  Lightbulb
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import Select from 'react-select';
 
 
 const Register = () => {
@@ -27,7 +30,9 @@ const Register = () => {
     graduationYear: '',
     company: '',
     position: '',
-    bio: ''
+    bio: '',
+    skills: [],
+    interests: []
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -36,6 +41,26 @@ const Register = () => {
 
   const currentYear = new Date().getFullYear();
   const graduationYears = Array.from({ length: 20 }, (_, i) => currentYear - i);
+
+  const domainOptions = [
+    { value: 'Software Engineering', label: 'Software Engineering' },
+    { value: 'Data Science', label: 'Data Science' },
+    { value: 'Product Management', label: 'Product Management' },
+    { value: 'UI/UX Design', label: 'UI/UX Design' },
+    { value: 'DevOps', label: 'DevOps' },
+    { value: 'Cybersecurity', label: 'Cybersecurity' },
+    { value: 'Cloud Computing', label: 'Cloud Computing' },
+    { value: 'AI/ML', label: 'AI/ML' },
+    { value: 'Marketing', label: 'Marketing' },
+    { value: 'Finance', label: 'Finance' }
+  ];
+
+  const handleSelectChange = (selectedOptions, { name }) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: selectedOptions ? selectedOptions.map(opt => opt.value) : []
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -302,7 +327,7 @@ const Register = () => {
                       Company
                     </label>
                     <div className="mt-2 relative">
-                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                       <input
                         id="company"
                         name="company"
@@ -337,6 +362,60 @@ const Register = () => {
                         placeholder="Enter your position"
                       />
                     </div>
+                  </div>
+                  
+                  <div className="col-span-1 md:col-span-2">
+                    <label htmlFor="skills" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Domains / Skills (Select multiple)
+                    </label>
+                    <div className="mt-2 relative">
+                      <Select
+                        isMulti
+                        name="skills"
+                        options={domainOptions}
+                        className="basic-multi-select z-20"
+                        classNamePrefix="select"
+                        onChange={handleSelectChange}
+                        placeholder="Select your domains..."
+                        styles={{
+                          control: (baseStyles) => ({
+                            ...baseStyles,
+                            borderRadius: '0.75rem',
+                            padding: '0.25rem',
+                            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                            borderColor: 'rgba(229, 231, 235, 0.5)'
+                          })
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {formData.role === 'student' && (
+                <div className="mt-4">
+                  <label htmlFor="interests" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Areas of Interest (Select multiple)
+                  </label>
+                  <div className="mt-2 relative">
+                    <Select
+                      isMulti
+                      name="interests"
+                      options={domainOptions}
+                      className="basic-multi-select z-20"
+                      classNamePrefix="select"
+                      onChange={handleSelectChange}
+                      placeholder="Select your interests..."
+                      styles={{
+                        control: (baseStyles) => ({
+                          ...baseStyles,
+                          borderRadius: '0.75rem',
+                          padding: '0.25rem',
+                          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                          borderColor: 'rgba(229, 231, 235, 0.5)'
+                        })
+                      }}
+                    />
                   </div>
                 </div>
               )}

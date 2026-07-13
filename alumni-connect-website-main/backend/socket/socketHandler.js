@@ -101,6 +101,38 @@ module.exports = (io) => {
           return;
         }
 
+        if (receiverId === 'global') {
+          const message = new Message({
+            sender: userId,
+            content,
+            messageType,
+            attachments,
+            replyTo: data.replyTo || null,
+            conversationId: 'global',
+            isGlobal: true
+          });
+
+          await message.save();
+          await message.populate('sender', 'name photo role');
+
+          io.emit('message:received', {
+            message: message,
+            timestamp: new Date()
+          });
+
+          // Confirm to sender that it was sent (in case they have multiple tabs)
+          const senderSession = onlineUsers.get(userId);
+          if (senderSession) {
+            senderSession.socketIds.forEach(id => {
+              io.to(id).emit('message:sent', {
+                message: message,
+                timestamp: new Date()
+              });
+            });
+          }
+          return;
+        }
+
         // Check if receiver exists
         const receiver = await User.findById(receiverId);
         if (!receiver) {

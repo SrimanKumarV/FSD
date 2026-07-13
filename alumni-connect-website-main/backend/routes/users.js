@@ -124,7 +124,18 @@ router.get('/search', protect, async (req, res) => {
 
     if (skills) {
       const skillArray = skills.split(',').map(skill => skill.trim());
-      query.skills = { $in: skillArray };
+      if (query.$or) {
+        query.$and = [
+          { $or: query.$or },
+          { $or: [{ skills: { $in: skillArray } }, { interests: { $in: skillArray } }] }
+        ];
+        delete query.$or;
+      } else {
+        query.$or = [
+          { skills: { $in: skillArray } },
+          { interests: { $in: skillArray } }
+        ];
+      }
     }
 
     const users = await User.find(query)

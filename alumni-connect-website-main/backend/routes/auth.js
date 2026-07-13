@@ -267,6 +267,7 @@ router.post('/register', [
   body('alumniInfo.industry').optional().trim(),
   body('alumniInfo.experience').optional().isInt({ min: 0 }),
   body('skills').optional().isArray(),
+  body('interests').optional().isArray(),
   body('location').optional().trim(),
   body('bio').optional().trim().isLength({ max: 500 })
 ], async (req, res) => {
@@ -285,6 +286,7 @@ router.post('/register', [
       studentInfo,
       alumniInfo,
       skills,
+      interests,
       location,
       bio
     } = req.body;
@@ -302,6 +304,7 @@ router.post('/register', [
       password,
       role,
       skills: skills || [],
+      interests: interests || [],
       location,
       bio
     };

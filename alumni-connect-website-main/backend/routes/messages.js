@@ -7,6 +7,24 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const sendEmail = require('../utils/sendEmail');
 
+router.get('/global', protect, async (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const messages = await Message.find({ isGlobal: true, 'metadata.isDeleted': false })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('sender', 'name photo role');
+
+    res.json({ messages });
+  } catch (error) {
+    console.error('Error fetching global conversation:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get conversation messages
 // @route   GET /api/messages/conversation/:userId
 // @access  Private
@@ -81,7 +99,7 @@ router.post('/start-chat', protect, [
 // @route   POST /api/messages
 // @access  Private
 router.post('/', [protect, verified], [
-  body('receiver').isMongoId().withMessage('Valid receiver ID is required'),
+  body('receiver').notEmpty().withMessage('Receiver is required'),
   body('content').trim().isLength({ min: 1, max: 5000 }).withMessage('Message content is required and must be under 5000 characters'),
   body('messageType').optional().isIn(['text', 'image', 'file', 'link']).withMessage('Invalid message type'),
   body('attachments').optional().isArray().withMessage('Attachments must be an array'),
@@ -97,6 +115,25 @@ router.post('/', [protect, verified], [
     const {
       receiver, content, messageType = 'text', attachments, replyTo, scheduledFor
     } = req.body;
+
+    if (receiver === 'global') {
+      const message = new Message({
+        sender: req.user.id,
+        content,
+        messageType,
+        attachments,
+        replyTo,
+        conversationId: 'global',
+        isGlobal: true,
+        scheduledFor: scheduledFor ? new Date(scheduledFor) : undefined,
+        isScheduled: !!scheduledFor
+      });
+
+      await message.save();
+      await message.populate('sender', 'name photo role');
+
+      return res.status(201).json({ message });
+    }
 
     // Check if receiver exists
     const receiverUser = await User.findById(receiver);

@@ -63,10 +63,18 @@ const Chat = () => {
   const { isCalling, callStatus, startCall } = useCall();
 
 
+  const globalChat = {
+    _id: 'global',
+    participants: [{ _id: 'global', id: 'global', name: 'Global Group', role: 'group' }],
+    lastMessage: null,
+    unreadCount: 0,
+    isGlobal: true
+  };
+
   // Fetch messages for selected chat using the stable participant ID
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
     ['chat-messages', otherParticipantId],
-    () => api.get(`/messages/conversation/${otherParticipantId}`),
+    () => api.get(otherParticipantId === 'global' ? '/messages/global' : `/messages/conversation/${otherParticipantId}`),
     { enabled: !!otherParticipantId }
   );
 
@@ -153,8 +161,8 @@ const Chat = () => {
     if (!socket || !isConnected) return;
 
     const handleMessageReceived = (data) => {
-      const senderId = String(data.message.sender._id || data.message.sender);
-      queryClient.setQueryData(['chat-messages', senderId], (oldData) => {
+      const targetId = data.message.isGlobal ? 'global' : String(data.message.sender._id || data.message.sender);
+      queryClient.setQueryData(['chat-messages', targetId], (oldData) => {
         if (!oldData || !oldData.data) return oldData;
         const messages = oldData.data.messages || [];
         if (messages.some(msg => msg._id === data.message._id)) return oldData;
@@ -167,7 +175,7 @@ const Chat = () => {
     };
 
     const handleMessageSent = (data) => {
-      const msgReceiverId = String(data.message.receiver._id || data.message.receiver);
+      const msgReceiverId = data.message.isGlobal ? 'global' : String(data.message.receiver?._id || data.message.receiver);
       if (msgReceiverId !== otherParticipantId) return;
 
       queryClient.setQueryData(['chat-messages', otherParticipantId], (oldData) => {
@@ -328,12 +336,16 @@ const Chat = () => {
     reader.readAsDataURL(file);
   };
 
-  const filteredChats = chatsData?.data?.chats?.filter(chat => 
-    chat.participants.some(participant => 
+  const filteredChats = [
+    globalChat,
+    ...(chatsData?.data?.chats || [])
+  ].filter(chat => {
+    if (chat.isGlobal) return 'global group'.includes(searchQuery.toLowerCase());
+    return chat.participants.some(participant => 
       (participant._id || participant.id) !== (user?._id || user?.id) && 
       participant.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  ) || [];
+  });
 
   if (chatsLoading) {
     return (
@@ -502,7 +514,9 @@ const Chat = () => {
                     {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                    {(onlineUsersMap.has(otherParticipantId) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) ? (
+                    {selectedChat.isGlobal ? (
+                      <span>Public Group Chat</span>
+                    ) : (onlineUsersMap.has(otherParticipantId) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) ? (
                       <span className="text-green-500">Active now</span>
                     ) : (
                       <span>{(() => {
@@ -522,22 +536,26 @@ const Chat = () => {
               </div>
               
               <div className="flex items-center space-x-2">
-                <button 
-                  onClick={() => startCall(otherParticipantId, false)}
-                  disabled={isCalling || callStatus !== 'idle'}
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
-                  title="Start Voice Call"
-                >
-                  <Phone className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={() => startCall(otherParticipantId, true)}
-                  disabled={isCalling || callStatus !== 'idle'}
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
-                  title="Start Video Call"
-                >
-                  <Video className="w-5 h-5" />
-                </button>
+                {!selectedChat.isGlobal && (
+                  <>
+                    <button 
+                      onClick={() => startCall(otherParticipantId, false)}
+                      disabled={isCalling || callStatus !== 'idle'}
+                      className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
+                      title="Start Voice Call"
+                    >
+                      <Phone className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => startCall(otherParticipantId, true)}
+                      disabled={isCalling || callStatus !== 'idle'}
+                      className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
+                      title="Start Video Call"
+                    >
+                      <Video className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
                 <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                   <MoreVertical className="w-5 h-5" />
                 </button>

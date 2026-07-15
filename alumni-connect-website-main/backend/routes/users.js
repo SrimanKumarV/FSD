@@ -418,6 +418,37 @@ router.post('/:id/follow', protect, async (req, res) => {
       return res.status(400).json({ message: 'Follow request already sent' });
     }
 
+    const currentUser = await User.findById(req.user.id);
+    
+    // Check if this is a follow back (targetUser already follows currentUser)
+    const isFollowBack = currentUser.followers && currentUser.followers.some(id => id.toString() === targetUser._id.toString());
+
+    if (isFollowBack) {
+      // Auto-sync: Mutual follow
+      if (!targetUser.followers.some(id => id.toString() === req.user.id)) {
+        targetUser.followers.push(req.user.id);
+      }
+      if (!currentUser.following) currentUser.following = [];
+      if (!currentUser.following.some(id => id.toString() === targetUser._id.toString())) {
+        currentUser.following.push(targetUser._id);
+      }
+      
+      await targetUser.save();
+      await currentUser.save();
+
+      await Notification.createNotification({
+        recipient: targetUser._id,
+        sender: req.user.id,
+        type: 'follow_accept',
+        title: 'Followed Back',
+        content: `${req.user.name} followed you back!`,
+        relatedData: { userId: req.user.id }
+      });
+
+      return res.json({ message: 'Followed back successfully (Auto-synced)' });
+    }
+
+    // Normal flow: send a follow request
     targetUser.followRequests.push(req.user.id);
     await targetUser.save();
 

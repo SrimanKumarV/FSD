@@ -13,9 +13,9 @@ const Network = () => {
   const { user: currentUser } = useAuth();
   const { onlineUsersMap } = useSocket();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [recentlyAccepted, setRecentlyAccepted] = useState([]);
 
   // Debounce search
   React.useEffect(() => {
@@ -58,8 +58,8 @@ const Network = () => {
   const followMutation = useMutation(
     (userId) => api.post(`/users/${userId}/follow`),
     {
-      onSuccess: () => {
-        toast.success('Request sent successfully');
+      onSuccess: (data) => {
+        toast.success(data?.data?.message || 'Request sent successfully');
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
         queryClient.invalidateQueries(['network-users']);
       },
@@ -99,8 +99,13 @@ const Network = () => {
   const acceptMutation = useMutation(
     (userId) => api.post(`/users/${userId}/accept-follow`),
     {
-      onSuccess: () => {
+      onSuccess: (data, variables) => {
         toast.success('Request accepted');
+        // Find the user who was accepted to show follow back option
+        const acceptedUser = pendingRequests.find(u => u._id === variables);
+        if (acceptedUser) {
+          setRecentlyAccepted(prev => [...prev, acceptedUser]);
+        }
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
         queryClient.invalidateQueries(['network-users']);
       }
@@ -176,6 +181,83 @@ const Network = () => {
                 <div className="flex space-x-2">
                   <button onClick={() => acceptMutation.mutate(reqUser._id)} disabled={acceptMutation.isLoading} className="px-3 py-1 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-all disabled:opacity-50">Accept</button>
                   <button onClick={() => declineMutation.mutate(reqUser._id)} disabled={declineMutation.isLoading} className="px-3 py-1 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50">Decline</button>
+                </div>
+              </div>
+            ))}
+            
+            {/* Recently Accepted - Follow Back */}
+            {recentlyAccepted.map(reqUser => (
+              <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
+                      <img loading="lazy" src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
+                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">Request Accepted</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  {!followingIds.includes(reqUser._id) ? (
+                    <button 
+                      onClick={() => {
+                        followMutation.mutate(reqUser._id);
+                        setRecentlyAccepted(prev => prev.filter(u => u._id !== reqUser._id));
+                      }} 
+                      disabled={followMutation.isLoading} 
+                      className="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-all disabled:opacity-50"
+                    >
+                      Follow Back
+                    </button>
+                  ) : (
+                    <span className="text-sm text-gray-500 dark:text-gray-400 font-medium px-2 py-1">Following</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Fallback if only recentlyAccepted is present but pending is empty */}
+      {pendingRequests.length === 0 && recentlyAccepted.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recently Accepted</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentlyAccepted.map(reqUser => (
+              <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
+                      <img loading="lazy" src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
+                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">Request Accepted</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  {!followingIds.includes(reqUser._id) ? (
+                    <button 
+                      onClick={() => {
+                        followMutation.mutate(reqUser._id);
+                        setRecentlyAccepted(prev => prev.filter(u => u._id !== reqUser._id));
+                      }} 
+                      disabled={followMutation.isLoading} 
+                      className="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-all disabled:opacity-50"
+                    >
+                      Follow Back
+                    </button>
+                  ) : (
+                    <span className="text-sm text-gray-500 dark:text-gray-400 font-medium px-2 py-1">Following</span>
+                  )}
                 </div>
               </div>
             ))}

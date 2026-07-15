@@ -133,7 +133,72 @@ module.exports = (io) => {
           return;
         }
 
-        // Check if receiver exists
+        // Check if group message
+        if (receiverId.startsWith('group_')) {
+          const groupId = receiverId.replace('group_', '');
+          const ChatGroup = require('../models/ChatGroup');
+          const group = await ChatGroup.findById(groupId);
+          if (!group) {
+            socket.emit('message:error', { message: 'Group not found' });
+            return;
+          }
+          if (!group.members.includes(userId) && group.admin.toString() !== userId) {
+            socket.emit('message:error', { message: 'You are not a member of this group' });
+            return;
+          }
+
+          const message = new Message({
+            sender: userId,
+            groupId: groupId,
+            content,
+            messageType,
+            attachments,
+            replyTo: data.replyTo || null,
+            conversationId: receiverId
+          });
+
+          await message.save();
+          await message.populate('sender', 'name photo role');
+
+          const messageJson = message.toJSON();
+
+          // Emit to all members
+          const allMembers = [...new Set([...group.members.map(m => m.toString()), group.admin.toString()])];
+          allMembers.forEach(memberId => {
+            const memberSession = onlineUsers.get(memberId);
+            if (memberSession) {
+              memberSession.socketIds.forEach(id => {
+                if (memberId === userId) {
+                  io.to(id).emit('message:sent', {
+                    message: messageJson,
+                    timestamp: new Date()
+                  });
+                } else {
+                  io.to(id).emit('message:received', {
+                    message: messageJson,
+                    timestamp: new Date()
+                  });
+                }
+              });
+            }
+          });
+
+          // Update conversation list for all members
+          const conversationUpdate = {
+            conversationId: receiverId,
+            lastMessage: messageJson,
+            timestamp: new Date()
+          };
+          allMembers.forEach(memberId => {
+            const memberSession = onlineUsers.get(memberId);
+            if (memberSession) {
+              memberSession.socketIds.forEach(id => io.to(id).emit('conversation:updated', conversationUpdate));
+            }
+          });
+          return;
+        }
+
+        // Check if receiver exists (User)
         const receiver = await User.findById(receiverId);
         if (!receiver) {
           socket.emit('message:error', { message: 'Receiver not found' });

@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const { protect, verified } = require('../middleware/auth');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const ChatGroup = require('../models/ChatGroup');
 const Notification = require('../models/Notification');
 const sendEmail = require('../utils/sendEmail');
 
@@ -91,6 +92,46 @@ router.post('/start-chat', protect, [
     res.json({ targetUser: { _id: targetUser._id, name: targetUser.name, photo: targetUser.photo, role: targetUser.role } });
   } catch (error) {
     console.error('Error starting chat:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Create a new group
+// @route   POST /api/messages/group
+// @access  Private
+router.post('/group', protect, [
+  body('name').trim().notEmpty().withMessage('Group name is required'),
+  body('emails').isArray({ min: 1 }).withMessage('At least one member email is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, emails, description } = req.body;
+    
+    // Find users by email
+    const users = await User.find({ email: { $in: emails } });
+    const membersIds = users.map(u => u._id.toString());
+    
+    // Add creator to members if not present
+    const uniqueMembers = [...new Set([...membersIds, req.user.id])];
+
+    const group = new ChatGroup({
+      name,
+      description,
+      admin: req.user.id,
+      members: uniqueMembers
+    });
+
+    await group.save();
+    await group.populate('members', 'name photo role');
+    await group.populate('admin', 'name photo role');
+
+    res.status(201).json({ group });
+  } catch (error) {
+    console.error('Error creating group:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -230,19 +271,58 @@ router.get('/conversations', protect, async (req, res) => {
       if (msg && msg.content) {
         msg.content = Message.decryptMessage(msg.content);
       }
+      
+      // If it's a group message, handle it
+      if (msg.groupId) {
+        const group = await ChatGroup.findById(msg.groupId).select('name avatar members admin');
+        if (!group) return null;
+        // Verify user is in group
+        if (!group.members.includes(req.user.id) && group.admin.toString() !== req.user.id) return null;
+        
+        return {
+          _id: `group_${group._id}`,
+          isGroup: true,
+          group: group,
+          participants: [],
+          lastMessage: msg,
+          unreadCount: conv.unreadCount
+        };
+      }
+
       const otherId = msg.sender.toString() === req.user.id ? msg.receiver : msg.sender;
+      if (!otherId) return null;
       const otherUser = await User.findById(otherId).select('name photo role isOnline status');
       const currentUser = await User.findById(req.user.id).select('name photo role isOnline status');
       
       return {
         _id: conv._id,
+        isGroup: false,
         participants: [currentUser, otherUser].filter(Boolean),
         lastMessage: msg,
         unreadCount: conv.unreadCount
       };
     }));
+    
+    // Also fetch groups that have NO messages yet, and add them
+    const emptyGroups = await ChatGroup.find({
+      members: req.user.id,
+      _id: { $nin: chats.filter(Boolean).filter(c => c.isGroup).map(c => c.group._id) }
+    }).select('name avatar members admin');
+    
+    const emptyChats = emptyGroups.map(group => ({
+      _id: `group_${group._id}`,
+      isGroup: true,
+      group: group,
+      participants: [],
+      lastMessage: null,
+      unreadCount: 0
+    }));
 
-    res.json({ chats });
+    res.json({ chats: [...chats.filter(Boolean), ...emptyChats].sort((a, b) => {
+      const dateA = a.lastMessage ? new Date(a.lastMessage.createdAt) : new Date(0);
+      const dateB = b.lastMessage ? new Date(b.lastMessage.createdAt) : new Date(0);
+      return dateB - dateA;
+    })});
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({ message: 'Server error' });

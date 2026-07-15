@@ -43,7 +43,11 @@ const messageSchema = new mongoose.Schema({
   receiver: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: function() { return !this.isGlobal; }
+    required: function() { return !this.isGlobal && !this.groupId; }
+  },
+  groupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ChatGroup'
   },
   isGlobal: {
     type: Boolean,
@@ -287,7 +291,12 @@ messageSchema.statics.generateConversationId = function(user1Id, user2Id) {
 
 // Static method to find conversation messages
 messageSchema.statics.findConversation = function(user1Id, user2Id, page = 1, limit = 50) {
-  const conversationId = this.generateConversationId(user1Id, user2Id);
+  let conversationId;
+  if (user2Id.startsWith('group_')) {
+    conversationId = user2Id;
+  } else {
+    conversationId = this.generateConversationId(user1Id, user2Id);
+  }
   
   return this.find({
     conversationId: conversationId,

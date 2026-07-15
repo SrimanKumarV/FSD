@@ -43,6 +43,9 @@ const Chat = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
+  const [newChatMode, setNewChatMode] = useState('dm'); // 'dm' or 'group'
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupEmails, setNewGroupEmails] = useState('');
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [attachment, setAttachment] = useState(null);
@@ -57,7 +60,7 @@ const Chat = () => {
     { enabled: !!user }
   );
 
-  const rawOtherParticipantId = selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id;
+  const rawOtherParticipantId = selectedChat?.isGroup ? selectedChat._id : (selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat?.participants?.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id);
   const otherParticipantId = rawOtherParticipantId ? String(rawOtherParticipantId) : null;
 
   const { isCalling, callStatus, startCall } = useCall();
@@ -100,6 +103,38 @@ const Chat = () => {
     e.preventDefault();
     if (!newChatEmail.trim()) return;
     startChatMutation.mutate(newChatEmail.trim());
+  };
+
+  const createGroupMutation = useMutation(
+    async (groupData) => {
+      // Find user IDs for the emails
+      const emails = groupData.emails.split(',').map(e => e.trim()).filter(Boolean);
+      // Let's assume the backend takes emails or we resolve them. Wait, backend takes member IDs!
+      // We will need a way to resolve emails to IDs or let backend do it.
+      // Actually, since this is a quick fix, I will use an API call to resolve emails if I had one, or I can just pass emails.
+      // Let's modify the backend group route to accept emails instead! Oh wait, I didn't. Let me just use users already in network or just post to a new custom endpoint.
+      // Since I can't easily fetch users by email array right now without a new backend endpoint, I'll just change the frontend to send a string of emails and let backend resolve them, but my backend takes member IDs.
+      // Let's update backend to handle emails in `members`. I'll do that in another tool call.
+      return api.post('/messages/group', { name: groupData.name, emails: emails });
+    },
+    {
+      onSuccess: (res) => {
+        toast.success('Group created!');
+        queryClient.invalidateQueries(['user-chats']);
+        setShowNewChat(false);
+        setNewGroupName('');
+        setNewGroupEmails('');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to create group');
+      }
+    }
+  );
+
+  const handleCreateGroup = (e) => {
+    e.preventDefault();
+    if (!newGroupName.trim() || !newGroupEmails.trim()) return;
+    createGroupMutation.mutate({ name: newGroupName, emails: newGroupEmails });
   };
 
   const startedChatRef = useRef('');
@@ -361,23 +396,58 @@ const Chat = () => {
             </button>
           </div>
           {showNewChat && (
-            <form onSubmit={handleStartChat} className="mb-4 flex space-x-2">
-              <input
-                type="email"
-                placeholder="User email..."
-                value={newChatEmail}
-                onChange={(e) => setNewChatEmail(e.target.value)}
-                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white"
-                required
-              />
-              <button
-                type="submit"
-                disabled={startChatMutation.isLoading}
-                className="px-3 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 text-sm font-medium"
-              >
-                Start
-              </button>
-            </form>
+            <div className="mb-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+              <div className="flex space-x-2 mb-3">
+                <button onClick={() => setNewChatMode('dm')} className={`flex-1 text-xs font-medium py-1.5 rounded-lg ${newChatMode === 'dm' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>Direct Message</button>
+                <button onClick={() => setNewChatMode('group')} className={`flex-1 text-xs font-medium py-1.5 rounded-lg ${newChatMode === 'group' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>New Group</button>
+              </div>
+              
+              {newChatMode === 'dm' ? (
+                <form onSubmit={handleStartChat} className="flex space-x-2">
+                  <input
+                    type="email"
+                    placeholder="User email..."
+                    value={newChatEmail}
+                    onChange={(e) => setNewChatEmail(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={startChatMutation.isLoading}
+                    className="px-3 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    Start
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleCreateGroup} className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Group Name"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Comma separated emails..."
+                    value={newGroupEmails}
+                    onChange={(e) => setNewGroupEmails(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={createGroupMutation.isLoading}
+                    className="w-full py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    Create Group
+                  </button>
+                </form>
+              )}
+            </div>
           )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -414,14 +484,20 @@ const Chat = () => {
                   <div className="flex items-center space-x-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
-                      {otherParticipant?.photo && otherParticipant?.photo !== 'default-avatar.png' ? (
-                        <img loading="lazy" src={otherParticipant.photo} alt={otherParticipant.name} className="w-12 h-12 rounded-full object-cover shadow-sm" />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-lg shadow-sm">
-                          {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {chat.isGroup ? (
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-medium text-lg shadow-sm">
+                          {chat.group?.name?.charAt(0)?.toUpperCase() || 'G'}
                         </div>
+                      ) : (
+                        otherParticipant?.photo && otherParticipant?.photo !== 'default-avatar.png' ? (
+                          <img loading="lazy" src={otherParticipant.photo} alt={otherParticipant.name} className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-lg shadow-sm">
+                            {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                        )
                       )}
-                      {(onlineUsersMap.has(String(otherParticipant?._id || otherParticipant?.id)) || otherParticipant?.isOnline) && (
+                      {!chat.isGroup && (onlineUsersMap.has(String(otherParticipant?._id || otherParticipant?.id)) || otherParticipant?.isOnline) && (
                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                       )}
                     </div>
@@ -430,7 +506,7 @@ const Chat = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                          {otherParticipant?.name}
+                          {chat.isGroup ? chat.group?.name : otherParticipant?.name}
                         </h3>
                         {lastMessage && (
                           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -496,24 +572,30 @@ const Chat = () => {
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="relative flex-shrink-0">
-                  {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.photo && selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.photo !== 'default-avatar.png' ? (
-                    <img loading="lazy" src={selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id)).photo} alt="avatar" className="w-10 h-10 rounded-full object-cover shadow-sm" />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium shadow-sm">
-                      {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  {selectedChat.isGroup ? (
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-medium shadow-sm">
+                      {selectedChat.group?.name?.charAt(0)?.toUpperCase() || 'G'}
                     </div>
+                  ) : (
+                    selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.photo && selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.photo !== 'default-avatar.png' ? (
+                      <img loading="lazy" src={selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id)).photo} alt="avatar" className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium shadow-sm">
+                        {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    )
                   )}
-                  {(onlineUsersMap.has(String(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id)) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) && (
+                  {!selectedChat.isGroup && (onlineUsersMap.has(String(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id)) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) && (
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                   )}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name}
+                    {selectedChat.isGroup ? selectedChat.group?.name : selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                    {selectedChat.isGlobal ? (
-                      <span>Public Group Chat</span>
+                    {selectedChat.isGroup ? (
+                      <span>{selectedChat.group?.members?.length} members</span>
                     ) : (onlineUsersMap.has(otherParticipantId) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) ? (
                       <span className="text-green-500">Active now</span>
                     ) : (

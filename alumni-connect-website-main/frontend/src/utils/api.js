@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  timeout: 60000, // 60s to handle Render cold starts
+  timeout: 5000, // Reduced to 5s to quickly failover if Render is sleeping/suspended
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -39,7 +39,26 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config || {};
+
+    // ── Client-Side Failover Logic ──
+    // If the request fails due to network error or timeout (Render sleeping)
+    const isNetworkOrTimeout = !error.response || error.code === 'ECONNABORTED';
+    
+    if (isNetworkOrTimeout && !originalRequest._retryFailover) {
+      const backupUrl = process.env.REACT_APP_BACKUP_API_URL;
+      
+      if (backupUrl) {
+        originalRequest._retryFailover = true;
+        console.warn(`Primary API failed or timed out. Failing over to backup: ${backupUrl}`);
+        
+        // Swap the base URL to Koyeb (or any backup)
+        originalRequest.baseURL = backupUrl;
+        
+        // Retry the request instantly on the backup server
+        return api(originalRequest);
+      }
+    }
 
     // ── 401: Token expired or invalid ──
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -66,8 +85,11 @@ api.interceptors.response.use(
         const currentToken = localStorage.getItem('token');
         if (!currentToken) throw new Error('No token');
 
+        // Use the current base URL for refresh, which could be the backup if we failed over
+        const refreshBaseUrl = originalRequest.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        
         const { data } = await axios.post(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/refresh`,
+          `${refreshBaseUrl}/auth/refresh`,
           {},
           { headers: { Authorization: `Bearer ${currentToken}` }, timeout: 10000 }
         );
@@ -108,22 +130,21 @@ api.interceptors.response.use(
       console.warn('Access denied:', error.response.data?.message);
     }
 
-    // ── Network / timeout errors ──
-    if (!error.response) {
-      // Server unreachable or timed out
+    // ── Network / timeout errors (After failover has also failed) ──
+    if (isNetworkOrTimeout) {
       console.warn('Network error or server unavailable:', error.message);
-      if (!error.config._toastShown) {
-        toast.error('Network error. Please check your connection.');
-        error.config._toastShown = true;
+      if (!originalRequest._toastShown) {
+        toast.error('Network error. Servers are currently unreachable.');
+        originalRequest._toastShown = true;
       }
     }
 
     // ── 5xx: Server errors ──
     if (error.response?.status >= 500) {
       console.error('Server error:', error.response.status, error.response.data?.message);
-      if (!error.config._toastShown) {
+      if (!originalRequest._toastShown) {
         toast.error('Server error. Please try again later.');
-        error.config._toastShown = true;
+        originalRequest._toastShown = true;
       }
     }
 

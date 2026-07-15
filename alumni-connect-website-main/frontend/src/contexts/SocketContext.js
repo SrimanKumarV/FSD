@@ -53,9 +53,25 @@ export const SocketProvider = ({ children }) => {
       setIsConnected(false);
     });
 
+    let fallbackAttempted = false;
+
     newSocket.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
       setIsConnected(false);
+      
+      // Socket Failover Logic
+      const backupUrl = process.env.REACT_APP_BACKUP_API_URL;
+      if (!fallbackAttempted && backupUrl) {
+        fallbackAttempted = true;
+        const backupSocketUrl = backupUrl.replace(/\/api$/, '');
+        console.warn(`Socket failed to connect, failing over to backup: ${backupSocketUrl}`);
+        
+        // Update the socket URL and attempt to reconnect manually
+        newSocket.io.uri = backupSocketUrl;
+        setTimeout(() => {
+          newSocket.connect();
+        }, 1000); // Wait 1 second before trying to connect to backup
+      }
     });
 
     // Join user to their personal room

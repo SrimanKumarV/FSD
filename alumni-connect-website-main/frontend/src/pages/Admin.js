@@ -110,7 +110,7 @@ const Admin = () => {
 
   // Suspend user mutation
   const suspendUserMutation = useMutation(
-    ({ userId, isSuspended }) => api.put(`/admin/users/${userId}/suspend`, { isSuspended, reason: isSuspended ? 'Suspended by admin' : '' }),
+    ({ userId, isSuspended, reason }) => api.put(`/admin/users/${userId}/suspend`, { isSuspended, reason: reason || (isSuspended ? 'Suspended by admin' : '') }),
     {
       onSuccess: (data, variables) => {
         queryClient.invalidateQueries(['admin-users']);
@@ -143,7 +143,12 @@ const Admin = () => {
   };
 
   const handleSuspendUser = (userId, isSuspended) => {
-    suspendUserMutation.mutate({ userId, isSuspended });
+    let reason = '';
+    if (isSuspended) {
+      reason = window.prompt("Please provide a reason for suspending this user:");
+      if (reason === null) return; // User cancelled
+    }
+    suspendUserMutation.mutate({ userId, isSuspended, reason });
   };
 
   const handleUpdateUserRole = (userId, role) => {
@@ -666,7 +671,7 @@ const ContentModerationTab = () => {
 
   // Moderate content mutation
   const moderateMutation = useMutation(
-    ({ type, id, action, reason }) => api.post(`/admin/moderate/${type}/${id}`, { action, reason }),
+    ({ type, id, action, reason }) => api.put(`/admin/moderate/${type}/${id}`, { action, reason }),
     {
       onSuccess: () => {
         toast.success('Action applied successfully');
@@ -768,7 +773,7 @@ const ContentModerationTab = () => {
             {modTabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeModTab === tab.id;
-              const count = moderationData?.data?.[tab.id]?.length || 0;
+              const count = moderationData?.data?.flaggedContent?.[tab.id]?.length || 0;
               return (
                 <button
                   key={tab.id}
@@ -798,7 +803,7 @@ const ContentModerationTab = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
             </div>
           ) : (
-            renderContentList(moderationData?.data?.[activeModTab], activeModTab)
+            renderContentList(moderationData?.data?.flaggedContent?.[activeModTab], activeModTab)
           )}
         </div>
       </motion.div>

@@ -50,13 +50,16 @@ router.get('/', protect, async (req, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
     const page = parseInt(req.query.page) || 1;
+    const status = req.query.status || '';
     const limit = 20;
-    const feedbacks = await Feedback.find()
+    const filter = status ? { status } : {};
+    
+    const feedbacks = await Feedback.find(filter)
       .populate('user', 'name email photo role')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
-    const total = await Feedback.countDocuments();
+    const total = await Feedback.countDocuments(filter);
     res.json({ feedbacks, total, pages: Math.ceil(total / limit) });
   } catch (error) {
     console.error('Error fetching all feedback:', error);

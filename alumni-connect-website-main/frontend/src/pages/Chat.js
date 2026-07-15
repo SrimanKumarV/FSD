@@ -63,13 +63,7 @@ const Chat = () => {
   const { isCalling, callStatus, startCall } = useCall();
 
 
-  const globalChat = {
-    _id: 'global',
-    participants: [{ _id: 'global', id: 'global', name: 'Global Group', role: 'group' }],
-    lastMessage: null,
-    unreadCount: 0,
-    isGlobal: true
-  };
+
 
   // Fetch messages for selected chat using the stable participant ID
   const { data: messagesData, isLoading: messagesLoading } = useQuery(
@@ -336,11 +330,7 @@ const Chat = () => {
     reader.readAsDataURL(file);
   };
 
-  const filteredChats = [
-    globalChat,
-    ...(chatsData?.data?.chats || [])
-  ].filter(chat => {
-    if (chat.isGlobal) return 'global group'.includes(searchQuery.toLowerCase());
+  const filteredChats = (chatsData?.data?.chats || []).filter(chat => {
     return chat.participants.some(participant => 
       (participant._id || participant.id) !== (user?._id || user?.id) && 
       participant.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -423,12 +413,16 @@ const Chat = () => {
                 >
                   <div className="flex items-center space-x-3">
                     {/* Avatar */}
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
-                        {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
-                      </div>
+                    <div className="relative flex-shrink-0">
+                      {otherParticipant?.photo && otherParticipant?.photo !== 'default-avatar.png' ? (
+                        <img loading="lazy" src={otherParticipant.photo} alt={otherParticipant.name} className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-lg shadow-sm">
+                          {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                      )}
                       {(onlineUsersMap.has(String(otherParticipant?._id || otherParticipant?.id)) || otherParticipant?.isOnline) && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                       )}
                     </div>
 
@@ -501,12 +495,16 @@ const Chat = () => {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-alumni-500 rounded-full flex items-center justify-center text-white font-medium">
-                    {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                <div className="relative flex-shrink-0">
+                  {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.photo && selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.photo !== 'default-avatar.png' ? (
+                    <img loading="lazy" src={selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id)).photo} alt="avatar" className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium shadow-sm">
+                      {selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   {(onlineUsersMap.has(String(selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?._id || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.id)) || selectedChat.participants.find(p => (p._id || p.id) !== (user?._id || user?.id))?.isOnline) && (
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                   )}
                 </div>
                 <div>
@@ -807,12 +805,25 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
         )}
       </AnimatePresence>
 
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'} relative`}>
+      {/* Profile Icon for received message in WhatsApp group style */}
+      {!isOwn && (
+        <div className="flex-shrink-0 mr-2 mt-auto mb-1 hidden md:block">
+          {message.sender?.photo && message.sender?.photo !== 'default-avatar.png' ? (
+             <img src={message.sender.photo} alt="avatar" className="w-7 h-7 rounded-full object-cover shadow-sm" />
+          ) : (
+             <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-gray-300 shadow-sm">
+               {message.sender?.name?.charAt(0)?.toUpperCase() || 'U'}
+             </div>
+          )}
+        </div>
+      )}
+
+      <div className={`max-w-[75%] lg:max-w-md ${isOwn ? 'order-2' : 'order-1'} relative`}>
         
         {/* Reply Context Banner */}
         {message.replyTo && (
-          <div className={`text-xs p-2 rounded-t-xl opacity-75 mb-[-8px] pb-3 ${isOwn ? 'bg-primary-700 text-primary-100' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
-            <span className="font-bold mr-1">Replying to</span>
+          <div className={`text-xs p-2 rounded-t-xl opacity-90 mb-[-8px] pb-3 ${isOwn ? 'bg-[#c5e8b7] dark:bg-[#044c3f] text-gray-800 dark:text-gray-200' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
+            <span className="font-bold mr-1 text-primary-600 dark:text-primary-400">Replying to</span>
             <span className="truncate inline-block max-w-[150px] align-bottom">
               {message.replyTo.content || 'an attachment'}
             </span>
@@ -822,19 +833,25 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
         {/* The Bubble */}
         <div
           onClick={handleDoubleTap}
-          className={`px-4 py-2.5 shadow-sm relative z-10 cursor-pointer select-none transition-transform active:scale-95 ${
+          className={`px-3 pt-2 pb-1.5 shadow-sm relative z-10 cursor-pointer select-none transition-transform active:scale-95 ${
             isOwn
-              ? 'bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-2xl rounded-br-sm'
-              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-sm'
+              ? 'bg-[#dcf8c6] dark:bg-[#005c4b] text-gray-900 dark:text-white rounded-xl rounded-tr-none'
+              : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white rounded-xl rounded-tl-none'
           }`}
         >
+          {!isOwn && (
+             <div className="text-[11px] font-bold text-primary-600 dark:text-primary-400 mb-0.5">
+               {message.sender?.name || 'User'}
+             </div>
+          )}
+          
           {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType === 'image' && (
-            <div className="mb-2">
-              <img loading="lazy" src={message.attachments[0].fileUrl} alt="attachment" className="rounded-lg max-w-full h-auto object-cover max-h-48" />
+            <div className="mb-1">
+              <img loading="lazy" src={message.attachments[0].fileUrl} alt="attachment" className="rounded max-w-full h-auto object-cover max-h-48" />
             </div>
           )}
           {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType !== 'image' && (
-            <div className={`mb-2 p-2 rounded flex items-center gap-2 ${isOwn ? 'bg-primary-700' : 'bg-gray-100 dark:bg-gray-700'}`}>
+            <div className={`mb-1 p-2 rounded flex items-center gap-2 ${isOwn ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50'}`}>
               <Paperclip className="w-4 h-4" />
               <a href={message.attachments[0].fileUrl} download={message.attachments[0].fileName} className="text-sm underline truncate max-w-[200px]">
                 {message.attachments[0].fileName}
@@ -843,12 +860,12 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           )}
           
           {message.messageType === 'call-log' ? (
-            <div className="flex items-center space-x-3 py-1">
-              <div className={`p-2 rounded-full ${isOwn ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'}`}>
+            <div className="flex items-center space-x-3 py-1 pr-12">
+              <div className={`p-2 rounded-full ${isOwn ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-gray-700'}`}>
                 {JSON.parse(message.content).type === 'video' ? <Video className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold">
+                <span className="font-semibold text-sm">
                   {JSON.parse(message.content).status === 'missed' ? 'Missed Call' :
                    JSON.parse(message.content).status === 'rejected' ? 'Call Rejected' : 'Call Ended'}
                 </span>
@@ -858,10 +875,10 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
               </div>
             </div>
           ) : (
-            message.content && <p className="text-[15px] leading-relaxed whitespace-pre-wrap">
+            message.content && <p className="text-[14.5px] leading-snug whitespace-pre-wrap inline-block mr-14">
               {message.content.split(/(https?:\/\/[^\s]+)/g).map((part, i) => 
                 part.match(/^https?:\/\//) ? (
-                  <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-opacity-80 break-all">
+                  <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
                     {part}
                   </a>
                 ) : part
@@ -869,25 +886,24 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
             </p>
           )}
 
-          {/* Timestamp */}
-          <div className={`text-[10px] mt-1 flex justify-end items-center space-x-1 ${isOwn ? 'text-primary-100' : 'text-gray-500 dark:text-gray-400'}`}>
-            <span>{getMessageTime(message.createdAt)}</span>
+          {/* Timestamp - float right bottom */}
+          <div className={`float-right -mt-2 -mr-1 ml-2 text-[10px] flex items-center space-x-0.5 ${isOwn ? 'text-green-800/60 dark:text-green-100/60' : 'text-gray-500/80 dark:text-gray-400/80'}`}>
+            <span className="mt-2">{getMessageTime(message.createdAt)}</span>
+            {isOwn && !message._id.toString().startsWith('temp_') && (
+              <span className="ml-0.5 mt-2">
+                {message.status === 'read' ? <CheckCheck className="w-[14px] h-[14px] text-blue-500" /> : <Check className="w-[14px] h-[14px]" />}
+              </span>
+            )}
           </div>
+          <div className="clear-both"></div>
 
           {/* Floating Reaction */}
           {hasHeartReaction && (
-            <div className={`absolute -bottom-3 ${isOwn ? 'left-2' : 'right-2'} bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-full p-1 text-sm z-20`}>
+            <div className={`absolute -bottom-3 ${isOwn ? 'left-2' : 'right-2'} bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 rounded-full p-0.5 text-xs z-20`}>
               ❤️
             </div>
           )}
         </div>
-
-        {/* Read Receipt (Instagram Style) */}
-        {isOwn && isLastMessage && message.status === 'read' && !message._id.toString().startsWith('temp_') && (
-          <div className="flex justify-end mt-1">
-            <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Seen</span>
-          </div>
-        )}
       </div>
     </motion.div>
   );

@@ -125,7 +125,7 @@ const Network = () => {
   return (
     <div className="min-h-screen pb-8">
       {/* Sticky Header Container */}
-      <div className="sticky top-16 z-20 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md pt-6 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 border-b border-gray-200/50 dark:border-gray-800/50">
+      <div className="mb-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <div>

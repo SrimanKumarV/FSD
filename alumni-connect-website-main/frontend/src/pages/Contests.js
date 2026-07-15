@@ -23,7 +23,8 @@ import {
   Pause,
   StopCircle,
   Globe,
-  ExternalLink
+  ExternalLink,
+  CalendarPlus
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -351,6 +352,24 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
   const isJoined = contest.participants?.includes(user?.id);
   const canJoin = contest.status === 'active' && !isJoined && contest.participants?.length < contest.maxParticipants;
 
+  const getGoogleCalendarUrl = (c) => {
+    const text = encodeURIComponent(c.title);
+    const details = encodeURIComponent(c.description || '');
+    const location = encodeURIComponent(c.isExternal ? `Virtual (${c.platform})` : 'Virtual');
+    const formatGoogleDate = (dateString) => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      } catch (e) {
+        return '';
+      }
+    };
+    const startDate = formatGoogleDate(c.startDate);
+    const endDate = c.endDate ? formatGoogleDate(c.endDate) : startDate;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -527,6 +546,17 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
         {contest.status === 'completed' && !contest.isExternal && (
           <span className="text-sm text-gray-600 font-medium">Completed</span>
         )}
+
+        <a
+          href={getGoogleCalendarUrl(contest)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 rounded-lg transition-colors shadow-sm"
+          title="Add to Google Calendar"
+        >
+          <CalendarPlus className="w-5 h-5" />
+        </a>
       </div>
       </div>
     </motion.div>

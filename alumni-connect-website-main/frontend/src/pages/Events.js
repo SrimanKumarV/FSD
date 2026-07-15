@@ -16,10 +16,10 @@ import {
   Eye,
   TrendingUp,
   CalendarDays,
-  ChevronLeft,
   ChevronRight,
   LayoutGrid,
-  List
+  List,
+  CalendarPlus
 } from 'lucide-react';
 import { 
   format, addMonths, subMonths, startOfMonth, endOfMonth, 
@@ -203,6 +203,19 @@ const Events = () => {
 
   const isEventUpcoming = (event) => {
     return new Date(event.startDate) > new Date();
+  };
+
+  const getGoogleCalendarUrl = (event) => {
+    const text = encodeURIComponent(event.title);
+    const details = encodeURIComponent(event.description || '');
+    const location = encodeURIComponent(event.isVirtual ? `Virtual (${event.virtualPlatform || 'Online'})` : event.location || '');
+    const formatGoogleDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+    };
+    const startDate = formatGoogleDate(event.startDate);
+    const endDate = event.endDate ? formatGoogleDate(event.endDate) : startDate;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
   };
 
   // Calendar View Component
@@ -681,6 +694,17 @@ const Events = () => {
                               Past Event
                             </span>
                           )}
+                          
+                          <a
+                            href={getGoogleCalendarUrl(event)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2.5 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-xl transition-colors shadow-sm hover:shadow"
+                            title="Add to Google Calendar"
+                          >
+                            <CalendarPlus className="w-5 h-5" />
+                          </a>
+
                           {!event.isExternal && (
                             <button className="p-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-xl transition-colors shadow-sm hover:shadow">
                               <ExternalLink className="w-5 h-5" />

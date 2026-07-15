@@ -116,7 +116,7 @@ module.exports = (io) => {
           await message.populate('sender', 'name photo role');
 
           io.emit('message:received', {
-            message: message,
+            message: message.toJSON(),
             timestamp: new Date()
           });
 
@@ -125,7 +125,7 @@ module.exports = (io) => {
           if (senderSession) {
             senderSession.socketIds.forEach(id => {
               io.to(id).emit('message:sent', {
-                message: message,
+                message: message.toJSON(),
                 timestamp: new Date()
               });
             });
@@ -162,7 +162,7 @@ module.exports = (io) => {
         if (senderSession) {
           senderSession.socketIds.forEach(id => {
             io.to(id).emit('message:sent', {
-              message: message,
+              message: message.toJSON(),
               timestamp: new Date()
             });
           });
@@ -173,7 +173,7 @@ module.exports = (io) => {
         if (receiverSession) {
           receiverSession.socketIds.forEach(id => {
             io.to(id).emit('message:received', {
-              message: message,
+              message: message.toJSON(),
               timestamp: new Date()
             });
           });
@@ -196,7 +196,7 @@ module.exports = (io) => {
         // Update conversation list for both users
         const conversationUpdate = {
           conversationId: message.conversationId,
-          lastMessage: message,
+          lastMessage: message.toJSON(),
           timestamp: new Date()
         };
 

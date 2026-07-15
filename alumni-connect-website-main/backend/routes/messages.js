@@ -227,6 +227,9 @@ router.get('/conversations', protect, async (req, res) => {
     // Populate participants
     const chats = await Promise.all(conversationsRaw.map(async (conv) => {
       const msg = conv.lastMessage;
+      if (msg && msg.content) {
+        msg.content = Message.decryptMessage(msg.content);
+      }
       const otherId = msg.sender.toString() === req.user.id ? msg.receiver : msg.sender;
       const otherUser = await User.findById(otherId).select('name photo role isOnline status');
       const currentUser = await User.findById(req.user.id).select('name photo role isOnline status');

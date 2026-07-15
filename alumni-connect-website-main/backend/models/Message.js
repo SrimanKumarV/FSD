@@ -384,6 +384,9 @@ messageSchema.statics.searchMessages = function(userId, searchTerm, page = 1, li
     .populate('receiver', 'name photo role');
 };
 
+// Static method to decrypt messages manually
+messageSchema.statics.decryptMessage = decrypt;
+
 // Indexes for faster queries
 messageSchema.index({ sender: 1, receiver: 1 });
 messageSchema.index({ conversationId: 1, createdAt: -1 });

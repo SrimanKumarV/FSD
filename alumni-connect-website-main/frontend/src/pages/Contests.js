@@ -355,12 +355,30 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+      className="glass-card rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden flex flex-col"
       onClick={() => onSelect(contest)}
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-      
-      {/* Contest Header */}
+      {/* Contest Visual Banner */}
+      <div className={`h-32 sm:h-40 bg-gradient-to-br ${contest.isExternal ? (
+        contest.platform === 'LeetCode' ? 'from-orange-500 to-orange-700' :
+        contest.platform === 'CodeChef' ? 'from-amber-600 to-amber-800' :
+        contest.platform === 'GeeksForGeeks' ? 'from-green-600 to-green-800' :
+        contest.platform === 'Codeforces' ? 'from-blue-600 to-blue-800' :
+        contest.platform === 'HackerRank' ? 'from-emerald-500 to-emerald-700' :
+        'from-indigo-500 to-purple-600'
+      ) : 'from-primary-500 to-primary-700'} flex items-center justify-center relative shrink-0`}>
+        <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
+        {contest.isExternal ? (
+          <PlatformIcon platform={contest.platform} className="w-16 h-16 sm:w-20 sm:h-20 text-white drop-shadow-md relative z-10" />
+        ) : (
+          <Trophy className="w-16 h-16 sm:w-20 sm:h-20 text-white drop-shadow-md relative z-10" />
+        )}
+      </div>
+
+      <div className="p-6 flex flex-col flex-1 relative z-10">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+        
+        {/* Contest Header */}
       <div className="relative z-10 flex items-start justify-between mb-4">
         <div className="flex-1">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 hover:text-primary-600 dark:hover:text-primary-400">
@@ -509,6 +527,7 @@ const ContestCard = ({ contest, onJoin, onSelect, user, getStatusColor, getStatu
         {contest.status === 'completed' && !contest.isExternal && (
           <span className="text-sm text-gray-600 font-medium">Completed</span>
         )}
+      </div>
       </div>
     </motion.div>
   );

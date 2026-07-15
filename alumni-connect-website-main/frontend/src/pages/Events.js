@@ -563,9 +563,20 @@ const Events = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
                 
                 {/* Event Image/Icon */}
-                <div className={`${viewMode === 'list' ? 'md:w-64 md:h-auto h-48 flex-shrink-0' : 'h-48'} bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center relative overflow-hidden`}>
-                  <div className="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
-                  <Calendar className="w-16 h-16 text-white relative z-10 drop-shadow-lg" />
+                <div className={`${viewMode === 'list' ? 'md:w-64 md:h-auto h-48 flex-shrink-0' : 'h-48'} bg-gradient-to-br ${event.isExternal ? (
+                  event.platform === 'LeetCode' ? 'from-orange-500 to-orange-700' :
+                  event.platform === 'CodeChef' ? 'from-amber-600 to-amber-800' :
+                  event.platform === 'GeeksForGeeks' ? 'from-green-600 to-green-800' :
+                  event.platform === 'Codeforces' ? 'from-blue-600 to-blue-800' :
+                  event.platform === 'HackerRank' ? 'from-emerald-500 to-emerald-700' :
+                  'from-indigo-500 to-purple-700'
+                ) : 'from-primary-500 to-primary-700'} flex items-center justify-center relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
+                  {event.isExternal ? (
+                    <PlatformIcon platform={event.platform} className="w-16 h-16 sm:w-20 sm:h-20 text-white relative z-10 drop-shadow-md" />
+                  ) : (
+                    <Calendar className="w-16 h-16 sm:w-20 sm:h-20 text-white relative z-10 drop-shadow-md" />
+                  )}
                 </div>
 
                 {/* Event Content */}

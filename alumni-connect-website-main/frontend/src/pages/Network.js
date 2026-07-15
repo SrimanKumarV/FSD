@@ -13,6 +13,7 @@ const Network = () => {
   const { user: currentUser } = useAuth();
   const { onlineUsersMap } = useSocket();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [recentlyAccepted, setRecentlyAccepted] = useState([]);

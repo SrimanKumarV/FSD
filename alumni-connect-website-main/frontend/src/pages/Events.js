@@ -16,6 +16,7 @@ import {
   Eye,
   TrendingUp,
   CalendarDays,
+  ChevronLeft,
   ChevronRight,
   LayoutGrid,
   List,

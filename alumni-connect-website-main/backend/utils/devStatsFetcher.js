@@ -40,6 +40,9 @@ const fetchLeetCodeStats = async (username) => {
             reputation
             starRating
           }
+          userCalendar {
+            submissionCalendar
+          }
         }
       }
     `;
@@ -65,6 +68,7 @@ const fetchLeetCodeStats = async (username) => {
       hardSolved,
       ranking: user.profile.ranking,
       reputation: user.profile.reputation,
+      calendar: user.userCalendar?.submissionCalendar ? JSON.parse(user.userCalendar.submissionCalendar) : null,
       url: `https://leetcode.com/${username}`
     };
   } catch (error) {

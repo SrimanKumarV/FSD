@@ -202,21 +202,85 @@ const DevPulse = () => {
   const profilePhoto = isPublicView ? data?.data?.photo : user?.photo;
 
   const heatmapData = useMemo(() => {
-    const today = new Date();
-    const points = [];
-    const intensity = Math.max(1, Math.floor(alumnexScore / 100));
-    let totalMock = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      if (Math.random() < (alumnexScore / 800)) {
-        const count = Math.floor(Math.random() * intensity * 2) + 1;
-        totalMock += count;
+    let points = [];
+    let totalContributions = 0;
+    let isRealData = false;
+
+    if (stats?.leetcode?.calendar) {
+      isRealData = true;
+      for (const [timestamp, count] of Object.entries(stats.leetcode.calendar)) {
+        const d = new Date(parseInt(timestamp) * 1000);
         points.push({ date: d.toISOString().split('T')[0], count });
+        totalContributions += count;
+      }
+    } else {
+      const today = new Date();
+      const intensity = Math.max(1, Math.floor(alumnexScore / 100));
+      for (let i = 0; i < 365; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        if (Math.random() < (alumnexScore / 800)) {
+          const count = Math.floor(Math.random() * intensity * 2) + 1;
+          totalContributions += count;
+          points.push({ date: d.toISOString().split('T')[0], count });
+        }
       }
     }
-    return { points, totalMock };
-  }, [alumnexScore]);
+
+    points.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Calculate streaks
+    let maxStreak = 0;
+    let currentStreak = 0;
+    let activeDays = points.length;
+
+    if (points.length > 0) {
+      let tempStreak = 1;
+      let prevDate = new Date(points[0].date);
+      maxStreak = 1;
+
+      for (let i = 1; i < points.length; i++) {
+        const currDate = new Date(points[i].date);
+        const diffDays = Math.round((currDate - prevDate) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          tempStreak++;
+        } else if (diffDays > 1) {
+          tempStreak = 1;
+        }
+        maxStreak = Math.max(maxStreak, tempStreak);
+        prevDate = currDate;
+      }
+
+      // Current streak
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      const hasToday = points.some(p => p.date === todayStr);
+      const hasYesterday = points.some(p => p.date === yesterdayStr);
+
+      if (hasToday || hasYesterday) {
+        let tempCur = 0;
+        let d = hasToday ? new Date(today) : new Date(yesterday);
+        while(true) {
+          const dStr = d.toISOString().split('T')[0];
+          if (points.some(p => p.date === dStr)) {
+            tempCur++;
+            d.setDate(d.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+        currentStreak = tempCur;
+      }
+    }
+
+    return { points, totalContributions, maxStreak, currentStreak, activeDays, isRealData };
+  }, [alumnexScore, stats?.leetcode?.calendar]);
 
   const startDate = new Date();
   startDate.setFullYear(startDate.getFullYear() - 1); // 1 year exactly like github
@@ -408,14 +472,27 @@ const DevPulse = () => {
       >
         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 relative z-10 gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-8 relative z-10 gap-6">
           <div>
-            <h3 className="text-2xl font-black text-white mb-1 flex items-center gap-2">
-              <GitCommit className="w-6 h-6 text-emerald-400" /> Total Contributions
+            <h3 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
+              <GitCommit className="w-6 h-6 text-emerald-400" /> Activity Calendar {heatmapData.isRealData ? '(LeetCode)' : '(Mocked)'}
             </h3>
-            <p className="text-sm text-slate-400 font-medium">{heatmapData.totalMock.toLocaleString()} submissions in the last year across all platforms</p>
+            <div className="flex flex-wrap gap-4 text-sm mt-3">
+              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                <span className="text-slate-400">Total Active Days:</span> <span className="font-bold text-white ml-1">{heatmapData.activeDays}</span>
+              </div>
+              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                <span className="text-slate-400">Max Streak:</span> <span className="font-bold text-emerald-400 ml-1">{heatmapData.maxStreak} days</span>
+              </div>
+              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                <span className="text-slate-400">Current Streak:</span> <span className="font-bold text-amber-400 ml-1">{heatmapData.currentStreak} days</span>
+              </div>
+              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                <span className="text-slate-400">Total Submissions:</span> <span className="font-bold text-white ml-1">{heatmapData.totalContributions.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-3 text-xs font-bold text-slate-400 bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50">
+          <div className="flex items-center gap-3 text-xs font-bold text-slate-400 bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50 shrink-0">
             <span>Less</span>
             <div className="flex gap-1.5">
               {['#1e293b', '#0e4429', '#006d32', '#26a641', '#39d353'].map(c => (

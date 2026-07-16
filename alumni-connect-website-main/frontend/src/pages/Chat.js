@@ -56,6 +56,7 @@ const Chat = () => {
 
   // Lock body scroll to prevent page-level scrolling in Chat
   useEffect(() => {
+    window.scrollTo(0, 0); // Crucial fix for React Router preserving scroll position
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     return () => {

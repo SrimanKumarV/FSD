@@ -87,6 +87,7 @@ app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/helpdesk', require('./routes/helpdesk'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/institutions', require('./routes/institutions'));
+app.use('/api/tasks', require('./routes/tasks'));
 
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);

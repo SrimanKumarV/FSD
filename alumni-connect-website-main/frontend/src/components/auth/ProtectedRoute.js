@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import CompleteProfileOnboarding from '../profile/CompleteProfileOnboarding';
+import MandatoryTasksOverlay from '../profile/MandatoryTasksOverlay';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, isAuthenticated, isLoading, isAdmin, updateUser } = useAuth();
@@ -38,12 +39,18 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
           user={user} 
           onComplete={(updatedUser) => updateUser(updatedUser)} 
         />
+        <MandatoryTasksOverlay user={user} />
       </>
     );
   }
 
   // Render children if authenticated and authorized
-  return children;
+  return (
+    <>
+      {children}
+      <MandatoryTasksOverlay user={user} />
+    </>
+  );
 };
 
 export default ProtectedRoute;

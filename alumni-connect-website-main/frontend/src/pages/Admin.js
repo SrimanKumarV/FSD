@@ -41,6 +41,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 import DefaultAvatar from '../components/DefaultAvatar';
+import MandatoryTasksAdminTab from '../components/admin/MandatoryTasksAdminTab';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -161,6 +162,7 @@ const Admin = () => {
     { id: 'feedback', label: 'Feedback', icon: MessageSquarePlus },
     { id: 'helpdesk', label: 'Help Desk', icon: LifeBuoy },
     { id: 'content', label: 'Content Moderation', icon: Flag },
+    { id: 'tasks', label: 'Mandatory Tasks', icon: AlertCircle },
     { id: 'settings', label: 'System Settings', icon: Settings }
   ];
 
@@ -263,6 +265,9 @@ const Admin = () => {
           )}
           {activeTab === 'content' && (
             <ContentModerationTab />
+          )}
+          {activeTab === 'tasks' && (
+            <MandatoryTasksAdminTab />
           )}
           {activeTab === 'settings' && (
             <SystemSettingsTab />

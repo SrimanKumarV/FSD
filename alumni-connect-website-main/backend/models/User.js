@@ -163,6 +163,12 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   
+  // Tasks completed by the user
+  completedTasks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task'
+  }],
+  
   // Password Reset
   resetPasswordOtp: String,
   resetPasswordExpires: Date,

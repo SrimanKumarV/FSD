@@ -220,14 +220,16 @@ router.put('/profile', protect, [
 
     // Update allowed fields
     const allowedFields = ['name', 'bio', 'skills', 'location', 'country', 'college', 'socialLinks', 'photo'];
+    const updateData = {};
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
-        user[field] = req.body[field];
+        updateData[field] = req.body[field];
       }
     });
 
-    await user.save();
-    res.json({ user: user.toObject() });
+    await User.updateOne({ _id: user._id }, { $set: updateData });
+    const updatedUser = await User.findById(req.user.id);
+    res.json({ user: updatedUser.toObject() });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({ message: 'Server error' });

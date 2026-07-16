@@ -54,6 +54,16 @@ const Chat = () => {
   
   const emojis = ['😀', '😂', '🥰', '😎', '😭', '🥺', '😡', '👍', '❤️', '🔥', '✨', '🎉', '💡', '🚀', '👀', '💯'];
 
+  // Lock body scroll to prevent page-level scrolling in Chat
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+    };
+  }, []);
+
   // Fetch user's chats
   const { data: chatsData, isLoading: chatsLoading } = useQuery(
     ['user-chats'],

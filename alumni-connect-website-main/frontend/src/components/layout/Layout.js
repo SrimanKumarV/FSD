@@ -234,7 +234,7 @@ const Layout = ({ children }) => {
             >
               <img loading="lazy" src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm flex-shrink-0" />
               {!isSidebarCollapsed && (
-                <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent whitespace-nowrap">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent whitespace-nowrap overflow-hidden text-ellipsis">
                   Alumnex Connect
                 </h1>
               )}

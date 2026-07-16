@@ -400,7 +400,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="h-full w-full flex overflow-hidden border-t border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 relative">
+    <div className="h-full w-full flex overflow-hidden bg-white/50 dark:bg-gray-900/50 relative">
       {/* Sidebar - Chat List */}
       <div className={`w-full md:w-80 border-r border-gray-200 dark:border-gray-700/50 flex flex-col bg-white/50 dark:bg-gray-900/50 ${!showChatList ? 'hidden md:flex' : 'flex'}`}>
         {/* Header */}

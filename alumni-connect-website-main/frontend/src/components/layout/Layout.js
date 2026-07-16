@@ -443,8 +443,8 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-4rem)] overflow-hidden flex flex-col' : 'py-6'}>
-          <div className={location.pathname === '/chat' ? 'h-full w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
+        <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-4rem)] lg:p-4 lg:pt-0 overflow-hidden flex flex-col' : 'py-6'}>
+          <div className={location.pathname === '/chat' ? 'h-full w-full glass-card border-none lg:rounded-3xl overflow-hidden' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
             {children}
           </div>
         </main>

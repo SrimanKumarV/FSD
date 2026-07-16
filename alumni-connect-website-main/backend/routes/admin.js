@@ -560,7 +560,8 @@ router.post('/notifications', [protect, admin], [
   body('type').isIn(['announcement', 'maintenance', 'update', 'warning']).withMessage('Invalid notification type'),
   body('recipients').isIn(['all', 'alumni', 'students', 'specific']).withMessage('Invalid recipient type'),
   body('specificUsers').optional().isArray().withMessage('Specific users must be an array'),
-  body('priority').optional().isIn(['low', 'normal', 'high', 'urgent']).withMessage('Invalid priority level')
+  body('priority').optional().isIn(['low', 'normal', 'high', 'urgent']).withMessage('Invalid priority level'),
+  body('scheduledFor').optional({ nullable: true }).isISO8601().withMessage('Invalid schedule date')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -569,7 +570,7 @@ router.post('/notifications', [protect, admin], [
     }
 
     const {
-      title, content, type, recipients, specificUsers, priority = 'normal'
+      title, content, type, recipients, specificUsers, priority = 'normal', scheduledFor
     } = req.body;
 
     let targetUsers = [];
@@ -597,60 +598,77 @@ router.post('/notifications', [protect, admin], [
       return res.status(400).json({ message: 'No target users found' });
     }
 
-    // Create bulk notifications
-    const notifications = targetUsers.map(user => ({
-      recipient: user._id,
-      sender: req.user.id,
-      type: 'system-announcement',
-      title,
-      content,
-      priority,
-      relatedData: { notificationType: type }
-    }));
-
-    await Notification.createBulkNotifications(notifications);
-
-    // Also send as an Inbox Message to every user
-    const messages = targetUsers.map(user => {
-      const conversationId = Message.generateConversationId(req.user.id, user._id);
-      return {
+    const executeBroadcast = async () => {
+      // Create bulk notifications
+      const notifications = targetUsers.map(user => ({
+        recipient: user._id,
         sender: req.user.id,
-        receiver: user._id,
-        content: `**${title}**\n\n${content}`,
-        messageType: 'text',
-        conversationId
-      };
-    });
-    
-    // Create the messages
-    await Message.insertMany(messages);
+        type: 'system-announcement',
+        title,
+        content,
+        priority,
+        relatedData: { notificationType: type }
+      }));
 
-    // Send emails asynchronously only for feature updates or announcements
-    // Do not send for maintenance (bug fixes) or warnings
-    if (type === 'update' || type === 'announcement') {
-      targetUsers.forEach(user => {
-        if (user.email) {
-          sendEmail({
-            email: user.email,
-            subject: title,
-            message: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
-                <p>Hello ${user.name || 'User'},</p>
-                <p>We have a new update for you:</p>
-                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
-                  <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
-                </div>
-                <p>Log in to <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">your portal</a> to view more details.</p>
-                <br/>
-                <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
-              </div>
-            `
-          });
-        }
+      await Notification.createBulkNotifications(notifications);
+
+      // Also send as an Inbox Message to every user
+      const messages = targetUsers.map(user => {
+        const conversationId = Message.generateConversationId(req.user.id, user._id);
+        return {
+          sender: req.user.id,
+          receiver: user._id,
+          content: `**${title}**\n\n${content}`,
+          messageType: 'text',
+          conversationId
+        };
       });
+      
+      // Create the messages
+      await Message.insertMany(messages);
+
+      // Send emails asynchronously only for feature updates or announcements
+      // Do not send for maintenance (bug fixes) or warnings
+      if (type === 'update' || type === 'announcement') {
+        targetUsers.forEach(user => {
+          if (user.email) {
+            sendEmail({
+              email: user.email,
+              subject: title,
+              message: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
+                  <p>Hello ${user.name || 'User'},</p>
+                  <p>We have a new update for you:</p>
+                  <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
+                    <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
+                  </div>
+                  <p>Log in to <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">your portal</a> to view more details.</p>
+                  <br/>
+                  <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
+                </div>
+              `
+            });
+          }
+        });
+      }
+    };
+
+    if (scheduledFor) {
+      const delay = new Date(scheduledFor).getTime() - Date.now();
+      if (delay > 0) {
+        setTimeout(() => {
+          executeBroadcast().catch(err => console.error('Error executing scheduled broadcast:', err));
+        }, delay);
+        return res.json({ 
+          message: `System notification scheduled for ${new Date(scheduledFor).toLocaleString()}`,
+          sentCount: targetUsers.length
+        });
+      }
     }
+
+    await executeBroadcast();
 
     res.json({ 
       message: `System notification sent to ${targetUsers.length} users`,

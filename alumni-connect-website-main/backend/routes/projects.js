@@ -124,8 +124,8 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
     
-    // Make sure user is project owner or admin
-    if (project.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Make sure user is project owner
+    if (project.user.toString() !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized to update this project' });
     }
     
@@ -152,8 +152,8 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
     
-    // Make sure user is project owner or admin
-    if (project.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Make sure user is project owner
+    if (project.user.toString() !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized to delete this project' });
     }
     

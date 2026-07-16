@@ -278,7 +278,7 @@ const ProjectCard = ({ project, onLike, onClick, currentUser }) => {
 
 const ProjectDetailsModal = ({ project, currentUser, onClose, onLike, onEdit, onDelete }) => {
   const isLiked = currentUser && project.likes?.includes(currentUser.id);
-  const isOwner = currentUser && (project.user?._id === currentUser.id || project.user === currentUser.id || currentUser.role === 'admin');
+  const isOwner = currentUser && (project.user?._id === (currentUser._id || currentUser.id) || project.user === (currentUser._id || currentUser.id));
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">

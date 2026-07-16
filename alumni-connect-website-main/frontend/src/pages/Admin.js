@@ -820,6 +820,8 @@ const SystemSettingsTab = () => {
   const [recipients, setRecipients] = useState('all');
   const [specificUsers, setSpecificUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
+  const [scheduledFor, setScheduledFor] = useState('');
+
   
   // Debounce search value to avoid spamming the API
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -843,6 +845,7 @@ const SystemSettingsTab = () => {
         setContent('');
         setSpecificUsers([]);
         setUserSearch('');
+        setScheduledFor('');
         queryClient.invalidateQueries(['notifications']);
       },
       onError: (error) => {
@@ -866,7 +869,8 @@ const SystemSettingsTab = () => {
       content, 
       type, 
       recipients,
-      specificUsers: specificUsers.map(u => u._id)
+      specificUsers: specificUsers.map(u => u._id),
+      scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : null
     });
   };
 
@@ -1002,6 +1006,17 @@ const SystemSettingsTab = () => {
                 placeholder="Type the full message here..."
                 className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none resize-none"
               ></textarea>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Schedule For (Optional)</label>
+              <input
+                type="datetime-local"
+                value={scheduledFor}
+                onChange={(e) => setScheduledFor(e.target.value)}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">Leave empty to send immediately.</p>
             </div>
             
             <button

@@ -20,7 +20,11 @@ const getPlatformColor = (platform) => {
 const Contests = () => {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState('');
+  const [platformFilter, setPlatformFilter] = useState('All');
+  const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  const platformsList = ['All', 'LeetCode', 'Codeforces', 'CodeChef', 'GeeksForGeeks', 'HackerRank', 'AtCoder'];
 
   // Fetch local contests
   const { data: contestsData, isLoading: localLoading } = useQuery(
@@ -76,8 +80,12 @@ const Contests = () => {
       combined = combined.filter(c => c.title.toLowerCase().includes(search.toLowerCase()) || c.platform?.toLowerCase().includes(search.toLowerCase()));
     }
 
+    if (platformFilter !== 'All') {
+      combined = combined.filter(c => c.platform?.toLowerCase().includes(platformFilter.toLowerCase()) || (platformFilter === 'GeeksForGeeks' && c.platform?.toLowerCase().includes('gfg')));
+    }
+
     return combined.sort((a, b) => a.start - b.start);
-  }, [contestsData, externalContests, search, localLoading, externalLoading]);
+  }, [contestsData, externalContests, search, platformFilter, localLoading, externalLoading]);
 
   // Group upcoming contests by date (for the left panel)
   const upcomingContestsGrouped = useMemo(() => {
@@ -132,31 +140,55 @@ const Contests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0e0e0e] text-white p-6 font-sans">
-      <div className="max-w-[1600px] mx-auto space-y-6">
+    <div className="h-[calc(100vh-100px)] flex flex-col text-slate-200 px-4 sm:px-6 lg:px-8 py-4 font-sans overflow-hidden">
+      <div className="max-w-7xl mx-auto w-full h-full flex flex-col space-y-6">
         
         {/* Top Header Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
           <div className="relative w-full sm:flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input 
               type="text" 
               placeholder="Search Contests" 
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-[#1a1a1a] text-gray-200 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-1 focus:ring-indigo-500 transition-shadow placeholder-gray-500 border border-[#2a2a2a]"
+              className="w-full bg-slate-900/50 backdrop-blur-md text-slate-200 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow placeholder-slate-500 border border-slate-700/50 shadow-inner"
             />
           </div>
           <div className="relative w-full sm:w-72">
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-[#222] transition-colors">
-              <span>All Platforms Selected</span>
-              <ChevronDown className="w-5 h-5 text-gray-500" />
+            <div 
+              onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
+              className="bg-slate-900/50 backdrop-blur-md border border-slate-700/50 text-slate-300 rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-800/50 transition-colors shadow-inner"
+            >
+              <span>{platformFilter === 'All' ? 'All Platforms Selected' : platformFilter}</span>
+              <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${showPlatformDropdown ? 'rotate-180' : ''}`} />
             </div>
+            
+            <AnimatePresence>
+              {showPlatformDropdown && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50"
+                >
+                  {platformsList.map(plat => (
+                    <div 
+                      key={plat}
+                      onClick={() => { setPlatformFilter(plat); setShowPlatformDropdown(false); }}
+                      className="px-4 py-2.5 text-sm text-slate-300 hover:bg-indigo-600 hover:text-white cursor-pointer transition-colors"
+                    >
+                      {plat}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           {isAdmin() && (
             <button
               onClick={() => alert('Create contest modal logic goes here')}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-md font-semibold shrink-0"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-indigo-600/90 backdrop-blur-md text-white rounded-xl hover:bg-indigo-600 transition-colors shadow-lg font-semibold shrink-0"
             >
               <Plus className="w-5 h-5 mr-2" />
               Create
@@ -165,38 +197,40 @@ const Contests = () => {
         </div>
 
         {/* Main Grid */}
-        <div className="flex flex-col xl:flex-row gap-8">
+        <div className="flex flex-col xl:flex-row gap-8 flex-1 min-h-0">
           
           {/* Left Panel: Upcoming */}
-          <div className="w-full xl:w-[400px] shrink-0">
-            <h2 className="text-2xl font-bold mb-1">Upcoming Contests</h2>
-            <p className="text-gray-400 text-sm mb-6">Don't miss scheduled events</p>
+          <div className="w-full xl:w-[350px] shrink-0 flex flex-col h-full">
+            <div className="shrink-0 mb-4">
+              <h2 className="text-2xl font-black text-white drop-shadow-md">Upcoming Contests</h2>
+              <p className="text-slate-400 text-sm">Don't miss scheduled events</p>
+            </div>
             
-            <div className="space-y-6 h-[750px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar flex-1 min-h-0">
               {Object.keys(upcomingContestsGrouped).length > 0 ? (
                 Object.entries(upcomingContestsGrouped).map(([dateStr, contests]) => (
                   <div key={dateStr}>
-                    <h3 className="text-[#666] text-xs font-bold mb-3 tracking-wider">{dateStr}</h3>
+                    <h3 className="text-slate-400 text-xs font-bold mb-3 tracking-wider">{dateStr}</h3>
                     <div className="space-y-3">
                       {contests.map(c => (
-                        <div key={c._id} className="bg-[#151515] border border-[#222] rounded-xl p-4 hover:border-[#333] transition-colors group">
+                        <div key={c._id} className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800/60 transition-colors shadow-sm group">
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full" style={{ background: getPlatformColor(c.platform) }} />
-                            <span className="text-gray-400 text-xs font-medium">
+                            <div className="w-2 h-2 rounded-full shadow-sm" style={{ background: getPlatformColor(c.platform) }} />
+                            <span className="text-slate-400 text-xs font-medium">
                               {dateStr} {formatTime(c.start)} - {formatTime(c.end)}
                             </span>
                           </div>
                           <div className="flex items-center gap-3 mb-4">
                             <PlatformIcon platform={c.platform} className="w-5 h-5 shrink-0" />
-                            <h4 className="font-semibold text-gray-200 leading-tight group-hover:text-white transition-colors">{c.title}</h4>
+                            <h4 className="font-semibold text-slate-200 leading-tight group-hover:text-white transition-colors">{c.title}</h4>
                           </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-[#222]">
-                            <a href={getGoogleCalendarUrl(c)} target="_blank" rel="noreferrer" className="flex items-center text-[#555] hover:text-[#888] text-xs font-medium transition-colors">
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                            <a href={getGoogleCalendarUrl(c)} target="_blank" rel="noreferrer" className="flex items-center text-slate-400 hover:text-indigo-400 text-xs font-semibold transition-colors">
                               <MapPin className="w-3.5 h-3.5 mr-1.5" />
                               Add to Calendar
                             </a>
                             {c.externalLink && (
-                              <a href={c.externalLink} target="_blank" rel="noreferrer" className="text-[#555] hover:text-indigo-400 transition-colors">
+                              <a href={c.externalLink} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-indigo-400 transition-colors">
                                 <ExternalLink className="w-4 h-4" />
                               </a>
                             )}
@@ -207,63 +241,64 @@ const Contests = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-gray-500 text-center py-10">No upcoming contests found.</div>
+                <div className="text-slate-500 text-center py-10 bg-slate-800/20 rounded-xl border border-slate-700/30 border-dashed">No upcoming contests found.</div>
               )}
             </div>
           </div>
 
           {/* Right Panel: Calendar Grid */}
-          <div className="flex-1 bg-[#121212] border border-[#222] rounded-2xl p-6 flex flex-col h-[850px]">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">
+          <div className="flex-1 bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-[2rem] p-6 flex flex-col h-full shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-center justify-between mb-6 relative z-10 shrink-0">
+              <h2 className="text-2xl font-black text-white">
                 {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
               </h2>
               <div className="flex gap-2">
-                <button onClick={prevMonth} className="p-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] rounded-lg border border-[#333] transition-colors">
-                  <ChevronLeft className="w-5 h-5 text-gray-300" />
+                <button onClick={prevMonth} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors">
+                  <ChevronLeft className="w-5 h-5 text-slate-300" />
                 </button>
-                <button onClick={nextMonth} className="p-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] rounded-lg border border-[#333] transition-colors">
-                  <ChevronRight className="w-5 h-5 text-gray-300" />
+                <button onClick={nextMonth} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors">
+                  <ChevronRight className="w-5 h-5 text-slate-300" />
                 </button>
               </div>
             </div>
 
             {/* Calendar Header */}
-            <div className="grid grid-cols-7 mb-2">
+            <div className="grid grid-cols-7 mb-2 shrink-0 relative z-10">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-sm font-medium text-[#666] pb-2">
+                <div key={day} className="text-center text-sm font-bold text-slate-500 pb-2">
                   {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Body */}
-            <div className="grid grid-cols-7 flex-1 border-t border-l border-[#222] overflow-hidden rounded-bl-xl rounded-br-xl">
+            <div className="grid grid-cols-7 flex-1 border-t border-l border-slate-700/50 overflow-hidden rounded-xl bg-slate-900/50 relative z-10">
               {calendarDays.map((cell, idx) => {
                 const cellDateStr = cell.date.toLocaleDateString('en-US');
                 const dayContests = allContests.filter(c => c.start.toLocaleDateString('en-US') === cellDateStr);
                 
                 return (
-                  <div key={idx} className={`min-h-[100px] border-r border-b border-[#222] p-2 flex flex-col ${!cell.isCurrentMonth ? 'bg-[#0a0a0a]' : 'bg-[#151515] hover:bg-[#1a1a1a]'} transition-colors`}>
-                    <div className={`text-xs font-semibold mb-2 text-right ${!cell.isCurrentMonth ? 'text-[#444]' : 'text-gray-400'}`}>
+                  <div key={idx} className={`min-h-[80px] border-r border-b border-slate-700/50 p-1.5 sm:p-2 flex flex-col ${!cell.isCurrentMonth ? 'bg-slate-900/30' : 'bg-transparent hover:bg-slate-800/30'} transition-colors`}>
+                    <div className={`text-xs font-bold mb-1 sm:mb-2 text-right ${!cell.isCurrentMonth ? 'text-slate-600' : 'text-slate-400'}`}>
                       {cell.day}
                     </div>
-                    <div className="space-y-1.5 overflow-hidden flex-1">
-                      {dayContests.slice(0, 3).map(c => (
+                    <div className="space-y-1.5 overflow-y-auto flex-1 custom-scrollbar min-h-0 pr-1">
+                      {dayContests.slice(0, 4).map(c => (
                         <a 
                           key={c._id} 
                           href={c.externalLink || '#'} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#222] hover:bg-[#333] transition-colors"
+                          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/50 shadow-sm transition-colors"
                         >
                           <PlatformIcon platform={c.platform} className="w-3 h-3 shrink-0" />
-                          <span className="text-[10px] text-gray-300 truncate font-medium">{c.title}</span>
+                          <span className="text-[10px] text-slate-300 truncate font-semibold">{c.title}</span>
                         </a>
                       ))}
-                      {dayContests.length > 3 && (
-                        <div className="text-[10px] text-gray-500 font-medium px-2 py-0.5">
-                          +{dayContests.length - 3} more
+                      {dayContests.length > 4 && (
+                        <div className="text-[10px] text-slate-500 font-bold px-2 py-0.5">
+                          +{dayContests.length - 4} more
                         </div>
                       )}
                     </div>
@@ -278,17 +313,17 @@ const Contests = () => {
       
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #111;
+          background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #333;
+          background: rgba(148, 163, 184, 0.2);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #444;
+          background: rgba(148, 163, 184, 0.4);
         }
       `}</style>
     </div>

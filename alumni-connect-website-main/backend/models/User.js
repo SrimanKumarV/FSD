@@ -207,7 +207,10 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 // Update last active timestamp
 userSchema.methods.updateLastActive = function() {
   this.lastActive = new Date();
-  return this.save();
+  return this.constructor.updateOne(
+    { _id: this._id },
+    { $set: { lastActive: this.lastActive } }
+  );
 };
 
 // Get public profile (without sensitive information)

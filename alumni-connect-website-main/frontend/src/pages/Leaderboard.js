@@ -1,44 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from 'react-query';
-import { Trophy, Medal, Search, Activity, Globe, MapPin, Building2, ChevronDown } from 'lucide-react';
+import { Trophy, Medal, Activity, Globe, MapPin, Building2, ChevronDown, Search, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 
-const COLLEGES = [
-  'Kongu Engineering College',
-  'IIT Bombay',
-  'IIT Delhi',
-  'IIT Madras',
-  'NIT Trichy',
-  'VIT Vellore',
-  'BITS Pilani',
-  'PSG College of Technology',
-  'Anna University'
-];
-
-const COUNTRIES = [
-  'India',
-  'United States',
-  'United Kingdom',
-  'Canada',
-  'Australia',
-  'Singapore',
-  'Germany'
+const COUNTRIES_WITH_FLAGS = [
+  { name: 'India', flag: '🇮🇳' },
+  { name: 'United States', flag: '🇺🇸' },
+  { name: 'United Kingdom', flag: '🇬🇧' },
+  { name: 'Canada', flag: '🇨🇦' },
+  { name: 'Australia', flag: '🇦🇺' },
+  { name: 'Singapore', flag: '🇸🇬' },
+  { name: 'Germany', flag: '🇩🇪' },
+  { name: 'France', flag: '🇫🇷' },
+  { name: 'Japan', flag: '🇯🇵' },
+  { name: 'Malaysia', flag: '🇲🇾' },
+  { name: 'United Arab Emirates', flag: '🇦🇪' },
 ];
 
 const Leaderboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  const [activeTab, setActiveTab] = useState('Global'); // 'Global', 'Country', 'College'
+  const [activeTab, setActiveTab] = useState('Global');
   const [selectedCountry, setSelectedCountry] = useState(user?.country || 'India');
-  const [selectedCollege, setSelectedCollege] = useState(user?.college || 'Kongu Engineering College');
-  
+  const [selectedCollege, setSelectedCollege] = useState(user?.college || '');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownSearch, setDropdownSearch] = useState('');
+  const [universities, setUniversities] = useState([]);
+  const [loadingUnis, setLoadingUnis] = useState(false);
+  const debounceRef = useRef(null);
 
-  const { data, isLoading, error } = useQuery(
+  const fetchUniversities = useCallback(async (countryName, query) => {
+    setLoadingUnis(true);
+    try {
+      const url = query
+        ? `https://universities.hipolabs.com/search?country=${encodeURIComponent(countryName)}&name=${encodeURIComponent(query)}`
+        : `https://universities.hipolabs.com/search?country=${encodeURIComponent(countryName)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      setUniversities(data.slice(0, 60).map(u => u.name));
+    } catch {
+      setUniversities([]);
+    } finally {
+      setLoadingUnis(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'College' && showDropdown) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        fetchUniversities(selectedCountry, dropdownSearch);
+      }, 350);
+    }
+    return () => clearTimeout(debounceRef.current);
+  }, [activeTab, showDropdown, selectedCountry, dropdownSearch, fetchUniversities]);
+
+  const { data, isLoading } = useQuery(
     ['leaderboard', activeTab, selectedCountry, selectedCollege],
     () => {
       const params = {};
@@ -147,13 +168,16 @@ const Leaderboard = () => {
         </div>
 
         {activeTab !== 'Global' && (
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full sm:w-80">
             <div 
-              onClick={() => setShowDropdown(!showDropdown)}
+              onClick={() => { setShowDropdown(!showDropdown); setDropdownSearch(''); }}
               className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer shadow-sm hover:border-primary-500 transition-colors"
             >
-              <span className="truncate mr-2 font-medium">
-                {activeTab === 'Country' ? selectedCountry : selectedCollege}
+              <span className="truncate mr-2 font-medium flex items-center gap-2">
+                {activeTab === 'Country' && (
+                  <span>{COUNTRIES_WITH_FLAGS.find(c => c.name === selectedCountry)?.flag}</span>
+                )}
+                {activeTab === 'Country' ? selectedCountry : (selectedCollege || 'Select a college')}
               </span>
               <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform shrink-0 ${showDropdown ? 'rotate-180' : ''}`} />
             </div>
@@ -164,21 +188,53 @@ const Leaderboard = () => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full right-0 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto"
+                  className="absolute top-full right-0 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50"
                 >
-                  {(activeTab === 'Country' ? COUNTRIES : COLLEGES).map(item => (
-                    <div 
-                      key={item}
-                      onClick={() => { 
-                        if (activeTab === 'Country') setSelectedCountry(item);
-                        else setSelectedCollege(item);
-                        setShowDropdown(false); 
-                      }}
-                      className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                    >
-                      {item}
+                  <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder={activeTab === 'Country' ? 'Search country...' : `Search universities in ${selectedCountry}...`}
+                        value={dropdownSearch}
+                        onChange={e => setDropdownSearch(e.target.value)}
+                        className="w-full bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                        autoFocus
+                        onClick={e => e.stopPropagation()}
+                      />
                     </div>
-                  ))}
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {activeTab === 'Country' ? (
+                      COUNTRIES_WITH_FLAGS
+                        .filter(c => c.name.toLowerCase().includes(dropdownSearch.toLowerCase()))
+                        .map(c => (
+                          <div key={c.name} onClick={() => { setSelectedCountry(c.name); setDropdownSearch(''); setShowDropdown(false); }}
+                            className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center gap-3 ${selectedCountry === c.name ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                          >
+                            <span className="text-base">{c.flag}</span> {c.name}
+                          </div>
+                        ))
+                    ) : loadingUnis ? (
+                      <div className="flex items-center justify-center py-8 gap-2 text-gray-400">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
+                        <span className="text-sm">Loading universities...</span>
+                      </div>
+                    ) : universities.length > 0 ? (
+                      universities.map((name, i) => (
+                        <div key={i} onClick={() => { setSelectedCollege(name); setDropdownSearch(''); setShowDropdown(false); }}
+                          className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center gap-3 ${selectedCollege === name ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                        >
+                          <Building2 className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+                          <span className="truncate">{name}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-400 text-sm">
+                        {dropdownSearch ? 'No universities found' : 'Type to search...'}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

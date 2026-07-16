@@ -1,9 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import CompleteProfileOnboarding from '../profile/CompleteProfileOnboarding';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin, updateUser } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -26,6 +27,19 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   // Check admin access if required
   if (adminOnly && !isAdmin()) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Force onboarding for missing mandatory fields
+  if (user && (!user.country || !user.college)) {
+    return (
+      <>
+        {children}
+        <CompleteProfileOnboarding 
+          user={user} 
+          onComplete={(updatedUser) => updateUser(updatedUser)} 
+        />
+      </>
+    );
   }
 
   // Render children if authenticated and authorized

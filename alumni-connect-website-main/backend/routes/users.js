@@ -200,6 +200,8 @@ router.put('/profile', protect, [
   body('bio').optional().trim().isLength({ max: 500 }),
   body('skills').optional().isArray(),
   body('location').optional().trim().isLength({ max: 100 }),
+  body('country').optional().trim().isLength({ max: 100 }),
+  body('college').optional().trim().isLength({ max: 200 }),
   body('socialLinks.linkedin').optional({ checkFalsy: true }).isURL(),
   body('socialLinks.github').optional({ checkFalsy: true }).isURL(),
   body('socialLinks.twitter').optional({ checkFalsy: true }).isURL(),
@@ -217,7 +219,7 @@ router.put('/profile', protect, [
     }
 
     // Update allowed fields
-    const allowedFields = ['name', 'bio', 'skills', 'location', 'socialLinks', 'photo'];
+    const allowedFields = ['name', 'bio', 'skills', 'location', 'country', 'college', 'socialLinks', 'photo'];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         user[field] = req.body[field];

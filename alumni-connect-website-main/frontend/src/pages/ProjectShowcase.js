@@ -255,6 +255,7 @@ const AddProjectModal = ({ onClose, onSubmit, isLoading }) => {
             <textarea
               required
               rows={4}
+              maxLength={100000}
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 resize-none"

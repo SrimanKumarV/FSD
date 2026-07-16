@@ -20,6 +20,7 @@ router.get('/', protect, async (req, res) => {
     res.json({
       leaderboard: validProfiles.map((p, index) => ({
         rank: index + 1,
+        userId: p.user._id,
         name: p.user.name,
         photo: p.user.photo,
         department: p.user.department,

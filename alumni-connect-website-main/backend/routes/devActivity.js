@@ -17,7 +17,7 @@ const cheerio = require('cheerio');
 router.get('/public/:userId', protect, async (req, res) => {
   try {
     const User = require('../models/User');
-    const targetUser = await User.findById(req.params.userId).select('email');
+    const targetUser = await User.findById(req.params.userId).select('email name photo');
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
     const profile = await DevProfile.findOne({ email: targetUser.email });
@@ -25,6 +25,8 @@ router.get('/public/:userId', protect, async (req, res) => {
 
     // Return cached stats only (no background refresh for other users' profiles)
     return res.json({
+      name: targetUser.name,
+      photo: targetUser.photo,
       usernames: profile.usernames,
       stats: profile.stats,
       lastUpdated: profile.lastUpdated,

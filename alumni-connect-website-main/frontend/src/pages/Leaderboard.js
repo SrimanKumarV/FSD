@@ -1,13 +1,14 @@
 import React from 'react';
 import { useQuery } from 'react-query';
 import { Trophy, Medal, Search, Activity } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const Leaderboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const { data, isLoading, error } = useQuery(
     'leaderboard',
@@ -106,7 +107,8 @@ const Leaderboard = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       key={profile.name + index} 
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${isCurrentUser ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}
+                      onClick={() => navigate(`/devpulse/${profile.userId}`)}
+                      className={`cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${isCurrentUser ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getRankBadge(profile.rank)}

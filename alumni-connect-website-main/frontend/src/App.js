@@ -196,6 +196,14 @@ function App() {
                     </ProtectedRoute>
                   } />
                   
+                  <Route path="/devpulse/:userId" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DevPulse />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
                   <Route path="/leaderboard" element={
                     <ProtectedRoute>
                       <Layout>

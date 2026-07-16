@@ -50,6 +50,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  country: {
+    type: String,
+    trim: true,
+    default: 'India'
+  },
+  college: {
+    type: String,
+    trim: true,
+    default: 'Kongu Engineering College'
+  },
   
   // Student-specific fields
   studentInfo: {

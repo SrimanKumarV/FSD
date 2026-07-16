@@ -8,14 +8,20 @@ const { protect } = require('../middleware/auth');
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
+    const { country, college } = req.query;
+
     // Find profiles with an Alumnex Score greater than 0, sort descending
     const topProfiles = await DevProfile.find({ alumnexScore: { $gt: 0 } })
       .sort({ alumnexScore: -1 })
-      .limit(50) // Top 50
-      .populate('user', 'name photo role department batch isVerified');
+      .populate('user', 'name photo role department batch isVerified country college');
 
-    // Filter out profiles where user might have been deleted
-    const validProfiles = topProfiles.filter(p => p.user != null);
+    // Filter out profiles where user might have been deleted or doesn't match filters
+    const validProfiles = topProfiles.filter(p => {
+      if (!p.user) return false;
+      if (country && country !== 'Global' && p.user.country !== country) return false;
+      if (college && p.user.college !== college) return false;
+      return true;
+    }).slice(0, 50); // Limit to top 50 after filtering
 
     res.json({
       leaderboard: validProfiles.map((p, index) => ({
@@ -25,6 +31,8 @@ router.get('/', protect, async (req, res) => {
         photo: p.user.photo,
         department: p.user.department,
         batch: p.user.batch,
+        country: p.user.country,
+        college: p.user.college,
         alumnexScore: p.alumnexScore,
         stats: {
           github: p.stats?.github?.publicRepos || 0,

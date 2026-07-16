@@ -1,4 +1,6 @@
-import React, { useState, useRef } from 'react';
+import sys
+
+content = '''import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -20,7 +22,7 @@ const ProjectShowcase = () => {
   // Fetch projects
   const { data, isLoading } = useQuery(
     ['projects', search],
-    () => api.get(`/projects?search=${search}`).then(res => res.data),
+    () => api.get(/projects?search=\).then(res => res.data),
     { keepPreviousData: true }
   );
 
@@ -43,7 +45,7 @@ const ProjectShowcase = () => {
 
   // Edit project mutation
   const editProjectMutation = useMutation(
-    ({ id, data }) => api.put(`/projects/${id}`, data),
+    ({ id, data }) => api.put(/projects/\, data),
     {
       onSuccess: (updatedProject) => {
         queryClient.invalidateQueries(['projects']);
@@ -62,7 +64,7 @@ const ProjectShowcase = () => {
 
   // Delete project mutation
   const deleteProjectMutation = useMutation(
-    (id) => api.delete(`/projects/${id}`),
+    (id) => api.delete(/projects/\),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['projects']);
@@ -77,7 +79,7 @@ const ProjectShowcase = () => {
 
   // Like project mutation
   const likeProjectMutation = useMutation(
-    (projectId) => api.put(`/projects/${projectId}/like`),
+    (projectId) => api.put(/projects/\/like),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['projects']);
@@ -276,9 +278,9 @@ const ProjectCard = ({ project, onLike, onClick, currentUser }) => {
             </span>
             <button 
               onClick={onLike}
-              className={`flex items-center transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+              className={\lex items-center transition-colors \\}
             >
-              <Heart className={`w-3.5 h-3.5 mr-1 ${isLiked ? 'fill-current' : ''}`} />
+              <Heart className={\w-3.5 h-3.5 mr-1 \\} />
               {project.likes?.length || 0}
             </button>
           </div>
@@ -360,9 +362,9 @@ const ProjectDetailsModal = ({ project, currentUser, onClose, onLike, onEdit, on
               <div className="flex flex-wrap items-center gap-3">
                 <button 
                   onClick={onLike}
-                  className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isLiked ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'}`}
+                  className={\lex items-center px-4 py-2 rounded-xl text-sm font-medium transition-colors \\}
                 >
-                  <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                  <Heart className={\w-4 h-4 mr-2 \\} />
                   {project.likes?.length || 0} Likes
                 </button>
                 <div className="flex items-center px-4 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
@@ -486,7 +488,7 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Project Cover Image</label>
               <div 
-                className={`w-full h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden relative transition-colors ${thumbnail ? 'border-primary-500' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
+                className={\w-full h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden relative transition-colors \\}
                 onClick={() => fileInputRef.current?.click()}
               >
                 {isUploading ? (
@@ -604,3 +606,8 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
 };
 
 export default ProjectShowcase;
+'''
+
+with open(r"e:\FSD LAB\Micro-project\alumni-connect-website-main\frontend\src\pages\ProjectShowcase.js", "w", encoding="utf-8") as f:
+    f.write(content)
+print("Done!")

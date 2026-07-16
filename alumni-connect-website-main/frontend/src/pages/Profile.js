@@ -37,7 +37,8 @@ const Profile = () => {
       linkedin: '',
       github: '',
       twitter: '',
-      website: ''
+      website: '',
+      portfolio: ''
     }
   });
 
@@ -108,7 +109,8 @@ const Profile = () => {
           linkedin: user.socialLinks?.linkedin || '',
           github: user.socialLinks?.github || '',
           twitter: user.socialLinks?.twitter || '',
-          website: user.socialLinks?.website || ''
+          website: user.socialLinks?.website || '',
+          portfolio: user.socialLinks?.portfolio || ''
         }
       });
 
@@ -472,6 +474,21 @@ const Profile = () => {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="https://yourwebsite.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <FileText className="w-4 h-4 inline mr-2" />
+                    Portfolio
+                  </label>
+                  <input
+                    type="url"
+                    name="socialLinks.portfolio"
+                    value={formData.socialLinks.portfolio}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="https://yourportfolio.com"
                   />
                 </div>
               </div>

@@ -106,7 +106,8 @@ const userSchema = new mongoose.Schema({
     linkedin: String,
     github: String,
     twitter: String,
-    website: String
+    website: String,
+    portfolio: String
   },
   
   // Account Status

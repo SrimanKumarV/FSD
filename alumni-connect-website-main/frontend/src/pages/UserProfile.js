@@ -294,6 +294,7 @@ const UserProfile = () => {
                 {targetUser.socialLinks.github && <a href={targetUser.socialLinks.github} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>GitHub</a>}
                 {targetUser.socialLinks.linkedin && <a href={targetUser.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>LinkedIn</a>}
                 {targetUser.socialLinks.website && <a href={targetUser.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>Website</a>}
+                {targetUser.socialLinks.portfolio && <a href={targetUser.socialLinks.portfolio} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>Portfolio</a>}
               </div>
             </div>
           )}

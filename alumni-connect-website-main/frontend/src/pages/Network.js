@@ -273,13 +273,17 @@ const Network = () => {
             {suggestedUsers.map(user => {
               const isRequested = user.followRequests?.some(id => id.toString() === (currentUser?._id || currentUser?.id)?.toString());
               return (
-                <div key={user._id} className="glass-card p-5 flex flex-col items-center text-center">
+                <div 
+                  key={user._id} 
+                  className="glass-card p-5 flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/users/${user._id}`)}
+                >
                   <img loading="lazy" src={user.photo !== 'default-avatar.png' ? user.photo : '/default-avatar.png'} alt={user.name} className="w-16 h-16 rounded-full object-cover mb-3 shadow-sm" />
                   <h4 className="font-bold text-gray-900 dark:text-white truncate w-full">{user.name}</h4>
                   <p className="text-xs text-primary-600 dark:text-primary-400 capitalize mb-3">{user.role}</p>
                   
                   <button
-                    onClick={() => handleFollowToggle(user._id, false, isRequested)}
+                    onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, false, isRequested); }}
                     disabled={followMutation.isLoading || isRequested}
                     className={`w-full py-2 rounded-xl text-sm font-medium transition-all ${
                       isRequested
@@ -310,7 +314,8 @@ const Network = () => {
                 key={user._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-card p-6 flex flex-col"
+                className="glass-card p-6 flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/users/${user._id}`)}
               >
                 <div className="flex items-start space-x-4 mb-4">
                   <div className="relative">
@@ -378,7 +383,7 @@ const Network = () => {
 
                 <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                   <button
-                    onClick={() => handleFollowToggle(user._id, isFollowing, isRequested)}
+                    onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, isFollowing, isRequested); }}
                     disabled={followMutation.isLoading || unfollowMutation.isLoading}
                     className={`flex-1 flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                       isFollowing
@@ -406,7 +411,7 @@ const Network = () => {
                     )}
                   </button>
                   <button
-                    onClick={() => handleMessage(user.email)}
+                    onClick={(e) => { e.stopPropagation(); handleMessage(user.email); }}
                     className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all"
                     title="Message"
                   >

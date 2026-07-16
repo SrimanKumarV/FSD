@@ -91,15 +91,8 @@ const fetchHackerRankStats = async (username) => {
       url: `https://www.hackerrank.com/profile/${username}`
     };
   } catch (error) {
-    console.warn(`Scraping HackerRank failed for ${username}, using fallback mock data.`);
-    // Fallback for hackathon/demo purposes since HR API blocks scrapers
-    return {
-      name: username,
-      level: 3,
-      followers: Math.floor(Math.random() * 50) + 5,
-      badgesCount: Math.floor(Math.random() * 10) + 2,
-      url: `https://www.hackerrank.com/profile/${username}`
-    };
+    console.warn(`Scraping HackerRank failed for ${username}, returning null.`);
+    return null;
   }
 };
 
@@ -124,13 +117,8 @@ const fetchGFGStats = async (username) => {
       url: `https://www.geeksforgeeks.org/user/${username}/`
     };
   } catch (error) {
-    console.warn(`Scraping GFG failed for ${username}, using fallback mock data.`);
-    // Fallback for hackathon/demo purposes since GFG blocks basic scraping
-    return {
-      codingScore: Math.floor(Math.random() * 500) + 100,
-      problemsSolved: Math.floor(Math.random() * 200) + 20,
-      url: `https://www.geeksforgeeks.org/user/${username}/`
-    };
+    console.warn(`Scraping GFG failed for ${username}, returning null.`);
+    return null;
   }
 };
 

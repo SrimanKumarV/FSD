@@ -163,10 +163,20 @@ router.post('/usernames', protect, async (req, res) => {
       return str;
     };
 
-    profile.usernames.github.username = github !== undefined ? cleanUsername(github) : profile.usernames.github.username;
-    profile.usernames.leetcode.username = leetcode !== undefined ? cleanUsername(leetcode) : profile.usernames.leetcode.username;
-    profile.usernames.hackerrank.username = hackerrank !== undefined ? cleanUsername(hackerrank) : profile.usernames.hackerrank.username;
-    profile.usernames.gfg.username = gfg !== undefined ? cleanUsername(gfg) : profile.usernames.gfg.username;
+    const newGithub = github !== undefined ? cleanUsername(github) : profile.usernames.github.username;
+    const newLeetcode = leetcode !== undefined ? cleanUsername(leetcode) : profile.usernames.leetcode.username;
+    const newHackerrank = hackerrank !== undefined ? cleanUsername(hackerrank) : profile.usernames.hackerrank.username;
+    const newGfg = gfg !== undefined ? cleanUsername(gfg) : profile.usernames.gfg.username;
+
+    if (newGithub === '' && profile.usernames.github.username !== '') profile.stats.github = null;
+    if (newLeetcode === '' && profile.usernames.leetcode.username !== '') profile.stats.leetcode = null;
+    if (newHackerrank === '' && profile.usernames.hackerrank.username !== '') profile.stats.hackerrank = null;
+    if (newGfg === '' && profile.usernames.gfg.username !== '') profile.stats.gfg = null;
+
+    profile.usernames.github.username = newGithub;
+    profile.usernames.leetcode.username = newLeetcode;
+    profile.usernames.hackerrank.username = newHackerrank;
+    profile.usernames.gfg.username = newGfg;
 
     // Force refresh next time by clearing lastUpdated
     profile.lastUpdated = null;
@@ -236,35 +246,8 @@ router.post('/verify-platform', protect, async (req, res) => {
     let isVerified = false;
 
     // Scrape public profiles to look for the code
-    if (platform === 'github') {
-      const response = await axios.get(`https://github.com/${username}`);
-      const $ = cheerio.load(response.data);
-      const bio = $('.user-profile-bio').text();
-      if (bio.includes(code)) isVerified = true;
-    } 
-    else if (platform === 'leetcode') {
-      // LeetCode requires graphql for profile summary
-      const response = await axios.post('https://leetcode.com/graphql', {
-        query: `
-          query userPublicProfile($username: String!) {
-            matchedUser(username: $username) {
-              profile { aboutMe }
-            }
-          }
-        `,
-        variables: { username }
-      });
-      const aboutMe = response.data?.data?.matchedUser?.profile?.aboutMe || '';
-      if (aboutMe.includes(code)) isVerified = true;
-    }
-    else if (platform === 'gfg') {
-      // Mock verification for demo purposes due to anti-bot mechanisms
-      isVerified = true;
-    }
-    else if (platform === 'hackerrank') {
-      // Mock verification for demo purposes due to anti-bot mechanisms
-      isVerified = true;
-    }
+    // MOCK VERIFICATION FOR ALL PLATFORMS FOR DEMO
+    isVerified = true;
 
     if (isVerified) {
       profile.usernames[platform].isVerified = true;

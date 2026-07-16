@@ -431,7 +431,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'h-[calc(100vh-4rem)]' : 'py-6'}>
+        <main className={location.pathname === '/chat' ? 'h-[calc(100vh-4rem)] overflow-hidden' : 'py-6'}>
           <div className={location.pathname === '/chat' ? 'h-full w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
             {children}
           </div>

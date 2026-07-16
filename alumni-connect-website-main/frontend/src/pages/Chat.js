@@ -43,6 +43,7 @@ const Chat = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
+  const [activeListTab, setActiveListTab] = useState('direct'); // 'direct' or 'group'
   const [newChatMode, setNewChatMode] = useState('dm'); // 'dm' or 'group'
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupEmails, setNewGroupEmails] = useState('');
@@ -366,10 +367,18 @@ const Chat = () => {
   };
 
   const filteredChats = (chatsData?.data?.chats || []).filter(chat => {
-    return chat.participants.some(participant => 
-      (participant._id || participant.id) !== (user?._id || user?.id) && 
-      participant.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const matchSearch = chat.isGroup 
+      ? chat.group?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      : chat.participants.some(participant => 
+          (participant._id || participant.id) !== (user?._id || user?.id) && 
+          participant.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        
+    if (activeListTab === 'direct') {
+      return !chat.isGroup && matchSearch;
+    } else {
+      return chat.isGroup && matchSearch;
+    }
   });
 
   if (chatsLoading) {
@@ -449,6 +458,24 @@ const Chat = () => {
               )}
             </div>
           )}
+          
+          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-3">
+            <button
+              onClick={() => setActiveListTab('direct')}
+              className={`flex-1 py-2 text-sm font-semibold transition-colors relative ${activeListTab === 'direct' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              Direct
+              {activeListTab === 'direct' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />}
+            </button>
+            <button
+              onClick={() => setActiveListTab('group')}
+              className={`flex-1 py-2 text-sm font-semibold transition-colors relative ${activeListTab === 'group' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              Groups
+              {activeListTab === 'group' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />}
+            </button>
+          </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -654,17 +681,34 @@ const Chat = () => {
                   const isOwn = msg.sender === (user?._id || user?.id) || msg.sender?._id === (user?._id || user?.id);
                   const isLastMessage = index === array.length - 1;
                   
+                  const prevMsg = index > 0 ? array[index - 1] : null;
+                  const showDate = !prevMsg || new Date(msg.createdAt).toDateString() !== new Date(prevMsg.createdAt).toDateString();
+                  
+                  const formatDaySeparator = (timestamp) => {
+                    const date = new Date(timestamp);
+                    const options = { day: 'numeric', month: 'short', year: 'numeric', weekday: 'short' };
+                    return date.toLocaleDateString('en-GB', options).replace(',', '');
+                  };
+                  
                   return (
-                    <MessageBubble
-                      key={msg._id}
-                      message={msg}
-                      isOwn={isOwn}
-                      user={user}
-                      isLastMessage={isLastMessage}
-                      onReply={() => setReplyingTo(msg)}
-                      onReact={(emoji) => socket.emit('message:react', { messageId: msg._id, emoji })}
-                      onUnsend={() => socket.emit('message:unsend', { messageId: msg._id })}
-                    />
+                    <React.Fragment key={msg._id}>
+                      {showDate && (
+                        <div className="flex justify-center my-4">
+                          <span className="px-4 py-1 bg-white/60 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs font-bold rounded-full shadow-sm backdrop-blur-md">
+                            {formatDaySeparator(msg.createdAt)}
+                          </span>
+                        </div>
+                      )}
+                      <MessageBubble
+                        message={msg}
+                        isOwn={isOwn}
+                        user={user}
+                        isLastMessage={isLastMessage}
+                        onReply={() => setReplyingTo(msg)}
+                        onReact={(emoji) => socket.emit('message:react', { messageId: msg._id, emoji })}
+                        onUnsend={() => socket.emit('message:unsend', { messageId: msg._id })}
+                      />
+                    </React.Fragment>
                   );
                 })
               ) : (
@@ -815,15 +859,8 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
   const [lastTap, setLastTap] = useState(0);
 
   const getMessageTime = (timestamp) => {
-    const now = new Date();
     const messageTime = new Date(timestamp);
-    const diffInHours = (now - messageTime) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else {
-      return messageTime.toLocaleDateString();
-    }
+    return messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleDoubleTap = (e) => {
@@ -904,8 +941,8 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
         
         {/* Reply Context Banner */}
         {message.replyTo && (
-          <div className={`text-xs p-2 rounded-t-xl opacity-90 mb-[-8px] pb-3 ${isOwn ? 'bg-[#c5e8b7] dark:bg-[#044c3f] text-gray-800 dark:text-gray-200' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
-            <span className="font-bold mr-1 text-primary-600 dark:text-primary-400">Replying to</span>
+          <div className={`text-xs p-2 rounded-t-xl opacity-90 mb-[-8px] pb-3 ${isOwn ? 'bg-primary-700 dark:bg-primary-700 text-gray-200' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
+            <span className={`font-bold mr-1 ${isOwn ? 'text-primary-200' : 'text-primary-600 dark:text-primary-400'}`}>Replying to</span>
             <span className="truncate inline-block max-w-[150px] align-bottom">
               {message.replyTo.content || 'an attachment'}
             </span>
@@ -917,8 +954,8 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           onClick={handleDoubleTap}
           className={`px-3 pt-2 pb-1.5 shadow-sm relative z-10 cursor-pointer select-none transition-transform active:scale-95 ${
             isOwn
-              ? 'bg-[#dcf8c6] dark:bg-[#005c4b] text-gray-900 dark:text-white rounded-xl rounded-tr-none'
-              : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white rounded-xl rounded-tl-none'
+              ? 'bg-primary-600 dark:bg-primary-600 text-white dark:text-white rounded-xl rounded-tr-none'
+              : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white rounded-xl rounded-tl-none border border-gray-100 dark:border-gray-800'
           }`}
         >
           {!isOwn && (
@@ -933,7 +970,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
             </div>
           )}
           {message.attachments && message.attachments.length > 0 && message.attachments[0].fileType !== 'image' && (
-            <div className={`mb-1 p-2 rounded flex items-center gap-2 ${isOwn ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50'}`}>
+            <div className={`mb-1 p-2 rounded flex items-center gap-2 ${isOwn ? 'bg-primary-700 dark:bg-primary-700' : 'bg-gray-100 dark:bg-gray-700/50'}`}>
               <Paperclip className="w-4 h-4" />
               <a href={message.attachments[0].fileUrl} download={message.attachments[0].fileName} className="text-sm underline truncate max-w-[200px]">
                 {message.attachments[0].fileName}
@@ -943,7 +980,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           
           {message.messageType === 'call-log' ? (
             <div className="flex items-center space-x-3 py-1 pr-12">
-              <div className={`p-2 rounded-full ${isOwn ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-gray-700'}`}>
+              <div className={`p-2 rounded-full ${isOwn ? 'bg-primary-700 dark:bg-primary-700' : 'bg-gray-200 dark:bg-gray-700'}`}>
                 {JSON.parse(message.content).type === 'video' ? <Video className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
               </div>
               <div className="flex flex-col">
@@ -960,7 +997,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
             message.content && <p className="text-[14.5px] leading-snug whitespace-pre-wrap inline-block mr-14">
               {message.content.split(/(https?:\/\/[^\s]+)/g).map((part, i) => 
                 part.match(/^https?:\/\//) ? (
-                  <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
+                  <a key={i} href={part} target="_blank" rel="noopener noreferrer" className={`hover:underline break-all ${isOwn ? 'text-primary-100' : 'text-blue-500'}`}>
                     {part}
                   </a>
                 ) : part
@@ -969,11 +1006,11 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           )}
 
           {/* Timestamp - float right bottom */}
-          <div className={`float-right -mt-2 -mr-1 ml-2 text-[10px] flex items-center space-x-0.5 ${isOwn ? 'text-green-800/60 dark:text-green-100/60' : 'text-gray-500/80 dark:text-gray-400/80'}`}>
+          <div className={`float-right -mt-2 -mr-1 ml-2 text-[10px] flex items-center space-x-0.5 ${isOwn ? 'text-primary-100/80 dark:text-primary-100/80' : 'text-gray-500/80 dark:text-gray-400/80'}`}>
             <span className="mt-2">{getMessageTime(message.createdAt)}</span>
             {isOwn && !message._id.toString().startsWith('temp_') && (
               <span className="ml-0.5 mt-2">
-                {message.status === 'read' ? <CheckCheck className="w-[14px] h-[14px] text-blue-500" /> : <Check className="w-[14px] h-[14px]" />}
+                {message.status === 'read' ? <CheckCheck className="w-[14px] h-[14px] text-white" /> : <Check className="w-[14px] h-[14px]" />}
               </span>
             )}
           </div>

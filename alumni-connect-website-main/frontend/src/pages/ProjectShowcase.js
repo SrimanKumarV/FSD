@@ -269,19 +269,7 @@ const ProjectCard = ({ project, onLike, onClick, currentUser }) => {
             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{project.user?.name}</span>
           </div>
 
-          <div className="flex items-center space-x-3 text-xs text-gray-500">
-            <span className="flex items-center">
-              <Eye className="w-3.5 h-3.5 mr-1" />
-              {project.views}
-            </span>
-            <button 
-              onClick={onLike}
-              className={`flex items-center transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
-            >
-              <Heart className={`w-3.5 h-3.5 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-              {project.likes?.length || 0}
-            </button>
-          </div>
+          {/* Removed likes and views for a cleaner layout */}
         </div>
       </div>
     </motion.div>
@@ -358,17 +346,6 @@ const ProjectDetailsModal = ({ project, currentUser, onClose, onLike, onEdit, on
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3">
-                <button 
-                  onClick={onLike}
-                  className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isLiked ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'}`}
-                >
-                  <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
-                  {project.likes?.length || 0} Likes
-                </button>
-                <div className="flex items-center px-4 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                  <Eye className="w-4 h-4 mr-2" />
-                  {project.views} Views
-                </div>
                 {project.githubLink && (
                   <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex items-center px-4 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
                     <Github className="w-4 h-4 mr-2" />

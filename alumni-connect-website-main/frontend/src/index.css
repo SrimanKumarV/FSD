@@ -8,6 +8,16 @@
   body {
     @apply font-sans text-gray-900 bg-gray-50 transition-colors duration-300;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+  }
+  
+  /* Hide scrollbars completely across the app */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 
   .dark body {

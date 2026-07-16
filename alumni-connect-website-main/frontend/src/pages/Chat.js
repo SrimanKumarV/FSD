@@ -289,9 +289,17 @@ const Chat = () => {
     };
   }, [socket, isConnected, otherParticipantId, queryClient]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive without shifting the whole page
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = document.getElementById('chat-messages-scroll-container');
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }, [messagesData?.data?.messages]);
 
   const handleSendMessage = (e) => {
@@ -682,7 +690,7 @@ const Chat = () => {
 
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div id="chat-messages-scroll-container" className="flex-1 overflow-y-auto p-4 space-y-4">
               {messagesLoading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>

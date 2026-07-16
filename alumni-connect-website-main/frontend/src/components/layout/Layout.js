@@ -34,6 +34,7 @@ import DefaultAvatar from '../DefaultAvatar';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const location = useLocation();
@@ -146,7 +147,7 @@ const Layout = ({ children }) => {
 
 
   return (
-    <div className="min-h-screen">
+    <div className={location.pathname === '/chat' ? 'h-dvh overflow-hidden' : 'min-h-screen'}>
       {/* Mobile sidebar overlay */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -223,23 +224,33 @@ const Layout = ({ children }) => {
       </AnimatePresence>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:p-4">
+      <div className={`hidden lg:flex ${isSidebarCollapsed ? 'lg:w-24' : 'lg:w-64'} lg:flex-col lg:fixed lg:inset-y-0 lg:p-4 transition-all duration-300`}>
         <div className="flex flex-col flex-grow glass-card border-none rounded-3xl shadow-xl overflow-hidden">
-          <div className="flex items-center h-16 px-6 border-b border-gray-200/30 dark:border-gray-700/30">
-            <div className="flex items-center gap-3">
-              <img loading="lazy" src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
-                Alumnex Connect
-              </h1>
+          <div className={`flex items-center h-16 ${isSidebarCollapsed ? 'justify-center px-0' : 'px-6'} border-b border-gray-200/30 dark:border-gray-700/30`}>
+            <div 
+              className="flex items-center gap-3 cursor-pointer select-none"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              title="Toggle Sidebar"
+            >
+              <img loading="lazy" src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm flex-shrink-0" />
+              {!isSidebarCollapsed && (
+                <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent whitespace-nowrap">
+                  Alumnex Connect
+                </h1>
+              )}
             </div>
           </div>
           
-          <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto mb-4 custom-scrollbar">
+          <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto mb-4 custom-scrollbar overflow-x-hidden">
             {navigationGroups.map((group) => (
               <div key={group.title}>
-                <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {group.title}
-                </p>
+                {!isSidebarCollapsed ? (
+                  <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 whitespace-nowrap">
+                    {group.title}
+                  </p>
+                ) : (
+                  <div className="h-4" />
+                )}
                 <div className="space-y-1">
                   {group.items.map((item) => {
                     const Icon = item.icon;
@@ -247,14 +258,15 @@ const Layout = ({ children }) => {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        title={isSidebarCollapsed ? item.name : ""}
+                        className={`group flex items-center py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                           isActiveRoute(item.href)
                             ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
-                        }`}
+                        } ${isSidebarCollapsed ? 'justify-center px-0 mx-2' : 'px-3'}`}
                       >
-                        <Icon className="mr-3 h-5 w-5" />
-                        {item.name}
+                        <Icon className={`${isSidebarCollapsed ? '' : 'mr-3'} h-5 w-5 flex-shrink-0`} />
+                        {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
                       </Link>
                     );
                   })}
@@ -266,7 +278,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
         {/* Top navigation */}
         <div className="sticky top-0 z-30 glass-nav">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -431,7 +443,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'h-[calc(100vh-4rem)] overflow-hidden' : 'py-6'}>
+        <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-4rem)] overflow-hidden flex flex-col' : 'py-6'}>
           <div className={location.pathname === '/chat' ? 'h-full w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
             {children}
           </div>

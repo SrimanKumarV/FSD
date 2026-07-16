@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Building2, Save, Search, CheckCircle2, ChevronDown, Globe, Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
 
 // All countries with emoji flags
 const COUNTRIES = [
@@ -54,13 +55,12 @@ export default function CompleteProfileOnboarding({ user, onComplete }) {
     try {
       const countryObj = COUNTRIES.find(c => c.name === countryName);
       const searchName = countryObj ? countryObj.name : countryName;
-      const url = query
-        ? `https://universities.hipolabs.com/search?country=${encodeURIComponent(searchName)}&name=${encodeURIComponent(query)}`
-        : `https://universities.hipolabs.com/search?country=${encodeURIComponent(searchName)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      setUniversities(data.slice(0, 50).map(u => u.name));
-    } catch {
+      const { data } = await api.get('/institutions/search', {
+        params: { country: searchName, name: query || '' }
+      });
+      setUniversities(data);
+    } catch (error) {
+      console.error("Failed to fetch universities:", error);
       setUniversities([]);
     } finally {
       setLoadingUnis(false);

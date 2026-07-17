@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   MapPin, Briefcase, MessageSquare, Users,
   Activity, Code, GitCommit, Trophy, TrendingUp,
-  ExternalLink, Zap, Target, FolderGit2
+  ExternalLink, Zap, Target, FolderGit2, Globe, Building2
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -208,6 +208,12 @@ const UserProfile = () => {
                 <span className="capitalize bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">{targetUser.role}</span>
                 {targetUser.location && (
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{targetUser.location}</span>
+                )}
+                {targetUser.country && (
+                  <span className="flex items-center gap-1"><Globe className="w-3 h-3" />{targetUser.country}</span>
+                )}
+                {targetUser.college && (
+                  <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{targetUser.college}</span>
                 )}
                 {targetUser.role === 'alumni' && targetUser.alumniInfo?.company && (
                   <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{targetUser.alumniInfo.company}</span>

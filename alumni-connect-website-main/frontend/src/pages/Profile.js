@@ -17,7 +17,8 @@ import {
   FileText,
   FolderGit2,
   ExternalLink,
-  Code
+  Code,
+  Building2
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +32,8 @@ const Profile = () => {
     name: '',
     bio: '',
     location: '',
+    country: '',
+    college: '',
     skills: [],
     photo: '',
     socialLinks: {
@@ -103,6 +106,8 @@ const Profile = () => {
         name: user.name || '',
         bio: user.bio || '',
         location: user.location || '',
+        country: user.country || '',
+        college: user.college || '',
         skills: user.skills || [],
         photo: user.photo || '',
         socialLinks: {
@@ -252,6 +257,18 @@ const Profile = () => {
                     {user.location}
                   </div>
                 )}
+                {user.country && (
+                  <div className="flex items-center">
+                    <Globe className="w-4 h-4 mr-2" />
+                    {user.country}
+                  </div>
+                )}
+                {user.college && (
+                  <div className="flex items-center">
+                    <Building2 className="w-4 h-4 mr-2" />
+                    {user.college}
+                  </div>
+                )}
               </div>
 
               {user.bio && (
@@ -354,6 +371,32 @@ const Profile = () => {
                   type="text"
                   name="location"
                   value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  College / University
+                </label>
+                <input
+                  type="text"
+                  name="college"
+                  value={formData.college}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />

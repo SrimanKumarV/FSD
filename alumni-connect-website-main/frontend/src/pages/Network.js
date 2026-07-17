@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
-import { Search, UserPlus, UserCheck, MessageSquare, MapPin, Briefcase, GraduationCap } from 'lucide-react';
+import { Search, UserPlus, UserCheck, MessageSquare, MapPin, Briefcase, GraduationCap, Globe, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { api } from '../utils/api';
@@ -339,6 +339,18 @@ const Network = () => {
                       <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                         <MapPin className="w-3 h-3 mr-1" />
                         <span className="truncate">{user.location}</span>
+                      </div>
+                    )}
+                    {user.country && (
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <Globe className="w-3 h-3 mr-1" />
+                        <span className="truncate">{user.country}</span>
+                      </div>
+                    )}
+                    {user.college && (
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <Building2 className="w-3 h-3 mr-1" />
+                        <span className="truncate">{user.college}</span>
                       </div>
                     )}
                   </div>

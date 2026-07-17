@@ -99,7 +99,7 @@ router.get('/dashboard', protect, async (req, res) => {
 // @access  Private
 router.get('/search', protect, async (req, res) => {
   try {
-    const { q, role, industry, location, skills, company } = req.query;
+    const { q, role, industry, location, skills, company, country, college } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -113,12 +113,16 @@ router.get('/search', protect, async (req, res) => {
     if (industry) query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
     if (location) query.location = { $regex: location, $options: 'i' };
     if (company) query['alumniInfo.company'] = { $regex: company, $options: 'i' };
+    if (country) query.country = { $regex: country, $options: 'i' };
+    if (college) query.college = { $regex: college, $options: 'i' };
 
     if (q) {
       query.$or = [
         { name: { $regex: q, $options: 'i' } },
         { bio: { $regex: q, $options: 'i' } },
-        { skills: { $in: [new RegExp(q, 'i')] } }
+        { skills: { $in: [new RegExp(q, 'i')] } },
+        { country: { $regex: q, $options: 'i' } },
+        { college: { $regex: q, $options: 'i' } }
       ];
     }
 

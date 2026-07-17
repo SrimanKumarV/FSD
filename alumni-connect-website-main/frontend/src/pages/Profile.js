@@ -42,7 +42,10 @@ const Profile = () => {
       twitter: '',
       website: '',
       portfolio: ''
-    }
+    },
+    establishedYear: '',
+    accreditation: '',
+    officialUrl: ''
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -116,7 +119,10 @@ const Profile = () => {
           twitter: user.socialLinks?.twitter || '',
           website: user.socialLinks?.website || '',
           portfolio: user.socialLinks?.portfolio || ''
-        }
+        },
+        establishedYear: user.collegeInfo?.establishedYear || '',
+        accreditation: user.collegeInfo?.accreditation || '',
+        officialUrl: user.collegeInfo?.officialUrl || ''
       });
 
 
@@ -167,6 +173,13 @@ const Profile = () => {
     setLoading(true);
     try {
       await updateUser(formData);
+      if (user.role === 'college') {
+        await updateUser({
+          establishedYear: formData.establishedYear,
+          accreditation: formData.accreditation,
+          officialUrl: formData.officialUrl
+        }, 'college');
+      }
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -455,6 +468,47 @@ const Profile = () => {
                   ))}
                 </div>
               </div>
+
+              {user.role === 'college' && (
+                <>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Established Year
+                    </label>
+                    <input
+                      type="number"
+                      name="establishedYear"
+                      value={formData.establishedYear}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Accreditation
+                    </label>
+                    <input
+                      type="text"
+                      name="accreditation"
+                      value={formData.accreditation}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Official URL
+                    </label>
+                    <input
+                      type="url"
+                      name="officialUrl"
+                      value={formData.officialUrl}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="mt-8">

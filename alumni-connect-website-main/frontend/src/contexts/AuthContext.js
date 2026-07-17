@@ -404,6 +404,11 @@ export const AuthProvider = ({ children }) => {
     return state.user?.role === 'student';
   };
 
+  // Check if user is college
+  const isCollege = () => {
+    return state.user?.role === 'college';
+  };
+
   // Check if user is verified
   const isVerified = () => {
     return state.user?.isVerified;
@@ -424,13 +429,13 @@ export const AuthProvider = ({ children }) => {
                (state.user.role === 'alumni' && state.user.isApproved);
       
       case 'post-jobs':
-        return state.user.role === 'alumni' || state.user.role === 'admin';
+        return state.user.role === 'alumni' || state.user.role === 'admin' || state.user.role === 'college';
       
       case 'create-events':
-        return state.user.role === 'alumni' || state.user.role === 'admin';
+        return state.user.role === 'alumni' || state.user.role === 'admin' || state.user.role === 'college';
       
       case 'create-contests':
-        return state.user.role === 'alumni' || state.user.role === 'admin';
+        return state.user.role === 'alumni' || state.user.role === 'admin' || state.user.role === 'college';
       
       case 'moderate':
         return state.user.role === 'admin' || 
@@ -470,6 +475,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     isAlumni,
     isStudent,
+    isCollege,
     isVerified,
     isApproved,
     canAccess

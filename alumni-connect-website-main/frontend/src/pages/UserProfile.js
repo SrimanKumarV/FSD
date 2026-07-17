@@ -293,6 +293,44 @@ const UserProfile = () => {
               <p className="text-slate-400 text-sm">{targetUser.alumniInfo?.company} · {targetUser.alumniInfo?.industry}</p>
             </div>
           )}
+          {targetUser.role === 'college' && targetUser.collegeInfo && (
+            <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Institution Details</h3>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {targetUser.collegeInfo.establishedYear && (
+                  <div>
+                    <p className="text-slate-500 text-xs">Established</p>
+                    <p className="text-white font-semibold">{targetUser.collegeInfo.establishedYear}</p>
+                  </div>
+                )}
+                {targetUser.collegeInfo.accreditation && (
+                  <div>
+                    <p className="text-slate-500 text-xs">Accreditation</p>
+                    <p className="text-white font-semibold">{targetUser.collegeInfo.accreditation}</p>
+                  </div>
+                )}
+              </div>
+              {targetUser.collegeInfo.websiteMetadata?.title && (
+                <a 
+                  href={targetUser.collegeInfo.officialUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="block mt-4 rounded-xl border border-slate-700 overflow-hidden hover:border-indigo-500 transition-colors"
+                >
+                  {targetUser.collegeInfo.websiteMetadata.image && (
+                    <img loading="lazy" src={targetUser.collegeInfo.websiteMetadata.image} alt="Website Preview" className="w-full h-32 object-cover" />
+                  )}
+                  <div className="p-4 bg-slate-800/50">
+                    <p className="text-white font-bold text-sm line-clamp-1">{targetUser.collegeInfo.websiteMetadata.title}</p>
+                    {targetUser.collegeInfo.websiteMetadata.description && (
+                      <p className="text-slate-400 text-xs line-clamp-2 mt-1">{targetUser.collegeInfo.websiteMetadata.description}</p>
+                    )}
+                    <p className="text-indigo-400 text-xs mt-2 truncate flex items-center gap-1"><ExternalLink className="w-3 h-3"/> {targetUser.collegeInfo.officialUrl}</p>
+                  </div>
+                </a>
+              )}
+            </div>
+          )}
           {targetUser.socialLinks && Object.values(targetUser.socialLinks).some(Boolean) && (
             <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Links</h3>

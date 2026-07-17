@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'alumni', 'admin'],
+    enum: ['student', 'alumni', 'admin', 'college'],
     required: [true, 'Role is required'],
     default: 'student'
   },
@@ -109,6 +109,28 @@ const userSchema = new mongoose.Schema({
       type: String,
       trim: true
     }]
+  },
+  
+  // College-specific fields
+  collegeInfo: {
+    establishedYear: {
+      type: Number,
+      min: 1000,
+      max: new Date().getFullYear()
+    },
+    accreditation: {
+      type: String,
+      trim: true
+    },
+    officialUrl: {
+      type: String,
+      trim: true
+    },
+    websiteMetadata: {
+      title: String,
+      description: String,
+      image: String
+    }
   },
   
   // Social Links

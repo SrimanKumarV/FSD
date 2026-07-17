@@ -257,7 +257,7 @@ router.post('/register', [
   body('name', 'Name is required').notEmpty().trim().isLength({ min: 2, max: 50 }),
   body('email', 'Please include a valid email').isEmail().normalizeEmail(),
   body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
-  body('role', 'Role must be student or alumni').isIn(['student', 'alumni']),
+  body('role', 'Role must be student, alumni, or college').isIn(['student', 'alumni', 'college']),
   body('studentInfo.course').optional().trim(),
   body('studentInfo.year').optional().isInt({ min: 1, max: 5 }),
   body('studentInfo.university').optional().trim(),
@@ -269,7 +269,10 @@ router.post('/register', [
   body('skills').optional().isArray(),
   body('interests').optional().isArray(),
   body('location').optional().trim(),
-  body('bio').optional().trim().isLength({ max: 500 })
+  body('bio').optional().trim().isLength({ max: 500 }),
+  body('collegeInfo.establishedYear').optional().isInt({ min: 1000, max: new Date().getFullYear() }),
+  body('collegeInfo.accreditation').optional().trim(),
+  body('collegeInfo.officialUrl').optional().isURL()
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -288,7 +291,8 @@ router.post('/register', [
       skills,
       interests,
       location,
-      bio
+      bio,
+      collegeInfo
     } = req.body;
 
     // Check if user already exists
@@ -316,6 +320,10 @@ router.post('/register', [
       userFields.alumniInfo = alumniInfo || {};
       // Alumni accounts need approval
       userFields.isApproved = false;
+    } else if (role === 'college') {
+      userFields.collegeInfo = collegeInfo || {};
+      // College accounts may need approval, or be auto-approved
+      userFields.isApproved = true; 
     }
 
     // Generate 6-digit OTP for email verification

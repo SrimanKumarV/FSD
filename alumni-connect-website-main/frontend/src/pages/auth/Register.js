@@ -32,7 +32,10 @@ const Register = () => {
     position: '',
     bio: '',
     skills: [],
-    interests: []
+    interests: [],
+    officialUrl: '',
+    establishedYear: '',
+    accreditation: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -115,6 +118,11 @@ const Register = () => {
       newErrors.company = 'Company is required for alumni';
     }
 
+    if (formData.role === 'college') {
+      if (!formData.establishedYear) newErrors.establishedYear = 'Established year is required';
+      if (!formData.officialUrl.trim()) newErrors.officialUrl = 'Official URL is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -128,8 +136,36 @@ const Register = () => {
 
     setIsLoading(true);
 
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role,
+      bio: formData.bio,
+      skills: formData.skills,
+      interests: formData.interests
+    };
+
+    if (formData.role === 'student') {
+      payload.studentInfo = {
+        year: formData.graduationYear
+      };
+    } else if (formData.role === 'alumni') {
+      payload.alumniInfo = {
+        company: formData.company,
+        position: formData.position,
+        graduationYear: formData.graduationYear
+      };
+    } else if (formData.role === 'college') {
+      payload.collegeInfo = {
+        establishedYear: formData.establishedYear,
+        accreditation: formData.accreditation,
+        officialUrl: formData.officialUrl
+      };
+    }
+
     try {
-      const result = await register(formData);
+      const result = await register(payload);
       if (result.requiresVerification) {
         navigate('/verify-email', { state: { email: result.email } });
       } else if (result.success) {
@@ -280,6 +316,7 @@ const Register = () => {
                   >
                     <option value="student">Student</option>
                     <option value="alumni">Alumni</option>
+                    <option value="college">College/Institution</option>
                   </select>
                 </div>
               </div>
@@ -288,7 +325,7 @@ const Register = () => {
             {/* Role-specific Information */}
             <div className="space-y-5">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white border-b border-gray-200/50 dark:border-gray-700/50 pb-2">
-                {formData.role === 'student' ? 'Student Information' : 'Professional Information'}
+                {formData.role === 'student' ? 'Student Information' : formData.role === 'college' ? 'Institution Information' : 'Professional Information'}
               </h3>
 
               {formData.role === 'student' ? (
@@ -319,6 +356,76 @@ const Register = () => {
                       {errors.graduationYear}
                     </p>
                   )}
+                </div>
+              ) : formData.role === 'college' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="establishedYear" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Established Year
+                    </label>
+                    <div className="mt-2 relative">
+                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                      <input
+                        id="establishedYear"
+                        name="establishedYear"
+                        type="number"
+                        min="1000"
+                        max={currentYear}
+                        value={formData.establishedYear}
+                        onChange={handleChange}
+                        className={`glass-input block w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none transition-all ${
+                          errors.establishedYear ? 'border-red-400 ring-1 ring-red-400' : ''
+                        }`}
+                        placeholder="e.g. 1995"
+                      />
+                    </div>
+                    {errors.establishedYear && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.establishedYear}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="accreditation" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Accreditation
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="accreditation"
+                        name="accreditation"
+                        type="text"
+                        value={formData.accreditation}
+                        onChange={handleChange}
+                        className="glass-input block w-full px-4 py-3 rounded-xl focus:outline-none transition-all"
+                        placeholder="e.g. NAAC A+"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-1 md:col-span-2">
+                    <label htmlFor="officialUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Official Website URL
+                    </label>
+                    <div className="mt-2 relative">
+                      <input
+                        id="officialUrl"
+                        name="officialUrl"
+                        type="url"
+                        value={formData.officialUrl}
+                        onChange={handleChange}
+                        className={`glass-input block w-full px-4 py-3 rounded-xl focus:outline-none transition-all ${
+                          errors.officialUrl ? 'border-red-400 ring-1 ring-red-400' : ''
+                        }`}
+                        placeholder="https://www.example.edu"
+                      />
+                    </div>
+                    {errors.officialUrl && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.officialUrl}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

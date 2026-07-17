@@ -247,6 +247,8 @@ router.put('/profile/:role', protect, async (req, res) => {
   try {
     const { role } = req.params;
     const user = await User.findById(req.user.id);
+    const axios = require('axios');
+    const cheerio = require('cheerio');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -272,6 +274,31 @@ router.put('/profile/:role', protect, async (req, res) => {
       if (year) user.studentInfo.year = year;
       if (expectedGraduation) user.studentInfo.expectedGraduation = expectedGraduation;
       if (interests) user.studentInfo.interests = interests;
+    } else if (role === 'college') {
+      const { establishedYear, accreditation, officialUrl } = req.body;
+      
+      if (establishedYear) user.collegeInfo.establishedYear = establishedYear;
+      if (accreditation) user.collegeInfo.accreditation = accreditation;
+      
+      if (officialUrl && officialUrl !== user.collegeInfo.officialUrl) {
+        user.collegeInfo.officialUrl = officialUrl;
+        
+        // Fetch metadata
+        try {
+          const response = await axios.get(officialUrl, { timeout: 5000 });
+          const $ = cheerio.load(response.data);
+          
+          const title = $('meta[property="og:title"]').attr('content') || $('title').text() || '';
+          const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
+          const image = $('meta[property="og:image"]').attr('content') || '';
+          
+          user.collegeInfo.websiteMetadata = { title, description, image };
+        } catch (fetchErr) {
+          console.warn('Failed to fetch website metadata:', fetchErr);
+          // Don't fail the request, just leave metadata empty or use what we have
+          user.collegeInfo.websiteMetadata = { title: officialUrl, description: '', image: '' };
+        }
+      }
     }
 
     await user.save();

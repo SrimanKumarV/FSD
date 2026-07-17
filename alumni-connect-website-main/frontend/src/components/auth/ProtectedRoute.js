@@ -1,11 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import CompleteProfileOnboarding from '../profile/CompleteProfileOnboarding';
 import MandatoryTasksOverlay from '../profile/MandatoryTasksOverlay';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, isAuthenticated, isLoading, isAdmin, updateUser } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -30,19 +29,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Force onboarding for missing mandatory fields
-  if (user && (!user.country || !user.college)) {
-    return (
-      <>
-        {children}
-        <CompleteProfileOnboarding 
-          user={user} 
-          onComplete={(updatedUser) => updateUser(updatedUser)} 
-        />
-        <MandatoryTasksOverlay user={user} />
-      </>
-    );
-  }
+  // Note: Mandatory tasks like profile completion are now dynamically triggered by the MandatoryTasksOverlay 
+  // based on tasks configured in the Admin panel.
 
   // Render children if authenticated and authorized
   return (

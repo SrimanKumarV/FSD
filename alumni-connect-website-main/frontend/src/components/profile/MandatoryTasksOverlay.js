@@ -4,12 +4,15 @@ import { CheckCircle2, ChevronRight, AlertCircle, Loader2 } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import CompleteProfileOnboarding from './CompleteProfileOnboarding';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function MandatoryTasksOverlay({ user }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState(null);
   const navigate = useNavigate();
+  const { updateUser } = useAuth();
 
   useEffect(() => {
     if (!user) return;
@@ -56,6 +59,23 @@ export default function MandatoryTasksOverlay({ user }) {
   };
 
   if (loading || tasks.length === 0) return null;
+
+  const profileTask = tasks.find(t => t.taskType === 'profile_completion');
+
+  if (profileTask) {
+    // If the user already has country and college, we can just auto-complete it, 
+    // but the backend shouldn't assign it if they do, or the task forces them to do it.
+    // Assuming we want to show the beautiful UI:
+    return (
+      <CompleteProfileOnboarding 
+        user={user} 
+        onComplete={async (updatedUser) => {
+          await updateUser(updatedUser);
+          await markCompleted(profileTask._id);
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4"

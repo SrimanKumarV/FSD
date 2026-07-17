@@ -71,7 +71,7 @@ router.get('/', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, admin, async (req, res) => {
   try {
-    const { title, description, actionText, actionUrl, targetAudience, isActive } = req.body;
+    const { title, description, actionText, actionUrl, targetAudience, taskType, isActive } = req.body;
     
     const task = new Task({
       title,
@@ -79,6 +79,7 @@ router.post('/', protect, admin, async (req, res) => {
       actionText,
       actionUrl,
       targetAudience: targetAudience || 'all',
+      taskType: taskType || 'generic',
       isActive: isActive !== undefined ? isActive : true
     });
     

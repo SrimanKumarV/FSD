@@ -6,6 +6,7 @@ const taskSchema = new mongoose.Schema({
   actionText: { type: String, default: 'Complete Task' },
   actionUrl: { type: String },
   targetAudience: { type: String, enum: ['all', 'student', 'alumni'], default: 'all' },
+  taskType: { type: String, enum: ['generic', 'profile_completion'], default: 'generic' },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

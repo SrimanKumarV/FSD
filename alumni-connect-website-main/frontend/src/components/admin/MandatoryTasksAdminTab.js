@@ -16,6 +16,7 @@ export default function MandatoryTasksAdminTab() {
     actionText: '',
     actionUrl: '',
     targetAudience: 'all',
+    taskType: 'generic',
     isActive: true
   });
 
@@ -83,6 +84,7 @@ export default function MandatoryTasksAdminTab() {
       actionText: '',
       actionUrl: '',
       targetAudience: 'all',
+      taskType: 'generic',
       isActive: true
     });
     setEditingTask(null);
@@ -142,6 +144,11 @@ export default function MandatoryTasksAdminTab() {
                         <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full capitalize">
                           {task.targetAudience}
                         </span>
+                        {task.taskType === 'profile_completion' && (
+                          <span className="px-2 py-0.5 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
+                            Profile Completion
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-500 mt-2">{task.description}</p>
                       {task.actionUrl && (
@@ -222,39 +229,56 @@ export default function MandatoryTasksAdminTab() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Action Button Text</label>
-                    <input
-                      type="text"
-                      value={formData.actionText}
-                      onChange={e => setFormData({...formData, actionText: e.target.value})}
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Audience</label>
+                    <select
+                      value={formData.targetAudience}
+                      onChange={e => setFormData({...formData, targetAudience: e.target.value})}
                       className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl"
-                      placeholder="e.g. Upload Now"
-                    />
+                    >
+                      <option value="all">All Users</option>
+                      <option value="student">Students Only</option>
+                      <option value="alumni">Alumni Only</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Action URL (Optional)</label>
-                    <input
-                      type="text"
-                      value={formData.actionUrl}
-                      onChange={e => setFormData({...formData, actionUrl: e.target.value})}
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Task Type</label>
+                    <select
+                      value={formData.taskType}
+                      onChange={e => setFormData({...formData, taskType: e.target.value})}
                       className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl"
-                      placeholder="e.g. /profile"
-                    />
+                    >
+                      <option value="generic">Generic Action Link</option>
+                      <option value="profile_completion">Profile Completion (Country & College)</option>
+                    </select>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Audience</label>
-                  <select
-                    value={formData.targetAudience}
-                    onChange={e => setFormData({...formData, targetAudience: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl"
-                  >
-                    <option value="all">All Users</option>
-                    <option value="student">Students Only</option>
-                    <option value="alumni">Alumni Only</option>
-                  </select>
-                </div>
+                {formData.taskType === 'generic' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Action Button Text</label>
+                      <input
+                        type="text"
+                        value={formData.actionText}
+                        onChange={e => setFormData({...formData, actionText: e.target.value})}
+                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl"
+                        placeholder="e.g. Upload Now"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Action URL (Optional)</label>
+                      <input
+                        type="text"
+                        value={formData.actionUrl}
+                        onChange={e => setFormData({...formData, actionUrl: e.target.value})}
+                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl"
+                        placeholder="e.g. /profile"
+                      />
+                    </div>
+                  </div>
+                )}
+
+
 
                 <div className="flex items-center gap-2 mt-2">
                   <input

@@ -25,7 +25,8 @@ import {
   MessagesSquare,
   MessageCircle,
   Megaphone,
-  FolderGit2
+  FolderGit2,
+  MapPin
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -61,6 +62,7 @@ const Layout = ({ children }) => {
       title: 'Connect & Community',
       items: [
         { name: 'Network', href: '/network', icon: Globe },
+        { name: 'Alumni Map', href: '/map', icon: MapPin },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
         { name: 'Forum', href: '/forum', icon: MessagesSquare },
         { name: 'Chat', href: '/chat', icon: MessageCircle },

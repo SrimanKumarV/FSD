@@ -43,6 +43,7 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
+const AlumniMap = lazy(() => import('./pages/AlumniMap'));
 
 // Legal and Support Pages - Lazy Loaded
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
@@ -178,6 +179,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Network />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/map" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AlumniMap />
                       </Layout>
                     </ProtectedRoute>
                   } />

@@ -17,7 +17,9 @@ import {
   Plus,
   Users,
   Target,
-  BookOpen
+  BookOpen,
+  CalendarPlus,
+  X
 } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -47,6 +49,28 @@ const Mentorship = () => {
     expectedDuration: '',
     communicationMethod: ''
   });
+  
+  // Booking Slot State
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+
+  const handleBookSession = (mentor) => {
+    setSelectedMentor(mentor);
+    setShowBookingModal(true);
+  };
+
+  const confirmBooking = () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error('Please select both a date and time slot.');
+      return;
+    }
+    toast.success(`1:1 Mentorship Session booked with ${selectedMentor?.name} for ${selectedDate} at ${selectedTime}!`);
+    setShowBookingModal(false);
+    setSelectedDate('');
+    setSelectedTime('');
+  };
 
   useEffect(() => {
     if (activeTab === 'find') {
@@ -386,21 +410,29 @@ const Mentorship = () => {
                       )}
                     </div>
 
-                    <div className="relative z-10 flex items-center justify-between">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium w-full xl:w-auto text-center ${
                         mentor.status === 'available' 
                           ? 'text-green-600 bg-green-100' 
                           : 'text-gray-600 bg-gray-100'
                       }`}>
                         {mentor.status === 'available' ? 'Available' : 'Busy'}
                       </span>
-                      <button
-                        onClick={() => handleQuickRequest(mentor)}
-                        disabled={loading}
-                        className="px-6 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                      >
-                        Request Mentorship
-                      </button>
+                      <div className="flex gap-2 w-full xl:w-auto">
+                        <button
+                          onClick={() => handleBookSession(mentor)}
+                          className="flex-1 xl:flex-none px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                          <CalendarPlus className="w-4 h-4" /> Book
+                        </button>
+                        <button
+                          onClick={() => handleQuickRequest(mentor)}
+                          disabled={loading}
+                          className="flex-1 xl:flex-none px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                        >
+                          Request
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -556,6 +588,85 @@ const Mentorship = () => {
 
 
       </div>
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+          >
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Book 1:1 Session</h3>
+              <button onClick={() => setShowBookingModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-indigo-100">
+                  {selectedMentor?.photo && selectedMentor.photo !== 'default-avatar.png' ? (
+                    <img loading="lazy" src={selectedMentor.photo} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <DefaultAvatar className="w-full h-full" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">{selectedMentor?.name}</p>
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400">45 Min Career Mentoring</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Date</label>
+                <input 
+                  type="date" 
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Time</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['10:00 AM', '02:00 PM', '06:00 PM'].map((time) => (
+                    <button
+                      key={time}
+                      onClick={() => setSelectedTime(time)}
+                      className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selectedTime === time 
+                        ? 'bg-indigo-600 text-white shadow-md' 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex gap-4">
+              <button 
+                onClick={() => setShowBookingModal(false)}
+                className="flex-1 py-3 px-4 font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmBooking}
+                className="flex-1 py-3 px-4 font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition-all"
+              >
+                Confirm Booking
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

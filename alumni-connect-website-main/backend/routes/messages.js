@@ -35,10 +35,22 @@ router.get('/conversation/:userId', protect, async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Check if users are connected
-    const targetUser = await User.findById(userId);
-    if (!targetUser) {
-      return res.status(404).json({ message: 'User not found' });
+    let isGroup = false;
+    if (userId.startsWith('group_')) {
+      isGroup = true;
+      const groupId = userId.replace('group_', '');
+      const group = await ChatGroup.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      if (!group.members.includes(req.user.id) && group.admin.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+    } else {
+      const targetUser = await User.findById(userId);
+      if (!targetUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
     }
 
     // For now, allow messaging between any users
@@ -173,6 +185,28 @@ router.post('/', [protect, verified], [
       await message.save();
       await message.populate('sender', 'name photo role');
 
+      return res.status(201).json({ message });
+    }
+
+    if (receiver.startsWith('group_')) {
+      const groupId = receiver.replace('group_', '');
+      const group = await ChatGroup.findById(groupId);
+      if (!group) return res.status(404).json({ message: 'Group not found' });
+      
+      const message = new Message({
+        sender: req.user.id,
+        content,
+        messageType,
+        attachments,
+        replyTo,
+        groupId: groupId,
+        conversationId: receiver, // 'group_xyz'
+        scheduledFor: scheduledFor ? new Date(scheduledFor) : undefined,
+        isScheduled: !!scheduledFor
+      });
+      await message.save();
+      await message.populate('sender', 'name photo role');
+      
       return res.status(201).json({ message });
     }
 
@@ -357,7 +391,7 @@ router.put('/:id/read', protect, async (req, res) => {
 router.put('/conversation/:userId/read', protect, async (req, res) => {
   try {
     const { userId } = req.params;
-    const conversationId = Message.generateConversationId(req.user.id, userId);
+    const conversationId = userId.startsWith('group_') ? userId : Message.generateConversationId(req.user.id, userId);
 
     // Mark all unread messages in this conversation as read
     await Message.updateMany(
@@ -590,7 +624,7 @@ router.get('/unread-count', protect, async (req, res) => {
 router.delete('/conversation/:userId', protect, async (req, res) => {
   try {
     const { userId } = req.params;
-    const conversationId = Message.generateConversationId(req.user.id, userId);
+    const conversationId = userId.startsWith('group_') ? userId : Message.generateConversationId(req.user.id, userId);
 
     await Message.deleteConversation(conversationId, req.user.id);
     res.json({ message: 'Conversation deleted successfully' });

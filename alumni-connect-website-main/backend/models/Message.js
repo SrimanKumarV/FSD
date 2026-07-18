@@ -365,7 +365,14 @@ messageSchema.statics.findRecentConversations = function(userId) {
 
 // Static method to delete conversation
 messageSchema.statics.deleteConversation = function(user1Id, user2Id) {
-  const conversationId = this.generateConversationId(user1Id, user2Id);
+  let conversationId;
+  if (user2Id && user2Id.startsWith('group_')) {
+    conversationId = user2Id;
+  } else if (user1Id && user1Id.startsWith('group_')) {
+    conversationId = user1Id;
+  } else {
+    conversationId = this.generateConversationId(user1Id, user2Id);
+  }
   
   return this.updateMany(
     { conversationId: conversationId },

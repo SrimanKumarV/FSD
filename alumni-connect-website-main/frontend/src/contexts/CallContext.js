@@ -132,7 +132,15 @@ export const CallProvider = ({ children }) => {
       };
 
       pc.ontrack = (e) => {
-        setRemoteStream(e.streams[0]);
+        if (e.streams && e.streams[0]) {
+          setRemoteStream(e.streams[0]);
+        } else {
+          setRemoteStream(prev => {
+            const stream = prev || new MediaStream();
+            stream.addTrack(e.track);
+            return stream;
+          });
+        }
       };
 
       pc.oniceconnectionstatechange = () => {
@@ -175,7 +183,15 @@ export const CallProvider = ({ children }) => {
             };
 
             pc.ontrack = (e) => {
-              setRemoteStream(e.streams[0]);
+              if (e.streams && e.streams[0]) {
+                setRemoteStream(e.streams[0]);
+              } else {
+                setRemoteStream(prev => {
+                  const stream = prev || new MediaStream();
+                  stream.addTrack(e.track);
+                  return stream;
+                });
+              }
             };
 
             pc.oniceconnectionstatechange = () => {

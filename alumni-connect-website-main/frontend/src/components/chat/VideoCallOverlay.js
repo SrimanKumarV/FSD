@@ -33,6 +33,9 @@ const VideoCallOverlay = () => {
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch(err => {
+        console.warn('Browser blocked autoplay of remote stream:', err);
+      });
     }
   }, [remoteStream, callStatus]);
 

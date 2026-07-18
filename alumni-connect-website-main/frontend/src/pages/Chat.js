@@ -342,8 +342,8 @@ const Chat = () => {
       setReplyingTo(null);
     } else {
       const messageData = {
-        receiver: otherParticipantId,
-        ...payload
+        ...payload,
+        receiver: payload.receiverId // Use payload.receiverId which has group_ prefix
       };
       delete messageData.receiverId;
       sendMessageMutation.mutate(messageData);

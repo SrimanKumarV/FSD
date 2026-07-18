@@ -562,15 +562,15 @@ module.exports = (io) => {
       }
     });
 
-    // Exchange ICE Candidates
-    socket.on('call:ice-candidate', (data) => {
-      const { targetId, candidate } = data;
+    // Exchange WebRTC Signaling (simple-peer)
+    socket.on('call:signal', (data) => {
+      const { targetId, signal } = data;
       const targetSession = onlineUsers.get(targetId);
       
       if (targetSession) {
         targetSession.socketIds.forEach(id => {
-          io.to(id).emit('call:ice-candidate', {
-            candidate: candidate
+          io.to(id).emit('call:signal', {
+            signal: signal
           });
         });
       }

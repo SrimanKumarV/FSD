@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import toast from 'react-hot-toast';
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
+import Peer from 'simple-peer';
 
 const CallContext = createContext();
 
@@ -14,17 +15,8 @@ export const useCall = () => {
 const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:global.stun.twilio.com:3478' },
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    }
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
   ]
 };
 
@@ -40,8 +32,7 @@ export const CallProvider = ({ children }) => {
   const [remoteStream, setRemoteStream] = useState(null);
   const [remoteStreamTrigger, setRemoteStreamTrigger] = useState(0);
   
-  const remoteStreamObjRef = useRef(new MediaStream());
-  const pcRef = useRef(null);
+  const peerRef = useRef(null);
   const ringtoneRef = useRef(null);
   
   // Keep refs for state used inside socket callbacks to avoid re-binding listeners
@@ -49,7 +40,6 @@ export const CallProvider = ({ children }) => {
   const incomingCallRef = useRef(null);
   const localStreamRef = useRef(null);
   const callStatusRef = useRef('idle');
-  const pendingCandidatesRef = useRef([]);
 
   useEffect(() => { callInfoRef.current = callInfo; }, [callInfo]);
   useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
@@ -82,12 +72,10 @@ export const CallProvider = ({ children }) => {
       setLocalStream(null);
     }
     setRemoteStream(null);
-    remoteStreamObjRef.current = new MediaStream();
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
+    if (peerRef.current) {
+      peerRef.current.destroy();
+      peerRef.current = null;
     }
-    pendingCandidatesRef.current = [];
   };
 
   const resetCall = () => {
@@ -113,118 +101,42 @@ export const CallProvider = ({ children }) => {
     };
 
     const handleAnswered = async () => {
-      console.log('[CallContext] Call answered by remote, creating offer...');
+      console.log('[CallContext] Call answered by remote, creating peer...');
       stopRingtone();
       setCallStatus('connected');
       
       const targetId = callInfoRef.current?.targetId;
       if (!targetId) return;
 
-      const pc = new RTCPeerConnection(ICE_SERVERS);
-      pcRef.current = pc;
+      const peer = new Peer({
+        initiator: true,
+        stream: localStreamRef.current,
+        config: ICE_SERVERS
+      });
+      peerRef.current = peer;
 
-      // Add local tracks
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
-      }
+      peer.on('signal', data => {
+        socket.emit('call:signal', { targetId, signal: data });
+      });
 
-      pc.onicecandidate = (e) => {
-        if (e.candidate) {
-          socket.emit('call:ice-candidate', { targetId, candidate: { type: 'ice', candidate: e.candidate } });
-        }
-      };
-
-      pc.ontrack = (e) => {
-        remoteStreamObjRef.current.addTrack(e.track);
-        setRemoteStream(remoteStreamObjRef.current);
+      peer.on('stream', stream => {
+        setRemoteStream(stream);
         setRemoteStreamTrigger(prev => prev + 1);
-      };
+      });
 
-      pc.oniceconnectionstatechange = () => {
-        console.log('[WebRTC Initiator] ICE State:', pc.iceConnectionState);
-        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-          console.error('[WebRTC] ICE Connection Failed');
-          endCall('network_error');
-        }
-      };
+      peer.on('error', err => {
+        console.error('Peer error:', err);
+        endCall('network_error');
+      });
 
-      try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit('call:ice-candidate', { targetId, candidate: offer });
-      } catch (err) {
-        console.error('Error creating offer:', err);
-      }
+      peer.on('close', () => {
+        resetCall();
+      });
     };
 
-    const handleSignal = async ({ candidate }) => {
-      console.log('[CallContext] Signal received:', candidate.type);
-      try {
-        if (candidate.type === 'offer') {
-          const targetId = incomingCallRef.current?.callerId || callInfoRef.current?.targetId;
-          if (!targetId) return;
-
-          let pc = pcRef.current;
-          if (!pc) {
-            pc = new RTCPeerConnection(ICE_SERVERS);
-            pcRef.current = pc;
-            
-            if (localStreamRef.current) {
-              localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
-            }
-
-            pc.onicecandidate = (e) => {
-              if (e.candidate) {
-                socket.emit('call:ice-candidate', { targetId, candidate: { type: 'ice', candidate: e.candidate } });
-              }
-            };
-
-            pc.ontrack = (e) => {
-              remoteStreamObjRef.current.addTrack(e.track);
-              setRemoteStream(remoteStreamObjRef.current);
-              setRemoteStreamTrigger(prev => prev + 1);
-            };
-
-            pc.oniceconnectionstatechange = () => {
-              console.log('[WebRTC Receiver] ICE State:', pc.iceConnectionState);
-              if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-                console.error('[WebRTC] ICE Connection Failed');
-                endCall('network_error');
-              }
-            };
-          }
-
-          await pc.setRemoteDescription(new RTCSessionDescription(candidate));
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          socket.emit('call:ice-candidate', { targetId, candidate: answer });
-
-          // Process queued ICE candidates
-          pendingCandidatesRef.current.forEach(async (c) => {
-            try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
-          });
-          pendingCandidatesRef.current = [];
-        } 
-        else if (candidate.type === 'answer') {
-          if (pcRef.current) {
-            await pcRef.current.setRemoteDescription(new RTCSessionDescription(candidate));
-            // Process queued ICE candidates
-            pendingCandidatesRef.current.forEach(async (c) => {
-              try { await pcRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
-            });
-            pendingCandidatesRef.current = [];
-          }
-        } 
-        else if (candidate.type === 'ice') {
-          if (pcRef.current && pcRef.current.remoteDescription && candidate.candidate) {
-            await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate.candidate));
-          } else if (candidate.candidate) {
-            // Queue ICE candidates that arrive before remote description is set
-            pendingCandidatesRef.current.push(candidate.candidate);
-          }
-        }
-      } catch (err) {
-        console.error('Signal handling error:', err);
+    const handleSignal = ({ signal }) => {
+      if (peerRef.current) {
+        peerRef.current.signal(signal);
       }
     };
 
@@ -250,14 +162,14 @@ export const CallProvider = ({ children }) => {
 
     socket.on('call:incoming', handleIncoming);
     socket.on('call:accepted', handleAnswered);
-    socket.on('call:ice-candidate', handleSignal);
+    socket.on('call:signal', handleSignal);
     socket.on('call:ended', handleEnded);
     socket.on('call:error', handleError);
 
     return () => {
       socket.off('call:incoming', handleIncoming);
       socket.off('call:accepted', handleAnswered);
-      socket.off('call:ice-candidate', handleSignal);
+      socket.off('call:signal', handleSignal);
       socket.off('call:ended', handleEnded);
       socket.off('call:error', handleError);
     };
@@ -273,7 +185,7 @@ export const CallProvider = ({ children }) => {
         console.warn('Failed to get requested media, trying audio only...', mediaErr);
         if (isVideo) {
           stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-          isVideo = false; // Downgrade to audio call
+          isVideo = false;
           toast && toast.error("Could not access camera. Starting audio call instead.");
         } else {
           throw mediaErr;
@@ -284,7 +196,7 @@ export const CallProvider = ({ children }) => {
       localStreamRef.current = stream; // Immediately set ref for socket callbacks
       setCallInfo({ targetId, isVideo, isInitiator: true });
       setCallStatus('outgoing');
-      playRingtone(); // Play ringback tone for caller
+      playRingtone();
       
       socket.emit('call:request', {
         receiverId: targetId,
@@ -317,9 +229,34 @@ export const CallProvider = ({ children }) => {
       }
       
       setLocalStream(stream);
-      localStreamRef.current = stream; // Immediately set ref for signal generation
+      localStreamRef.current = stream; 
       setCallInfo({ targetId: incCall.callerId, isVideo: incCall.isVideo, isInitiator: false });
       setCallStatus('connected');
+
+      const peer = new Peer({
+        initiator: false,
+        stream: localStreamRef.current,
+        config: ICE_SERVERS
+      });
+      peerRef.current = peer;
+
+      peer.on('signal', data => {
+        socket.emit('call:signal', { targetId: incCall.callerId, signal: data });
+      });
+
+      peer.on('stream', stream => {
+        setRemoteStream(stream);
+        setRemoteStreamTrigger(prev => prev + 1);
+      });
+
+      peer.on('error', err => {
+        console.error('Peer error:', err);
+        endCall('network_error');
+      });
+
+      peer.on('close', () => {
+        resetCall();
+      });
       
       socket.emit('call:answer', {
         callerId: incCall.callerId
@@ -387,3 +324,4 @@ export const CallProvider = ({ children }) => {
 
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>;
 };
+

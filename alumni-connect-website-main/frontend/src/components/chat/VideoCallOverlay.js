@@ -23,6 +23,25 @@ const VideoCallOverlay = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (callStatus === 'connected') {
+      interval = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(interval);
+  }, [callStatus]);
+
+  const formatDuration = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -144,6 +163,11 @@ const VideoCallOverlay = () => {
         {callStatus === 'connected' && (
           <div className="absolute inset-0 w-full h-full pointer-events-auto flex flex-col bg-gray-900 text-white">
             
+            {/* Timer Overlay */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 bg-black/60 backdrop-blur-md px-5 py-2 rounded-full text-white font-mono text-xl shadow-2xl border border-white/10 tracking-wider">
+              {formatDuration(callDuration)}
+            </div>
+
             {/* Main Remote Video */}
             <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
               {!remoteStream ? (

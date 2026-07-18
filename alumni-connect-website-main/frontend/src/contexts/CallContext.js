@@ -293,6 +293,7 @@ export const CallProvider = ({ children }) => {
       localStreamRef.current = stream; // Immediately set ref for socket callbacks
       setCallInfo({ targetId, isVideo, isInitiator: true });
       setCallStatus('outgoing');
+      playRingtone(); // Play ringback tone for caller
       
       socket.emit('call:request', {
         receiverId: targetId,

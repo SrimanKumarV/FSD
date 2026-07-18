@@ -14,7 +14,7 @@ router.post('/chat', protect, async (req, res) => {
       return res.status(400).json({ message: 'Message is required' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
 
     if (!apiKey) {
       // Fallback Mock Response if no API key is set

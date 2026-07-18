@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import { api } from '../../utils/api';
@@ -17,6 +18,7 @@ const FloatingAIAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const { user } = useAuth();
+  const location = useLocation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,6 +63,7 @@ const FloatingAIAssistant = () => {
   };
 
   if (!user) return null; // Don't show if not logged in
+  if (location.pathname.startsWith('/chat')) return null; // Hide on chat page
 
   return (
     <>

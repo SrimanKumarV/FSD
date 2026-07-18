@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
 
@@ -234,23 +235,44 @@ export const CallProvider = ({ children }) => {
       resetCall();
     };
 
+    const handleError = (data) => {
+      console.error('[CallContext] Call error:', data.message);
+      alert(data.message || 'Call failed');
+      resetCall();
+    };
+
     socket.on('call:incoming', handleIncoming);
     socket.on('call:accepted', handleAnswered);
     socket.on('call:ice-candidate', handleSignal);
     socket.on('call:ended', handleEnded);
+    socket.on('call:error', handleError);
 
     return () => {
       socket.off('call:incoming', handleIncoming);
       socket.off('call:accepted', handleAnswered);
       socket.off('call:ice-candidate', handleSignal);
       socket.off('call:ended', handleEnded);
+      socket.off('call:error', handleError);
     };
   }, [socket, isConnected]);
 
   const startCall = async (targetId, isVideo = true) => {
     if (!socket || !targetId || callStatusRef.current !== 'idle') return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+      } catch (mediaErr) {
+        console.warn('Failed to get requested media, trying audio only...', mediaErr);
+        if (isVideo) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+          isVideo = false; // Downgrade to audio call
+          toast && toast.error("Could not access camera. Starting audio call instead.");
+        } else {
+          throw mediaErr;
+        }
+      }
+      
       setLocalStream(stream);
       localStreamRef.current = stream; // Immediately set ref for socket callbacks
       setCallInfo({ targetId, isVideo, isInitiator: true });
@@ -263,7 +285,7 @@ export const CallProvider = ({ children }) => {
       });
     } catch (err) {
       console.error('Failed to get local media:', err);
-      alert('Could not access camera/microphone. Please check permissions.');
+      alert('Could not access microphone. Please check permissions.');
     }
   };
 
@@ -272,7 +294,20 @@ export const CallProvider = ({ children }) => {
     if (!incCall || !socket) return;
     try {
       stopRingtone();
-      const stream = await navigator.mediaDevices.getUserMedia({ video: incCall.isVideo, audio: true });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: incCall.isVideo, audio: true });
+      } catch (mediaErr) {
+        console.warn('Failed to get requested media on answer, trying audio only...', mediaErr);
+        if (incCall.isVideo) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+          incCall.isVideo = false;
+          toast && toast.error("Could not access camera. Answering with audio only.");
+        } else {
+          throw mediaErr;
+        }
+      }
+      
       setLocalStream(stream);
       localStreamRef.current = stream; // Immediately set ref for signal generation
       setCallInfo({ targetId: incCall.callerId, isVideo: incCall.isVideo, isInitiator: false });
@@ -283,7 +318,7 @@ export const CallProvider = ({ children }) => {
       });
     } catch (err) {
       console.error('Failed to get local media on answer:', err);
-      alert('Could not access camera/microphone to answer the call. It may be in use by another tab or blocked by your browser.');
+      alert('Could not access microphone to answer the call. It may be in use by another tab or blocked by your browser.');
       rejectCall();
     }
   };

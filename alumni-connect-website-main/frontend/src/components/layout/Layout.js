@@ -26,7 +26,8 @@ import {
   MessageCircle,
   Megaphone,
   FolderGit2,
-  MapPin
+  MapPin,
+  FileSearch
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -75,6 +76,7 @@ const Layout = ({ children }) => {
         { name: 'Events', href: '/events', icon: Calendar },
         { name: 'Contests', href: '/contests', icon: Code },
         { name: 'Projects', href: '/projects', icon: FolderGit2 },
+        { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },
       ]
     },
     {

@@ -38,5 +38,9 @@ This section tracks advanced modules added to elevate the platform.
   - *Location*: `/map` (`AlumniMap.js`).
   - *Tech*: `react-simple-maps`, `d3-scale`, `topojson`.
   - *Function*: Visually displays and tracks global alumni distribution across major tech hubs (San Francisco, London, Bengaluru, etc.) using interactive markers.
+* **[Added] AI Resume Analyzer**
+  - *Location*: `/resume` (`ResumeAnalyzer.js`).
+  - *Tech*: Frontend static analysis and AI simulation.
+  - *Function*: Allows students to upload their resume (PDF) and receive a comprehensive ATS evaluation, including grammar scoring, impact metrics, missing industry keywords, and actionable AI suggestions.
 
 *(This document is a living record and will be continuously updated as new features are integrated).*

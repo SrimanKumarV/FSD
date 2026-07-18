@@ -44,6 +44,7 @@ const Feedback = lazy(() => import('./pages/Feedback'));
 const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 const AlumniMap = lazy(() => import('./pages/AlumniMap'));
+const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 
 // Legal and Support Pages - Lazy Loaded
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
@@ -275,6 +276,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <ProjectShowcase />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/resume" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ResumeAnalyzer />
                       </Layout>
                     </ProtectedRoute>
                   } />

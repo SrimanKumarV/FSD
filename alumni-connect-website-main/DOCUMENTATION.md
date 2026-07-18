@@ -42,5 +42,9 @@ This section tracks advanced modules added to elevate the platform.
   - *Location*: `/resume` (`ResumeAnalyzer.js`).
   - *Tech*: Frontend static analysis and AI simulation.
   - *Function*: Allows students to upload their resume (PDF) and receive a comprehensive ATS evaluation, including grammar scoring, impact metrics, missing industry keywords, and actionable AI suggestions.
+* **[Added] Alumni Startup & Business Network**
+  - *Location*: `/businesses` (`BusinessDirectory.js`).
+  - *Tech*: React, Framer Motion, Tailwind CSS.
+  - *Function*: A curated, searchable directory allowing students to discover innovative companies and startups founded by alumni, filter by industry, and find hiring opportunities.
 
 *(This document is a living record and will be continuously updated as new features are integrated).*

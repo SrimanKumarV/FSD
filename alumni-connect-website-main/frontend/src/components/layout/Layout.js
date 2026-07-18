@@ -27,7 +27,8 @@ import {
   Megaphone,
   FolderGit2,
   MapPin,
-  FileSearch
+  FileSearch,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -64,6 +65,7 @@ const Layout = ({ children }) => {
       items: [
         { name: 'Network', href: '/network', icon: Globe },
         { name: 'Alumni Map', href: '/map', icon: MapPin },
+        { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
         { name: 'Forum', href: '/forum', icon: MessagesSquare },
         { name: 'Chat', href: '/chat', icon: MessageCircle },

@@ -67,8 +67,9 @@ router.post('/chat', protect, async (req, res) => {
     res.json({ reply });
 
   } catch (error) {
+    const apiError = error?.response?.data?.error?.message || error.message;
     console.error('AI Chat Error:', error?.response?.data || error.message);
-    res.status(500).json({ message: 'Failed to process AI response' });
+    res.status(500).json({ message: `API Error: ${apiError}` });
   }
 });
 

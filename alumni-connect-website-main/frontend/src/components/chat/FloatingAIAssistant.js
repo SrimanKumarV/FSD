@@ -49,9 +49,10 @@ const FloatingAIAssistant = () => {
       setHistory([...updatedHistory, { role: 'model', text: response.data.reply }]);
     } catch (error) {
       console.error('AI Chat error:', error);
+      const errorMessage = error.response?.data?.message || "Sorry, I'm having trouble connecting right now. Please try again later.";
       setHistory([...updatedHistory, { 
         role: 'model', 
-        text: "Sorry, I'm having trouble connecting right now. Please try again later.",
+        text: errorMessage,
         isError: true
       }]);
     } finally {

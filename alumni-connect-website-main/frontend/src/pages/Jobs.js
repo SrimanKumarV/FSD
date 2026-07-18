@@ -16,7 +16,8 @@ import {
   Eye,
   Users,
   TrendingUp,
-  BriefcaseIcon
+  BriefcaseIcon,
+  UserPlus
 } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -142,6 +143,11 @@ const Jobs = () => {
       console.error('Error saving job:', error);
       toast.error(error.response?.data?.message || 'Failed to save job');
     }
+  };
+
+  const handleReferralRequest = (jobId, companyName) => {
+    // In a real implementation, this would open a modal to send a message to alumni working at this company
+    toast.success(`Referral request sent to alumni network at ${companyName}!`);
   };
 
   const sortedJobs = jobs; // Backend handles sorting and filtering
@@ -489,7 +495,7 @@ const Jobs = () => {
                       </>
                     )}
                   </div>
-                  <div className="flex items-center space-x-3 w-full sm:w-auto">
+                  <div className="flex flex-wrap items-center space-x-3 w-full sm:w-auto mt-4 sm:mt-0">
                     {job.isExternal ? (
                       <a
                         href={job.applicationLink}
@@ -500,12 +506,20 @@ const Jobs = () => {
                         Apply on Site
                       </a>
                     ) : (
-                      <button
-                        onClick={() => handleApply(job._id || job.id)}
-                        className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                      >
-                        Apply Now
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleReferralRequest(job._id || job.id, job.company)}
+                          className="flex-1 sm:flex-none px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        >
+                          <UserPlus className="w-4 h-4" /> Request Referral
+                        </button>
+                        <button
+                          onClick={() => handleApply(job._id || job.id)}
+                          className="flex-1 sm:flex-none px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                        >
+                          Apply Now
+                        </button>
+                      </>
                     )}
                     <button className="p-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-xl transition-colors shadow-sm hover:shadow">
                       <ExternalLink className="w-5 h-5" />

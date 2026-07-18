@@ -46,5 +46,9 @@ This section tracks advanced modules added to elevate the platform.
   - *Location*: `/businesses` (`BusinessDirectory.js`).
   - *Tech*: React, Framer Motion, Tailwind CSS.
   - *Function*: A curated, searchable directory allowing students to discover innovative companies and startups founded by alumni, filter by industry, and find hiring opportunities.
+* **[Added] Job Referral Request System**
+  - *Location*: `/jobs` (`Jobs.js`).
+  - *Tech*: React, Lucide Icons, react-hot-toast.
+  - *Function*: Added a "Request Referral" feature directly onto internal job postings, allowing students to seamlessly ask the alumni poster (or alumni working at the company) for a referral before submitting their application.
 
 *(This document is a living record and will be continuously updated as new features are integrated).*

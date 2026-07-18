@@ -38,7 +38,9 @@ export const CallProvider = ({ children }) => {
   
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [remoteStreamTrigger, setRemoteStreamTrigger] = useState(0);
   
+  const remoteStreamObjRef = useRef(new MediaStream());
   const pcRef = useRef(null);
   const ringtoneRef = useRef(null);
   
@@ -80,6 +82,7 @@ export const CallProvider = ({ children }) => {
       setLocalStream(null);
     }
     setRemoteStream(null);
+    remoteStreamObjRef.current = new MediaStream();
     if (pcRef.current) {
       pcRef.current.close();
       pcRef.current = null;
@@ -132,15 +135,9 @@ export const CallProvider = ({ children }) => {
       };
 
       pc.ontrack = (e) => {
-        if (e.streams && e.streams[0]) {
-          setRemoteStream(e.streams[0]);
-        } else {
-          setRemoteStream(prev => {
-            const stream = prev || new MediaStream();
-            stream.addTrack(e.track);
-            return stream;
-          });
-        }
+        remoteStreamObjRef.current.addTrack(e.track);
+        setRemoteStream(remoteStreamObjRef.current);
+        setRemoteStreamTrigger(prev => prev + 1);
       };
 
       pc.oniceconnectionstatechange = () => {
@@ -183,15 +180,9 @@ export const CallProvider = ({ children }) => {
             };
 
             pc.ontrack = (e) => {
-              if (e.streams && e.streams[0]) {
-                setRemoteStream(e.streams[0]);
-              } else {
-                setRemoteStream(prev => {
-                  const stream = prev || new MediaStream();
-                  stream.addTrack(e.track);
-                  return stream;
-                });
-              }
+              remoteStreamObjRef.current.addTrack(e.track);
+              setRemoteStream(remoteStreamObjRef.current);
+              setRemoteStreamTrigger(prev => prev + 1);
             };
 
             pc.oniceconnectionstatechange = () => {
@@ -385,6 +376,7 @@ export const CallProvider = ({ children }) => {
     callInfo,
     localStream,
     remoteStream,
+    remoteStreamTrigger,
     startCall,
     acceptCall,
     rejectCall,

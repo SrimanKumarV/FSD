@@ -10,6 +10,7 @@ const VideoCallOverlay = () => {
     callInfo, 
     localStream,
     remoteStream,
+    remoteStreamTrigger,
     acceptCall, 
     rejectCall, 
     endCall,
@@ -56,7 +57,7 @@ const VideoCallOverlay = () => {
         console.warn('Browser blocked autoplay of remote stream:', err);
       });
     }
-  }, [remoteStream, callStatus]);
+  }, [remoteStream, remoteStreamTrigger, callStatus]);
 
   const handleToggleAudio = () => {
     toggleAudio();

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import toast from 'react-hot-toast';
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
-import Peer from 'simple-peer';
 
 const CallContext = createContext();
 
@@ -25,21 +24,21 @@ export const CallProvider = ({ children }) => {
   const { user } = useAuth();
   
   const [callStatus, setCallStatus] = useState('idle'); // idle | ringing | outgoing | connected
-  const [incomingCall, setIncomingCall] = useState(null); // { callerId, callerName, isVideo }
-  const [callInfo, setCallInfo] = useState(null); // { targetId, isVideo }
+  const [incomingCall, setIncomingCall] = useState(null); 
+  const [callInfo, setCallInfo] = useState(null); 
   
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const [remoteStreamTrigger, setRemoteStreamTrigger] = useState(0);
   
-  const peerRef = useRef(null);
+  const remoteStreamObjRef = useRef(new MediaStream());
+  const pcRef = useRef(null);
   const ringtoneRef = useRef(null);
   
-  // Keep refs for state used inside socket callbacks to avoid re-binding listeners
   const callInfoRef = useRef(null);
   const incomingCallRef = useRef(null);
   const localStreamRef = useRef(null);
   const callStatusRef = useRef('idle');
+  const pendingCandidatesRef = useRef([]);
 
   useEffect(() => { callInfoRef.current = callInfo; }, [callInfo]);
   useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
@@ -72,10 +71,12 @@ export const CallProvider = ({ children }) => {
       setLocalStream(null);
     }
     setRemoteStream(null);
-    if (peerRef.current) {
-      peerRef.current.destroy();
-      peerRef.current = null;
+    remoteStreamObjRef.current = new MediaStream();
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
     }
+    pendingCandidatesRef.current = [];
   };
 
   const resetCall = () => {
@@ -101,42 +102,117 @@ export const CallProvider = ({ children }) => {
     };
 
     const handleAnswered = async () => {
-      console.log('[CallContext] Call answered by remote, creating peer...');
+      console.log('[CallContext] Call answered by remote, creating offer...');
       stopRingtone();
       setCallStatus('connected');
       
       const targetId = callInfoRef.current?.targetId;
       if (!targetId) return;
 
-      const peer = new Peer({
-        initiator: true,
-        stream: localStreamRef.current,
-        config: ICE_SERVERS
-      });
-      peerRef.current = peer;
+      const pc = new RTCPeerConnection(ICE_SERVERS);
+      pcRef.current = pc;
 
-      peer.on('signal', data => {
-        socket.emit('call:signal', { targetId, signal: data });
-      });
+      // Add local tracks
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
+      }
 
-      peer.on('stream', stream => {
-        setRemoteStream(stream);
-        setRemoteStreamTrigger(prev => prev + 1);
-      });
+      pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.emit('call:signal', { targetId, signal: { type: 'ice', candidate: e.candidate } });
+        }
+      };
 
-      peer.on('error', err => {
-        console.error('Peer error:', err);
-        endCall('network_error');
-      });
+      pc.ontrack = (e) => {
+        remoteStreamObjRef.current.addTrack(e.track);
+        // Create a new stream reference so React definitely re-renders the video tag
+        setRemoteStream(new MediaStream(remoteStreamObjRef.current.getTracks()));
+      };
 
-      peer.on('close', () => {
-        resetCall();
-      });
+      pc.oniceconnectionstatechange = () => {
+        console.log('[WebRTC Initiator] ICE State:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+          console.error('[WebRTC] ICE Connection Failed');
+          endCall('network_error');
+        }
+      };
+
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('call:signal', { targetId, signal: offer });
+      } catch (err) {
+        console.error('Error creating offer:', err);
+      }
     };
 
-    const handleSignal = ({ signal }) => {
-      if (peerRef.current) {
-        peerRef.current.signal(signal);
+    const handleSignal = async ({ signal }) => {
+      console.log('[CallContext] Signal received:', signal.type);
+      try {
+        if (signal.type === 'offer') {
+          const targetId = incomingCallRef.current?.callerId || callInfoRef.current?.targetId;
+          if (!targetId) return;
+
+          let pc = pcRef.current;
+          if (!pc) {
+            pc = new RTCPeerConnection(ICE_SERVERS);
+            pcRef.current = pc;
+            
+            if (localStreamRef.current) {
+              localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
+            }
+
+            pc.onicecandidate = (e) => {
+              if (e.candidate) {
+                socket.emit('call:signal', { targetId, signal: { type: 'ice', candidate: e.candidate } });
+              }
+            };
+
+            pc.ontrack = (e) => {
+              remoteStreamObjRef.current.addTrack(e.track);
+              setRemoteStream(new MediaStream(remoteStreamObjRef.current.getTracks()));
+            };
+
+            pc.oniceconnectionstatechange = () => {
+              console.log('[WebRTC Receiver] ICE State:', pc.iceConnectionState);
+              if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                console.error('[WebRTC] ICE Connection Failed');
+                endCall('network_error');
+              }
+            };
+          }
+
+          await pc.setRemoteDescription(new RTCSessionDescription(signal));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('call:signal', { targetId, signal: answer });
+
+          // Process queued ICE candidates
+          pendingCandidatesRef.current.forEach(async (c) => {
+            try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
+          });
+          pendingCandidatesRef.current = [];
+        } 
+        else if (signal.type === 'answer') {
+          if (pcRef.current) {
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(signal));
+            // Process queued ICE candidates
+            pendingCandidatesRef.current.forEach(async (c) => {
+              try { await pcRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
+            });
+            pendingCandidatesRef.current = [];
+          }
+        } 
+        else if (signal.type === 'ice') {
+          if (pcRef.current && pcRef.current.remoteDescription && signal.candidate) {
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          } else if (signal.candidate) {
+            // Queue ICE candidates that arrive before remote description is set
+            pendingCandidatesRef.current.push(signal.candidate);
+          }
+        }
+      } catch (err) {
+        console.error('Signal handling error:', err);
       }
     };
 
@@ -193,7 +269,7 @@ export const CallProvider = ({ children }) => {
       }
       
       setLocalStream(stream);
-      localStreamRef.current = stream; // Immediately set ref for socket callbacks
+      localStreamRef.current = stream; 
       setCallInfo({ targetId, isVideo, isInitiator: true });
       setCallStatus('outgoing');
       playRingtone();
@@ -232,31 +308,6 @@ export const CallProvider = ({ children }) => {
       localStreamRef.current = stream; 
       setCallInfo({ targetId: incCall.callerId, isVideo: incCall.isVideo, isInitiator: false });
       setCallStatus('connected');
-
-      const peer = new Peer({
-        initiator: false,
-        stream: localStreamRef.current,
-        config: ICE_SERVERS
-      });
-      peerRef.current = peer;
-
-      peer.on('signal', data => {
-        socket.emit('call:signal', { targetId: incCall.callerId, signal: data });
-      });
-
-      peer.on('stream', stream => {
-        setRemoteStream(stream);
-        setRemoteStreamTrigger(prev => prev + 1);
-      });
-
-      peer.on('error', err => {
-        console.error('Peer error:', err);
-        endCall('network_error');
-      });
-
-      peer.on('close', () => {
-        resetCall();
-      });
       
       socket.emit('call:answer', {
         callerId: incCall.callerId
@@ -313,7 +364,6 @@ export const CallProvider = ({ children }) => {
     callInfo,
     localStream,
     remoteStream,
-    remoteStreamTrigger,
     startCall,
     acceptCall,
     rejectCall,

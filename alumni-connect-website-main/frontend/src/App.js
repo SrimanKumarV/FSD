@@ -10,6 +10,7 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CallProvider } from './contexts/CallContext';
 import GlobalCallOverlay from './components/chat/VideoCallOverlay';
+import FloatingAIAssistant from './components/chat/FloatingAIAssistant';
 import { WifiOff } from 'lucide-react';
 
 // Components
@@ -107,6 +108,7 @@ function App() {
                   <div className="App min-h-screen relative">
                     <OfflineBanner />
                     <GlobalCallOverlay />
+                    <FloatingAIAssistant />
                     <div className="animated-bg"></div>
 
                   <ErrorBoundary>

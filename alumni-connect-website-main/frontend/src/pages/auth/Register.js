@@ -16,11 +16,59 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Select from 'react-select';
+import { useTheme } from '../../contexts/ThemeContext';
 
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Shared dark-mode aware styles for react-select
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      borderRadius: '0.75rem',
+      padding: '0.25rem',
+      backgroundColor: isDark ? '#1f2937' : 'rgba(255, 255, 255, 0.5)',
+      borderColor: isDark ? '#4b5563' : 'rgba(229, 231, 235, 0.5)',
+      color: isDark ? '#fff' : '#111'
+    }),
+    menu: (base) => ({
+      ...base,
+      backgroundColor: isDark ? '#1f2937' : '#fff',
+      color: isDark ? '#e5e7eb' : '#111',
+      zIndex: 999
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused
+        ? isDark ? '#374151' : '#f3f4f6'
+        : isDark ? '#1f2937' : '#fff',
+      color: isDark ? '#e5e7eb' : '#111'
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: isDark ? '#374151' : '#e5e7eb'
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: isDark ? '#e5e7eb' : '#111'
+    }),
+    input: (base) => ({
+      ...base,
+      color: isDark ? '#fff' : '#111'
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: isDark ? '#9ca3af' : '#6b7280'
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: isDark ? '#fff' : '#111'
+    })
+  };
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -484,15 +532,7 @@ const Register = () => {
                         classNamePrefix="select"
                         onChange={handleSelectChange}
                         placeholder="Select your domains..."
-                        styles={{
-                          control: (baseStyles) => ({
-                            ...baseStyles,
-                            borderRadius: '0.75rem',
-                            padding: '0.25rem',
-                            backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                            borderColor: 'rgba(229, 231, 235, 0.5)'
-                          })
-                        }}
+                        styles={selectStyles}
                       />
                     </div>
                   </div>

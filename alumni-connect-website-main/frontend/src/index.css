@@ -81,6 +81,19 @@
   .dark select option {
     @apply bg-gray-800 text-white;
   }
+  
+  /* Fix error/success notification boxes in dark mode */
+  .dark .bg-red-50 {
+    background-color: rgba(127, 29, 29, 0.3);
+    border-color: rgba(220, 38, 38, 0.4);
+  }
+  .dark .bg-green-50 {
+    background-color: rgba(6, 78, 59, 0.3);
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+  .dark .border-red-200 {
+    border-color: rgba(220, 38, 38, 0.4);
+  }
 }
 
 code {

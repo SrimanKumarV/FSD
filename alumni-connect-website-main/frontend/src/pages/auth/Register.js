@@ -553,15 +553,7 @@ const Register = () => {
                       classNamePrefix="select"
                       onChange={handleSelectChange}
                       placeholder="Select your interests..."
-                      styles={{
-                        control: (baseStyles) => ({
-                          ...baseStyles,
-                          borderRadius: '0.75rem',
-                          padding: '0.25rem',
-                          backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                          borderColor: 'rgba(229, 231, 235, 0.5)'
-                        })
-                      }}
+                      styles={selectStyles}
                     />
                   </div>
                 </div>

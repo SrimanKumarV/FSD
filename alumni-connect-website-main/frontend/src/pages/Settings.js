@@ -14,19 +14,45 @@ const Settings = () => {
   const navigate = useNavigate();
 
   // Phone settings
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isUpdatingPhone, setIsUpdatingPhone] = useState(false);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [phoneOtp, setPhoneOtp] = useState('');
   const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
 
+  // Initialize phone number if it exists
+  React.useEffect(() => {
+    if (user?.phoneNumber) {
+      if (user.phoneNumber.startsWith('+')) {
+        const spaceIdx = user.phoneNumber.indexOf(' ');
+        if (spaceIdx > -1) {
+          setCountryCode(user.phoneNumber.substring(0, spaceIdx));
+          setPhoneNumber(user.phoneNumber.substring(spaceIdx + 1));
+        } else {
+          // Fallback if no space
+          setPhoneNumber(user.phoneNumber);
+        }
+      } else {
+        setPhoneNumber(user.phoneNumber);
+      }
+    }
+  }, [user]);
+
   const handleUpdatePhone = async () => {
+    // Strict validation
+    if (!phoneNumber || phoneNumber.length < 7 || phoneNumber.length > 15) {
+      toast.error('Please enter a valid phone number');
+      return;
+    }
+    
+    const fullPhone = `${countryCode} ${phoneNumber}`;
     try {
       setIsUpdatingPhone(true);
-      await updateUser({ phoneNumber });
+      await updateUser({ phoneNumber: fullPhone });
       // After updating, if it changed, it will be unverified. Ask to send OTP
       const res = await api.post('/users/profile/phone/send-otp');
-      toast.success(res.data.message || 'OTP sent via SMS');
+      toast.success(res.data.message || 'OTP sent successfully');
       setShowPhoneModal(true);
     } catch(err) {
       toast.error(err.response?.data?.message || 'Failed to update phone');
@@ -283,20 +309,33 @@ const Settings = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-3">
                       Add a mobile number to receive important notifications via SMS.
                     </p>
-                    <div className="flex max-w-sm gap-2">
+                    <div className="flex max-w-md gap-2">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      >
+                        <option value="+91">🇮🇳 +91</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+61">🇦🇺 +61</option>
+                        <option value="+81">🇯🇵 +81</option>
+                        <option value="+971">🇦🇪 +971</option>
+                      </select>
                       <input 
                         type="tel"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="+1234567890"
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="10-digit number"
+                        maxLength="15"
                         className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                       />
                       <button 
                         onClick={handleUpdatePhone}
-                        disabled={isUpdatingPhone || !phoneNumber || phoneNumber === user?.phoneNumber && user?.phoneVerified}
+                        disabled={isUpdatingPhone || !phoneNumber || (user?.phoneNumber === `${countryCode} ${phoneNumber}` && user?.phoneVerified)}
                         className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors whitespace-nowrap"
                       >
-                        {user?.phoneVerified && phoneNumber === user?.phoneNumber ? 'Verified' : 'Verify'}
+                        {user?.phoneVerified && user?.phoneNumber === `${countryCode} ${phoneNumber}` ? 'Verified' : 'Verify'}
                       </button>
                     </div>
                   </div>

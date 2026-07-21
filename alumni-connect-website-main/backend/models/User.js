@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  phoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  smsNotifications: {
+    type: Boolean,
+    default: false
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],

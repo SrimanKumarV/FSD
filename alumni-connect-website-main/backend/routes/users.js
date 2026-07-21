@@ -223,13 +223,23 @@ router.put('/profile', protect, [
     }
 
     // Update allowed fields
-    const allowedFields = ['name', 'bio', 'skills', 'location', 'country', 'college', 'socialLinks', 'photo'];
+    const allowedFields = ['name', 'bio', 'skills', 'location', 'country', 'college', 'socialLinks', 'photo', 'phoneNumber', 'smsNotifications'];
     const updateData = {};
+    let phoneChanged = false;
+    
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
+        if (field === 'phoneNumber' && req.body[field] !== user.phoneNumber) {
+          phoneChanged = true;
+        }
         updateData[field] = req.body[field];
       }
     });
+    
+    if (phoneChanged) {
+      updateData.phoneVerified = false;
+      updateData.smsNotifications = false; // Turn off sms notifications if number changes and is unverified
+    }
 
     await User.updateOne({ _id: user._id }, { $set: updateData });
     const updatedUser = await User.findById(req.user.id);
@@ -329,6 +339,65 @@ router.post('/photo', protect, async (req, res) => {
     res.json({ user: user.toObject() });
   } catch (error) {
     console.error('Error uploading photo:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Send Phone Verification OTP
+// @route   POST /api/users/profile/phone/send-otp
+// @access  Private
+router.post('/profile/phone/send-otp', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user.phoneNumber) {
+      return res.status(400).json({ message: 'No phone number associated with this account' });
+    }
+    
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await User.updateOne(
+      { _id: user._id }, 
+      { $set: { twoFactorOtp: otp, twoFactorOtpExpires: Date.now() + 15 * 60 * 1000 } }
+    );
+    
+    // Simulate SMS sending
+    console.log(`[SMS VERIFICATION] Sending OTP ${otp} to ${user.phoneNumber}`);
+    
+    res.json({ message: 'SMS OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending SMS OTP:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Verify Phone OTP
+// @route   POST /api/users/profile/phone/verify-otp
+// @access  Private
+router.post('/profile/phone/verify-otp', protect, [
+  body('otp', 'OTP is required').exists()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { otp } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user || user.twoFactorOtp !== otp || user.twoFactorOtpExpires < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    await User.updateOne(
+      { _id: user._id },
+      { 
+        $set: { phoneVerified: true, smsNotifications: true }, // Enable sms forward by default upon verification
+        $unset: { twoFactorOtp: "", twoFactorOtpExpires: "" }
+      }
+    );
+
+    const updatedUser = await User.findById(req.user.id);
+    res.json({ message: 'Phone number verified successfully', user: updatedUser.toObject() });
+  } catch (error) {
+    console.error('Error verifying phone:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

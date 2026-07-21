@@ -12,8 +12,20 @@ const sendEmail = async (options) => {
 
   if (!apiKey) {
     console.warn(`[Mail] BREVO_API_KEY is missing. Would have sent to ${options.email} subject: ${options.subject}`);
-    return;
   }
+
+  // SMS Forwarding logic
+  try {
+    const User = require('../models/User');
+    const user = await User.findOne({ email: options.email });
+    if (user && user.phoneVerified && user.smsNotifications && user.phoneNumber) {
+      console.log(`[SMS NOTIFICATION FORWARDING] To: ${user.phoneNumber} | Subj: ${options.subject} | Content: ${options.message.replace(/<[^>]*>?/gm, '').substring(0, 50)}...`);
+    }
+  } catch(e) {
+    console.error('Failed to forward SMS notification', e);
+  }
+  
+  if (!apiKey) return;
 
   const payload = {
     sender: {

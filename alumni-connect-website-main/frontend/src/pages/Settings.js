@@ -9,9 +9,60 @@ import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
 
 const Settings = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  // Phone settings
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [isUpdatingPhone, setIsUpdatingPhone] = useState(false);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [phoneOtp, setPhoneOtp] = useState('');
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+
+  const handleUpdatePhone = async () => {
+    try {
+      setIsUpdatingPhone(true);
+      await updateUser({ phoneNumber });
+      // After updating, if it changed, it will be unverified. Ask to send OTP
+      const res = await api.post('/users/profile/phone/send-otp');
+      toast.success(res.data.message || 'OTP sent via SMS');
+      setShowPhoneModal(true);
+    } catch(err) {
+      toast.error(err.response?.data?.message || 'Failed to update phone');
+    } finally {
+      setIsUpdatingPhone(false);
+    }
+  };
+
+  const handleVerifyPhone = async () => {
+    try {
+      setIsVerifyingPhone(true);
+      const res = await api.post('/users/profile/phone/verify-otp', { otp: phoneOtp });
+      toast.success(res.data.message || 'Phone verified');
+      setShowPhoneModal(false);
+      setPhoneOtp('');
+      // Force update user context
+      updateUser({ smsNotifications: true }); // trigger a silent sync with what backend returned
+    } catch(err) {
+      toast.error(err.response?.data?.message || 'Verification failed');
+    } finally {
+      setIsVerifyingPhone(false);
+    }
+  };
+
+  const handleToggleSms = async () => {
+    if (!user?.phoneVerified) {
+      toast.error('Please verify your phone number first');
+      return;
+    }
+    try {
+      await updateUser({ smsNotifications: !user?.smsNotifications });
+      toast.success('SMS Preferences Updated');
+    } catch(err) {
+      toast.error('Failed to update SMS preferences');
+    }
+  };
 
   const getCookieLanguage = () => {
     const match = document.cookie.match(/googtrans=\/en\/([a-zA-Z-]+)/);
@@ -220,9 +271,53 @@ const Settings = () => {
           <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <ShieldAlert className="w-5 h-5 mr-2 text-primary-500" />
-              Security & Authentication
+              Security & Communications
             </h3>
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+            
+            <div className="space-y-4">
+              {/* Phone and SMS Notifications */}
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900 dark:text-white">Mobile Number</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-3">
+                      Add a mobile number to receive important notifications via SMS.
+                    </p>
+                    <div className="flex max-w-sm gap-2">
+                      <input 
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="+1234567890"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      />
+                      <button 
+                        onClick={handleUpdatePhone}
+                        disabled={isUpdatingPhone || !phoneNumber || phoneNumber === user?.phoneNumber && user?.phoneVerified}
+                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                      >
+                        {user?.phoneVerified && phoneNumber === user?.phoneNumber ? 'Verified' : 'Verify'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {user?.phoneVerified && (
+                    <div className="flex items-center space-x-3 mt-4 md:mt-0 bg-white dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">SMS Notifications</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Forward emails to SMS</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked={user?.smsNotifications || false} onChange={handleToggleSms} className="sr-only peer" />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Password Change */}
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
               <div className="flex flex-col md:flex-row md:items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">Change Password</p>
@@ -370,6 +465,57 @@ const Settings = () => {
                 className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
               >
                 {isChangingPassword ? 'Updating...' : 'Change Password'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Phone Verification Modal */}
+      {showPhoneModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-700"
+          >
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Verify Phone Number</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm">
+              We've sent a 6-digit OTP via SMS to <strong>{phoneNumber}</strong>. Please enter it below.
+            </p>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <input
+                  type="text"
+                  value={phoneOtp}
+                  onChange={(e) => setPhoneOtp(e.target.value)}
+                  placeholder="Enter 6-digit OTP"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
+                  maxLength={6}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPhoneModal(false);
+                  setPhoneOtp('');
+                }}
+                disabled={isVerifyingPhone}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleVerifyPhone}
+                disabled={isVerifyingPhone || phoneOtp.length !== 6}
+                className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
+              >
+                {isVerifyingPhone ? 'Verifying...' : 'Verify Phone'}
               </button>
             </div>
           </motion.div>

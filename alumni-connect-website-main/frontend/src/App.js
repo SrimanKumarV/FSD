@@ -24,6 +24,7 @@ const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 const VerifyEmail = lazy(() => import('./pages/auth/VerifyEmail'));
+const Verify2FA = lazy(() => import('./pages/auth/Verify2FA'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Mentorship = lazy(() => import('./pages/Mentorship'));
@@ -127,6 +128,7 @@ function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/verify-2fa" element={<Verify2FA />} />
                   
                   {/* Legal and Support Routes */}
                   <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
+  phoneNumber: {
+    type: String,
+    trim: true
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -201,7 +205,11 @@ const userSchema = new mongoose.Schema({
   
   // Account Deletion OTP
   deleteAccountOtp: String,
-  deleteAccountExpires: Date
+  deleteAccountExpires: Date,
+  
+  // 2FA OTP fields
+  twoFactorOtp: String,
+  twoFactorOtpExpires: Date
 }, {
   timestamps: true
 });

@@ -157,7 +157,13 @@ export const AuthProvider = ({ children }) => {
         password
       });
 
-      const { user, token } = response.data;
+      const { user, token, requires2FA, availableMethods, methodSent, message } = response.data;
+      
+      if (requires2FA) {
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        if(methodSent) toast.success(message || 'OTP sent successfully!');
+        return { success: true, requires2FA: true, email, availableMethods, methodSent };
+      }
       
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -192,7 +198,13 @@ export const AuthProvider = ({ children }) => {
         credential
       });
 
-      const { user, token, isNewUser, message } = response.data;
+      const { user, token, isNewUser, requires2FA, availableMethods, methodSent, message } = response.data;
+      
+      if (requires2FA) {
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        if(methodSent) toast.success(message || 'OTP sent successfully!');
+        return { success: true, requires2FA: true, email: user?.email, availableMethods, methodSent };
+      }
       
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -221,7 +233,13 @@ export const AuthProvider = ({ children }) => {
         code
       });
 
-      const { user, token, isNewUser, message } = response.data;
+      const { user, token, isNewUser, requires2FA, availableMethods, methodSent, message } = response.data;
+      
+      if (requires2FA) {
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        if(methodSent) toast.success(message || 'OTP sent successfully!');
+        return { success: true, requires2FA: true, email: user?.email, availableMethods, methodSent };
+      }
       
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -389,6 +407,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Send 2FA
+  const send2FA = async (email, method) => {
+    try {
+      const response = await api.post('/auth/send-2fa', { email, method });
+      toast.success(response.data.message);
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to send OTP';
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
+  // Verify 2FA
+  const verify2FA = async (email, otp) => {
+    try {
+      const response = await api.post('/auth/verify-2fa', { email, otp });
+      const { user, token, message } = response.data;
+      
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user, token }
+      });
+      
+      toast.success(message || 'Login successful');
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || '2FA Verification failed';
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
   // Check if user is admin
   const isAdmin = () => {
     return state.user?.role === 'admin';
@@ -470,6 +521,8 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     verifyEmail,
     resendVerification,
+    send2FA,
+    verify2FA,
     
     // Utility functions
     isAdmin,

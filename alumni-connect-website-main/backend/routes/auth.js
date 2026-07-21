@@ -87,16 +87,30 @@ router.post('/google', async (req, res) => {
       }
     }
     
-    // Generate token
-    const token = generateToken(user._id);
-    const userResponse = user.getPublicProfile();
+    // Generate 2FA OTP for Social Login (Defaults to Email)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.twoFactorOtp = otp;
+    user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+    
+    // Send email immediately
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Alumnex Connect - 2FA Login Verification',
+        message: `<p>Your secure verification code is: <strong>${otp}</strong></p>`
+      });
+    } catch(err) {
+      console.error('Failed to send 2FA email', err);
+    }
     
     res.json({
       success: true,
-      token,
-      user: userResponse,
-      isNewUser,
-      message: isNewUser ? 'Google account linked! Welcome to Alumnex.' : 'Login successful'
+      requires2FA: true,
+      email: user.email,
+      availableMethods: ['email'],
+      methodSent: 'email',
+      message: '2FA OTP sent to your email.'
     });
     
   } catch (error) {
@@ -232,16 +246,29 @@ router.post('/github', async (req, res) => {
       }
     }
     
-    // Generate token
-    const token = generateToken(user._id);
-    const publicUser = user.getPublicProfile();
+    // Generate 2FA OTP for Social Login (Defaults to Email)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.twoFactorOtp = otp;
+    user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+    
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Alumnex Connect - 2FA Login Verification',
+        message: `<p>Your secure verification code is: <strong>${otp}</strong></p>`
+      });
+    } catch(err) {
+      console.error('Failed to send 2FA email', err);
+    }
     
     res.json({
       success: true,
-      token,
-      user: publicUser,
-      isNewUser,
-      message: isNewUser ? 'GitHub account linked! Welcome to Alumnex.' : 'Login successful'
+      requires2FA: true,
+      email: user.email,
+      availableMethods: ['email'],
+      methodSent: 'email',
+      message: '2FA OTP sent to your email.'
     });
     
   } catch (error) {
@@ -440,32 +467,48 @@ router.post('/login', [
       // Continue with login even if update fails
     }
 
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Return user data (without password)
-    let userResponse;
-    try {
-      userResponse = user.getPublicProfile();
-    } catch (profileError) {
-      console.error('Error getting public profile:', profileError);
-      // Fallback to basic user info
-      userResponse = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        isApproved: user.isApproved
-      };
+    // Generate token for login (Wait, no! We generate 2FA OTP now)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.twoFactorOtp = otp;
+    user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
+    
+    let availableMethods = ['email'];
+    if (user.phoneNumber) {
+      availableMethods.push('sms');
     }
+    
+    await user.save();
 
-    res.json({
-      success: true,
-      token,
-      user: userResponse
-    });
-
+    if (availableMethods.length > 1) {
+      // User can choose, don't send anything yet
+      return res.json({
+        success: true,
+        requires2FA: true,
+        email: user.email,
+        availableMethods,
+        message: 'Please select where you would like to receive your OTP.'
+      });
+    } else {
+      // Only email available, send immediately
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Alumnex Connect - 2FA Login Verification',
+          message: `<p>Your secure verification code is: <strong>${otp}</strong></p>`
+        });
+      } catch (err) {
+        console.error('Email failed', err);
+      }
+      
+      return res.json({
+        success: true,
+        requires2FA: true,
+        email: user.email,
+        availableMethods: ['email'],
+        methodSent: 'email',
+        message: '2FA OTP sent to your email.'
+      });
+    }
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
@@ -783,6 +826,131 @@ router.post('/resend-verification', protect, async (req, res) => {
 
   } catch (error) {
     console.error('Resend verification error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/auth/send-2fa
+// @desc    Send 2FA OTP via chosen method
+// @access  Public
+router.post('/send-2fa', [
+  body('email', 'Valid email is required').isEmail().normalizeEmail(),
+  body('method', 'Method must be email or sms').isIn(['email', 'sms'])
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, method } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (!user.twoFactorOtp || user.twoFactorOtpExpires < Date.now()) {
+      // Regenerate OTP if expired or missing
+      user.twoFactorOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
+      await user.save();
+    }
+
+    if (method === 'sms') {
+      if (!user.phoneNumber) {
+        return res.status(400).json({ message: 'No phone number associated with this account' });
+      }
+      
+      // Simulating SMS integration (Twilio / Fast2SMS)
+      console.log(`[SMS OTP SIMULATION] Sending OTP ${user.twoFactorOtp} to ${user.phoneNumber}`);
+      // In production:
+      // await twilioClient.messages.create({
+      //   body: `Your Alumnex Connect login OTP is ${user.twoFactorOtp}.`,
+      //   from: process.env.TWILIO_PHONE,
+      //   to: user.phoneNumber
+      // });
+      
+    } else {
+      // Email
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Alumnex Connect - 2FA Login Verification',
+          message: `<p>Your secure verification code is: <strong>${user.twoFactorOtp}</strong></p>`
+        });
+      } catch (err) {
+        console.error('Email failed', err);
+        return res.status(500).json({ message: 'Failed to send OTP via email' });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `2FA OTP sent via ${method}`
+    });
+  } catch (error) {
+    console.error('Send 2FA error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/auth/verify-2fa
+// @desc    Verify 2FA OTP and login
+// @access  Public
+router.post('/verify-2fa', [
+  body('email', 'Valid email is required').isEmail().normalizeEmail(),
+  body('otp', 'OTP is required').exists()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, otp } = req.body;
+    const user = await User.findOne({
+      email,
+      twoFactorOtp: otp,
+      twoFactorOtpExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Clear 2FA OTP fields
+    user.twoFactorOtp = undefined;
+    user.twoFactorOtpExpires = undefined;
+    await user.save();
+    
+    // Generate token
+    const token = generateToken(user._id);
+
+    // Return user data
+    let userResponse;
+    try {
+      userResponse = user.getPublicProfile();
+    } catch (profileError) {
+      console.error('Error getting public profile:', profileError);
+      userResponse = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        isApproved: user.isApproved
+      };
+    }
+
+    res.json({
+      success: true,
+      token,
+      user: userResponse,
+      message: 'Login successful'
+    });
+  } catch (error) {
+    console.error('Verify 2FA error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

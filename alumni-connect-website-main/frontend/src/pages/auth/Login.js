@@ -18,7 +18,9 @@ const Login = () => {
     try {
       setIsLoading(true);
       const result = await loginWithGoogle(tokenResponse.credential || tokenResponse.access_token);
-      if (result.success) {
+      if (result.requires2FA) {
+        navigate('/verify-2fa', { state: { email: result.email, availableMethods: result.availableMethods, methodSent: result.methodSent } });
+      } else if (result.success) {
         navigate(from, { replace: true });
       }
     } catch (error) {
@@ -50,7 +52,9 @@ const Login = () => {
     setIsLoading(true);
     try {
       const result = await loginWithGithub(code);
-      if (result.success) {
+      if (result.requires2FA) {
+        navigate('/verify-2fa', { state: { email: result.email, availableMethods: result.availableMethods, methodSent: result.methodSent } });
+      } else if (result.success) {
         navigate(from, { replace: true });
       } else {
         toast.error(result.error || 'GitHub login failed');
@@ -85,7 +89,9 @@ const Login = () => {
 
     try {
       const result = await login(data.email, data.password);
-      if (result.requiresVerification) {
+      if (result.requires2FA) {
+        navigate('/verify-2fa', { state: { email: result.email, availableMethods: result.availableMethods, methodSent: result.methodSent } });
+      } else if (result.requiresVerification) {
         navigate('/verify-email', { state: { email: result.email } });
       } else if (result.success) {
         navigate(from, { replace: true });

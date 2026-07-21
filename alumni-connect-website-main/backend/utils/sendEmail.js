@@ -19,7 +19,10 @@ const sendEmail = async (options) => {
     const User = require('../models/User');
     const user = await User.findOne({ email: options.email });
     if (user && user.phoneVerified && user.smsNotifications && user.phoneNumber) {
-      const shortMsg = `Alumnex Alert: ${options.subject} - ${options.message.replace(/<[^>]*>?/gm, '').substring(0, 50)}...`;
+      // Properly strip HTML and condense whitespace so the message (and OTP) fits in SMS
+      const cleanText = options.message.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+      const shortMsg = `Alumnex: ${options.subject} - ${cleanText.substring(0, 140)}`;
+      
       console.log(`[SMS NOTIFICATION FORWARDING] To: ${user.phoneNumber} | Subj: ${options.subject}`);
       
       const sendSMS = require('./sendSMS');

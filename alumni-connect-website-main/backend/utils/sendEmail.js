@@ -19,7 +19,11 @@ const sendEmail = async (options) => {
     const User = require('../models/User');
     const user = await User.findOne({ email: options.email });
     if (user && user.phoneVerified && user.smsNotifications && user.phoneNumber) {
-      console.log(`[SMS NOTIFICATION FORWARDING] To: ${user.phoneNumber} | Subj: ${options.subject} | Content: ${options.message.replace(/<[^>]*>?/gm, '').substring(0, 50)}...`);
+      const shortMsg = `Alumnex Alert: ${options.subject} - ${options.message.replace(/<[^>]*>?/gm, '').substring(0, 50)}...`;
+      console.log(`[SMS NOTIFICATION FORWARDING] To: ${user.phoneNumber} | Subj: ${options.subject}`);
+      
+      const sendSMS = require('./sendSMS');
+      await sendSMS(user.phoneNumber, shortMsg);
     }
   } catch(e) {
     console.error('Failed to forward SMS notification', e);

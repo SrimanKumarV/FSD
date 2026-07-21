@@ -359,8 +359,11 @@ router.post('/profile/phone/send-otp', protect, async (req, res) => {
       { $set: { twoFactorOtp: otp, twoFactorOtpExpires: Date.now() + 15 * 60 * 1000 } }
     );
     
-    // Simulate SMS sending by logging, AND send via email so the user can test the flow!
+    // Simulate SMS sending by logging, AND try to send actual SMS
     console.log(`[SMS VERIFICATION] Sending OTP ${otp} to ${user.phoneNumber}`);
+    
+    const sendSMS = require('../utils/sendSMS');
+    const smsSent = await sendSMS(user.phoneNumber, `Your Alumnex Connect verification OTP is ${otp}. Valid for 15 mins.`);
     
     const sendEmail = require('../utils/sendEmail');
     try {
@@ -371,13 +374,15 @@ router.post('/profile/phone/send-otp', protect, async (req, res) => {
           <h3>SMS OTP Simulation</h3>
           <p>We are simulating an SMS sent to <strong>${user.phoneNumber}</strong>.</p>
           <p>Your 6-digit phone verification code is: <strong style="font-size: 24px;">${otp}</strong></p>
+          <hr/>
+          <p><small>Note: If you have configured FAST2SMS_API_KEY, an actual SMS was also dispatched. Status: ${smsSent ? 'SENT' : 'FAILED/SKIPPED'}</small></p>
         `
       });
     } catch (emailErr) {
       console.error('Failed to send fallback email for SMS simulation', emailErr);
     }
     
-    res.json({ message: 'SMS OTP sent successfully (check your email for the simulation)' });
+    res.json({ message: 'OTP processed (check your phone or email fallback)' });
   } catch (error) {
     console.error('Error sending SMS OTP:', error);
     res.status(500).json({ message: 'Server error' });

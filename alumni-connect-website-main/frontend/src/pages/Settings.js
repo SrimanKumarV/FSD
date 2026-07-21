@@ -336,6 +336,7 @@ const Settings = () => {
               </div>
             </div>
           </div>
+        </div>
 
           {/* Danger Zone */}
           <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">

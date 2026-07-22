@@ -2,9 +2,10 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import MandatoryTasksOverlay from '../profile/MandatoryTasksOverlay';
+import CompleteProfileOnboarding from '../profile/CompleteProfileOnboarding';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin, updateUser } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -29,8 +30,23 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Note: Mandatory tasks like profile completion are now dynamically triggered by the MandatoryTasksOverlay 
-  // based on tasks configured in the Admin panel.
+  // Mandatory country and college selection check
+  const isProfileComplete = user?.country && user?.college;
+  const isStudentOrAlumni = user?.role === 'student' || user?.role === 'alumni';
+
+  if (isStudentOrAlumni && !isProfileComplete) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-gray-900">
+        <CompleteProfileOnboarding 
+          user={user} 
+          onComplete={async (updatedData) => {
+            await updateUser(updatedData);
+            window.location.reload();
+          }} 
+        />
+      </div>
+    );
+  }
 
   // Render children if authenticated and authorized
   return (

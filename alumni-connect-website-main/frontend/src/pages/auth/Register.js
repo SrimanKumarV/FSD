@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -12,12 +12,36 @@ import {
   CheckCircle,
   AlertCircle,
   Briefcase,
-  Lightbulb
+  Lightbulb,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Select from 'react-select';
 import { useTheme } from '../../contexts/ThemeContext';
+import api from '../../utils/api';
 
+const COUNTRIES = [
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+  { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'MY', name: 'Malaysia', flag: '🇲🇾' },
+  { code: 'LK', name: 'Sri Lanka', flag: '🇱🇰' },
+  { code: 'BD', name: 'Bangladesh', flag: '🇧🇩' },
+  { code: 'PK', name: 'Pakistan', flag: '🇵🇰' },
+  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
+];
 
 const Register = () => {
   const navigate = useNavigate();
@@ -83,12 +107,41 @@ const Register = () => {
     interests: [],
     officialUrl: '',
     establishedYear: '',
-    accreditation: ''
+    accreditation: '',
+    country: '',
+    college: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [universities, setUniversities] = useState([]);
+  const [loadingUnis, setLoadingUnis] = useState(false);
+
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      if (!formData.country) {
+        setUniversities([]);
+        return;
+      }
+      setLoadingUnis(true);
+      try {
+        const countryObj = COUNTRIES.find(c => c.name === formData.country);
+        const searchName = countryObj ? countryObj.name : formData.country;
+        const { data } = await api.get('/institutions/search', {
+          params: { country: searchName, name: '' }
+        });
+        setUniversities(data.map(name => ({ value: name, label: name })));
+      } catch (error) {
+        console.error("Failed to fetch universities:", error);
+        setUniversities([]);
+      } finally {
+        setLoadingUnis(false);
+      }
+    };
+    
+    fetchUniversities();
+  }, [formData.country]);
 
   const currentYear = new Date().getFullYear();
   const graduationYears = Array.from({ length: 77 }, (_, i) => currentYear + 7 - i);
@@ -158,6 +211,11 @@ const Register = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    if (formData.role === 'student' || formData.role === 'alumni') {
+      if (!formData.country) newErrors.country = 'Country is required';
+      if (!formData.college) newErrors.college = 'College/University is required';
+    }
+
     if (formData.role === 'student' && !formData.graduationYear) {
       newErrors.graduationYear = 'Graduation year is required for students';
     }
@@ -193,6 +251,11 @@ const Register = () => {
       skills: formData.skills,
       interests: formData.interests
     };
+
+    if (formData.role === 'student' || formData.role === 'alumni') {
+      payload.country = formData.country;
+      payload.college = formData.college;
+    }
 
     if (formData.role === 'student') {
       payload.studentInfo = {
@@ -375,6 +438,65 @@ const Register = () => {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white border-b border-gray-200/50 dark:border-gray-700/50 pb-2">
                 {formData.role === 'student' ? 'Student Information' : formData.role === 'college' ? 'Institution Information' : 'Professional Information'}
               </h3>
+
+              {(formData.role === 'student' || formData.role === 'alumni') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="country" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Country
+                    </label>
+                    <div className="mt-2 relative">
+                      <Select
+                        name="country"
+                        options={COUNTRIES.map(c => ({ value: c.name, label: `${c.flag} ${c.name}` }))}
+                        className="basic-single z-30"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setFormData(prev => ({ ...prev, country: selected?.value || '', college: '' }));
+                          if (errors.country) setErrors(prev => ({ ...prev, country: '' }));
+                        }}
+                        placeholder="Select Country..."
+                        styles={selectStyles}
+                        value={formData.country ? { value: formData.country, label: formData.country } : null}
+                      />
+                    </div>
+                    {errors.country && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.country}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="college" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      College / University
+                    </label>
+                    <div className="mt-2 relative">
+                      <Select
+                        name="college"
+                        options={universities}
+                        isLoading={loadingUnis}
+                        isDisabled={!formData.country}
+                        className="basic-single z-20"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setFormData(prev => ({ ...prev, college: selected?.value || '' }));
+                          if (errors.college) setErrors(prev => ({ ...prev, college: '' }));
+                        }}
+                        placeholder={formData.country ? "Select College..." : "Select Country First"}
+                        styles={selectStyles}
+                        value={formData.college ? { value: formData.college, label: formData.college } : null}
+                      />
+                    </div>
+                    {errors.college && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.college}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {formData.role === 'student' ? (
                 <div>

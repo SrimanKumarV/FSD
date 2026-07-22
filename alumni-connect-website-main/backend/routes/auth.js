@@ -259,7 +259,7 @@ router.post('/register', [
   body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
   body('role', 'Role must be student, alumni, or college').isIn(['student', 'alumni', 'college']),
   body('studentInfo.course').optional().trim(),
-  body('studentInfo.year').optional().isInt({ min: 1, max: 5 }),
+  body('studentInfo.year').optional().isInt({ min: 1950 }),
   body('studentInfo.university').optional().trim(),
   body('alumniInfo.graduationYear').optional().isInt({ min: 1950, max: new Date().getFullYear() }),
   body('alumniInfo.company').optional().trim(),

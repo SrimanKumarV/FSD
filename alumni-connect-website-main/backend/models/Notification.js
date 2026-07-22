@@ -17,33 +17,6 @@ const notificationSchema = new mongoose.Schema({
   // Notification Type
   type: {
     type: String,
-    enum: [
-      'mentorship-request',
-      'mentorship-accepted',
-      'mentorship-rejected',
-      'job-posted',
-      'event-reminder',
-      'event-registration',
-      'forum-reply',
-      'forum-like',
-      'contest-reminder',
-      'contest-result',
-      'connection-request',
-      'connection-accepted',
-      'follow_request',
-      'follow_accept',
-      'follow_decline',
-      'message-received',
-      'profile-view',
-      'system-announcement',
-      'admin-approval',
-      'admin-rejection',
-      'account_approved',
-      'account_rejected',
-      'role_changed',
-      'account_suspended',
-      'account_unsuspended'
-    ],
     required: [true, 'Notification type is required']
   },
   

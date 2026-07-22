@@ -91,7 +91,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
 
   const currentYear = new Date().getFullYear();
-  const graduationYears = Array.from({ length: 20 }, (_, i) => currentYear - i);
+  const graduationYears = Array.from({ length: 77 }, (_, i) => currentYear + 7 - i);
 
   const domainOptions = [
     { value: 'Software Engineering', label: 'Software Engineering' },

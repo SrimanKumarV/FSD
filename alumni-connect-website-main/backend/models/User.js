@@ -80,9 +80,7 @@ const userSchema = new mongoose.Schema({
       trim: true
     },
     year: {
-      type: Number,
-      min: 1,
-      max: 5
+      type: Number
     },
     university: {
       type: String,

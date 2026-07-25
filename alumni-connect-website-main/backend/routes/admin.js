@@ -186,6 +186,38 @@ router.put('/users/:id/approval', [protect, admin], [
   }
 });
 
+// @desc    Verify alumni as mentor
+// @route   PUT /api/admin/users/:id/mentor-verify
+// @access  Private (Admin only)
+router.put('/users/:id/mentor-verify', [protect, admin], [
+  body('adminVerifiedMentor').isBoolean().withMessage('Verification status is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { adminVerifiedMentor } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user || user.role !== 'alumni') {
+      return res.status(404).json({ message: 'Alumni not found' });
+    }
+
+    user.alumniInfo.adminVerifiedMentor = adminVerifiedMentor;
+    await user.save();
+
+    res.json({
+      message: `Mentor status ${adminVerifiedMentor ? 'verified' : 'revoked'} successfully`,
+      user: user.toObject()
+    });
+  } catch (error) {
+    console.error('Error verifying mentor:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Update user role
 // @route   PUT /api/admin/users/:id/role
 // @access  Private (Admin only)

@@ -244,6 +244,27 @@ const ResumeAnalyzer = () => {
               <p className="text-sm text-slate-400 mt-2 max-w-sm">Upload your resume and click analyze to generate your comprehensive ATS report.</p>
             </div>
           )}
+
+          {/* Templates Section */}
+          <div className="mt-8 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-xl p-8">
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-6">AI-Optimized Templates</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex justify-between items-center hover:border-indigo-400 cursor-pointer transition-colors">
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">Tech Minimalist</h4>
+                  <p className="text-sm text-slate-500">Best for SDE & DevOps roles</p>
+                </div>
+                <button className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-sm font-bold">Download</button>
+              </div>
+              <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex justify-between items-center hover:border-indigo-400 cursor-pointer transition-colors">
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">Creative Impact</h4>
+                  <p className="text-sm text-slate-500">Best for UX/UI & Product</p>
+                </div>
+                <button className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-sm font-bold">Download</button>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>

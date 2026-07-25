@@ -57,6 +57,7 @@ const Layout = ({ children }) => {
       title: 'Main',
       items: [
         { name: 'Dashboard', href: '/dashboard', icon: Home },
+        { name: 'Analytics', href: '/analytics', icon: Activity },
         { name: 'Profile', href: '/profile', icon: User },
       ]
     },
@@ -67,6 +68,8 @@ const Layout = ({ children }) => {
         { name: 'Alumni Map', href: '/map', icon: MapPin },
         { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
+        { name: 'Smart Mentors', href: '/mentor-allocation', icon: Users },
+        { name: 'Tech Hub', href: '/tech-hub', icon: MessagesSquare },
         { name: 'Forum', href: '/forum', icon: MessagesSquare },
         { name: 'Chat', href: '/chat', icon: MessageCircle },
       ]
@@ -75,9 +78,11 @@ const Layout = ({ children }) => {
       title: 'Opportunities',
       items: [
         { name: 'Jobs', href: '/jobs', icon: Briefcase },
+        { name: 'Career Board', href: '/career-board', icon: Briefcase },
         { name: 'Events', href: '/events', icon: Calendar },
         { name: 'Contests', href: '/contests', icon: Code },
         { name: 'Projects', href: '/projects', icon: FolderGit2 },
+        { name: 'Project Collab', href: '/project-collaboration', icon: FolderGit2 },
         { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },
       ]
     },
@@ -93,7 +98,10 @@ const Layout = ({ children }) => {
       items: [
         { name: 'Feedback', href: '/feedback', icon: Megaphone },
         { name: 'Help Centre', href: '/help-centre', icon: LifeBuoy },
-        ...(isAdmin() ? [{ name: 'Admin', href: '/admin', icon: Settings }] : [])
+        ...(isAdmin() ? [
+          { name: 'Admin', href: '/admin', icon: Settings },
+          { name: 'Phase 2 Admin', href: '/admin-dashboard', icon: Settings }
+        ] : [])
       ]
     }
   ];

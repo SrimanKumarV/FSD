@@ -109,7 +109,8 @@ const Register = () => {
     establishedYear: '',
     accreditation: '',
     country: '',
-    college: ''
+    college: '',
+    employmentProofUrl: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -265,7 +266,8 @@ const Register = () => {
       payload.alumniInfo = {
         company: formData.company,
         position: formData.position,
-        graduationYear: formData.graduationYear
+        graduationYear: formData.graduationYear,
+        employmentProofUrl: formData.employmentProofUrl
       };
     } else if (formData.role === 'college') {
       payload.collegeInfo = {
@@ -637,6 +639,23 @@ const Register = () => {
                         onChange={handleChange}
                         className="glass-input block w-full px-4 py-3 rounded-xl focus:outline-none transition-all"
                         placeholder="Enter your position"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2">
+                    <label htmlFor="employmentProofUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Employment Proof URL (Optional - e.g. LinkedIn, Offer Letter link)
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="employmentProofUrl"
+                        name="employmentProofUrl"
+                        type="url"
+                        value={formData.employmentProofUrl}
+                        onChange={handleChange}
+                        className="glass-input block w-full px-4 py-3 rounded-xl focus:outline-none transition-all"
+                        placeholder="https://linkedin.com/in/..."
                       />
                     </div>
                   </div>

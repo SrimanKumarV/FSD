@@ -47,6 +47,12 @@ const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 const AlumniMap = lazy(() => import('./pages/AlumniMap'));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const BusinessDirectory = lazy(() => import('./pages/BusinessDirectory'));
+const MentorAllocation = lazy(() => import('./pages/mentorship/MentorAllocation'));
+const TechHub = lazy(() => import('./pages/tech-hub/TechHub'));
+const CareerBoard = lazy(() => import('./pages/opportunities/CareerBoard'));
+const ProjectCollaboration = lazy(() => import('./pages/projects/ProjectCollaboration'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AnalyticsDashboard = lazy(() => import('./pages/dashboard/AnalyticsDashboard'));
 
 // Legal and Support Pages - Lazy Loaded
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
@@ -151,6 +157,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Profile />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/analytics" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AnalyticsDashboard />
                       </Layout>
                     </ProtectedRoute>
                   } />
@@ -283,6 +297,38 @@ function App() {
                     </ProtectedRoute>
                   } />
 
+                  <Route path="/mentor-allocation" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <MentorAllocation />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/tech-hub" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <TechHub />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/career-board" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CareerBoard />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/project-collaboration" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ProjectCollaboration />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
                   <Route path="/resume" element={
                     <ProtectedRoute>
                       <Layout>
@@ -311,6 +357,14 @@ function App() {
                     <ProtectedRoute adminOnly>
                       <Layout>
                         <Admin />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/admin-dashboard" element={
+                    <ProtectedRoute adminOnly>
+                      <Layout>
+                        <AdminDashboard />
                       </Layout>
                     </ProtectedRoute>
                   } />

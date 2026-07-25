@@ -17,11 +17,19 @@ const projectSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  teamMembers: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
+  }],
   tags: {
     type: [String],
     required: true,
     validate: [v => v.length > 0, 'Please add at least one tag']
   },
+  techStack: [{
+    type: String,
+    trim: true
+  }],
   githubLink: {
     type: String,
     match: [
@@ -51,6 +59,23 @@ const projectSchema = new mongoose.Schema({
   featured: {
     type: Boolean,
     default: false
+  },
+  seekingMentorship: {
+    type: Boolean,
+    default: false
+  },
+  seekingTeamMembers: {
+    type: Boolean,
+    default: false
+  },
+  mentor: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
+  },
+  status: {
+    type: String,
+    enum: ['planning', 'in-progress', 'completed'],
+    default: 'completed'
   }
 }, {
   timestamps: true,

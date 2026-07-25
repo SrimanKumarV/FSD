@@ -243,6 +243,11 @@ router.put('/:id/status', [protect], [
       const requesterId = req.user.id === mentorship.mentor.toString() ? mentorship.student : mentorship.mentor;
       await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: requesterId } });
       await User.findByIdAndUpdate(requesterId, { $addToSet: { followers: req.user.id } });
+      
+      // Award Gamification Points for Mentorship Acceptance
+      if (oldStatus !== 'accepted') {
+        await User.findByIdAndUpdate(mentorship.mentor, { $inc: { rewardPoints: 50 } });
+      }
     }
 
     await mentorship.save();

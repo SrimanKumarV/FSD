@@ -93,7 +93,7 @@ const userSchema = new mongoose.Schema({
     graduationYear: {
       type: Number,
       min: 1950,
-      max: new Date().getFullYear()
+      max: new Date().getFullYear() + 5
     },
     company: {
       type: String,
@@ -111,6 +111,14 @@ const userSchema = new mongoose.Schema({
       type: Number,
       min: 0
     },
+    employmentProofUrl: {
+      type: String,
+      trim: true
+    },
+    adminVerifiedMentor: {
+      type: Boolean,
+      default: false
+    },
     availableForMentorship: {
       type: Boolean,
       default: false
@@ -118,7 +126,27 @@ const userSchema = new mongoose.Schema({
     mentorshipAreas: [{
       type: String,
       trim: true
-    }]
+    }],
+    maxMentees: {
+      type: Number,
+      default: 5
+    },
+    preferredBatches: [{
+      type: String,
+      trim: true
+    }],
+    mentorRating: {
+      type: Number,
+      default: 0
+    },
+    mentorReviewCount: {
+      type: Number,
+      default: 0
+    },
+    mentorshipHours: {
+      type: Number,
+      default: 0
+    }
   },
   
   // College-specific fields
@@ -149,7 +177,16 @@ const userSchema = new mongoose.Schema({
     github: String,
     twitter: String,
     website: String,
-    portfolio: String
+    portfolio: String,
+    codeforces: String,
+    leetcode: String,
+    codolio: String
+  },
+  
+  // Rewards & Gamification
+  rewardPoints: {
+    type: Number,
+    default: 0
   },
   
   // Account Status

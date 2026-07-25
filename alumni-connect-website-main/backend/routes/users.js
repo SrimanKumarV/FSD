@@ -9,6 +9,7 @@ const Job = require('../models/Job');
 const Event = require('../models/Event');
 const ForumPost = require('../models/ForumPost');
 const Message = require('../models/Message');
+const Report = require('../models/Report');
 const sendEmail = require('../utils/sendEmail');
 
 // @desc    Get dashboard stats and activities
@@ -691,6 +692,39 @@ router.post('/:id/unfollow', protect, async (req, res) => {
     res.json({ message: 'Unfollowed successfully' });
   } catch (error) {
     console.error('Unfollow error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Report a user
+// @route   POST /api/users/:id/report
+// @access  Private
+router.post('/:id/report', protect, [
+  body('reason', 'Reason is required').notEmpty()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const reportedUser = await User.findById(req.params.id);
+    if (!reportedUser) return res.status(404).json({ message: 'User not found' });
+
+    if (reportedUser._id.toString() === req.user.id) {
+      return res.status(400).json({ message: 'Cannot report yourself' });
+    }
+
+    const report = new Report({
+      reporter: req.user.id,
+      reportedUser: reportedUser._id,
+      reason: req.body.reason,
+      details: req.body.details
+    });
+
+    await report.save();
+
+    res.json({ message: 'Report submitted successfully' });
+  } catch (error) {
+    console.error('Error reporting user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

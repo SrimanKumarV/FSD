@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from 'react-query';
-import { motion } from 'framer-motion';
+import { useQuery, useMutation } from 'react-query';
+import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import {
   MapPin, Briefcase, MessageSquare, Users,
   Activity, Code, GitCommit, Trophy, TrendingUp,
-  ExternalLink, Zap, Target, FolderGit2, Globe, Building2
+  ExternalLink, Zap, Target, FolderGit2, Globe, Building2,
+  AlertTriangle, X
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -89,6 +91,9 @@ const UserProfile = () => {
   const { user: me } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('about');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
 
   // Fetch the target user's profile
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery(
@@ -139,6 +144,30 @@ const UserProfile = () => {
   ] : [];
 
   const isOwnProfile = me?._id === id;
+
+  const reportUserMutation = useMutation(
+    (data) => api.post(`/users/${id}/report`, data),
+    {
+      onSuccess: () => {
+        toast.success('Report submitted successfully. Admins will review it.');
+        setShowReportModal(false);
+        setReportReason('');
+        setReportDetails('');
+      },
+      onError: (err) => {
+        toast.error(err.response?.data?.message || 'Failed to submit report');
+      }
+    }
+  );
+
+  const handleReportSubmit = (e) => {
+    e.preventDefault();
+    if (!reportReason) {
+      toast.error('Please select a reason');
+      return;
+    }
+    reportUserMutation.mutate({ reason: reportReason, details: reportDetails });
+  };
 
   if (profileLoading) {
     return (
@@ -206,6 +235,19 @@ const UserProfile = () => {
               <h1 className="text-2xl font-black text-white mb-1">{targetUser.name}</h1>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-slate-400 mb-3">
                 <span className="capitalize bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">{targetUser.role}</span>
+                
+                {/* Gamification Badges */}
+                {targetUser.role === 'alumni' && targetUser.adminVerifiedMentor && (
+                  <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-lg border border-emerald-500/20 font-semibold" title="Verified by Admin">
+                    <Zap className="w-3 h-3" /> Verified Mentor
+                  </span>
+                )}
+                {targetUser.rewardPoints > 50 && (
+                  <span className="flex items-center gap-1 bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-lg border border-amber-500/20 font-semibold" title={`Earned ${targetUser.rewardPoints} points!`}>
+                    <Trophy className="w-3 h-3" /> Top Contributor
+                  </span>
+                )}
+
                 {targetUser.location && (
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{targetUser.location}</span>
                 )}
@@ -230,6 +272,12 @@ const UserProfile = () => {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" /> Message
+                </button>
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm font-semibold rounded-xl transition-colors border border-red-500/20"
+                >
+                  <AlertTriangle className="w-4 h-4" /> Report
                 </button>
               </div>
             )}
@@ -498,6 +546,64 @@ const UserProfile = () => {
           ))}
         </motion.div>
       )}
+
+      {/* ── Report Modal ── */}
+      <AnimatePresence>
+        {showReportModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500" /> Report User
+                </h2>
+                <button onClick={() => setShowReportModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleReportSubmit} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Reason</label>
+                  <select 
+                    value={reportReason} 
+                    onChange={e => setReportReason(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 text-slate-900 dark:text-white"
+                  >
+                    <option value="">Select a reason</option>
+                    <option value="spam">Spam or Unsolicited Promotion</option>
+                    <option value="harassment">Harassment or Hate Speech</option>
+                    <option value="fake_profile">Fake Profile or Impersonation</option>
+                    <option value="inappropriate">Inappropriate Content</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Details (Optional)</label>
+                  <textarea 
+                    value={reportDetails}
+                    onChange={e => setReportDetails(e.target.value)}
+                    rows="3"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 text-slate-900 dark:text-white"
+                    placeholder="Provide more details about why you are reporting this user..."
+                  ></textarea>
+                </div>
+                <div className="pt-2 flex justify-end gap-3">
+                  <button type="button" onClick={() => setShowReportModal(false)} className="px-4 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={reportUserMutation.isLoading} className="px-4 py-2 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    {reportUserMutation.isLoading ? 'Submitting...' : 'Submit Report'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

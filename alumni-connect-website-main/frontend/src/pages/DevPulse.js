@@ -344,6 +344,28 @@ const DevPulse = () => {
       isVerified: usernames?.gfg?.isVerified,
       url: getPlatformUrl(stats, usernames, 'gfg'),
     },
+    {
+      platform: 'codechef',
+      label: 'CodeChef',
+      icon: Target,
+      color: '#8b5cf6',
+      bgGradient: 'linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%)',
+      stats: null, // Placeholder for Phase 2
+      username: usernames?.codechef?.username || 'coming_soon',
+      isVerified: false,
+      url: null,
+    },
+    {
+      platform: 'codeforces',
+      label: 'Codeforces',
+      icon: Zap,
+      color: '#ef4444',
+      bgGradient: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%)',
+      stats: null, // Placeholder for Phase 2
+      username: usernames?.codeforces?.username || 'coming_soon',
+      isVerified: false,
+      url: null,
+    },
   ];
 
   if (isLoading) {
@@ -457,7 +479,7 @@ const DevPulse = () => {
       {/* ── Platform Cards ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6"
       >
         {platforms.map((p) => (
           <PlatformCard key={p.platform} {...p} />

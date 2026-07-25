@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../utils/api';
 import { 
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell 
 } from 'recharts';
 import { TrendingUp, Users, Award, BookOpen, Target, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 
 const AnalyticsDashboard = () => {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('6M');
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data based on role
+  // Mock data for the charts (since historical data isn't in backend yet)
   const isAlumni = user?.role === 'alumni';
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get('/users/dashboard');
+        setStats(res.data.stats);
+      } catch (error) {
+        toast.error('Failed to load analytics');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
   const monthlyData = [
     { name: 'Jan', mentees: 2, points: 150, hours: 5, engagement: 60 },
@@ -35,9 +54,9 @@ const AnalyticsDashboard = () => {
   const dataToUse = isAlumni ? monthlyData : studentData;
 
   const StatCard = ({ title, value, trend, icon: Icon, color }) => (
-    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
       <div>
-        <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
         <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2">{value}</h3>
         <div className="flex items-center text-sm font-medium" style={{ color }}>
           <TrendingUp className="w-4 h-4 mr-1" />
@@ -56,9 +75,9 @@ const AnalyticsDashboard = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white">Growth Analytics</h1>
-          <p className="text-slate-500 mt-1">Track your progress and engagement over time</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Track your progress and engagement over time</p>
         </div>
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit border border-slate-200 dark:border-slate-700">
           {['1M', '3M', '6M', '1Y'].map(range => (
             <button
               key={range}
@@ -66,7 +85,7 @@ const AnalyticsDashboard = () => {
               className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
                 timeRange === range 
                   ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' 
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               {range}
@@ -76,23 +95,27 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {isAlumni ? (
-          <>
-            <StatCard title="Total Mentees" value="24" trend="12" icon={Users} color="#6366f1" />
-            <StatCard title="Reward Points" value="1,450" trend="28" icon={Award} color="#f59e0b" />
-            <StatCard title="Hours Mentored" value="86" trend="15" icon={Calendar} color="#10b981" />
-            <StatCard title="Profile Views" value="4.2k" trend="45" icon={Target} color="#ec4899" />
-          </>
-        ) : (
-          <>
-            <StatCard title="Applications" value="48" trend="15" icon={BookOpen} color="#6366f1" />
-            <StatCard title="Skill Growth" value="92%" trend="8" icon={TrendingUp} color="#10b981" />
-            <StatCard title="Connections" value="156" trend="24" icon={Users} color="#3b82f6" />
-            <StatCard title="Interviews" value="7" trend="12" icon={Target} color="#8b5cf6" />
-          </>
-        )}
-      </div>
+      {loading ? (
+        <div className="text-slate-500 dark:text-slate-400">Loading stats...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {isAlumni ? (
+            <>
+              <StatCard title="Total Mentees" value={stats?.mentorshipsCount || 0} trend="12" icon={Users} color="#6366f1" />
+              <StatCard title="Reward Points" value={stats?.rewardPoints || 0} trend="28" icon={Award} color="#f59e0b" />
+              <StatCard title="Jobs Posted" value={stats?.jobsPosted || 0} trend="15" icon={Calendar} color="#10b981" />
+              <StatCard title="Profile Views" value={stats?.views || "4.2k"} trend="45" icon={Target} color="#ec4899" />
+            </>
+          ) : (
+            <>
+              <StatCard title="Applications" value={stats?.jobsApplied || 0} trend="15" icon={BookOpen} color="#6366f1" />
+              <StatCard title="Reward Points" value={stats?.rewardPoints || 0} trend="8" icon={TrendingUp} color="#10b981" />
+              <StatCard title="Connections" value={stats?.connections || 15} trend="24" icon={Users} color="#3b82f6" />
+              <StatCard title="Mentorships" value={stats?.mentorshipsCount || 0} trend="12" icon={Target} color="#8b5cf6" />
+            </>
+          )}
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -100,7 +123,7 @@ const AnalyticsDashboard = () => {
         {/* Main Growth Chart */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm"
+          className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm transition-colors"
         >
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
             {isAlumni ? 'Mentorship Engagement' : 'Career Progression Activity'}
@@ -118,8 +141,8 @@ const AnalyticsDashboard = () => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                 <RechartsTooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-                  itemStyle={{ fontWeight: 600 }}
+                  contentStyle={{ borderRadius: '16px', border: '1px solid #334155', backgroundColor: '#1e293b', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', color: '#fff' }}
+                  itemStyle={{ fontWeight: 600, color: '#fff' }}
                 />
                 <Area 
                   type="monotone" 
@@ -137,7 +160,7 @@ const AnalyticsDashboard = () => {
         {/* Secondary Metric Chart */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm"
+          className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm transition-colors"
         >
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
             {isAlumni ? 'Active Mentees' : 'Skill Growth Matrix'}
@@ -149,12 +172,13 @@ const AnalyticsDashboard = () => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                 <RechartsTooltip 
-                  cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                  cursor={{ fill: 'rgba(99, 102, 241, 0.1)' }}
+                  contentStyle={{ borderRadius: '16px', border: '1px solid #334155', backgroundColor: '#1e293b', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', color: '#fff' }}
+                  itemStyle={{ color: '#fff' }}
                 />
                 <Bar dataKey={isAlumni ? 'mentees' : 'skillGrowth'} radius={[6, 6, 0, 0]}>
                   {dataToUse.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === dataToUse.length - 1 ? '#6366f1' : '#cbd5e1'} />
+                    <Cell key={`cell-${index}`} fill={index === dataToUse.length - 1 ? '#6366f1' : '#cbd5e1'} className="dark:fill-slate-600 dark:last:fill-[#6366f1]" />
                   ))}
                 </Bar>
               </BarChart>

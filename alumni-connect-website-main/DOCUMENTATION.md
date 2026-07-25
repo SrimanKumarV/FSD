@@ -55,4 +55,27 @@ This section tracks advanced modules added to elevate the platform.
   - *Tech*: React, Framer Motion, Tailwind CSS.
   - *Function*: Upgraded the mentorship hub to allow students to select specific dates and time slots (Morning/Afternoon/Evening) for 1:1 career guidance sessions with verified alumni, complete with an interactive booking modal.
 
+### Phase 2: Advanced Ecosystem Modules (Ideathon Upgrades)
+* **[Added] Smart Mentor Allocation System**
+  - *Location*: `/mentor-allocation` (`MentorAllocation.js`, `MentorshipRequest` Model).
+  - *Function*: Shifts the paradigm from "students spamming alumni" to a structured flow. Mentors specify capacity and target domains; students submit requests, and mentors accept or decline them efficiently.
+* **[Added] Tech Assistance Hub**
+  - *Location*: `/tech-hub` (`TechHub.js`, `TechHub` Model).
+  - *Function*: A structured Q&A community for technical doubts. Integrates rich text formatting, upvotes, and verification checks.
+* **[Added] Career & Opportunity Board**
+  - *Location*: `/career-board` (`CareerBoard.js`, `JobOpportunity` Model).
+  - *Function*: A premium job board with advanced filtering, bookmarking, and direct 1-click apply links targeting specific domains.
+* **[Added] Gamification & Rewards Ecosystem**
+  - *Location*: Backend Models (`User.js`, Mentorship/TechHub routes), Frontend Profiles (`UserProfile.js`).
+  - *Function*: Introduced `rewardPoints` awarded to users automatically (e.g., +50 for accepting mentees, +10 for answering tech questions). Thresholds trigger digital badges (e.g., "Top Contributor").
+* **[Added] Comprehensive DevPulse & Resume Upgrades**
+  - *Location*: `/devpulse` and `/resume`.
+  - *Function*: Added placeholders for CodeChef and Codeforces to centralize coding identity. Added downloadable "AI-Optimized Resume Templates" directly in the Resume Analyzer.
+* **[Added] Advanced Growth Analytics**
+  - *Location*: `/analytics` (`AnalyticsDashboard.js`).
+  - *Function*: Role-based visual data (Recharts). Mentors track "Hours Mentored" and engagement; students track "Applications" and skill growth over 6-12 month trends.
+* **[Added] Safety & User Reporting Module**
+  - *Location*: `/users/:id/report` (Backend `Report` Model), Modal in `UserProfile.js`.
+  - *Function*: Allows users to report suspicious activity, spam, or harassment directly from a user's public profile, ensuring a secure, moderated ecosystem.
+
 *(This document is a living record and will be continuously updated as new features are integrated).*

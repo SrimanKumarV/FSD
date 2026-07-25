@@ -98,27 +98,27 @@ const MentorAllocation = () => {
               placeholder="Search by domain (e.g. Software Engineering)"
               value={domainFilter}
               onChange={(e) => setDomainFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {mentors.map((mentor) => (
-              <div key={mentor._id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100">
+              <div key={mentor._id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center space-x-4 mb-4">
                   <img src={mentor.photo || '/default-avatar.png'} alt={mentor.name} className="w-12 h-12 rounded-full" />
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">{mentor.name}</h3>
-                    <p className="text-sm text-gray-500">{mentor.alumniInfo?.company}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{mentor.alumniInfo?.company}</p>
                   </div>
                 </div>
-                <div className="flex items-center text-sm text-gray-600 mb-2">
-                  <Users className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  <Users className="w-4 h-4 mr-2 text-gray-400" />
                   Capacity: {mentor.remainingCapacity} slots left
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {mentor.alumniInfo?.mentorshipAreas?.map((area, idx) => (
-                    <span key={idx} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded">
                       {area}
                     </span>
                   ))}
@@ -126,10 +126,10 @@ const MentorAllocation = () => {
                 <button
                   onClick={() => requestMentor(mentor._id)}
                   disabled={mentor.remainingCapacity <= 0}
-                  className={`w-full py-2 rounded-lg font-medium ${
+                  className={`w-full py-2 rounded-lg font-medium transition-colors ${
                     mentor.remainingCapacity > 0
                       ? 'bg-primary-600 text-white hover:bg-primary-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   {mentor.remainingCapacity > 0 ? 'Request Mentor' : 'No Seats Available'}
@@ -137,7 +137,7 @@ const MentorAllocation = () => {
               </div>
             ))}
             {mentors.length === 0 && (
-              <div className="col-span-3 text-center py-10 text-gray-500">
+              <div className="col-span-3 text-center py-10 text-gray-500 dark:text-gray-400">
                 No mentors available for this domain.
               </div>
             )}
@@ -146,17 +146,17 @@ const MentorAllocation = () => {
       )}
 
       {user?.role === 'alumni' && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Domain</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {requests.map((req) => (
                 <tr key={req._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -166,19 +166,19 @@ const MentorAllocation = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{req.domain}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{req.domain}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
                       {req.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                     {req.status === 'pending' && (
                       <>
-                        <button onClick={() => acceptRequest(req._id)} className="text-green-600 hover:text-green-900">
+                        <button onClick={() => acceptRequest(req._id)} className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 bg-green-50 dark:bg-green-900/20 p-1.5 rounded-lg transition-colors">
                           <Check className="w-5 h-5" />
                         </button>
-                        <button onClick={() => rejectRequest(req._id)} className="text-red-600 hover:text-red-900">
+                        <button onClick={() => rejectRequest(req._id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/20 p-1.5 rounded-lg transition-colors">
                           <X className="w-5 h-5" />
                         </button>
                       </>
@@ -188,7 +188,7 @@ const MentorAllocation = () => {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="px-6 py-10 text-center text-gray-500">
+                  <td colSpan="4" className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
                     No active requests.
                   </td>
                 </tr>

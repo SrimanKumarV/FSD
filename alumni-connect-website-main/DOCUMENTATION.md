@@ -58,13 +58,16 @@ This section tracks advanced modules added to elevate the platform.
 ### Phase 2: Advanced Ecosystem Modules (Ideathon Upgrades)
 * **[Added] Smart Mentor Allocation System**
   - *Location*: `/mentor-allocation` (`MentorAllocation.js`, `MentorshipRequest` Model).
-  - *Function*: Shifts the paradigm from "students spamming alumni" to a structured flow. Mentors specify capacity and target domains; students submit requests, and mentors accept or decline them efficiently.
+  - *Function*: Shifts the paradigm from "students spamming alumni" to a structured flow. Mentors specify capacity and target domains; students submit requests, and mentors accept or decline them efficiently. Fully integrated with live backend and dark mode.
 * **[Added] Tech Assistance Hub**
   - *Location*: `/tech-hub` (`TechHub.js`, `TechHub` Model).
-  - *Function*: A structured Q&A community for technical doubts. Integrates rich text formatting, upvotes, and verification checks.
+  - *Function*: A structured Q&A community for technical doubts. Integrates rich text formatting, upvotes, and verification checks. Fully integrated with live backend (`/api/tech-hub/questions`) and dark mode.
 * **[Added] Career & Opportunity Board**
   - *Location*: `/career-board` (`CareerBoard.js`, `JobOpportunity` Model).
-  - *Function*: A premium job board with advanced filtering, bookmarking, and direct 1-click apply links targeting specific domains.
+  - *Function*: A premium job board with advanced filtering, bookmarking, and direct 1-click apply links targeting specific domains. Now fetches live jobs from the MongoDB backend (`/api/jobs`) and fully supports dark mode.
+* **[Added] Project Collaboration Hub**
+  - *Location*: `/project-collaboration` (`ProjectCollaboration.js`, `Project` Model).
+  - *Function*: A dedicated board where students can upload their projects, showcase their tech stack, and explicitly signal if they need team members or alumni mentorship. Fetches live data from `/api/projects` and is fully dark-mode compliant.
 * **[Added] Gamification & Rewards Ecosystem**
   - *Location*: Backend Models (`User.js`, Mentorship/TechHub routes), Frontend Profiles (`UserProfile.js`).
   - *Function*: Introduced `rewardPoints` awarded to users automatically (e.g., +50 for accepting mentees, +10 for answering tech questions). Thresholds trigger digital badges (e.g., "Top Contributor").
@@ -73,9 +76,15 @@ This section tracks advanced modules added to elevate the platform.
   - *Function*: Added placeholders for CodeChef and Codeforces to centralize coding identity. Added downloadable "AI-Optimized Resume Templates" directly in the Resume Analyzer.
 * **[Added] Advanced Growth Analytics**
   - *Location*: `/analytics` (`AnalyticsDashboard.js`).
-  - *Function*: Role-based visual data (Recharts). Mentors track "Hours Mentored" and engagement; students track "Applications" and skill growth over 6-12 month trends.
+  - *Function*: Role-based visual data (Recharts). Mentors track "Hours Mentored" and engagement; students track "Applications" and skill growth over 6-12 month trends. Fetches real dashboard statistics from `/api/users/dashboard` and gracefully transitions into dark mode.
 * **[Added] Safety & User Reporting Module**
   - *Location*: `/users/:id/report` (Backend `Report` Model), Modal in `UserProfile.js`.
   - *Function*: Allows users to report suspicious activity, spam, or harassment directly from a user's public profile, ensuring a secure, moderated ecosystem.
+
+### Global Enhancements
+* **[Enhancement] Flawless Global Dark Mode**
+  - Extensively integrated dynamic `dark:` Tailwind classes across all Phase 1 and Phase 2 pages to ensure a premium, unified visual aesthetic across light and dark themes.
+* **[Enhancement] Full API Connectivity**
+  - Transitioned all front-end outline prototypes into fully functional systems directly mutating and retrieving data from the Express.js MongoDB backend.
 
 *(This document is a living record and will be continuously updated as new features are integrated).*

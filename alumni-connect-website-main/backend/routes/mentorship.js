@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const { protect, alumni, student, verified, approved } = require('../middleware/auth');
 const Mentorship = require('../models/Mentorship');
+const MentorshipSession = require('../models/MentorshipSession');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 
@@ -191,6 +192,11 @@ router.post('/', [protect], [
       relatedData: { mentorshipId: mentorship._id }
     });
 
+    const io = req.app.get('io');
+    if (io) {
+      io.to(mentorId.toString()).emit('mentorship:new_request', { mentorship });
+    }
+
     res.status(201).json({ mentorship });
   } catch (error) {
     console.error('Error creating mentorship request:', error);
@@ -261,6 +267,11 @@ router.put('/:id/status', [protect], [
       content: `Your mentorship request has been ${status}`,
       relatedData: { mentorshipId: mentorship._id }
     });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(mentorship.student.toString()).emit('mentorship:updated', { mentorship });
+    }
 
     res.json({ mentorship });
   } catch (error) {
@@ -492,6 +503,61 @@ router.put('/:id/cancel', protect, [
     res.json({ mentorship });
   } catch (error) {
     console.error('Error cancelling mentorship:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Book a 1:1 session
+// @route   POST /api/mentorship/sessions
+// @access  Private
+router.post('/sessions', protect, [
+  body('mentorId').isMongoId().withMessage('Valid mentor ID is required'),
+  body('date').isISO8601().withMessage('Valid date is required'),
+  body('time').trim().notEmpty().withMessage('Time slot is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { mentorId, date, time } = req.body;
+    
+    // Check if mentor exists
+    const mentor = await User.findById(mentorId);
+    if (!mentor || mentor.role !== 'alumni') {
+      return res.status(400).json({ message: 'Valid mentor not found' });
+    }
+
+    const session = new MentorshipSession({
+      mentor: mentorId,
+      student: req.user.id,
+      date,
+      time,
+      status: 'pending'
+    });
+
+    await session.save();
+    await session.populate('mentor', 'name email photo');
+    await session.populate('student', 'name email photo');
+
+    await Notification.createNotification({
+      recipient: mentorId,
+      sender: req.user.id,
+      type: 'mentorship_session',
+      title: 'New Session Request',
+      content: `${req.user.name} has booked a 1:1 session with you`,
+      relatedData: { sessionId: session._id }
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(mentorId.toString()).emit('mentorship:session_booked', { session });
+    }
+
+    res.status(201).json({ session, message: 'Session booked successfully' });
+  } catch (error) {
+    console.error('Error booking session:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

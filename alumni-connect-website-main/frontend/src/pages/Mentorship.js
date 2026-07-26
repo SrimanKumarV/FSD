@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useSocket } from '../contexts/SocketContext';
 import { 
   Search, 
   Filter, 
@@ -27,6 +28,7 @@ import DefaultAvatar from '../components/DefaultAvatar';
 
 const Mentorship = () => {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('find');
   const [mentors, setMentors] = useState([]);
@@ -61,16 +63,56 @@ const Mentorship = () => {
     setShowBookingModal(true);
   };
 
-  const confirmBooking = () => {
+  const confirmBooking = async () => {
     if (!selectedDate || !selectedTime) {
       toast.error('Please select both a date and time slot.');
       return;
     }
-    toast.success(`1:1 Mentorship Session booked with ${selectedMentor?.name} for ${selectedDate} at ${selectedTime}!`);
-    setShowBookingModal(false);
-    setSelectedDate('');
-    setSelectedTime('');
+    
+    try {
+      setLoading(true);
+      await api.post('/mentorship/sessions', {
+        mentorId: selectedMentor._id || selectedMentor.id,
+        date: selectedDate,
+        time: selectedTime
+      });
+      toast.success(`1:1 Mentorship Session booked with ${selectedMentor?.name} for ${selectedDate} at ${selectedTime}!`);
+      setShowBookingModal(false);
+      setSelectedDate('');
+      setSelectedTime('');
+    } catch (error) {
+      console.error('Error booking session:', error);
+      toast.error(error.response?.data?.message || 'Failed to book session');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (socket) {
+      const handleNewRequest = (data) => {
+        if (activeTab === 'my-mentorships') fetchMentorships();
+        else toast.info('You have a new mentorship request!');
+      };
+      const handleStatusUpdate = (data) => {
+        if (activeTab === 'my-mentorships') fetchMentorships();
+        else toast.info('Mentorship status updated');
+      };
+      const handleSessionBooked = (data) => {
+        toast.info('New 1:1 session booked');
+      };
+
+      socket.on('mentorship:new_request', handleNewRequest);
+      socket.on('mentorship:updated', handleStatusUpdate);
+      socket.on('mentorship:session_booked', handleSessionBooked);
+
+      return () => {
+        socket.off('mentorship:new_request', handleNewRequest);
+        socket.off('mentorship:updated', handleStatusUpdate);
+        socket.off('mentorship:session_booked', handleSessionBooked);
+      };
+    }
+  }, [socket, activeTab]);
 
   useEffect(() => {
     if (activeTab === 'find') {

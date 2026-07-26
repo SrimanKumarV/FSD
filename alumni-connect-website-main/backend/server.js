@@ -23,6 +23,7 @@ const io = socketIo(server, {
     methods: ["GET", "POST"]
   }
 });
+app.set('io', io);
 
 // Middleware
 app.use(helmet({

@@ -129,10 +129,9 @@ const Register = () => {
       try {
         const countryObj = COUNTRIES.find(c => c.name === formData.country);
         const searchName = countryObj ? countryObj.name : formData.country;
-        const { data } = await api.get('/institutions/search', {
-          params: { country: searchName, name: '' }
-        });
-        setUniversities(data.map(name => ({ value: name, label: name })));
+        const response = await fetch(`https://universities.hipolabs.com/search?country=${encodeURIComponent(searchName)}`);
+        const data = await response.json();
+        setUniversities(data.map(uni => ({ value: uni.name, label: uni.name })));
       } catch (error) {
         console.error("Failed to fetch universities:", error);
         setUniversities([]);

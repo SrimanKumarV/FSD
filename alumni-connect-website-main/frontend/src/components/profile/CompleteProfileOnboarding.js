@@ -55,10 +55,12 @@ export default function CompleteProfileOnboarding({ user, onComplete }) {
     try {
       const countryObj = COUNTRIES.find(c => c.name === countryName);
       const searchName = countryObj ? countryObj.name : countryName;
-      const { data } = await api.get('/institutions/search', {
-        params: { country: searchName, name: query || '' }
-      });
-      setUniversities(data);
+      const url = query 
+        ? `https://universities.hipolabs.com/search?country=${encodeURIComponent(searchName)}&name=${encodeURIComponent(query)}`
+        : `https://universities.hipolabs.com/search?country=${encodeURIComponent(searchName)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      setUniversities(data.slice(0, 100).map(u => u.name));
     } catch (error) {
       console.error("Failed to fetch universities:", error);
       setUniversities([]);

@@ -22,13 +22,20 @@ import {
   Settings,
   Check,
   LifeBuoy,
-  MessagesSquare,
+  MessageSquare,
   MessageCircle,
   Megaphone,
   FolderGit2,
   MapPin,
   FileSearch,
-  Building2
+  Building2,
+  BarChart2,
+  Sparkles,
+  Terminal,
+  Compass,
+  Layers,
+  GitMerge,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -73,7 +80,7 @@ const Layout = ({ children }) => {
       title: 'Main',
       items: [
         { name: 'Dashboard', href: '/dashboard', icon: Home },
-        { name: 'Analytics', href: '/analytics', icon: Activity },
+        { name: 'Analytics', href: '/analytics', icon: BarChart2 },
         { name: 'Profile', href: '/profile', icon: User },
       ]
     },
@@ -84,9 +91,9 @@ const Layout = ({ children }) => {
         { name: 'Alumni Map', href: '/map', icon: MapPin },
         { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
-        { name: 'Smart Mentors', href: '/mentor-allocation', icon: Users },
-        { name: 'Tech Hub', href: '/tech-hub', icon: MessagesSquare },
-        { name: 'Forum', href: '/forum', icon: MessagesSquare },
+        { name: 'Smart Mentors', href: '/mentor-allocation', icon: Sparkles },
+        { name: 'Tech Hub', href: '/tech-hub', icon: Terminal },
+        { name: 'Forum', href: '/forum', icon: MessageSquare },
         { name: 'Chat', href: '/chat', icon: MessageCircle },
       ]
     },
@@ -94,11 +101,11 @@ const Layout = ({ children }) => {
       title: 'Opportunities',
       items: [
         { name: 'Jobs', href: '/jobs', icon: Briefcase },
-        { name: 'Career Board', href: '/career-board', icon: Briefcase },
+        { name: 'Career Board', href: '/career-board', icon: Compass },
         { name: 'Events', href: '/events', icon: Calendar },
         { name: 'Contests', href: '/contests', icon: Code },
-        { name: 'Projects', href: '/projects', icon: FolderGit2 },
-        { name: 'Project Collab', href: '/project-collaboration', icon: FolderGit2 },
+        { name: 'Projects', href: '/projects', icon: Layers },
+        { name: 'Project Collab', href: '/project-collaboration', icon: GitMerge },
         { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },
       ]
     },
@@ -116,7 +123,7 @@ const Layout = ({ children }) => {
         { name: 'Help Centre', href: '/help-centre', icon: LifeBuoy },
         ...(isAdmin() ? [
           { name: 'Admin', href: '/admin', icon: Settings },
-          { name: 'Phase 2 Admin', href: '/admin-dashboard', icon: Settings }
+          { name: 'Phase 2 Admin', href: '/admin-dashboard', icon: ShieldAlert }
         ] : [])
       ]
     }

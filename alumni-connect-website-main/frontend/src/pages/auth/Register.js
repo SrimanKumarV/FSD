@@ -610,6 +610,35 @@ const Register = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="col-span-1 md:col-span-2">
+                    <label htmlFor="graduationYear" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Graduation Year
+                    </label>
+                    <div className="mt-2 relative">
+                      <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <select
+                        id="graduationYear"
+                        name="graduationYear"
+                        value={formData.graduationYear}
+                        onChange={handleChange}
+                        className={`glass-input block w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none transition-all ${
+                          errors.graduationYear ? 'border-red-400 ring-1 ring-red-400' : ''
+                        }`}
+                      >
+                        <option value="">Select graduation year</option>
+                        {graduationYears.map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {errors.graduationYear && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.graduationYear}
+                      </p>
+                    )}
+                  </div>
+
                   <div>
                     <label htmlFor="company" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Company

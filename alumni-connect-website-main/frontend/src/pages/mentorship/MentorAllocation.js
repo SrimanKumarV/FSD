@@ -22,8 +22,8 @@ const MentorAllocation = () => {
   const fetchMentors = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/mentorship/available-mentors?domain=${domainFilter}`);
-      setMentors(res.data);
+      const res = await api.get(`/mentorship/mentors?industry=${domainFilter}`);
+      setMentors(res.data?.mentors || res.data || []);
     } catch (error) {
       toast.error('Failed to fetch mentors');
     } finally {

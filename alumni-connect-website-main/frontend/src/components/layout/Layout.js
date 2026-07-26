@@ -40,6 +40,22 @@ const Layout = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({
+    'Main': true,
+    'Connect & Community': false,
+    'Opportunities': false,
+    'Engagement': false,
+    'Support': false
+  });
+
+  const toggleGroup = (title) => {
+    if (isSidebarCollapsed) setIsSidebarCollapsed(false);
+    setExpandedGroups(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  };
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuth();
@@ -205,30 +221,43 @@ const Layout = ({ children }) => {
             <nav className="mt-6 px-3">
               <div className="space-y-6 mb-6">
                 {navigationGroups.map((group) => (
-                  <div key={group.title}>
-                    <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                      {group.title}
-                    </p>
-                    <div className="space-y-1">
-                      {group.items.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <Link
-                            key={item.name}
-                            to={item.href}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                              isActiveRoute(item.href)
-                                ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
-                            }`}
-                          >
-                            <Icon className="mr-3 h-5 w-5" />
-                            {item.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                  <div key={group.title} className="mb-2">
+                    <button 
+                      onClick={() => toggleGroup(group.title)}
+                      className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-primary-500 transition-colors"
+                    >
+                      <span>{group.title}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandedGroups[group.title] ? 'rotate-180' : ''}`} />
+                    </button>
+                    <AnimatePresence>
+                      {expandedGroups[group.title] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden space-y-1 mt-1"
+                        >
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                              <Link
+                                key={item.name}
+                                to={item.href}
+                                onClick={() => setSidebarOpen(false)}
+                                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                  isActiveRoute(item.href)
+                                    ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
+                                }`}
+                              >
+                                <Icon className="mr-3 h-5 w-5" />
+                                {item.name}
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ))}
               </div>
@@ -257,34 +286,53 @@ const Layout = ({ children }) => {
           
           <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto mb-4 custom-scrollbar overflow-x-hidden">
             {navigationGroups.map((group) => (
-              <div key={group.title}>
+              <div key={group.title} className="mb-2">
                 {!isSidebarCollapsed ? (
-                  <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 whitespace-nowrap">
-                    {group.title}
-                  </p>
+                  <button 
+                    onClick={() => toggleGroup(group.title)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-primary-500 transition-colors"
+                  >
+                    <span>{group.title}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandedGroups[group.title] ? 'rotate-180' : ''}`} />
+                  </button>
                 ) : (
-                  <div className="h-4" />
+                  <div 
+                    className="h-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md mb-2"
+                    onClick={() => toggleGroup(group.title)}
+                    title={group.title}
+                  >
+                    <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                  </div>
                 )}
-                <div className="space-y-1">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        title={isSidebarCollapsed ? item.name : ""}
-                        className={`group flex items-center py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                          isActiveRoute(item.href)
-                            ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
-                        } ${isSidebarCollapsed ? 'justify-center px-0 mx-2' : 'px-3'}`}
-                      >
-                        <Icon className={`${isSidebarCollapsed ? '' : 'mr-3'} h-5 w-5 flex-shrink-0`} />
-                        {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
-                      </Link>
-                    );
-                  })}
-                </div>
+                <AnimatePresence>
+                  {(expandedGroups[group.title] || isSidebarCollapsed) && (
+                    <motion.div
+                      initial={!isSidebarCollapsed ? { height: 0, opacity: 0 } : false}
+                      animate={!isSidebarCollapsed ? { height: 'auto', opacity: 1 } : false}
+                      exit={!isSidebarCollapsed ? { height: 0, opacity: 0 } : false}
+                      className="overflow-hidden space-y-1 mt-1"
+                    >
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            title={isSidebarCollapsed ? item.name : ""}
+                            className={`group flex items-center py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                              isActiveRoute(item.href)
+                                ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
+                            } ${isSidebarCollapsed ? 'justify-center px-0 mx-2' : 'px-3'}`}
+                          >
+                            <Icon className={`${isSidebarCollapsed ? '' : 'mr-3'} h-5 w-5 flex-shrink-0`} />
+                            {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
+                          </Link>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </nav>

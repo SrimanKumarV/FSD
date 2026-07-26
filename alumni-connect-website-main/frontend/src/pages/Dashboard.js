@@ -128,14 +128,14 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-gradient-to-br from-primary-600 via-primary-500 to-alumni-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden"
+        className="bg-gradient-to-br from-cyan-600 via-emerald-500 to-cyan-700 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden border border-white/10"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2">
             Welcome back, {user?.name}! 👋
           </h1>
-          <p className="text-primary-50 text-lg">
+          <p className="text-cyan-50 text-lg">
             Here's what's happening in your professional network today.
           </p>
         </div>
@@ -151,19 +151,19 @@ const Dashboard = () => {
         {(stats || []).map((stat, index) => {
           const Icon = iconMap[stat.iconName] || Info;
           return (
-            <motion.div
+              <motion.div
               whileHover={{ y: -5, scale: 1.02 }}
               key={stat.name}
-              className="glass-card rounded-2xl p-6 relative overflow-hidden group"
+              className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.name}</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</p>
+                  <p className="text-4xl font-extrabold text-gray-900 dark:text-white mt-1">{stat.value}</p>
                 </div>
-                <div className={`p-4 rounded-xl bg-${stat.color}-100 dark:bg-${stat.color}-900/30 shadow-inner`}>
-                  <Icon className={`w-7 h-7 text-${stat.color}-600 dark:text-${stat.color}-400`} />
+                <div className={`p-4 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 shadow-inner`}>
+                  <Icon className={`w-7 h-7 text-cyan-600 dark:text-cyan-400`} />
                 </div>
               </div>
               <div className="relative z-10 mt-4 flex items-center">
@@ -188,12 +188,12 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-2 glass-card rounded-2xl overflow-hidden"
+          className="lg:col-span-2 glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
         >
           <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
           </div>
-          <div className="p-6">
+          <div className="p-8">
             <div className="space-y-6">
               {(!recentActivities || recentActivities.length === 0) ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -210,15 +210,20 @@ const Dashboard = () => {
                         <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <p className="text-base font-semibold text-gray-900 dark:text-white">{activity.title}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{activity.description}</p>
-                      <div className="mt-3 flex items-center space-x-3">
+                      <div className="mt-3 flex items-center space-x-3 w-full">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
                           {getStatusIcon(activity.status)}
                           <span className="ml-1 capitalize">{activity.status}</span>
                         </span>
                         <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{activity.time}</span>
+                        {activity.status === 'pending' && (
+                          <Link to="/notifications" className="ml-auto text-xs font-bold bg-cyan-600/10 text-cyan-600 hover:bg-cyan-600 hover:text-white px-3 py-1.5 rounded-full transition-colors border border-cyan-600/20">
+                            Review
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -240,17 +245,20 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="glass-card rounded-2xl overflow-hidden"
+            className="glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
           >
             <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upcoming Events</h2>
             </div>
-            <div className="p-6">
+            <div className="p-8">
               <div className="space-y-5">
                 {(!upcomingEvents || upcomingEvents.length === 0) ? (
                   <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                    <Calendar className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                    <p className="text-sm">No upcoming events.</p>
+                    <Calendar className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                    <p className="text-sm font-medium mb-4">No upcoming events right now.</p>
+                    <Link to="/events" className="inline-block px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-lg text-sm font-bold transition-colors">
+                      Explore Events
+                    </Link>
                   </div>
                 ) : (
                   upcomingEvents.map((event) => (
@@ -280,12 +288,12 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="glass-card rounded-2xl overflow-hidden"
+            className="glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
           >
             <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
             </div>
-            <div className="p-6">
+            <div className="p-8">
               <div className="space-y-4">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
@@ -320,7 +328,7 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5 }}
-        className="glass-card rounded-2xl p-8 overflow-hidden relative"
+        className="glass-card rounded-2xl p-8 overflow-hidden relative border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
       >
         <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-tr from-primary-400/10 to-transparent dark:from-primary-500/5 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
         

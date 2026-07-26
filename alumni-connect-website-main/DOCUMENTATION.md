@@ -32,7 +32,7 @@ This section tracks advanced modules added to elevate the platform.
 ### Phase 1: Mentorship & Networking
 * **[Added] AI Career Mentor (Floating Assistant)**
   - *Location*: Global overlay accessible on all protected routes (`FloatingAIAssistant.js`).
-  - *Tech*: Google Gemini API integrated via new backend route `/api/ai/chat`.
+  - *Tech*: Groq Cloud API (Llama 3) integrated via new backend route `/api/ai/chat`.
   - *Function*: Provides real-time career advice, resume reviews, and interview preparation dynamically.
 * **[Added] Interactive Alumni World Map**
   - *Location*: `/map` (`AlumniMap.js`).
@@ -52,13 +52,13 @@ This section tracks advanced modules added to elevate the platform.
   - *Function*: Added a "Request Referral" feature directly onto internal job postings, allowing students to seamlessly ask the alumni poster (or alumni working at the company) for a referral before submitting their application.
 * **[Added] Alumni Mentorship Slot Booking**
   - *Location*: `/mentorship` (`Mentorship.js`).
-  - *Tech*: React, Framer Motion, Tailwind CSS.
-  - *Function*: Upgraded the mentorship hub to allow students to select specific dates and time slots (Morning/Afternoon/Evening) for 1:1 career guidance sessions with verified alumni, complete with an interactive booking modal.
+  - *Tech*: React, Framer Motion, Node.js (`MentorshipSession` model).
+  - *Function*: Upgraded the mentorship hub to allow students to select specific dates and time slots (Morning/Afternoon/Evening) for 1:1 career guidance sessions with verified alumni, complete with a fully operational backend endpoint that stores live bookings.
 
 ### Phase 2: Advanced Ecosystem Modules (Ideathon Upgrades)
 * **[Added] Smart Mentor Allocation System**
-  - *Location*: `/mentor-allocation` (`MentorAllocation.js`, `MentorshipRequest` Model).
-  - *Function*: Shifts the paradigm from "students spamming alumni" to a structured flow. Mentors specify capacity and target domains; students submit requests, and mentors accept or decline them efficiently. Fully integrated with live backend and dark mode.
+  - *Location*: `/mentor-allocation` (`Mentorship.js`, `MentorshipRequest` Model).
+  - *Function*: Shifts the paradigm from "students spamming alumni" to a structured flow. Mentors specify capacity and target domains; students submit requests, and mentors accept or decline them efficiently. Fully integrated with a live backend, Socket.IO for real-time notifications (instant UI updates), and dark mode. All test mock data has been removed for production-ready state.
 * **[Added] Tech Assistance Hub**
   - *Location*: `/tech-hub` (`TechHub.js`, `TechHub` Model).
   - *Function*: A structured Q&A community for technical doubts. Integrates rich text formatting, upvotes, and verification checks. Fully integrated with live backend (`/api/tech-hub/questions`) and dark mode.

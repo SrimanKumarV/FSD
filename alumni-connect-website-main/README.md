@@ -8,10 +8,14 @@ Alumnex Connect is a premium, full-stack platform designed to bridge the gap bet
 - Fully responsive, modern UI/UX design with dynamic gradients and glassmorphism elements.
 - Integrated Dark/Light mode, customizable via the Settings dashboard.
 
-### 🤝 Mentorship & Networking
+### 🤝 Live Mentorship & Networking
 - **Bi-Directional Mentorship System**: Students can request mentorship from Alumni, and Alumni can guide Students.
-- **Smart Connections**: Automatically integrates followers/following logic upon accepted mentorship requests.
+- **Smart Connections & Real-Time Booking**: Fully integrated with Socket.io for instant UI updates when requests are sent or status changes. Includes a live 1:1 session booking system via the `MentorshipSession` backend module.
 - **Mentor Discovery**: Optimized search to find mentors based on industry, skills, and availability.
+
+### 🤖 AI Career Mentor
+- **Groq Cloud Integration**: Integrated a blazingly fast Llama 3 conversational AI accessible globally across the platform.
+- **Automated Guidance**: Offers automated resume reviews, tech stack advice, and interview prep.
 
 ### 🏆 Global Coding Contests Aggregator
 - Real-time fetching of upcoming and ongoing coding contests from **Codeforces**, **LeetCode**, **CodeChef**, and **GeeksForGeeks**.
@@ -77,6 +81,7 @@ To handle high concurrency and ensure reliability, the backend is optimized with
    PORT=5000
    MONGO_URI=your_mongodb_connection_string
    JWT_SECRET=your_jwt_secret
+   GROQ_API_KEY=your_groq_api_key_for_ai
    ```
 
 5. **Run the Application**

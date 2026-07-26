@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Select from 'react-select';
+import AsyncSelect from 'react-select/async';
 import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../utils/api';
 
@@ -91,6 +92,10 @@ const Register = () => {
     singleValue: (base) => ({
       ...base,
       color: isDark ? '#fff' : '#111'
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999
     })
   };
   const [formData, setFormData] = useState({
@@ -119,30 +124,21 @@ const Register = () => {
   const [universities, setUniversities] = useState([]);
   const [loadingUnis, setLoadingUnis] = useState(false);
 
-  useEffect(() => {
-    const fetchUniversities = async () => {
-      if (!formData.country) {
-        setUniversities([]);
-        return;
-      }
-      setLoadingUnis(true);
-      try {
-        const countryObj = COUNTRIES.find(c => c.name === formData.country);
-        const searchName = countryObj ? countryObj.name : formData.country;
-        const { data } = await api.get('/institutions/search', {
-          params: { country: searchName, name: '' }
-        });
-        setUniversities(data.map(name => ({ value: name, label: name })));
-      } catch (error) {
-        console.error("Failed to fetch universities:", error);
-        setUniversities([]);
-      } finally {
-        setLoadingUnis(false);
-      }
-    };
+  const loadUniversities = async (inputValue) => {
+    if (!formData.country) return [];
     
-    fetchUniversities();
-  }, [formData.country]);
+    try {
+      const countryObj = COUNTRIES.find(c => c.name === formData.country);
+      const searchName = countryObj ? countryObj.name : formData.country;
+      const { data } = await api.get('/institutions/search', {
+        params: { country: searchName, name: inputValue }
+      });
+      return data.map(name => ({ value: name, label: name }));
+    } catch (error) {
+      console.error("Failed to fetch universities:", error);
+      return [];
+    }
+  };
 
   const currentYear = new Date().getFullYear();
   const graduationYears = Array.from({ length: 77 }, (_, i) => currentYear + 7 - i);
@@ -459,6 +455,7 @@ const Register = () => {
                         }}
                         placeholder="Select Country..."
                         styles={selectStyles}
+                        menuPortalTarget={document.body}
                         value={formData.country ? { value: formData.country, label: formData.country } : null}
                       />
                     </div>
@@ -474,10 +471,11 @@ const Register = () => {
                       College / University
                     </label>
                     <div className="mt-2 relative">
-                      <Select
+                      <AsyncSelect
                         name="college"
-                        options={universities}
-                        isLoading={loadingUnis}
+                        loadOptions={loadUniversities}
+                        defaultOptions
+                        cacheOptions
                         isDisabled={!formData.country}
                         className="basic-single z-20"
                         classNamePrefix="select"
@@ -485,8 +483,9 @@ const Register = () => {
                           setFormData(prev => ({ ...prev, college: selected?.value || '' }));
                           if (errors.college) setErrors(prev => ({ ...prev, college: '' }));
                         }}
-                        placeholder={formData.country ? "Select College..." : "Select Country First"}
+                        placeholder={formData.country ? "Search College..." : "Select Country First"}
                         styles={selectStyles}
+                        menuPortalTarget={document.body}
                         value={formData.college ? { value: formData.college, label: formData.college } : null}
                       />
                     </div>
@@ -674,6 +673,7 @@ const Register = () => {
                         onChange={handleSelectChange}
                         placeholder="Select your domains..."
                         styles={selectStyles}
+                        menuPortalTarget={document.body}
                       />
                     </div>
                   </div>
@@ -695,6 +695,7 @@ const Register = () => {
                       onChange={handleSelectChange}
                       placeholder="Select your interests..."
                       styles={selectStyles}
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>

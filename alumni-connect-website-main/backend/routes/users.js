@@ -864,7 +864,7 @@ router.delete('/me', [
     });
 
     // Finally delete user
-    await user.remove();
+    await user.deleteOne();
 
     res.json({ message: 'Account permanently deleted' });
   } catch (error) {

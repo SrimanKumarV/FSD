@@ -342,40 +342,119 @@ const UserProfile = () => {
             </div>
           )}
           {targetUser.role === 'college' && targetUser.collegeInfo && (
-            <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Institution Details</h3>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {targetUser.collegeInfo.establishedYear && (
-                  <div>
-                    <p className="text-slate-500 text-xs">Established</p>
-                    <p className="text-white font-semibold">{targetUser.collegeInfo.establishedYear}</p>
-                  </div>
-                )}
-                {targetUser.collegeInfo.accreditation && (
-                  <div>
-                    <p className="text-slate-500 text-xs">Accreditation</p>
-                    <p className="text-white font-semibold">{targetUser.collegeInfo.accreditation}</p>
-                  </div>
+            <div className="space-y-4">
+              <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Institution Details</h3>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {targetUser.collegeInfo.establishedYear && (
+                    <div>
+                      <p className="text-slate-500 text-xs">Established</p>
+                      <p className="text-white font-semibold">{targetUser.collegeInfo.establishedYear}</p>
+                    </div>
+                  )}
+                  {targetUser.collegeInfo.accreditation && (
+                    <div>
+                      <p className="text-slate-500 text-xs">Accreditation</p>
+                      <p className="text-white font-semibold">{targetUser.collegeInfo.accreditation}</p>
+                    </div>
+                  )}
+                </div>
+                {targetUser.collegeInfo.websiteMetadata?.title && (
+                  <a 
+                    href={targetUser.collegeInfo.officialUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="block mt-4 rounded-xl border border-slate-700 overflow-hidden hover:border-indigo-500 transition-colors"
+                  >
+                    {targetUser.collegeInfo.websiteMetadata.image && (
+                      <img loading="lazy" src={targetUser.collegeInfo.websiteMetadata.image} alt="Website Preview" className="w-full h-32 object-cover" />
+                    )}
+                    <div className="p-4 bg-slate-800/50">
+                      <p className="text-white font-bold text-sm line-clamp-1">{targetUser.collegeInfo.websiteMetadata.title}</p>
+                      {targetUser.collegeInfo.websiteMetadata.description && (
+                        <p className="text-slate-400 text-xs line-clamp-2 mt-1">{targetUser.collegeInfo.websiteMetadata.description}</p>
+                      )}
+                      <p className="text-indigo-400 text-xs mt-2 truncate flex items-center gap-1"><ExternalLink className="w-3 h-3"/> {targetUser.collegeInfo.officialUrl}</p>
+                    </div>
+                  </a>
                 )}
               </div>
-              {targetUser.collegeInfo.websiteMetadata?.title && (
-                <a 
-                  href={targetUser.collegeInfo.officialUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="block mt-4 rounded-xl border border-slate-700 overflow-hidden hover:border-indigo-500 transition-colors"
-                >
-                  {targetUser.collegeInfo.websiteMetadata.image && (
-                    <img loading="lazy" src={targetUser.collegeInfo.websiteMetadata.image} alt="Website Preview" className="w-full h-32 object-cover" />
-                  )}
-                  <div className="p-4 bg-slate-800/50">
-                    <p className="text-white font-bold text-sm line-clamp-1">{targetUser.collegeInfo.websiteMetadata.title}</p>
-                    {targetUser.collegeInfo.websiteMetadata.description && (
-                      <p className="text-slate-400 text-xs line-clamp-2 mt-1">{targetUser.collegeInfo.websiteMetadata.description}</p>
-                    )}
-                    <p className="text-indigo-400 text-xs mt-2 truncate flex items-center gap-1"><ExternalLink className="w-3 h-3"/> {targetUser.collegeInfo.officialUrl}</p>
+
+              {/* AI Extracted Profile Block */}
+              {targetUser.collegeInfo.extractedProfile && (
+                <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Zap className="w-5 h-5 text-indigo-400" />
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">AI Profile Snapshot</h3>
                   </div>
-                </a>
+                  
+                  <div className="space-y-6">
+                    {targetUser.collegeInfo.extractedProfile.aboutUs && (
+                      <div>
+                        <h4 className="text-white text-sm font-bold mb-2 flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-indigo-400" /> About
+                        </h4>
+                        <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
+                          {targetUser.collegeInfo.extractedProfile.aboutUs}
+                        </p>
+                      </div>
+                    )}
+
+                    {targetUser.collegeInfo.extractedProfile.mission && (
+                      <div>
+                        <h4 className="text-white text-sm font-bold mb-2 flex items-center gap-2">
+                          <Target className="w-4 h-4 text-indigo-400" /> Mission
+                        </h4>
+                        <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
+                          {targetUser.collegeInfo.extractedProfile.mission}
+                        </p>
+                      </div>
+                    )}
+
+                    {targetUser.collegeInfo.extractedProfile.vision && (
+                      <div>
+                        <h4 className="text-white text-sm font-bold mb-2 flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-indigo-400" /> Vision
+                        </h4>
+                        <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
+                          {targetUser.collegeInfo.extractedProfile.vision}
+                        </p>
+                      </div>
+                    )}
+
+                    {(targetUser.collegeInfo.extractedProfile.contactEmail || 
+                      targetUser.collegeInfo.extractedProfile.contactPhone || 
+                      targetUser.collegeInfo.extractedProfile.address) && (
+                      <div className="pt-4 border-t border-slate-700/50">
+                        <h4 className="text-white text-sm font-bold mb-3">Contact Information</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {targetUser.collegeInfo.extractedProfile.contactEmail && (
+                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                              <ExternalLink className="w-4 h-4 text-slate-500" />
+                              <a href={`mailto:${targetUser.collegeInfo.extractedProfile.contactEmail}`} className="hover:text-indigo-400 transition-colors">
+                                {targetUser.collegeInfo.extractedProfile.contactEmail}
+                              </a>
+                            </div>
+                          )}
+                          {targetUser.collegeInfo.extractedProfile.contactPhone && (
+                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                              <ExternalLink className="w-4 h-4 text-slate-500" />
+                              <a href={`tel:${targetUser.collegeInfo.extractedProfile.contactPhone}`} className="hover:text-indigo-400 transition-colors">
+                                {targetUser.collegeInfo.extractedProfile.contactPhone}
+                              </a>
+                            </div>
+                          )}
+                          {targetUser.collegeInfo.extractedProfile.address && (
+                            <div className="flex items-start gap-2 text-sm text-slate-400 md:col-span-2">
+                              <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                              <span>{targetUser.collegeInfo.extractedProfile.address}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}

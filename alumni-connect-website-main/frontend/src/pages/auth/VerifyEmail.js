@@ -18,6 +18,14 @@ const VerifyEmail = () => {
   // Get email from location state (passed from Register or Login)
   const email = location.state?.email || '';
 
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
   if (!email) {
     navigate('/login', { replace: true });
     return null;
@@ -40,14 +48,6 @@ const VerifyEmail = () => {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    let timer;
-    if (resendCooldown > 0) {
-      timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [resendCooldown]);
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;

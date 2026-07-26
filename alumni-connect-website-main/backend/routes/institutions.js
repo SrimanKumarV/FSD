@@ -146,8 +146,8 @@ router.post('/extract-profile', protect, async (req, res) => {
             }
         });
         
-        // Limit text to avoid exceeding LLM context window (approx 4000 chars)
-        scrapedText = scrapedText.substring(0, 4000);
+        // Limit text to avoid exceeding LLM context window (Llama-3 handles ~8k tokens, so 12000 chars is safe)
+        scrapedText = scrapedText.substring(0, 12000);
         
         // 3. Send to Groq AI to summarize and extract info
         const apiKey = process.env.GROQ_API_KEY?.trim();
@@ -158,23 +158,31 @@ router.post('/extract-profile', protect, async (req, res) => {
             vision: "",
             contactEmail: "",
             contactPhone: "",
-            address: ""
+            address: "",
+            departments: [],
+            programs: { ug: [], pg: [], phd: [] },
+            clubsAndCells: [],
+            facilities: []
         };
         
         if (apiKey) {
             console.log(`[Institutions API] Sending data to Groq AI for extraction`);
             
             const prompt = `
-You are an AI assistant tasked with extracting structured information about a college from its scraped website text.
-Extract the following fields:
+You are an AI assistant tasked with deeply analyzing a college's scraped website text.
+Extract the following highly structured information. Be thorough and exhaustive.
 1. "aboutUs": A concise summary of the college (max 3 sentences).
 2. "mission": The college's mission statement, if found.
 3. "vision": The college's vision statement, if found.
 4. "contactEmail": Any official contact email address found.
 5. "contactPhone": Any official contact phone number found.
 6. "address": The physical address of the college, if found.
+7. "departments": A JSON array of strings listing all academic departments (e.g. ["Computer Science", "Mechanical Engineering"]).
+8. "programs": A JSON object containing three arrays of strings: "ug" (Undergraduate programs like B.Tech, B.Sc), "pg" (Postgraduate programs like M.Tech, MBA), and "phd" (Doctoral programs).
+9. "clubsAndCells": A JSON array of strings listing all student clubs, cells, organizations, or societies.
+10. "facilities": A JSON array of strings listing campus facilities (e.g. ["Library", "Hostel", "Sports Complex"]).
 
-If a field is not found in the text, leave it as an empty string "".
+If any field or list is not found, leave it as an empty string "" or empty array [].
 Respond ONLY with a valid JSON object matching the exact keys above. No markdown formatting like \`\`\`json.
 
 Here is the scraped text:

@@ -171,6 +171,14 @@ const userSchema = new mongoose.Schema({
       contactEmail: String,
       contactPhone: String,
       address: String,
+      departments: [String],
+      programs: {
+        ug: [String],
+        pg: [String],
+        phd: [String]
+      },
+      clubsAndCells: [String],
+      facilities: [String],
       lastExtractedAt: Date
     },
     websiteMetadata: {

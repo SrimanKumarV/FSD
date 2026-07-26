@@ -452,7 +452,90 @@ const UserProfile = () => {
                           )}
                         </div>
                       </div>
+                      </div>
                     )}
+
+                    {/* Comprehensive Details UI */}
+                    <div className="pt-4 border-t border-slate-700/50 space-y-6">
+                      
+                      {/* Programs */}
+                      {targetUser.collegeInfo.extractedProfile.programs && (targetUser.collegeInfo.extractedProfile.programs.ug?.length > 0 || targetUser.collegeInfo.extractedProfile.programs.pg?.length > 0 || targetUser.collegeInfo.extractedProfile.programs.phd?.length > 0) && (
+                        <div>
+                          <h4 className="text-white text-sm font-bold mb-3">Academic Programs</h4>
+                          <div className="space-y-4">
+                            {targetUser.collegeInfo.extractedProfile.programs.ug?.length > 0 && (
+                              <div className="bg-slate-800/30 p-3 rounded-lg border border-slate-700/30">
+                                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Undergraduate (UG)</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {targetUser.collegeInfo.extractedProfile.programs.ug.map((prog, i) => (
+                                    <span key={`ug-${i}`} className="px-2 py-1 bg-blue-500/10 text-blue-300 text-xs rounded-md border border-blue-500/20">{prog}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {targetUser.collegeInfo.extractedProfile.programs.pg?.length > 0 && (
+                              <div className="bg-slate-800/30 p-3 rounded-lg border border-slate-700/30">
+                                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Postgraduate (PG)</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {targetUser.collegeInfo.extractedProfile.programs.pg.map((prog, i) => (
+                                    <span key={`pg-${i}`} className="px-2 py-1 bg-purple-500/10 text-purple-300 text-xs rounded-md border border-purple-500/20">{prog}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {targetUser.collegeInfo.extractedProfile.programs.phd?.length > 0 && (
+                              <div className="bg-slate-800/30 p-3 rounded-lg border border-slate-700/30">
+                                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Doctoral (PhD)</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {targetUser.collegeInfo.extractedProfile.programs.phd.map((prog, i) => (
+                                    <span key={`phd-${i}`} className="px-2 py-1 bg-amber-500/10 text-amber-300 text-xs rounded-md border border-amber-500/20">{prog}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Departments */}
+                        {targetUser.collegeInfo.extractedProfile.departments && targetUser.collegeInfo.extractedProfile.departments.length > 0 && (
+                          <div>
+                            <h4 className="text-white text-sm font-bold mb-3">Departments</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {targetUser.collegeInfo.extractedProfile.departments.map((dept, i) => (
+                                <span key={`dept-${i}`} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-xs rounded-full border border-slate-700/50 hover:bg-slate-700 transition-colors">{dept}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Clubs and Cells */}
+                        {targetUser.collegeInfo.extractedProfile.clubsAndCells && targetUser.collegeInfo.extractedProfile.clubsAndCells.length > 0 && (
+                          <div>
+                            <h4 className="text-white text-sm font-bold mb-3">Clubs & Cells</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {targetUser.collegeInfo.extractedProfile.clubsAndCells.map((club, i) => (
+                                <span key={`club-${i}`} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-xs rounded-full border border-slate-700/50 hover:bg-slate-700 transition-colors">{club}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Facilities */}
+                        {targetUser.collegeInfo.extractedProfile.facilities && targetUser.collegeInfo.extractedProfile.facilities.length > 0 && (
+                          <div className="md:col-span-2">
+                            <h4 className="text-white text-sm font-bold mb-3">Campus Facilities</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {targetUser.collegeInfo.extractedProfile.facilities.map((fac, i) => (
+                                <span key={`fac-${i}`} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-xs rounded-full border border-slate-700/50 hover:bg-slate-700 transition-colors">{fac}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               )}

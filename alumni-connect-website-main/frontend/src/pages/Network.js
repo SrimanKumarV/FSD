@@ -314,10 +314,11 @@ const Network = () => {
                 key={user._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-card p-6 flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+                className="glass-card p-6 flex flex-col cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group border border-gray-100 dark:border-gray-800"
                 onClick={() => navigate(`/users/${user._id}`)}
               >
-                <div className="flex items-start space-x-4 mb-4">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
+                <div className="flex items-start space-x-4 mb-4 relative z-10">
                   <div className="relative">
                     {user.photo && user.photo !== 'default-avatar.png' ? (
                       <img loading="lazy" src={user.photo} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-soft flex-shrink-0" />
@@ -393,16 +394,16 @@ const Network = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800/50 relative z-10">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, isFollowing, isRequested); }}
                     disabled={followMutation.isLoading || unfollowMutation.isLoading}
-                    className={`flex-1 flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    className={`flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm active:scale-95 ${
                       isFollowing
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800/80 dark:text-gray-300 dark:hover:bg-gray-700'
                         : isRequested
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
-                        : 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40'
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800/80 dark:text-gray-400'
+                        : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md'
                     }`}
                   >
                     {isFollowing ? (
@@ -424,7 +425,7 @@ const Network = () => {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleMessage(user.email); }}
-                    className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all"
+                    className="p-2.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 active:scale-95"
                     title="Message"
                   >
                     <MessageSquare className="w-5 h-5" />

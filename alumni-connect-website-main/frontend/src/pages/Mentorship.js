@@ -391,13 +391,13 @@ const Mentorship = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredMentors.map((mentor) => (
                   <motion.div
-                    whileHover={{ y: -5 }}
+                    whileHover={{ y: -6 }}
                     key={mentor.id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="glass-card rounded-2xl p-6 relative overflow-hidden group"
+                    className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] transition-all duration-300 border border-gray-100 dark:border-gray-800"
                   >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
                     <div className="relative z-10 flex items-start space-x-4 mb-4">
                       <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
                         {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
@@ -463,14 +463,14 @@ const Mentorship = () => {
                       <div className="flex gap-2 w-full xl:w-auto">
                         <button
                           onClick={() => handleBookSession(mentor)}
-                          className="flex-1 xl:flex-none px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center gap-1.5"
+                          className="flex-1 xl:flex-none px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800/80 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm active:scale-95 flex items-center justify-center gap-1.5 border border-gray-200/50 dark:border-gray-700/50"
                         >
                           <CalendarPlus className="w-4 h-4" /> Book
                         </button>
                         <button
                           onClick={() => handleQuickRequest(mentor)}
                           disabled={loading}
-                          className="flex-1 xl:flex-none px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                          className="flex-1 xl:flex-none px-4 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-1.5"
                         >
                           Request
                         </button>

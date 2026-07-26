@@ -20,7 +20,8 @@ import {
   Flag,
   CheckCircle,
   Lock,
-  Unlock
+  Unlock,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -378,91 +379,125 @@ const Forum = () => {
         </div>
       </div>
 
-      {/* Posts List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
-        {(() => {
-          const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
-          const currentPosts = activeTab === 'all' ? postsData?.data?.posts : feedData?.data?.posts;
+      {/* Posts List & Details (Split Pane) */}
+      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
+          
+          {/* Left Pane: Posts List */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-4 max-h-[calc(100vh-250px)] overflow-y-auto custom-scrollbar pr-2">
+            {(() => {
+              const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
+              const currentPosts = activeTab === 'all' ? postsData?.data?.posts : feedData?.data?.posts;
 
-          if (currentLoading) {
-            return (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="glass-card rounded-2xl p-6 animate-pulse">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="flex-1 space-y-3">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+              if (currentLoading) {
+                return (
+                  <div className="space-y-4">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="glass-card rounded-2xl p-6 animate-pulse">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                          <div className="flex-1 space-y-3">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                );
+              }
+
+              if (currentPosts?.length > 0) {
+                return currentPosts.map((post) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onLike={handleLikePost}
+                    onClose={handleClosePost}
+                    onDelete={handleDeletePost}
+                    onSelect={setSelectedPost}
+                    onEdit={setEditingPost}
+                    user={user}
+                    isActive={selectedPost?._id === post._id}
+                  />
+                ));
+              }
+
+              return (
+                <div className="text-center py-12 glass-card rounded-3xl">
+                  <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    {activeTab === 'feed' ? 'No posts from people you follow' : 'No posts found'}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    {activeTab === 'feed'
+                      ? 'Follow people in the Network page to see their posts here!'
+                      : 'Be the first to start a discussion in this category!'}
+                  </p>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create First Post
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Pagination inside left pane */}
+            {postsData?.data?.pagination && postsData.data.pagination.pages > 1 && (
+              <div className="flex justify-center mt-6 pb-6">
+                <nav className="flex items-center space-x-2">
+                  <button
+                    disabled={!postsData.data.pagination.hasPrev}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                    Page {postsData.data.pagination.current} of {postsData.data.pagination.pages}
+                  </span>
+                  <button
+                    disabled={!postsData.data.pagination.hasNext}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </nav>
               </div>
-            );
-          }
+            )}
+          </div>
 
-          if (currentPosts?.length > 0) {
-            return currentPosts.map((post) => (
-              <PostCard
-                key={post._id}
-                post={post}
+          {/* Right Pane: Post Detail (Desktop) */}
+          <div className="hidden lg:block lg:col-span-7 xl:col-span-8 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-3xl">
+            {selectedPost ? (
+              <PostDetailModal
+                post={selectedPost}
+                onClose={() => setSelectedPost(null)}
                 onLike={handleLikePost}
-                onClose={handleClosePost}
-                onDelete={handleDeletePost}
-                onSelect={setSelectedPost}
-                onEdit={setEditingPost}
+                onComment={handleCommentPost}
                 user={user}
+                isCommenting={commentMutation.isLoading}
+                onDelete={handleDeletePost}
+                onClosePost={handleClosePost}
+                onDeleteComment={handleDeleteComment}
+                onEdit={setEditingPost}
+                isModal={false}
               />
-            ));
-          }
-
-          return (
-            <div className="text-center py-12 glass-card rounded-3xl">
-              <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                {activeTab === 'feed' ? 'No posts from people you follow' : 'No posts found'}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {activeTab === 'feed'
-                  ? 'Follow people in the Network page to see their posts here!'
-                  : 'Be the first to start a discussion in this category!'}
-              </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Create First Post
-              </button>
-            </div>
-          );
-        })()}
+            ) : (
+              <div className="glass-card rounded-3xl p-12 text-center h-[500px] flex flex-col items-center justify-center border-dashed border-2 border-gray-200 dark:border-gray-700">
+                <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Select a post to read</h3>
+                <p className="text-gray-500">Dive into the discussion by selecting a post from the feed.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Pagination */}
-      {postsData?.data?.pagination && postsData.data.pagination.pages > 1 && (
-        <div className="flex justify-center">
-          <nav className="flex items-center space-x-2">
-            <button
-              disabled={!postsData.data.pagination.hasPrev}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="px-3 py-2 text-sm text-gray-700">
-              Page {postsData.data.pagination.current} of {postsData.data.pagination.pages}
-            </span>
-            <button
-              disabled={!postsData.data.pagination.hasNext}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </nav>
-        </div>
-      )}
+
 
       {/* Create Post Modal */}
       {showCreateModal && (
@@ -485,27 +520,30 @@ const Forum = () => {
         />
       )}
 
-      {/* Post Detail Modal */}
-      {selectedPost && (
-        <PostDetailModal
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-          onLike={handleLikePost}
-          onComment={handleCommentPost}
-          user={user}
-          isCommenting={commentMutation.isLoading}
-          onDelete={handleDeletePost}
-          onClosePost={handleClosePost}
-          onDeleteComment={handleDeleteComment}
-          onEdit={setEditingPost}
-        />
-      )}
+      {/* Mobile Post Detail Modal */}
+      <div className="block lg:hidden">
+        {selectedPost && (
+          <PostDetailModal
+            post={selectedPost}
+            onClose={() => setSelectedPost(null)}
+            onLike={handleLikePost}
+            onComment={handleCommentPost}
+            user={user}
+            isCommenting={commentMutation.isLoading}
+            onDelete={handleDeletePost}
+            onClosePost={handleClosePost}
+            onDeleteComment={handleDeleteComment}
+            onEdit={setEditingPost}
+            isModal={true}
+          />
+        )}
+      </div>
     </div>
   );
 };
 
 // Post Card Component
-const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit }) => {
+const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit, isActive }) => {
   const [showActions, setShowActions] = useState(false);
 
   const handleShare = async (e) => {
@@ -557,7 +595,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit }) =
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden"
+      className={`glass-card rounded-2xl p-5 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden ${isActive ? 'ring-2 ring-primary-500 bg-gray-50/50 dark:bg-gray-800/80 shadow-md' : ''}`}
       onClick={() => onSelect(post)}
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
@@ -967,7 +1005,7 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes, initialData
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment, onEdit }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment, onEdit, isModal = true }) => {
   const [newComment, setNewComment] = useState('');
   const [showActions, setShowActions] = useState(false);
 
@@ -1010,9 +1048,22 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
     setNewComment('');
   };
 
+  const Container = isModal ? 
+    ({ children }) => (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white dark:bg-gray-800/95 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
+          {children}
+        </div>
+      </div>
+    ) : 
+    ({ children }) => (
+      <div className="glass-card bg-white/80 dark:bg-gray-800/80 rounded-3xl w-full h-full border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+        {children}
+      </div>
+    );
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <Container>
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white pr-4">{post.title}</h2>
@@ -1098,12 +1149,14 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                   </div>
                 )}
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                ✕
-              </button>
+              {isModal && (
+                <button
+                  onClick={onClose}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1158,31 +1211,34 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
             </h3>
             
             {post.comments?.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 dark:before:via-gray-700 before:to-transparent">
                 {post.comments.map((comment) => (
-                  <div className="flex space-x-3">
-                    <div className="flex-shrink-0">
+                  <div key={comment._id} className="relative flex items-start space-x-3">
+                    {/* Thread indicator dot */}
+                    <div className="hidden md:flex absolute left-4 w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded-full mt-3 -translate-x-1.5 z-10 ring-4 ring-white dark:ring-gray-800"></div>
+
+                    <div className="flex-shrink-0 relative z-10 ml-8 md:ml-10">
                       {comment.author?.photo && comment.author?.photo !== 'default-avatar.png' ? (
                         <img loading="lazy" src={comment.author.photo} alt={comment.author.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
                       ) : (
                         <DefaultAvatar className="w-8 h-8" />
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 group relative">
+                    <div className="flex-1 relative z-10">
+                      <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 group hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-2">
                           <div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
                               {comment.author?.name}
                             </span>
-                            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span className="ml-3 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700/50 px-2 py-0.5 rounded-full">
                               {new Date(comment.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           {(String(comment.author?._id || comment.author) === String(user?._id || user?.id)) && (
                             <button
                               onClick={() => onDeleteComment(post._id, comment._id)}
-                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
                               title="Delete Comment"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1219,9 +1275,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
               </div>
             </form>
           </div>
-        </div>
-      </div>
-    </div>
+    </Container>
   );
 };
 

@@ -523,10 +523,11 @@ const Chat = () => {
                     setSelectedChat(chat);
                     setShowChatList(false);
                   }}
-                  className={`p-4 border-b border-gray-100 dark:border-gray-800/50 cursor-pointer hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all ${
-                    isSelected ? 'bg-primary-50 dark:bg-primary-500/10 border-primary-200 dark:border-primary-500/20' : ''
+                  className={`p-4 border-b border-gray-100 dark:border-gray-800/50 cursor-pointer transition-all relative overflow-hidden ${
+                    isSelected ? 'bg-gradient-to-r from-primary-50/80 to-transparent dark:from-primary-900/20 dark:to-transparent' : 'hover:bg-gray-50/80 dark:hover:bg-gray-800/50'
                   }`}
                 >
+                  {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>}
                   <div className="flex items-center space-x-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
@@ -739,14 +740,15 @@ const Chat = () => {
 
               {/* Typing Indicator */}
               {isTyping && (
-                <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400 text-sm">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="flex justify-start mb-4">
+                  <div className="bg-white dark:bg-gray-800 px-4 py-3 shadow-sm rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700/50">
+                    <div className="flex space-x-1.5 items-center h-4">
+                      <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
                   </div>
-                  <span>typing...</span>
-                </div>
+                </motion.div>
               )}
 
               <div ref={messagesEndRef} />
@@ -907,8 +909,9 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
       className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 group relative`}
       onMouseEnter={() => setShowOptions(true)}
       onMouseLeave={() => setShowOptions(false)}
@@ -968,13 +971,12 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           </div>
         )}
 
-        {/* The Bubble */}
         <div
           onClick={handleDoubleTap}
-          className={`px-3 pt-2 pb-1.5 shadow-sm relative z-10 cursor-pointer select-none transition-transform active:scale-95 ${
+          className={`px-3 pt-2 pb-1.5 relative z-10 cursor-pointer select-none transition-transform active:scale-95 ${
             isOwn
-              ? 'bg-primary-600 dark:bg-primary-600 text-white dark:text-white rounded-xl rounded-tr-none'
-              : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white rounded-xl rounded-tl-none border border-gray-100 dark:border-gray-800'
+              ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-md rounded-2xl rounded-tr-sm'
+              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700/50'
           }`}
         >
           {!isOwn && (

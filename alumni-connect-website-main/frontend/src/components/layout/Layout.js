@@ -244,14 +244,15 @@ const Layout = ({ children }) => {
                                 key={item.name}
                                 to={item.href}
                                 onClick={() => setSidebarOpen(false)}
-                                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                className={`relative group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 overflow-hidden ${
                                   isActiveRoute(item.href)
                                     ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
-                                    : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                                 }`}
                               >
-                                <Icon className="mr-3 h-5 w-5" />
-                                {item.name}
+                                <div className={`absolute left-0 top-1.5 bottom-1.5 w-1 bg-primary-500 rounded-r-md transition-all duration-300 ${isActiveRoute(item.href) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full group-hover:opacity-100 group-hover:translate-x-0'}`}></div>
+                                <Icon className="mr-3 h-5 w-5 relative z-10" />
+                                <span className="relative z-10">{item.name}</span>
                               </Link>
                             );
                           })}
@@ -319,14 +320,15 @@ const Layout = ({ children }) => {
                             key={item.name}
                             to={item.href}
                             title={isSidebarCollapsed ? item.name : ""}
-                            className={`group flex items-center py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                            className={`relative group flex items-center py-2 text-sm font-medium rounded-xl transition-all duration-200 overflow-hidden ${
                               isActiveRoute(item.href)
                                 ? 'bg-primary-100/80 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm'
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-primary-600 dark:hover:text-primary-400'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                             } ${isSidebarCollapsed ? 'justify-center px-0 mx-2' : 'px-3'}`}
                           >
-                            <Icon className={`${isSidebarCollapsed ? '' : 'mr-3'} h-5 w-5 flex-shrink-0`} />
-                            {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
+                            <div className={`absolute left-0 top-1.5 bottom-1.5 w-1 bg-primary-500 rounded-r-md transition-all duration-300 ${isActiveRoute(item.href) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full group-hover:opacity-100 group-hover:translate-x-0'}`}></div>
+                            <Icon className={`${isSidebarCollapsed ? '' : 'mr-3'} h-5 w-5 flex-shrink-0 relative z-10`} />
+                            {!isSidebarCollapsed && <span className="whitespace-nowrap relative z-10">{item.name}</span>}
                           </Link>
                         );
                       })}

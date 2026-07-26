@@ -1275,6 +1275,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
               </div>
             </form>
           </div>
+        </div>
     </Container>
   );
 };

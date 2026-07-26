@@ -14,7 +14,7 @@ router.post('/chat', protect, async (req, res) => {
       return res.status(400).json({ message: 'Message is required' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    const apiKey = process.env.GROQ_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
 
     if (!apiKey) {
       // Fallback Mock Response if no API key is set
@@ -32,38 +32,46 @@ router.post('/chat', protect, async (req, res) => {
       return;
     }
 
-    // Prepare history format for Gemini API
+    // Prepare history format for Groq API (OpenAI compatible)
     const formattedHistory = [];
+    
+    // Add system instruction first
+    const systemInstruction = "You are a helpful and professional AI Career Mentor for college students and alumni. You provide guidance on programming languages, resume review, interview preparation, higher studies, and career roadmaps. Keep responses concise, encouraging, and formatted well.";
+    formattedHistory.push({ role: 'system', content: systemInstruction });
+
     if (history && history.length > 0) {
       history.forEach(msg => {
-        if (msg.role === 'user' || msg.role === 'model') {
+        if (msg.role === 'user' || msg.role === 'model' || msg.role === 'assistant') {
            formattedHistory.push({
-             role: msg.role,
-             parts: [{ text: msg.text }]
+             role: msg.role === 'model' ? 'assistant' : msg.role,
+             content: msg.text || msg.content
            });
         }
       });
     }
 
-    // Add current message
+    // Add current user message
     formattedHistory.push({
       role: 'user',
-      parts: [{ text: message }]
+      content: message
     });
 
-    const systemInstruction = "You are a helpful and professional AI Career Mentor for college students and alumni. You provide guidance on programming languages, resume review, interview preparation, higher studies, and career roadmaps. Keep responses concise, encouraging, and formatted well.";
-
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      `https://api.groq.com/openai/v1/chat/completions`,
       {
-        contents: formattedHistory,
-        systemInstruction: {
-          parts: [{ text: systemInstruction }]
+        model: "llama3-8b-8192", // Using Llama 3 8B model on Groq
+        messages: formattedHistory,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
         }
       }
     );
 
-    const reply = response.data.candidates[0].content.parts[0].text;
+    const reply = response.data.choices[0].message.content;
     res.json({ reply });
 
   } catch (error) {

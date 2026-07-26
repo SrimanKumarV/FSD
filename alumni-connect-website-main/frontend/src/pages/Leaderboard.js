@@ -36,12 +36,10 @@ const Leaderboard = () => {
   const fetchUniversities = useCallback(async (countryName, query) => {
     setLoadingUnis(true);
     try {
-      const url = query
-        ? `https://universities.hipolabs.com/search?country=${encodeURIComponent(countryName)}&name=${encodeURIComponent(query)}`
-        : `https://universities.hipolabs.com/search?country=${encodeURIComponent(countryName)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      setUniversities(data.slice(0, 60).map(u => u.name));
+      const { data } = await api.get('/institutions/search', {
+        params: { country: countryName, name: query || '' }
+      });
+      setUniversities(data.slice(0, 60));
     } catch {
       setUniversities([]);
     } finally {

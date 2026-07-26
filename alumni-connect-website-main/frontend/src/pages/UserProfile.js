@@ -452,7 +452,6 @@ const UserProfile = () => {
                           )}
                         </div>
                       </div>
-                      </div>
                     )}
 
                     {/* Comprehensive Details UI */}

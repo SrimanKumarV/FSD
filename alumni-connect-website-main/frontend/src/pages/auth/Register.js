@@ -256,18 +256,22 @@ const Register = () => {
 
     if (formData.role === 'student') {
       payload.studentInfo = {
-        year: formData.graduationYear
+        course: formData.course,
+        year: formData.graduationYear ? parseInt(formData.graduationYear) : undefined,
+        university: formData.college
       };
     } else if (formData.role === 'alumni') {
       payload.alumniInfo = {
+        graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : undefined,
         company: formData.company,
         position: formData.position,
-        graduationYear: formData.graduationYear,
+        industry: formData.industry,
+        experience: formData.experience ? parseInt(formData.experience) : undefined,
         employmentProofUrl: formData.employmentProofUrl
       };
     } else if (formData.role === 'college') {
       payload.collegeInfo = {
-        establishedYear: formData.establishedYear,
+        establishedYear: formData.establishedYear ? parseInt(formData.establishedYear) : undefined,
         accreditation: formData.accreditation,
         officialUrl: formData.officialUrl
       };
@@ -285,7 +289,10 @@ const Register = () => {
       if (error.response?.data?.errors) {
         const backendErrors = {};
         error.response.data.errors.forEach(err => {
-          backendErrors[err.field] = err.message;
+          const fieldName = err.path || err.param;
+          if (fieldName) {
+            backendErrors[fieldName] = err.msg || err.message;
+          }
         });
         setErrors(prev => ({ ...prev, ...backendErrors }));
       }

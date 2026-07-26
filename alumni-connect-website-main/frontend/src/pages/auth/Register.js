@@ -289,8 +289,11 @@ const Register = () => {
       if (error.response?.data?.errors) {
         const backendErrors = {};
         error.response.data.errors.forEach(err => {
-          const fieldName = err.path || err.param;
+          let fieldName = err.path || err.param;
           if (fieldName) {
+            if (fieldName.includes('.')) {
+              fieldName = fieldName.split('.').pop();
+            }
             backendErrors[fieldName] = err.msg || err.message;
           }
         });

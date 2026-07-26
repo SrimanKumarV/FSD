@@ -282,7 +282,17 @@ export const AuthProvider = ({ children }) => {
       toast.success(message || 'Registration successful!');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      let message = error.response?.data?.message;
+      
+      if (error.response?.status === 429) {
+        message = 'Too many attempts. Please try again later.';
+      } else if (!message && error.response?.data?.errors && error.response.data.errors.length > 0) {
+        const firstError = error.response.data.errors[0];
+        const fieldName = firstError.path || firstError.param || 'Field';
+        message = `${fieldName}: ${firstError.msg || firstError.message || 'Invalid value'}`;
+      }
+      message = message || 'Registration failed';
+      
       dispatch({
         type: AUTH_ACTIONS.REGISTER_FAILURE,
         payload: message

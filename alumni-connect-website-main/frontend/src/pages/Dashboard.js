@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
+import CollegeProfileExtractor from '../components/profile/CollegeProfileExtractor';
 
 const iconMap = {
   Users: Users,
@@ -140,6 +141,17 @@ const Dashboard = () => {
           </p>
         </div>
       </motion.div>
+
+      {/* College Profile Extractor (Only for College Role) */}
+      {user?.role === 'college' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+        >
+          <CollegeProfileExtractor />
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <motion.div

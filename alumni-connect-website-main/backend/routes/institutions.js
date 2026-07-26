@@ -1,5 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
+const cheerio = require('cheerio');
+const { protect } = require('../middleware/auth');
+const User = require('../models/User');
 
 let indianCollegesCache = null;
 let isFetchingColleges = false;
@@ -86,6 +90,150 @@ router.get('/search', async (req, res) => {
     } catch (err) {
         console.error('[Institutions API] Institution search error:', err);
         res.status(500).json({ message: 'Failed to fetch institutions' });
+    }
+});
+
+// @route   POST /api/institutions/extract-profile
+// @desc    Extract college profile from officialUrl using Web Scraping + AI
+// @access  Private (College only)
+router.post('/extract-profile', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        
+        if (!user || user.role !== 'college') {
+            return res.status(403).json({ message: 'Access denied. Only college accounts can perform this action.' });
+        }
+        
+        const url = user.collegeInfo?.officialUrl;
+        
+        if (!url) {
+            return res.status(400).json({ message: 'No official URL found in your profile. Please update your profile first.' });
+        }
+        
+        // 1. Scrape the website
+        console.log(`[Institutions API] Scraping website: ${url}`);
+        let html;
+        try {
+            const response = await axios.get(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                timeout: 10000 // 10 seconds timeout
+            });
+            html = response.data;
+        } catch (err) {
+            console.error('[Institutions API] Scrape Error:', err.message);
+            return res.status(400).json({ message: 'Could not access the college website. It may be protected or unreachable.' });
+        }
+        
+        // 2. Parse text with Cheerio
+        const $ = cheerio.load(html);
+        
+        // Remove scripts, styles, noscript, etc to clean up text
+        $('script, style, noscript, iframe, img, svg, video').remove();
+        
+        let scrapedText = '';
+        
+        // Extract meta description
+        const metaDesc = $('meta[name="description"]').attr('content') || '';
+        if (metaDesc) scrapedText += `Description: ${metaDesc}\n\n`;
+        
+        // Extract main headings and paragraphs
+        $('h1, h2, h3, p, li').each((i, el) => {
+            const text = $(el).text().trim();
+            if (text.length > 20) { // Only keep substantial text
+                scrapedText += text + '\n';
+            }
+        });
+        
+        // Limit text to avoid exceeding LLM context window (approx 4000 chars)
+        scrapedText = scrapedText.substring(0, 4000);
+        
+        // 3. Send to Groq AI to summarize and extract info
+        const apiKey = process.env.GROQ_API_KEY?.trim();
+        
+        let extractedData = {
+            aboutUs: "Data could not be extracted.",
+            mission: "",
+            vision: "",
+            contactEmail: "",
+            contactPhone: "",
+            address: ""
+        };
+        
+        if (apiKey) {
+            console.log(`[Institutions API] Sending data to Groq AI for extraction`);
+            
+            const prompt = `
+You are an AI assistant tasked with extracting structured information about a college from its scraped website text.
+Extract the following fields:
+1. "aboutUs": A concise summary of the college (max 3 sentences).
+2. "mission": The college's mission statement, if found.
+3. "vision": The college's vision statement, if found.
+4. "contactEmail": Any official contact email address found.
+5. "contactPhone": Any official contact phone number found.
+6. "address": The physical address of the college, if found.
+
+If a field is not found in the text, leave it as an empty string "".
+Respond ONLY with a valid JSON object matching the exact keys above. No markdown formatting like \`\`\`json.
+
+Here is the scraped text:
+${scrapedText}
+`;
+            try {
+                const aiResponse = await axios.post(
+                    'https://api.groq.com/openai/v1/chat/completions',
+                    {
+                        model: 'llama-3.1-8b-instant',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.1,
+                        response_format: { type: "json_object" }
+                    },
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                const aiResultText = aiResponse.data.choices[0].message.content;
+                const parsedResult = JSON.parse(aiResultText);
+                
+                extractedData = {
+                    aboutUs: parsedResult.aboutUs || extractedData.aboutUs,
+                    mission: parsedResult.mission || "",
+                    vision: parsedResult.vision || "",
+                    contactEmail: parsedResult.contactEmail || "",
+                    contactPhone: parsedResult.contactPhone || "",
+                    address: parsedResult.address || ""
+                };
+            } catch (aiErr) {
+                console.error('[Institutions API] Groq AI Error:', aiErr.response ? aiErr.response.data : aiErr.message);
+                // Fallback if AI fails: just use the meta description
+                extractedData.aboutUs = metaDesc || "AI Extraction failed, but here is a raw snippet: " + scrapedText.substring(0, 100) + "...";
+            }
+        } else {
+            console.log(`[Institutions API] No Groq API Key found. Falling back to basic extraction.`);
+            extractedData.aboutUs = metaDesc || (scrapedText.substring(0, 200) + '...');
+        }
+        
+        extractedData.lastExtractedAt = new Date();
+        
+        // 4. Save to database
+        user.collegeInfo = user.collegeInfo || {};
+        user.collegeInfo.extractedProfile = extractedData;
+        await user.save();
+        
+        res.json({ 
+            success: true, 
+            message: 'Profile successfully extracted and saved.',
+            data: extractedData
+        });
+        
+    } catch (err) {
+        console.error('[Institutions API] Route error:', err);
+        res.status(500).json({ message: 'Server error during profile extraction.' });
     }
 });
 

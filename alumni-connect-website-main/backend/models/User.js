@@ -164,6 +164,15 @@ const userSchema = new mongoose.Schema({
       type: String,
       trim: true
     },
+    extractedProfile: {
+      aboutUs: String,
+      mission: String,
+      vision: String,
+      contactEmail: String,
+      contactPhone: String,
+      address: String,
+      lastExtractedAt: Date
+    },
     websiteMetadata: {
       title: String,
       description: String,

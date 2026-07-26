@@ -533,6 +533,59 @@ const UserProfile = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Placements */}
+                        {targetUser.collegeInfo.extractedProfile.placements && (targetUser.collegeInfo.extractedProfile.placements.highestPackage || targetUser.collegeInfo.extractedProfile.placements.averagePackage || targetUser.collegeInfo.extractedProfile.placements.topCompanies?.length > 0) && (
+                          <div className="md:col-span-2 bg-gradient-to-br from-green-500/10 to-emerald-500/5 p-4 rounded-xl border border-green-500/20 mt-2">
+                            <h4 className="text-green-400 text-sm font-bold mb-4 flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4" /> Placements & Careers
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              {targetUser.collegeInfo.extractedProfile.placements.highestPackage && (
+                                <div>
+                                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Highest Package</p>
+                                  <p className="text-xl font-black text-white">{targetUser.collegeInfo.extractedProfile.placements.highestPackage}</p>
+                                </div>
+                              )}
+                              {targetUser.collegeInfo.extractedProfile.placements.averagePackage && (
+                                <div>
+                                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Average Package</p>
+                                  <p className="text-xl font-black text-white">{targetUser.collegeInfo.extractedProfile.placements.averagePackage}</p>
+                                </div>
+                              )}
+                            </div>
+                            {targetUser.collegeInfo.extractedProfile.placements.topCompanies?.length > 0 && (
+                              <div>
+                                <p className="text-xs text-slate-400 mb-2">Top Recruiters</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {targetUser.collegeInfo.extractedProfile.placements.topCompanies.map((comp, i) => (
+                                    <span key={`comp-${i}`} className="px-2 py-1 bg-white/10 text-green-300 text-xs rounded border border-white/5">{comp}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Upcoming Events */}
+                        {targetUser.collegeInfo.extractedProfile.upcomingEvents && targetUser.collegeInfo.extractedProfile.upcomingEvents.length > 0 && (
+                          <div className="md:col-span-2 mt-2">
+                            <h4 className="text-white text-sm font-bold mb-3 flex items-center gap-2">
+                              <Trophy className="w-4 h-4 text-amber-400" /> Upcoming Events
+                            </h4>
+                            <div className="space-y-3">
+                              {targetUser.collegeInfo.extractedProfile.upcomingEvents.map((ev, i) => (
+                                <div key={`ev-${i}`} className="bg-slate-800/30 p-3 rounded-lg border-l-2 border-l-amber-500 border-t border-t-slate-700/30 border-r border-r-slate-700/30 border-b border-b-slate-700/30">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <p className="text-white font-semibold text-sm">{ev.title}</p>
+                                    {ev.date && <span className="text-xs text-amber-400 font-medium whitespace-nowrap bg-amber-500/10 px-2 py-0.5 rounded">{ev.date}</span>}
+                                  </div>
+                                  {ev.description && <p className="text-xs text-slate-400 mt-1 leading-relaxed">{ev.description}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                     </div>

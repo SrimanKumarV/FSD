@@ -162,7 +162,9 @@ router.post('/extract-profile', protect, async (req, res) => {
             departments: [],
             programs: { ug: [], pg: [], phd: [] },
             clubsAndCells: [],
-            facilities: []
+            facilities: [],
+            placements: { highestPackage: "", averagePackage: "", topCompanies: [] },
+            upcomingEvents: []
         };
         
         if (apiKey) {
@@ -181,6 +183,8 @@ Extract the following highly structured information. Be thorough and exhaustive.
 8. "programs": A JSON object containing three arrays of strings: "ug" (Undergraduate programs like B.Tech, B.Sc), "pg" (Postgraduate programs like M.Tech, MBA), and "phd" (Doctoral programs).
 9. "clubsAndCells": A JSON array of strings listing all student clubs, cells, organizations, or societies.
 10. "facilities": A JSON array of strings listing campus facilities (e.g. ["Library", "Hostel", "Sports Complex"]).
+11. "placements": A JSON object containing "highestPackage" (string), "averagePackage" (string), and "topCompanies" (JSON array of strings).
+12. "upcomingEvents": A JSON array of objects, where each object has "title" (string), "date" (string), and "description" (string).
 
 If any field or list is not found, leave it as an empty string "" or empty array [].
 Respond ONLY with a valid JSON object matching the exact keys above. No markdown formatting like \`\`\`json.

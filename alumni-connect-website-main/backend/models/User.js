@@ -179,6 +179,18 @@ const userSchema = new mongoose.Schema({
       },
       clubsAndCells: [String],
       facilities: [String],
+      placements: {
+        highestPackage: String,
+        averagePackage: String,
+        topCompanies: [String]
+      },
+      upcomingEvents: [
+        {
+          title: String,
+          date: String,
+          description: String
+        }
+      ],
       lastExtractedAt: Date
     },
     websiteMetadata: {

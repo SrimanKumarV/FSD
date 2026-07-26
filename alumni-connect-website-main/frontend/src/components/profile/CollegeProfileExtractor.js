@@ -198,6 +198,51 @@ const CollegeProfileExtractor = ({ initialData }) => {
                     </div>
                   </div>
                 )}
+                
+                {extractedData.placements && (extractedData.placements.highestPackage || extractedData.placements.averagePackage || extractedData.placements.topCompanies?.length > 0) && (
+                  <div className="bg-white/5 p-4 rounded-xl border border-white/10 md:col-span-2">
+                    <h4 className="text-sm font-semibold text-primary mb-3">Placements & Careers</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      {extractedData.placements.highestPackage && (
+                        <div>
+                          <p className="text-xs text-gray-400">Highest Package</p>
+                          <p className="text-lg font-bold text-green-400">{extractedData.placements.highestPackage}</p>
+                        </div>
+                      )}
+                      {extractedData.placements.averagePackage && (
+                        <div>
+                          <p className="text-xs text-gray-400">Average Package</p>
+                          <p className="text-lg font-bold text-green-400">{extractedData.placements.averagePackage}</p>
+                        </div>
+                      )}
+                    </div>
+                    {extractedData.placements.topCompanies?.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-400 mb-2">Top Recruiters</p>
+                        <div className="flex flex-wrap gap-2">
+                          {extractedData.placements.topCompanies.map((comp, i) => (
+                            <span key={`comp-${i}`} className="px-2 py-1 bg-green-500/10 text-green-300 text-xs rounded border border-green-500/20">{comp}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {extractedData.upcomingEvents && extractedData.upcomingEvents.length > 0 && (
+                  <div className="bg-white/5 p-4 rounded-xl border border-white/10 md:col-span-2">
+                    <h4 className="text-sm font-semibold text-primary mb-3">Upcoming Events</h4>
+                    <div className="space-y-3">
+                      {extractedData.upcomingEvents.map((ev, i) => (
+                        <div key={i} className="border-l-2 border-primary pl-3 py-1">
+                          <p className="text-white font-medium text-sm">{ev.title}</p>
+                          {ev.date && <p className="text-xs text-primary mt-0.5">{ev.date}</p>}
+                          {ev.description && <p className="text-xs text-gray-400 mt-1">{ev.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             

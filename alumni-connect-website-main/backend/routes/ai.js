@@ -59,7 +59,7 @@ router.post('/chat', protect, async (req, res) => {
     const response = await axios.post(
       `https://api.groq.com/openai/v1/chat/completions`,
       {
-        model: "llama3-8b-8192", // Using Llama 3 8B model on Groq
+        model: "llama-3.1-8b-instant", // Updated to the active Llama 3.1 8B model on Groq
         messages: formattedHistory,
         temperature: 0.7,
       },

@@ -756,28 +756,65 @@ router.post('/verify-email', [
 });
 
 // @route   POST /api/auth/resend-verification
-// @desc    Resend email verification
-// @access  Private
-router.post('/resend-verification', protect, async (req, res) => {
+// @desc    Resend email verification OTP
+// @access  Public
+router.post('/resend-verification', [
+  body('email', 'Valid email is required').isEmail().normalizeEmail()
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Return success even if user doesn't exist for security
+      return res.json({ success: true, message: 'If an account exists, a new OTP has been sent.' });
+    }
+
     // Check if already verified
-    if (req.user.isVerified) {
+    if (user.isVerified) {
       return res.status(400).json({ message: 'Email already verified' });
     }
 
-    // Generate verification token
-    const verificationToken = jwt.sign(
-      { id: req.user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    // Rate limiting: Check if an OTP was sent recently (e.g., within the last 60 seconds)
+    // We can estimate this if verificationOtpExpires is > 14 minutes from now
+    // (since it's set to 15 mins)
+    const fourteenMinsFromNow = Date.now() + 14 * 60 * 1000;
+    if (user.verificationOtpExpires && user.verificationOtpExpires > fourteenMinsFromNow) {
+      return res.status(429).json({ message: 'Please wait a minute before requesting a new OTP.' });
+    }
 
-    // TODO: Send verification email
-    // For now, just return success message
+    // Generate new 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.verificationOtp = otp;
+    user.verificationOtpExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    // Send verification email
+    const message = `
+      <h1>Alumnex Connect</h1>
+      <p>You requested a new verification code.</p>
+      <p>Your 6-digit verification code is: <strong>${otp}</strong></p>
+      <p>This code is valid for 15 minutes.</p>
+    `;
+    
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Alumnex Connect - New Verification Code',
+        message
+      });
+    } catch (err) {
+      console.error('Resend verification email error:', err);
+    }
+
     res.json({
       success: true,
-      message: 'Verification email sent',
-      verificationToken // In production, this should be sent via email
+      message: 'A new verification OTP has been sent to your email.'
     });
 
   } catch (error) {

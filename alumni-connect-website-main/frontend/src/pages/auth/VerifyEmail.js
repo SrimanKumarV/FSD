@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Key } from 'lucide-react';
+import { Mail, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 
 const VerifyEmail = () => {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { verifyEmail } = useAuth();
@@ -35,6 +38,32 @@ const VerifyEmail = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
+    
+    setIsResending(true);
+    try {
+      const response = await api.post('/auth/resend-verification', { email });
+      if (response.data.success) {
+        toast.success('A new OTP has been sent to your email.');
+        setResendCooldown(60); // 60 seconds cooldown
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to resend OTP.';
+      toast.error(message);
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -97,8 +126,24 @@ const VerifyEmail = () => {
             </button>
           </form>
           
-          <div className="mt-6 text-center">
-            <Link to="/login" className="text-sm font-bold text-primary-600 hover:text-primary-500 dark:text-primary-400 transition-colors">
+          <div className="mt-6 flex flex-col space-y-4 text-center">
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={isResending || resendCooldown > 0}
+              className={`inline-flex items-center justify-center text-sm font-semibold transition-colors ${
+                isResending || resendCooldown > 0
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-primary-600 hover:text-primary-500 dark:text-primary-400'
+              }`}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isResending ? 'animate-spin' : ''}`} />
+              {resendCooldown > 0 
+                ? `Resend OTP in ${resendCooldown}s` 
+                : isResending ? 'Sending...' : 'Resend Verification Code'}
+            </button>
+            
+            <Link to="/login" className="text-sm font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">
               Back to Login
             </Link>
           </div>

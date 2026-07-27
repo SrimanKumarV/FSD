@@ -54,7 +54,8 @@ const ResumeAnalyzer = () => {
       const response = await api.post('/ai/analyze-resume', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout: 60000 // Allow up to 60 seconds for AI processing
       });
       
       setResults(response.data);

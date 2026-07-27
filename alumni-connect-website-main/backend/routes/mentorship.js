@@ -272,7 +272,7 @@ router.post('/auto-assign', protect, async (req, res) => {
       role: 'alumni',
       college: college,
       isApproved: true
-    }).select('_id name college');
+    }).select('_id name college alumniInfo skills interests');
 
     if (!alumni.length) {
       return res.status(404).json({ message: 'No available mentors found from your college.' });
@@ -295,19 +295,55 @@ router.post('/auto-assign', protect, async (req, res) => {
     const countMap = {};
     counts.forEach(c => { countMap[c._id.toString()] = c.count; });
 
+    // Prepare student data for matching
+    const studentCourse = (studentUser.studentInfo?.course || '').toLowerCase();
+    const studentInterests = (studentUser.interests || []).map(i => i.toLowerCase());
+    const studentSkills = (studentUser.skills || []).map(s => s.toLowerCase());
+
     let bestMentor = null;
-    let maxCapacity = -1;
+    let highestScore = -1;
+
     for (const alum of alumni) {
       const used = countMap[alum._id.toString()] || 0;
-      const remaining = SEAT_LIMIT - used;
-      if (remaining > maxCapacity) {
-        maxCapacity = remaining;
+      const remainingCapacity = SEAT_LIMIT - used;
+      
+      if (remainingCapacity <= 0) continue; // Skip if no capacity
+
+      let score = remainingCapacity; // Base score is remaining capacity (tie-breaker)
+
+      // 1. Domain Match (+20 points)
+      const alumIndustry = (alum.alumniInfo?.industry || '').toLowerCase();
+      const alumPosition = (alum.alumniInfo?.position || '').toLowerCase();
+      
+      if (studentCourse && (
+          (alumIndustry && (studentCourse.includes(alumIndustry) || alumIndustry.includes(studentCourse))) ||
+          (alumPosition && (studentCourse.includes(alumPosition) || alumPosition.includes(studentCourse)))
+      )) {
+        score += 20;
+      }
+
+      // 2. Area of Interest / Skills Match (+10 points per overlap)
+      const alumMentorshipAreas = (alum.alumniInfo?.mentorshipAreas || []).map(a => a.toLowerCase());
+      const alumSkills = (alum.skills || []).map(s => s.toLowerCase());
+      const alumInterests = (alum.interests || []).map(i => i.toLowerCase());
+
+      const allStudentKeywords = new Set([...studentInterests, ...studentSkills]);
+      const allAlumKeywords = new Set([...alumMentorshipAreas, ...alumSkills, ...alumInterests]);
+
+      for (const keyword of allStudentKeywords) {
+        if (keyword && Array.from(allAlumKeywords).some(k => k.includes(keyword) || keyword.includes(k))) {
+          score += 10;
+        }
+      }
+
+      if (score > highestScore) {
+        highestScore = score;
         bestMentor = alum;
       }
     }
 
-    if (!bestMentor || maxCapacity <= 0) {
-      return res.status(404).json({ message: 'All mentors are currently at full capacity.' });
+    if (!bestMentor) {
+      return res.status(404).json({ message: 'All mentors from your college are currently at full capacity.' });
     }
 
     const mentorship = new Mentorship({

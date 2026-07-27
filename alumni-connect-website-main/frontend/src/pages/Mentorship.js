@@ -186,7 +186,7 @@ const Mentorship = () => {
       
       await api.post('/mentorship', submitData);
       toast.success('Mentorship request sent successfully!');
-      if (activeTab === 'my-mentorships') fetchMentorships();
+      fetchMentorships();
     } catch (error) {
       console.error('Error submitting request:', error);
       toast.error(error.response?.data?.message || 'Failed to submit request');
@@ -507,13 +507,18 @@ const Mentorship = () => {
                         >
                           <CalendarPlus className="w-4 h-4" /> Book
                         </button>
-                        <button
-                          onClick={() => handleQuickRequest(mentor)}
-                          disabled={loading}
-                          className="flex-1 xl:flex-none px-4 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-1.5"
-                        >
-                          Request
-                        </button>
+                        {(() => {
+                          const isRequested = mentorships.some(m => m.mentor?._id === mentor._id || m.mentor?.id === mentor._id || m.mentor === mentor._id);
+                          return (
+                            <button
+                              onClick={() => handleQuickRequest(mentor)}
+                              disabled={loading || isRequested}
+                              className={`flex-1 xl:flex-none px-4 py-2.5 font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-1.5 ${isRequested ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700 text-white'}`}
+                            >
+                              {isRequested ? 'Requested' : 'Request'}
+                            </button>
+                          );
+                        })()}
                       </div>
                     </div>
                   </motion.div>

@@ -273,6 +273,11 @@ const Jobs = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [jobSource, setJobSource] = useState('internal'); // 'internal' | 'external'
   const [selectedJob, setSelectedJob] = useState(null);
+  
+  // Track actions to update UI
+  const [requestedReferrals, setRequestedReferrals] = useState([]);
+  const [appliedJobs, setAppliedJobs] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
 
   useEffect(() => {
     fetchJobs();
@@ -342,11 +347,11 @@ const Jobs = () => {
   const handleApply = async (jobId) => {
     try {
       await api.post(`/jobs/${jobId}/apply`);
-      toast.success('Application submitted successfully!');
-      fetchJobs(); // refresh applications count
+      toast.success('Successfully applied for this job!');
+      setAppliedJobs([...appliedJobs, jobId]);
     } catch (error) {
-      console.error('Error applying to job:', error);
-      toast.error(error.response?.data?.message || 'Failed to apply');
+      console.error('Error applying for job:', error);
+      toast.error(error.response?.data?.message || 'Failed to apply for job');
     }
   };
 
@@ -354,6 +359,7 @@ const Jobs = () => {
     try {
       await api.post(`/jobs/${jobId}/save`);
       toast.success('Job saved successfully!');
+      setSavedJobs([...savedJobs, jobId]);
     } catch (error) {
       console.error('Error saving job:', error);
       toast.error(error.response?.data?.message || 'Failed to save job');
@@ -361,7 +367,7 @@ const Jobs = () => {
   };
 
   const handleReferralRequest = (jobId, companyName) => {
-    // In a real implementation, this would open a modal to send a message to alumni working at this company
+    setRequestedReferrals([...requestedReferrals, jobId]);
     toast.success(`Referral request sent to alumni network at ${companyName}!`);
   };
 
@@ -699,9 +705,14 @@ const Jobs = () => {
                     </div>
                     <button
                       onClick={() => handleSave(selectedJob._id || selectedJob.id)}
-                      className="p-3 text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-xl transition-all"
+                      disabled={savedJobs.includes(selectedJob._id || selectedJob.id)}
+                      className={`p-3 rounded-xl transition-all ${
+                        savedJobs.includes(selectedJob._id || selectedJob.id) 
+                          ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' 
+                          : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                      }`}
                     >
-                      <Bookmark className="w-6 h-6" />
+                      <Bookmark className={`w-6 h-6 ${savedJobs.includes(selectedJob._id || selectedJob.id) ? 'fill-current' : ''}`} />
                     </button>
                   </div>
 
@@ -764,18 +775,31 @@ const Jobs = () => {
                       </a>
                     ) : (
                       <>
-                        <button
-                          onClick={() => handleReferralRequest(selectedJob._id || selectedJob.id, selectedJob.company)}
-                          className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
-                        >
-                          <UserPlus className="w-5 h-5" /> Request Referral
-                        </button>
-                        <button
-                          onClick={() => handleApply(selectedJob._id || selectedJob.id)}
-                          className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30"
-                        >
-                          Apply Now
-                        </button>
+                        {requestedReferrals.includes(selectedJob._id || selectedJob.id) ? (
+                          <button disabled className="flex-1 py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed font-bold rounded-xl flex items-center justify-center gap-2">
+                            <UserPlus className="w-5 h-5" /> Requested
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleReferralRequest(selectedJob._id || selectedJob.id, selectedJob.company)}
+                            className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                          >
+                            <UserPlus className="w-5 h-5" /> Request Referral
+                          </button>
+                        )}
+                        
+                        {appliedJobs.includes(selectedJob._id || selectedJob.id) ? (
+                          <button disabled className="flex-1 py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed font-bold rounded-xl flex items-center justify-center gap-2">
+                            Applied
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleApply(selectedJob._id || selectedJob.id)}
+                            className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30"
+                          >
+                            Apply Now
+                          </button>
+                        )}
                       </>
                     )}
                   </div>

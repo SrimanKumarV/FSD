@@ -41,6 +41,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import DefaultAvatar from '../DefaultAvatar';
+import UserAvatar from '../UserAvatar';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -446,11 +447,7 @@ const Layout = ({ children }) => {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-3 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-300"
                 >
-                  {user?.photo && user?.photo !== 'default-avatar.png' ? (
-                    <img loading="lazy" src={user.photo} alt={user.name} className="w-9 h-9 rounded-full object-cover shadow-soft" />
-                  ) : (
-                    <DefaultAvatar className="w-9 h-9 flex-shrink-0" />
-                  )}
+                  <UserAvatar src={user?.photo} name={user?.name} className="w-9 h-9 flex-shrink-0" />
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white notranslate">{user?.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 capitalize font-medium">{user?.role}</p>

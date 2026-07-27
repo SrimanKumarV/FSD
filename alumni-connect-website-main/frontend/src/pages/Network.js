@@ -8,6 +8,7 @@ import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import DefaultAvatar from '../components/DefaultAvatar';
+import UserAvatar from '../components/UserAvatar';
 
 const Network = () => {
   const { user: currentUser } = useAuth();
@@ -165,11 +166,7 @@ const Network = () => {
               <div key={reqUser._id} className="glass-card p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
-                      <img loading="lazy" src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
-                    )}
+                    <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
                     {onlineUsersMap?.has(reqUser._id) && (
                       <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                     )}
@@ -191,11 +188,7 @@ const Network = () => {
               <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
-                      <img loading="lazy" src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
-                    )}
+                    <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
@@ -233,11 +226,7 @@ const Network = () => {
               <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    {reqUser.photo && reqUser.photo !== 'default-avatar.png' ? (
-                      <img loading="lazy" src={reqUser.photo} alt={reqUser.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <DefaultAvatar className="w-10 h-10 flex-shrink-0" />
-                    )}
+                    <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
@@ -278,7 +267,7 @@ const Network = () => {
                   className="glass-card p-5 flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => navigate(`/users/${user._id}`)}
                 >
-                  <img loading="lazy" src={user.photo !== 'default-avatar.png' ? user.photo : '/default-avatar.png'} alt={user.name} className="w-16 h-16 rounded-full object-cover mb-3 shadow-sm" />
+                  <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 mb-3" />
                   <h4 className="font-bold text-gray-900 dark:text-white truncate w-full">{user.name}</h4>
                   <p className="text-xs text-primary-600 dark:text-primary-400 capitalize mb-3">{user.role}</p>
                   
@@ -320,11 +309,7 @@ const Network = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
                 <div className="flex items-start space-x-4 mb-4 relative z-10">
                   <div className="relative">
-                    {user.photo && user.photo !== 'default-avatar.png' ? (
-                      <img loading="lazy" src={user.photo} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-soft flex-shrink-0" />
-                    ) : (
-                      <DefaultAvatar className="w-16 h-16 flex-shrink-0" />
-                    )}
+                    <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 flex-shrink-0" />
                     {onlineUsersMap?.has(user._id) && (
                       <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                     )}

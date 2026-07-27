@@ -27,6 +27,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 import DefaultAvatar from '../components/DefaultAvatar';
+import UserAvatar from '../components/UserAvatar';
 
 // Define categories and postTypes outside the component
 const categories = [
@@ -620,11 +621,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit, isA
         <div className="flex items-start space-x-4 flex-1 min-w-0">
           {/* Author Avatar */}
           <div className="flex-shrink-0">
-            {post.author?.photo && post.author?.photo !== 'default-avatar.png' ? (
-              <img loading="lazy" src={post.author.photo} alt={post.author.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
-            ) : (
-              <DefaultAvatar className="w-10 h-10" />
-            )}
+            <UserAvatar src={post.author?.photo} name={post.author?.name} className="w-10 h-10 flex-shrink-0 border-2 border-white dark:border-gray-700" />
           </div>
 
           {/* Post Content */}
@@ -1217,11 +1214,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                     <div className="hidden md:flex absolute left-4 w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded-full mt-3 -translate-x-1.5 z-10 ring-4 ring-white dark:ring-gray-800"></div>
 
                     <div className="flex-shrink-0 relative z-10 ml-8 md:ml-10">
-                      {comment.author?.photo && comment.author?.photo !== 'default-avatar.png' ? (
-                        <img loading="lazy" src={comment.author.photo} alt={comment.author.name} className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
-                      ) : (
-                        <DefaultAvatar className="w-8 h-8" />
-                      )}
+                      <UserAvatar src={comment.author?.photo} name={comment.author?.name} className="w-8 h-8 flex-shrink-0 border-2 border-white dark:border-gray-700" />
                     </div>
                     <div className="flex-1 relative z-10">
                       <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700/50 group hover:shadow-md transition-shadow">

@@ -21,6 +21,7 @@ import {
   Building2
 } from 'lucide-react';
 import { api } from '../utils/api';
+import UserAvatar from '../components/UserAvatar';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import DefaultAvatar from '../components/DefaultAvatar';
@@ -231,11 +232,7 @@ const Profile = () => {
           <div className="flex items-start space-x-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
-                {(isEditing ? formData.photo : user.photo) && (isEditing ? formData.photo : user.photo) !== 'default-avatar.png' ? (
-                  <img loading="lazy" src={isEditing ? formData.photo : user.photo} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  <DefaultAvatar className="w-full h-full" />
-                )}
+                <UserAvatar src={isEditing ? formData.photo : user.photo} name={user.name} className="w-full h-full" />
               </div>
               {isEditing && (
                 <>
@@ -633,11 +630,7 @@ const Profile = () => {
                         className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-1"
                         onClick={() => navigate(`/users/${follower._id}`)}
                       >
-                        {follower.photo && follower.photo !== 'default-avatar.png' ? (
-                          <img loading="lazy" src={follower.photo} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
-                        ) : (
-                          <DefaultAvatar className="w-12 h-12 flex-shrink-0" />
-                        )}
+                        <UserAvatar src={follower.photo} name={follower.name} className="w-12 h-12 flex-shrink-0" />
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">{follower.name}</h4>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -673,11 +666,7 @@ const Profile = () => {
                         className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-1"
                         onClick={() => navigate(`/users/${followingUser._id}`)}
                       >
-                        {followingUser.photo && followingUser.photo !== 'default-avatar.png' ? (
-                          <img loading="lazy" src={followingUser.photo} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
-                        ) : (
-                          <DefaultAvatar className="w-12 h-12 flex-shrink-0" />
-                        )}
+                        <UserAvatar src={followingUser.photo} name={followingUser.name} className="w-12 h-12 flex-shrink-0" />
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">{followingUser.name}</h4>
                           <p className="text-xs text-gray-500 dark:text-gray-400">

@@ -26,6 +26,7 @@ import {
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import DefaultAvatar from '../components/DefaultAvatar';
+import UserAvatar from '../components/UserAvatar';
 
 const Mentorship = () => {
   const { user } = useAuth();
@@ -443,13 +444,9 @@ const Mentorship = () => {
                       className="relative z-10 flex items-start space-x-4 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => navigate(`/users/${mentor._id || mentor.id}`)}
                     >
-                      <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-                        {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
-                          <img loading="lazy" src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <DefaultAvatar className="w-full h-full" />
-                        )}
-                      </div>
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
+                          <UserAvatar src={mentor.photo} name={mentor.name} className="w-16 h-16" />
+                        </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{mentor.name}</h3>
                         <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
@@ -568,20 +565,12 @@ const Mentorship = () => {
                         >
                           {user.role === 'alumni' ? (
                             <>
-                              {mentorship.student?.photo && mentorship.student.photo !== 'default-avatar.png' ? (
-                                <img loading="lazy" src={mentorship.student.photo} alt={mentorship.student.name} className="w-6 h-6 rounded-full object-cover" />
-                              ) : (
-                                <DefaultAvatar className="w-6 h-6" />
-                              )}
+                              <UserAvatar src={mentorship.student?.photo} name={mentorship.student?.name} className="w-6 h-6" />
                               <span className="hover:underline">Student: {mentorship.student?.name || 'Unknown User'}</span>
                             </>
                           ) : (
                             <>
-                              {mentorship.mentor?.photo && mentorship.mentor.photo !== 'default-avatar.png' ? (
-                                <img loading="lazy" src={mentorship.mentor.photo} alt={mentorship.mentor.name} className="w-6 h-6 rounded-full object-cover" />
-                              ) : (
-                                <DefaultAvatar className="w-6 h-6" />
-                              )}
+                              <UserAvatar src={mentorship.mentor?.photo} name={mentorship.mentor?.name} className="w-6 h-6" />
                               <span className="hover:underline">Mentor: {mentorship.mentor?.name || 'Unknown User'}</span>
                             </>
                           )}

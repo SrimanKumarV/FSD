@@ -30,6 +30,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { api } from '../utils/api';
 import { useCall } from '../contexts/CallContext';
+import UserAvatar from '../components/UserAvatar';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -536,13 +537,7 @@ const Chat = () => {
                           {chat.group?.name?.charAt(0)?.toUpperCase() || 'G'}
                         </div>
                       ) : (
-                        otherParticipant?.photo && otherParticipant?.photo !== 'default-avatar.png' ? (
-                          <img loading="lazy" src={otherParticipant.photo} alt={otherParticipant.name} className="w-12 h-12 rounded-full object-cover shadow-sm" />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-lg shadow-sm">
-                            {otherParticipant?.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
-                        )
+                        <UserAvatar src={otherParticipant?.photo} name={otherParticipant?.name} className="w-12 h-12" />
                       )}
                       {!chat.isGroup && (onlineUsersMap.has(String(otherParticipant?._id || otherParticipant?.id)) || otherParticipant?.isOnline) && (
                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>

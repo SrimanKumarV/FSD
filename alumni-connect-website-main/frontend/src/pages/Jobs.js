@@ -413,13 +413,15 @@ const Jobs = () => {
                 Discover exciting career opportunities from our alumni network
               </p>
             </div>
-            <button
-              onClick={() => setShowPostForm(true)}
-              className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg hover:shadow-primary-500/30 transition-all shrink-0"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Post Job / Referral
-            </button>
+            {(user?.role === 'alumni' || user?.role === 'admin') && (
+              <button
+                onClick={() => setShowPostForm(true)}
+                className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg hover:shadow-primary-500/30 transition-all shrink-0"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Post Job / Referral
+              </button>
+            )}
           </div>
 
           {/* Stats */}
@@ -779,7 +781,15 @@ const Jobs = () => {
                   </div>
                 </motion.div>
               ) : (
-                <MyPostedJobs onSelectJob={setSelectedJob} />
+                (user?.role === 'alumni' || user?.role === 'admin') ? (
+                  <MyPostedJobs onSelectJob={setSelectedJob} />
+                ) : (
+                  <div className="glass-card rounded-3xl p-12 text-center h-[500px] flex flex-col items-center justify-center border-dashed border-2 border-gray-200 dark:border-gray-700">
+                    <Briefcase className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Select a Job</h3>
+                    <p className="text-gray-500 dark:text-gray-400">Click on a job from the list to view its details</p>
+                  </div>
+                )
               )}
             </div>
 

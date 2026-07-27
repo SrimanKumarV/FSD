@@ -531,8 +531,8 @@ const Mentorship = () => {
           </motion.div>
         )}
 
-        {/* My Mentorships Tab */}
-        {activeTab === 'my-mentorships' && (
+        {/* My Mentorships Tab / Requests Tab */}
+        {(activeTab === 'my-mentorships' || activeTab === 'requests') && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -76,6 +76,24 @@ router.get('/followers', protect, async (req, res) => {
   }
 });
 
+
+
+// @desc    Get projects by user
+// @route   GET /api/projects/user/:userId
+// @access  Public
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const projects = await Project.find({ user: req.params.userId })
+      .populate('user', 'name role avatar')
+      .sort({ createdAt: -1 });
+      
+    res.json({ success: true, projects });
+  } catch (error) {
+    console.error('Error in get user projects:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get single project
 // @route   GET /api/projects/:id
 // @access  Public
@@ -99,22 +117,6 @@ router.get('/:id', async (req, res) => {
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Project not found' });
     }
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @desc    Get projects by user
-// @route   GET /api/projects/user/:userId
-// @access  Public
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const projects = await Project.find({ user: req.params.userId })
-      .populate('user', 'name role avatar')
-      .sort({ createdAt: -1 });
-      
-    res.json({ success: true, projects });
-  } catch (error) {
-    console.error('Error in get user projects:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

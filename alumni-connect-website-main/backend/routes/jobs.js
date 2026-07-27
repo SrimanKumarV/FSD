@@ -169,28 +169,6 @@ router.get('/external', async (req, res) => {
   }
 });
 
-// @desc    Get job by ID
-// @route   GET /api/jobs/:id
-// @access  Public
-router.get('/:id', async (req, res) => {
-  try {
-    const job = await Job.findById(req.params.id)
-      .populate('postedBy', 'name photo role alumniInfo');
-
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-
-    // Increment views
-    await job.incrementViews();
-
-    res.json({ job });
-  } catch (error) {
-    console.error('Error fetching job:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // @desc    Create new job posting
 // @route   POST /api/jobs
 // @access  Private (Alumni only)
@@ -513,6 +491,30 @@ router.get('/:id/stats', protect, async (req, res) => {
     res.json({ stats });
   } catch (error) {
     console.error('Error fetching job stats:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
+// @desc    Get job by ID
+// @route   GET /api/jobs/:id
+// @access  Public
+router.get('/:id', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id)
+      .populate('postedBy', 'name photo role alumniInfo');
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Increment views
+    await job.incrementViews();
+
+    res.json({ job });
+  } catch (error) {
+    console.error('Error fetching job:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

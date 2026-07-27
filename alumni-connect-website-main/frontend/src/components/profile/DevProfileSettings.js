@@ -48,12 +48,12 @@ const DevProfileSettings = () => {
 
   const saveMutation = useMutation(
     (newSettings) => api.post('/dev-activity/usernames', {
-      github: newSettings.github.username,
-      leetcode: newSettings.leetcode.username,
-      hackerrank: newSettings.hackerrank.username,
-      gfg: newSettings.gfg.username,
-      codechef: newSettings.codechef.username,
-      codeforces: newSettings.codeforces.username
+      github: newSettings.github?.username || '',
+      leetcode: newSettings.leetcode?.username || '',
+      hackerrank: newSettings.hackerrank?.username || '',
+      gfg: newSettings.gfg?.username || '',
+      codechef: newSettings.codechef?.username || '',
+      codeforces: newSettings.codeforces?.username || ''
     }),
     {
       onSuccess: (res) => {

@@ -439,7 +439,10 @@ const Mentorship = () => {
                     className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] transition-all duration-300 border border-gray-100 dark:border-gray-800"
                   >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
-                    <div className="relative z-10 flex items-start space-x-4 mb-4">
+                    <div 
+                      className="relative z-10 flex items-start space-x-4 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/users/${mentor._id || mentor.id}`)}
+                    >
                       <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
                         {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
                           <img loading="lazy" src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
@@ -448,7 +451,7 @@ const Mentorship = () => {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{mentor.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{mentor.name}</h3>
                         <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
                           {user.role === 'alumni' ? mentor.studentInfo?.course : mentor.alumniInfo?.position}
                         </p>
@@ -559,7 +562,10 @@ const Mentorship = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">{mentorship.title}</h3>
-                        <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1 flex items-center space-x-2">
+                        <p 
+                          className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1 flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => navigate(`/users/${user.role === 'alumni' ? (mentorship.student?._id || mentorship.student?.id) : (mentorship.mentor?._id || mentorship.mentor?.id)}`)}
+                        >
                           {user.role === 'alumni' ? (
                             <>
                               {mentorship.student?.photo && mentorship.student.photo !== 'default-avatar.png' ? (
@@ -567,7 +573,7 @@ const Mentorship = () => {
                               ) : (
                                 <DefaultAvatar className="w-6 h-6" />
                               )}
-                              <span>Student: {mentorship.student?.name || 'Unknown User'}</span>
+                              <span className="hover:underline">Student: {mentorship.student?.name || 'Unknown User'}</span>
                             </>
                           ) : (
                             <>
@@ -576,7 +582,7 @@ const Mentorship = () => {
                               ) : (
                                 <DefaultAvatar className="w-6 h-6" />
                               )}
-                              <span>Mentor: {mentorship.mentor?.name || 'Unknown User'}</span>
+                              <span className="hover:underline">Mentor: {mentorship.mentor?.name || 'Unknown User'}</span>
                             </>
                           )}
                         </p>

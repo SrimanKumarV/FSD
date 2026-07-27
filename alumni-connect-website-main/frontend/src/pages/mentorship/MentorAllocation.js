@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../utils/api';
-import { Search, UserCheck, Clock, Users, X, Check } from 'lucide-react';
+import { Search, UserCheck, Clock, Users, X, Check, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import UserAvatar from '../../components/UserAvatar';
 
 const MentorAllocation = () => {
   const { user } = useAuth();
@@ -103,39 +104,77 @@ const MentorAllocation = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mentors.map((mentor) => (
-              <div key={mentor._id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center space-x-4 mb-4">
-                  <img src={mentor.photo || '/default-avatar.png'} alt={mentor.name} className="w-12 h-12 rounded-full" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{mentor.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{mentor.alumniInfo?.company}</p>
+            {mentors.map((mentor) => {
+              const remaining = mentor.remainingCapacity ?? 10;
+              const total = mentor.totalSeats ?? 10;
+              const pct = Math.max(0, (remaining / total) * 100);
+              const barColor = remaining === 0 ? 'bg-red-500' : remaining <= 3 ? 'bg-yellow-500' : 'bg-green-500';
+              const badgeColor = remaining === 0
+                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                : remaining <= 3
+                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+
+              return (
+                <div key={mentor._id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <UserAvatar src={mentor.photo} name={mentor.name} className="w-14 h-14" />
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white">{mentor.name}</h3>
+                      <p className="text-sm text-primary-600 dark:text-primary-400">{mentor.alumniInfo?.position}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{mentor.alumniInfo?.company}</p>
+                    </div>
                   </div>
+
+                  {/* Reward points badge if available */}
+                  {mentor.rewardPoints !== undefined && (
+                    <div className="flex items-center gap-1 mb-3">
+                      <Star className="w-3.5 h-3.5 text-yellow-500" />
+                      <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-400">{mentor.rewardPoints} reward pts</span>
+                    </div>
+                  )}
+
+                  {/* Live seat availability bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                        <Users className="w-3 h-3" /> Seats
+                      </span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
+                        {remaining} / {total}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className={`h-2 rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {mentor.alumniInfo?.mentorshipAreas?.map((area, idx) => (
+                      <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded">
+                        {area}
+                      </span>
+                    ))}
+                    {mentor.skills?.slice(0, 3).map((skill, idx) => (
+                      <span key={`s-${idx}`} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => requestMentor(mentor._id)}
+                    disabled={remaining <= 0}
+                    className={`mt-auto w-full py-2 rounded-lg font-medium transition-colors ${
+                      remaining > 0
+                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                        : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {remaining > 0 ? 'Request Mentor' : 'No Seats Available'}
+                  </button>
                 </div>
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
-                  <Users className="w-4 h-4 mr-2 text-gray-400" />
-                  Capacity: {mentor.remainingCapacity} slots left
-                </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {mentor.alumniInfo?.mentorshipAreas?.map((area, idx) => (
-                    <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded">
-                      {area}
-                    </span>
-                  ))}
-                </div>
-                <button
-                  onClick={() => requestMentor(mentor._id)}
-                  disabled={mentor.remainingCapacity <= 0}
-                  className={`w-full py-2 rounded-lg font-medium transition-colors ${
-                    mentor.remainingCapacity > 0
-                      ? 'bg-primary-600 text-white hover:bg-primary-700'
-                      : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {mentor.remainingCapacity > 0 ? 'Request Mentor' : 'No Seats Available'}
-                </button>
-              </div>
-            ))}
+              );
+            })}
             {mentors.length === 0 && (
               <div className="col-span-3 text-center py-10 text-gray-500 dark:text-gray-400">
                 No mentors available for this domain.
@@ -160,9 +199,13 @@ const MentorAllocation = () => {
               {requests.map((req) => (
                 <tr key={req._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="ml-4">
+                    <div className="flex items-center gap-3">
+                      <UserAvatar src={req.student?.photo} name={req.student?.name} className="w-9 h-9" />
+                      <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{req.student?.name}</div>
+                        {req.isAutoAssigned && (
+                          <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-medium">Auto-Assigned</span>
+                        )}
                       </div>
                     </div>
                   </td>

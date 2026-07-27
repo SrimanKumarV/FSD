@@ -158,7 +158,19 @@ const mentorshipSchema = new mongoose.Schema({
   tags: [{
     type: String,
     trim: true
-  }]
+  }],
+
+  // Auto-assignment flag (set when system auto-assigns mentor on student registration)
+  isAutoAssigned: {
+    type: Boolean,
+    default: false
+  },
+
+  // Track if student has submitted feedback (prevent duplicate feedback)
+  feedbackGiven: {
+    type: Boolean,
+    default: false
+  }
 }, {
   timestamps: true
 });

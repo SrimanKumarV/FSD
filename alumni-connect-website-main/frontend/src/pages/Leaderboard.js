@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import MentorRewardLeaderboard from '../components/MentorRewardLeaderboard';
+import { Star } from 'lucide-react';
 
 const COUNTRIES_WITH_FLAGS = [
   { name: 'India', flag: '🇮🇳' },
@@ -124,11 +126,13 @@ const Leaderboard = () => {
               {activeTab === 'Global' && 'Global Leaderboard'}
               {activeTab === 'Country' && `${selectedCountry} Leaderboard`}
               {activeTab === 'College' && `${selectedCollege} Leaderboard`}
+              {activeTab === 'Mentors' && 'Mentor Rewards'}
             </h1>
             <p className="text-primary-100 max-w-lg text-lg">
               {activeTab === 'Global' && 'The top developers from all around the world.'}
               {activeTab === 'Country' && `The top developers representing ${selectedCountry}.`}
               {activeTab === 'College' && `The top developers from ${selectedCollege}.`}
+              {activeTab === 'Mentors' && `Top mentors based on successful mentorships and feedback${selectedCollege ? ` from ${selectedCollege}` : ''}.`}
             </p>
           </div>
         </div>
@@ -162,6 +166,12 @@ const Leaderboard = () => {
             className={`flex-1 sm:flex-none flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'College' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
           >
             <Building2 className="w-4 h-4 mr-2" /> College
+          </button>
+          <button
+            onClick={() => setActiveTab('Mentors')}
+            className={`flex-1 sm:flex-none flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'Mentors' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            <Star className="w-4 h-4 mr-2" /> Mentors
           </button>
         </div>
 
@@ -240,8 +250,11 @@ const Leaderboard = () => {
         )}
       </div>
 
-      {/* Leaderboard Table */}
+      {activeTab === 'Mentors' ? (
+        <MentorRewardLeaderboard college={selectedCollege} />
+      ) : (
       <div className="bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm overflow-hidden backdrop-blur-xl">
+        {/* Leaderboard Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -326,6 +339,7 @@ const Leaderboard = () => {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };

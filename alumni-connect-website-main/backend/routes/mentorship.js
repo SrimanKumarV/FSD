@@ -6,6 +6,7 @@ const Mentorship = require('../models/Mentorship');
 const MentorshipSession = require('../models/MentorshipSession');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const MentorReward = require('../models/MentorReward');
 
 // @desc    Get all mentorship requests for a user
 // @route   GET /api/mentorship
@@ -303,7 +304,20 @@ router.put('/:id/status', [protect], [
       // Award Gamification Points for Mentorship Acceptance
       if (oldStatus !== 'accepted') {
         await User.findByIdAndUpdate(mentorship.mentor, { $inc: { rewardPoints: 50 } });
+        // Award MentorReward points
+        try {
+          const mentor = await User.findById(mentorship.mentor).select('college');
+          await MentorReward.addPoints(mentorship.mentor, 'accepted', null, mentor?.college || '');
+        } catch (e) { console.error('MentorReward accept error:', e.message); }
       }
+    }
+
+    if (status === 'completed' && oldStatus !== 'completed') {
+      // Award completion reward points
+      try {
+        const mentor = await User.findById(mentorship.mentor).select('college');
+        await MentorReward.addPoints(mentorship.mentor, 'completed', null, mentor?.college || '');
+      } catch (e) { console.error('MentorReward complete error:', e.message); }
     }
 
     await mentorship.save();
@@ -326,6 +340,86 @@ router.put('/:id/status', [protect], [
     res.json({ mentorship });
   } catch (error) {
     console.error('Error updating mentorship status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Submit student feedback + rating for a completed mentorship
+// @route   POST /api/mentorship/:id/feedback
+// @access  Private (Student only)
+router.post('/:id/feedback', [protect], [
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be 1-5'),
+  body('review').optional().trim().isLength({ max: 500 })
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const mentorship = await Mentorship.findById(req.params.id);
+    if (!mentorship) return res.status(404).json({ message: 'Mentorship not found' });
+    if (mentorship.student.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the student can give feedback' });
+    }
+    if (mentorship.status !== 'completed') {
+      return res.status(400).json({ message: 'Feedback can only be given after mentorship is completed' });
+    }
+    if (mentorship.feedbackGiven) {
+      return res.status(400).json({ message: 'Feedback already submitted for this mentorship' });
+    }
+
+    const { rating, review } = req.body;
+    mentorship.feedback.studentRating = rating;
+    mentorship.feedback.studentReview = review || '';
+    mentorship.feedback.submittedAt = new Date();
+    mentorship.feedbackGiven = true;
+    await mentorship.save();
+
+    // Award MentorReward feedback points
+    try {
+      const mentor = await User.findById(mentorship.mentor).select('college');
+      await MentorReward.addPoints(mentorship.mentor, 'feedback', rating, mentor?.college || '');
+    } catch (e) { console.error('MentorReward feedback error:', e.message); }
+
+    res.json({ success: true, message: 'Feedback submitted successfully' });
+  } catch (error) {
+    console.error('Feedback error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get mentor reward leaderboard
+// @route   GET /api/mentorship/rewards/leaderboard
+// @access  Private
+router.get('/rewards/leaderboard', protect, async (req, res) => {
+  try {
+    const { college } = req.query;
+    const filter = college ? { college } : {};
+
+    const records = await MentorReward.find({ ...filter, totalPoints: { $gt: 0 } })
+      .sort({ totalPoints: -1 })
+      .limit(50)
+      .populate('mentor', 'name photo college alumniInfo.company alumniInfo.position alumniInfo.industry');
+
+    const leaderboard = records
+      .filter(r => r.mentor) // skip deleted users
+      .map((r, index) => ({
+        rank: index + 1,
+        mentorId: r.mentor._id,
+        name: r.mentor.name,
+        photo: r.mentor.photo,
+        college: r.mentor.college || r.college,
+        company: r.mentor.alumniInfo?.company,
+        position: r.mentor.alumniInfo?.position,
+        industry: r.mentor.alumniInfo?.industry,
+        totalPoints: r.totalPoints,
+        breakdown: r.breakdown
+      }));
+
+    res.json({ leaderboard });
+  } catch (error) {
+    console.error('Reward leaderboard error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

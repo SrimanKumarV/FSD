@@ -44,7 +44,6 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
-const AlumniMap = lazy(() => import('./pages/AlumniMap'));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const BusinessDirectory = lazy(() => import('./pages/BusinessDirectory'));
 const MentorAllocation = lazy(() => import('./pages/mentorship/MentorAllocation'));
@@ -52,7 +51,6 @@ const TechHub = lazy(() => import('./pages/tech-hub/TechHub'));
 const CareerBoard = lazy(() => import('./pages/opportunities/CareerBoard'));
 const ProjectCollaboration = lazy(() => import('./pages/projects/ProjectCollaboration'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const AnalyticsDashboard = lazy(() => import('./pages/dashboard/AnalyticsDashboard'));
 
 // Legal and Support Pages - Lazy Loaded
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
@@ -161,14 +159,6 @@ function App() {
                     </ProtectedRoute>
                   } />
                   
-                  <Route path="/analytics" element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AnalyticsDashboard />
-                      </Layout>
-                    </ProtectedRoute>
-                  } />
-                  
                   <Route path="/users/:id" element={
                     <ProtectedRoute>
                       <Layout>
@@ -197,14 +187,6 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Network />
-                      </Layout>
-                    </ProtectedRoute>
-                  } />
-                  
-                  <Route path="/map" element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AlumniMap />
                       </Layout>
                     </ProtectedRoute>
                   } />

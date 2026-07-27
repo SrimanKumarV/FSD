@@ -80,7 +80,6 @@ const Layout = ({ children }) => {
       title: 'Main',
       items: [
         { name: 'Dashboard', href: '/dashboard', icon: Home },
-        { name: 'Analytics', href: '/analytics', icon: BarChart2 },
         { name: 'Profile', href: '/profile', icon: User },
       ]
     },
@@ -88,7 +87,6 @@ const Layout = ({ children }) => {
       title: 'Connect & Community',
       items: [
         { name: 'Network', href: '/network', icon: Globe },
-        { name: 'Alumni Map', href: '/map', icon: MapPin },
         { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
         { name: 'Smart Mentors', href: '/mentor-allocation', icon: Sparkles },

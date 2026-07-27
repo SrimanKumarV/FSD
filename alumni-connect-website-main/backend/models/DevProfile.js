@@ -29,6 +29,14 @@ const devProfileSchema = new mongoose.Schema({
     gfg: { 
       username: { type: String, trim: true, default: '' },
       isVerified: { type: Boolean, default: false }
+    },
+    codechef: { 
+      username: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false }
+    },
+    codeforces: { 
+      username: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false }
     }
   },
   stats: {
@@ -45,6 +53,14 @@ const devProfileSchema = new mongoose.Schema({
       default: null
     },
     gfg: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    codechef: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    codeforces: {
       type: mongoose.Schema.Types.Mixed,
       default: null
     }

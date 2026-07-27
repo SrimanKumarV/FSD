@@ -31,7 +31,7 @@ const Mentorship = lazy(() => import('./pages/Mentorship'));
 const Jobs = lazy(() => import('./pages/Jobs'));
 const Events = lazy(() => import('./pages/Events'));
 const Forum = lazy(() => import('./pages/Forum'));
-const Contests = lazy(() => import('./pages/Contests'));
+
 const Chat = lazy(() => import('./pages/Chat'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -259,14 +259,6 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Forum />
-                      </Layout>
-                    </ProtectedRoute>
-                  } />
-                  
-                  <Route path="/contests" element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Contests />
                       </Layout>
                     </ProtectedRoute>
                   } />

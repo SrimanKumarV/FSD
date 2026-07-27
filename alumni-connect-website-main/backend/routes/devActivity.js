@@ -6,7 +6,9 @@ const {
   fetchGitHubStats,
   fetchLeetCodeStats,
   fetchHackerRankStats,
-  fetchGFGStats
+  fetchGFGStats,
+  fetchCodechefStats,
+  fetchCodeforcesStats
 } = require('../utils/devStatsFetcher');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -69,11 +71,13 @@ router.get('/:email', protect, async (req, res) => {
 
     // Fetch new stats concurrently only for verified or just-added accounts
     // We assume fetch functions handle empty strings gracefully
-    const [githubStats, leetcodeStats, hackerrankStats, gfgStats] = await Promise.all([
+    const [githubStats, leetcodeStats, hackerrankStats, gfgStats, codechefStats, codeforcesStats] = await Promise.all([
       fetchGitHubStats(profile.usernames.github.username),
       fetchLeetCodeStats(profile.usernames.leetcode.username),
       fetchHackerRankStats(profile.usernames.hackerrank.username),
-      fetchGFGStats(profile.usernames.gfg.username)
+      fetchGFGStats(profile.usernames.gfg.username),
+      fetchCodechefStats(profile.usernames.codechef?.username),
+      fetchCodeforcesStats(profile.usernames.codeforces?.username)
     ]);
 
     // Update profile
@@ -81,6 +85,8 @@ router.get('/:email', protect, async (req, res) => {
     if (leetcodeStats) profile.stats.leetcode = leetcodeStats;
     if (hackerrankStats) profile.stats.hackerrank = hackerrankStats;
     if (gfgStats) profile.stats.gfg = gfgStats;
+    if (codechefStats) profile.stats.codechef = codechefStats;
+    if (codeforcesStats) profile.stats.codeforces = codeforcesStats;
     
     // Calculate Alumnex Score
     let score = 0;
@@ -135,7 +141,7 @@ router.get('/:email', protect, async (req, res) => {
 // @access  Private
 router.post('/usernames', protect, async (req, res) => {
   try {
-    const { github, leetcode, hackerrank, gfg } = req.body;
+    const { github, leetcode, hackerrank, gfg, codechef, codeforces } = req.body;
     const userEmail = req.user.email;
     const userId = req.user._id;
 
@@ -167,16 +173,26 @@ router.post('/usernames', protect, async (req, res) => {
     const newLeetcode = leetcode !== undefined ? cleanUsername(leetcode) : profile.usernames.leetcode.username;
     const newHackerrank = hackerrank !== undefined ? cleanUsername(hackerrank) : profile.usernames.hackerrank.username;
     const newGfg = gfg !== undefined ? cleanUsername(gfg) : profile.usernames.gfg.username;
+    const newCodechef = codechef !== undefined ? cleanUsername(codechef) : profile.usernames.codechef?.username || '';
+    const newCodeforces = codeforces !== undefined ? cleanUsername(codeforces) : profile.usernames.codeforces?.username || '';
 
     if (newGithub === '' && profile.usernames.github.username !== '') profile.stats.github = null;
     if (newLeetcode === '' && profile.usernames.leetcode.username !== '') profile.stats.leetcode = null;
     if (newHackerrank === '' && profile.usernames.hackerrank.username !== '') profile.stats.hackerrank = null;
     if (newGfg === '' && profile.usernames.gfg.username !== '') profile.stats.gfg = null;
+    if (newCodechef === '' && profile.usernames.codechef?.username) profile.stats.codechef = null;
+    if (newCodeforces === '' && profile.usernames.codeforces?.username) profile.stats.codeforces = null;
 
     profile.usernames.github.username = newGithub;
     profile.usernames.leetcode.username = newLeetcode;
     profile.usernames.hackerrank.username = newHackerrank;
     profile.usernames.gfg.username = newGfg;
+    
+    if (!profile.usernames.codechef) profile.usernames.codechef = { username: '', isVerified: false };
+    if (!profile.usernames.codeforces) profile.usernames.codeforces = { username: '', isVerified: false };
+    
+    profile.usernames.codechef.username = newCodechef;
+    profile.usernames.codeforces.username = newCodeforces;
 
     // Force refresh next time by clearing lastUpdated
     profile.lastUpdated = null;

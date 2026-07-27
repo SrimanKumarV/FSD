@@ -16,12 +16,19 @@ const ProjectShowcase = () => {
   const [formModalState, setFormModalState] = useState({ isOpen: false, mode: 'add', project: null });
   const [selectedProject, setSelectedProject] = useState(null);
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('my-projects');
   
   // Fetch projects
   const { data, isLoading } = useQuery(
-    ['projects', search],
-    () => api.get(`/projects?search=${search}`).then(res => res.data),
-    { keepPreviousData: true }
+    ['projects', activeTab, search],
+    () => {
+      let endpoint = `/projects/user/${user?._id || user?.id}`;
+      if (activeTab === 'followers-projects') {
+        endpoint = '/projects/followers';
+      }
+      return api.get(endpoint + (search ? `?search=${search}` : '')).then(res => res.data);
+    },
+    { keepPreviousData: true, enabled: !!user }
   );
 
   const projects = data?.projects || [];
@@ -105,7 +112,7 @@ const ProjectShowcase = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
                 <FolderGit2 className="w-8 h-8 mr-3 text-primary-600" />
-                Student Project Dashboard
+                Project Dashboard
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-300">Discover and showcase amazing projects built by our community</p>
             </div>
@@ -127,8 +134,31 @@ const ProjectShowcase = () => {
               placeholder="Search projects by title, description, or tags..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm"
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm text-gray-900 dark:text-white"
             />
+          </div>
+
+          <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setActiveTab('my-projects')}
+              className={`py-3 px-4 font-semibold text-sm transition-colors border-b-2 ${
+                activeTab === 'my-projects'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              My Projects
+            </button>
+            <button
+              onClick={() => setActiveTab('followers-projects')}
+              className={`py-3 px-4 font-semibold text-sm transition-colors border-b-2 ${
+                activeTab === 'followers-projects'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              My Followers' Projects
+            </button>
           </div>
         </div>
       </div>

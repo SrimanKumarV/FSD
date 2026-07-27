@@ -13,7 +13,9 @@ const DevProfileSettings = () => {
     github: { username: '', isVerified: false },
     leetcode: { username: '', isVerified: false },
     hackerrank: { username: '', isVerified: false },
-    gfg: { username: '', isVerified: false }
+    gfg: { username: '', isVerified: false },
+    codechef: { username: '', isVerified: false },
+    codeforces: { username: '', isVerified: false }
   });
 
   const [verificationCode, setVerificationCode] = useState('');
@@ -30,7 +32,9 @@ const DevProfileSettings = () => {
             github: res.data.usernames.github || { username: '', isVerified: false },
             leetcode: res.data.usernames.leetcode || { username: '', isVerified: false },
             hackerrank: res.data.usernames.hackerrank || { username: '', isVerified: false },
-            gfg: res.data.usernames.gfg || { username: '', isVerified: false }
+            gfg: res.data.usernames.gfg || { username: '', isVerified: false },
+            codechef: res.data.usernames.codechef || { username: '', isVerified: false },
+            codeforces: res.data.usernames.codeforces || { username: '', isVerified: false }
           });
         }
       },
@@ -47,7 +51,9 @@ const DevProfileSettings = () => {
       github: newSettings.github.username,
       leetcode: newSettings.leetcode.username,
       hackerrank: newSettings.hackerrank.username,
-      gfg: newSettings.gfg.username
+      gfg: newSettings.gfg.username,
+      codechef: newSettings.codechef.username,
+      codeforces: newSettings.codeforces.username
     }),
     {
       onSuccess: (res) => {
@@ -191,6 +197,8 @@ const DevProfileSettings = () => {
           {renderPlatformInput('leetcode', <Code2 className="w-4 h-4 mr-2" />, 'LeetCode', 'e.g. alex123')}
           {renderPlatformInput('hackerrank', <Terminal className="w-4 h-4 mr-2" />, 'HackerRank', 'e.g. john_doe')}
           {renderPlatformInput('gfg', <Code className="w-4 h-4 mr-2" />, 'GeeksforGeeks', 'e.g. coder_gfg')}
+          {renderPlatformInput('codechef', <Code className="w-4 h-4 mr-2" />, 'CodeChef', 'e.g. coder_chef')}
+          {renderPlatformInput('codeforces', <Code className="w-4 h-4 mr-2" />, 'Codeforces', 'e.g. coder_forces')}
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">

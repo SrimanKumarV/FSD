@@ -29,6 +29,7 @@ import {
 import { api } from '../utils/api';
 import PlatformIcon from '../components/PlatformIcon';
 import toast from 'react-hot-toast';
+import Contests from './Contests';
 
 const Events = () => {
   const { user } = useAuth();
@@ -364,7 +365,7 @@ const Events = () => {
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 rounded-2xl shadow-sm">
               <Video className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-3" />
               <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{events.filter(event => event.isVirtual).length}</p>
-              <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mt-1">Virtual Events</p>
+              <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mt-1">Events added to calendar</p>
             </motion.div>
           </div>
         </motion.div>
@@ -763,6 +764,10 @@ const Events = () => {
             </nav>
           </div>
         )}
+      </div>
+      
+      <div className="mt-12">
+        <Contests />
       </div>
     </div>
   );

@@ -140,6 +140,18 @@ const PlatformCard = ({ platform, icon: Icon, label, color, bgGradient, stats, u
               <p className="text-sm font-medium text-slate-400">{stats.problemsSolved ?? 0} problems solved</p>
             </>
           )}
+          {platform === 'codechef' && (
+            <>
+              <p className="text-4xl font-black text-white drop-shadow-md">{stats.rating ?? '—'}</p>
+              <p className="text-sm font-medium text-slate-400">{stats.stars ?? 0} ★ rating</p>
+            </>
+          )}
+          {platform === 'codeforces' && (
+            <>
+              <p className="text-4xl font-black text-white drop-shadow-md">{stats.rating ?? '—'}</p>
+              <p className="text-sm font-medium text-slate-400">{stats.rank ?? 'Unrated'} <span className="mx-1 opacity-50">•</span> Max {stats.maxRating ?? 0}</p>
+            </>
+          )}
         </div>
       ) : (
         <div className="relative z-10 mt-6">
@@ -350,10 +362,10 @@ const DevPulse = () => {
       icon: Target,
       color: '#8b5cf6',
       bgGradient: 'linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%)',
-      stats: null, // Placeholder for Phase 2
-      username: usernames?.codechef?.username || 'coming_soon',
-      isVerified: false,
-      url: null,
+      stats: stats?.codechef,
+      username: usernames?.codechef?.username,
+      isVerified: usernames?.codechef?.isVerified,
+      url: getPlatformUrl(stats, usernames, 'codechef'),
     },
     {
       platform: 'codeforces',
@@ -361,10 +373,10 @@ const DevPulse = () => {
       icon: Zap,
       color: '#ef4444',
       bgGradient: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%)',
-      stats: null, // Placeholder for Phase 2
-      username: usernames?.codeforces?.username || 'coming_soon',
-      isVerified: false,
-      url: null,
+      stats: stats?.codeforces,
+      username: usernames?.codeforces?.username,
+      isVerified: usernames?.codeforces?.isVerified,
+      url: getPlatformUrl(stats, usernames, 'codeforces'),
     },
   ];
 
@@ -431,8 +443,7 @@ const DevPulse = () => {
       {/* ── Hero Banner ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-white/10"
-        style={{ background: 'linear-gradient(135deg, #09090b 0%, #18181b 100%)' }}
+        className="rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900"
       >
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
@@ -452,14 +463,14 @@ const DevPulse = () => {
             
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-indigo-400" />
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100 dark:border-indigo-500/30 flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <span className="text-xs font-bold tracking-[0.2em] text-indigo-400 uppercase">DevPulse Profile</span>
+                <span className="text-xs font-bold tracking-[0.2em] text-indigo-600 dark:text-indigo-400 uppercase">DevPulse Profile</span>
               </div>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-2 tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">
                 {profileName}'s <br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Coding Journey</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500 dark:from-indigo-400 dark:to-cyan-400">Coding Journey</span>
               </h1>
               {data?.data?.lastUpdated && (
                 <p className="text-xs text-slate-500 mt-4 flex items-center gap-1.5 bg-white/5 inline-flex px-3 py-1.5 rounded-full border border-white/10">
@@ -489,32 +500,31 @@ const DevPulse = () => {
       {/* ── Heatmap exactly like Codolio ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }}
-        className="rounded-[2.5rem] border border-slate-700/50 p-8 shadow-2xl relative overflow-hidden"
-        style={{ background: '#0f172a' }}
+        className="rounded-[2.5rem] border border-gray-200 dark:border-slate-700/50 p-8 shadow-2xl relative overflow-hidden bg-white dark:bg-[#0f172a]"
       >
         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent pointer-events-none" />
         
         <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-8 relative z-10 gap-6">
           <div>
-            <h3 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-              <GitCommit className="w-6 h-6 text-emerald-400" /> Activity Calendar {heatmapData.isRealData ? '(LeetCode)' : '(Mocked)'}
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <GitCommit className="w-6 h-6 text-emerald-500 dark:text-emerald-400" /> Activity Calendar {heatmapData.isRealData ? '(LeetCode)' : '(Mocked)'}
             </h3>
             <div className="flex flex-wrap gap-4 text-sm mt-3">
-              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
-                <span className="text-slate-400">Total Active Days:</span> <span className="font-bold text-white ml-1">{heatmapData.activeDays}</span>
+              <div className="bg-gray-50 dark:bg-slate-800/80 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400">Total Active Days:</span> <span className="font-bold text-gray-900 dark:text-white ml-1">{heatmapData.activeDays}</span>
               </div>
-              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
-                <span className="text-slate-400">Max Streak:</span> <span className="font-bold text-emerald-400 ml-1">{heatmapData.maxStreak} days</span>
+              <div className="bg-gray-50 dark:bg-slate-800/80 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400">Max Streak:</span> <span className="font-bold text-emerald-600 dark:text-emerald-400 ml-1">{heatmapData.maxStreak} days</span>
               </div>
-              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
-                <span className="text-slate-400">Current Streak:</span> <span className="font-bold text-amber-400 ml-1">{heatmapData.currentStreak} days</span>
+              <div className="bg-gray-50 dark:bg-slate-800/80 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400">Current Streak:</span> <span className="font-bold text-amber-500 dark:text-amber-400 ml-1">{heatmapData.currentStreak} days</span>
               </div>
-              <div className="bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
-                <span className="text-slate-400">Total Submissions:</span> <span className="font-bold text-white ml-1">{heatmapData.totalContributions.toLocaleString()}</span>
+              <div className="bg-gray-50 dark:bg-slate-800/80 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400">Total Submissions:</span> <span className="font-bold text-gray-900 dark:text-white ml-1">{heatmapData.totalContributions.toLocaleString()}</span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-xs font-bold text-slate-400 bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50 shrink-0">
+          <div className="flex items-center gap-3 text-xs font-bold text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700/50 shrink-0">
             <span>Less</span>
             <div className="flex gap-1.5">
               {['#1e293b', '#0e4429', '#006d32', '#26a641', '#39d353'].map(c => (
@@ -550,11 +560,11 @@ const DevPulse = () => {
         {/* Skill Radar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}
-          className="rounded-[2.5rem] border border-slate-700/50 p-8 flex flex-col shadow-2xl bg-[#0f172a] relative overflow-hidden"
+          className="rounded-[2.5rem] border border-gray-200 dark:border-slate-700/50 p-8 flex flex-col shadow-2xl bg-white dark:bg-[#0f172a] relative overflow-hidden"
         >
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-          <h3 className="text-xl font-black text-white mb-1 relative z-10">Skill Radar</h3>
-          <p className="text-sm text-slate-400 mb-6 font-medium relative z-10">Performance across categories</p>
+          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1 relative z-10">Skill Radar</h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mb-6 font-medium relative z-10">Performance across categories</p>
           <div className="flex-1 min-h-[300px] relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
@@ -576,11 +586,11 @@ const DevPulse = () => {
         {/* LeetCode Bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.5 }}
-          className="rounded-[2.5rem] border border-slate-700/50 p-8 flex flex-col shadow-2xl bg-[#0f172a] relative overflow-hidden"
+          className="rounded-[2.5rem] border border-gray-200 dark:border-slate-700/50 p-8 flex flex-col shadow-2xl bg-white dark:bg-[#0f172a] relative overflow-hidden"
         >
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
-          <h3 className="text-xl font-black text-white mb-1 relative z-10">LeetCode Profile</h3>
-          <p className="text-sm text-slate-400 mb-6 font-medium relative z-10">Problems solved by difficulty</p>
+          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1 relative z-10">LeetCode Profile</h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mb-6 font-medium relative z-10">Problems solved by difficulty</p>
           <div className="flex-1 min-h-[300px] relative z-10">
             {leetcodeBar.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -599,7 +609,7 @@ const DevPulse = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500 bg-slate-800/30 rounded-3xl border border-slate-700/50 border-dashed">
+              <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-800/30 rounded-3xl border border-gray-200 dark:border-slate-700/50 border-dashed">
                 <Code className="w-12 h-12 mb-4 opacity-50" />
                 <p className="text-sm font-semibold">Link LeetCode to see breakdown</p>
               </div>
@@ -610,13 +620,13 @@ const DevPulse = () => {
         {/* Quick Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}
-          className="rounded-[2.5rem] border border-slate-700/50 p-8 flex flex-col gap-4 shadow-2xl bg-[#0f172a] relative overflow-hidden"
+          className="rounded-[2.5rem] border border-gray-200 dark:border-slate-700/50 p-8 flex flex-col gap-4 shadow-2xl bg-white dark:bg-[#0f172a] relative overflow-hidden"
         >
           <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-emerald-600/10 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
           
           <div className="mb-2 relative z-10">
-            <h3 className="text-xl font-black text-white mb-1">Quick Stats</h3>
-            <p className="text-sm text-slate-400 font-medium">At-a-glance numbers</p>
+            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">Quick Stats</h3>
+            <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">At-a-glance numbers</p>
           </div>
           
           <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center">

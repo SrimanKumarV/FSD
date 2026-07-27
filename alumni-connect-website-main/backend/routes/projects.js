@@ -46,6 +46,36 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @desc    Get projects of followers
+// @route   GET /api/projects/followers
+// @access  Private
+router.get('/followers', protect, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find projects where the owner is in the user's followers array
+    const projects = await Project.find({ user: { $in: user.followers } })
+      .populate('user', 'name role avatar')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      projects,
+      total: projects.length,
+      pages: 1,
+      currentPage: 1
+    });
+  } catch (error) {
+    console.error('Error in get follower projects:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get single project
 // @route   GET /api/projects/:id
 // @access  Public

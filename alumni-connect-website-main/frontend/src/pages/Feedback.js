@@ -55,12 +55,11 @@ const FeedbackCard = ({ item }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-slate-700/50 overflow-hidden"
-      style={{ background: '#0f172a' }}
+      className="rounded-2xl border border-gray-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 overflow-hidden"
     >
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-start justify-between p-5 text-left hover:bg-white/5 transition-colors"
+        className="w-full flex items-start justify-between p-5 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         <div className="flex items-start gap-4">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -68,7 +67,7 @@ const FeedbackCard = ({ item }) => {
             <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">{item.subject}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.subject}</p>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex">
                 {[1,2,3,4,5].map(n => (
@@ -76,7 +75,7 @@ const FeedbackCard = ({ item }) => {
                         stroke={n <= item.rating ? '#f59e0b' : '#475569'} strokeWidth={1.5} />
                 ))}
               </div>
-              <span className="text-xs text-slate-500">{new Date(item.createdAt).toLocaleDateString()}</span>
+              <span className="text-xs text-gray-500 dark:text-slate-500">{new Date(item.createdAt).toLocaleDateString()}</span>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full border"
                     style={{ color: status.color, background: status.bg + '33', borderColor: status.border + '66' }}>
                 {status.label}
@@ -84,8 +83,8 @@ const FeedbackCard = ({ item }) => {
             </div>
           </div>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0 mt-1" />
-               : <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0 mt-1" />}
+        {open ? <ChevronUp className="w-4 h-4 text-gray-500 dark:text-slate-500 flex-shrink-0 mt-1" />
+               : <ChevronDown className="w-4 h-4 text-gray-500 dark:text-slate-500 flex-shrink-0 mt-1" />}
       </button>
 
       <AnimatePresence>
@@ -95,14 +94,14 @@ const FeedbackCard = ({ item }) => {
             exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 space-y-3 border-t border-slate-700/50 pt-4">
-              <p className="text-sm text-slate-400 leading-relaxed">{item.message}</p>
+            <div className="px-5 pb-5 space-y-3 border-t border-gray-200 dark:border-slate-700/50 pt-4">
+              <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">{item.message}</p>
               {item.adminReply && (
-                <div className="flex gap-3 mt-3 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                  <CheckCircle className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+                <div className="flex gap-3 mt-3 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
+                  <CheckCircle className="w-4 h-4 text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-semibold text-indigo-400 mb-1">Admin Reply</p>
-                    <p className="text-sm text-slate-300">{item.adminReply}</p>
+                    <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 mb-1">Admin Reply</p>
+                    <p className="text-sm text-gray-700 dark:text-slate-300">{item.adminReply}</p>
                   </div>
                 </div>
               )}
@@ -168,7 +167,7 @@ const Feedback = () => {
           </div>
           <div>
             <h1 className="text-2xl font-black text-white mb-1">Share Your Feedback</h1>
-            <p className="text-slate-400 leading-relaxed">
+            <p className="text-indigo-100 leading-relaxed">
               Help us improve Alumnex Connect. Every piece of feedback is reviewed by our team and shapes what we build next.
             </p>
           </div>
@@ -180,7 +179,7 @@ const Feedback = () => {
         {[{ key: 'submit', label: 'Submit Feedback' }, { key: 'history', label: 'My Submissions' }].map(tab => (
           <button
             key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`px-5 py-3 text-sm font-semibold transition-colors relative ${activeTab === tab.key ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`px-5 py-3 text-sm font-semibold transition-colors relative ${activeTab === tab.key ? 'text-indigo-600 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
           >
             {tab.label}
             {activeTab === tab.key && (
@@ -201,8 +200,8 @@ const Feedback = () => {
               >
                 <CheckCircle className="w-10 h-10 text-emerald-400" />
               </motion.div>
-              <h2 className="text-2xl font-black text-white mb-2">Feedback Received!</h2>
-              <p className="text-slate-400 mb-8 max-w-md">Our team reviews every submission. You can track the status in "My Submissions".</p>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Feedback Received!</h2>
+              <p className="text-gray-500 dark:text-slate-400 mb-8 max-w-md">Our team reviews every submission. You can track the status in "My Submissions".</p>
               <button
                 onClick={resetForm}
                 className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-colors"
@@ -213,8 +212,8 @@ const Feedback = () => {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Category */}
-              <div className="rounded-2xl border border-slate-700/50 p-6" style={{ background: '#0f172a' }}>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Category</h3>
+              <div className="rounded-2xl border border-gray-200 dark:border-slate-700/50 p-6 bg-white dark:bg-slate-900 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">Category</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {CATEGORIES.map(cat => {
                     const Icon = cat.icon;
@@ -225,8 +224,8 @@ const Feedback = () => {
                         onClick={() => setForm(f => ({ ...f, category: cat.value }))}
                         className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
                           selected
-                            ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                            : 'border-slate-700/50 text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                            ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-white'
+                            : 'border-gray-200 dark:border-slate-700/50 text-gray-500 dark:text-slate-400 hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-200'
                         }`}
                       >
                         <Icon className="w-4 h-4 flex-shrink-0" style={{ color: selected ? cat.color : undefined }} />
@@ -238,43 +237,43 @@ const Feedback = () => {
               </div>
 
               {/* Rating */}
-              <div className="rounded-2xl border border-slate-700/50 p-6" style={{ background: '#0f172a' }}>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+              <div className="rounded-2xl border border-gray-200 dark:border-slate-700/50 p-6 bg-white dark:bg-slate-900 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">
                   Overall Experience
                 </h3>
                 <StarRating value={form.rating} onChange={v => setForm(f => ({ ...f, rating: v }))} />
                 {form.rating > 0 && (
-                  <p className="text-sm text-slate-500 mt-2">
+                  <p className="text-sm text-gray-500 dark:text-slate-500 mt-2">
                     {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][form.rating]}
                   </p>
                 )}
               </div>
 
               {/* Subject + Message */}
-              <div className="rounded-2xl border border-slate-700/50 p-6 space-y-4" style={{ background: '#0f172a' }}>
+              <div className="rounded-2xl border border-gray-200 dark:border-slate-700/50 p-6 space-y-4 bg-white dark:bg-slate-900 shadow-sm">
                 <div>
-                  <label className="text-sm font-bold text-slate-400 uppercase tracking-widest block mb-2">Subject</label>
+                  <label className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest block mb-2">Subject</label>
                   <input
                     type="text"
                     value={form.subject}
                     onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
                     maxLength={150}
                     placeholder="Brief summary of your feedback…"
-                    className="w-full px-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors text-sm"
                   />
-                  <p className="text-xs text-slate-600 mt-1 text-right">{form.subject.length}/150</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-600 mt-1 text-right">{form.subject.length}/150</p>
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-slate-400 uppercase tracking-widest block mb-2">Details</label>
+                  <label className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest block mb-2">Details</label>
                   <textarea
                     value={form.message}
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                     rows={5}
                     maxLength={2000}
                     placeholder="Describe your experience in detail. The more context you provide, the better we can address it…"
-                    className="w-full px-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors text-sm resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors text-sm resize-none"
                   />
-                  <p className="text-xs text-slate-600 mt-1 text-right">{form.message.length}/2000</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-600 mt-1 text-right">{form.message.length}/2000</p>
                 </div>
               </div>
 
@@ -296,11 +295,11 @@ const Feedback = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           {histLoading ? (
             <div className="space-y-3 animate-pulse">
-              {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-slate-800/60" />)}
+              {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-gray-100 dark:bg-slate-800/60" />)}
             </div>
           ) : historyData?.data?.feedbacks?.length > 0 ? (
             <>
-              <div className="flex items-center gap-2 text-xs text-slate-500 mb-2 px-1">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-500 mb-2 px-1">
                 <Clock className="w-3 h-3" />
                 {historyData.data.feedbacks.length} submission(s) — most recent first
               </div>
@@ -310,9 +309,9 @@ const Feedback = () => {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <AlertCircle className="w-12 h-12 text-slate-600 mb-4" />
-              <p className="text-slate-400 font-semibold">No submissions yet</p>
-              <p className="text-slate-500 text-sm mt-1">Your feedback history will appear here.</p>
+              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-slate-600 mb-4" />
+              <p className="text-gray-500 dark:text-slate-400 font-semibold">No submissions yet</p>
+              <p className="text-gray-400 dark:text-slate-500 text-sm mt-1">Your feedback history will appear here.</p>
               <button
                 onClick={() => setActiveTab('submit')}
                 className="mt-6 px-5 py-2.5 text-sm font-medium text-indigo-400 border border-indigo-500/30 rounded-xl hover:bg-indigo-500/10 transition-colors"

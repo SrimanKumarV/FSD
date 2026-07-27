@@ -101,7 +101,7 @@ const Layout = ({ children }) => {
         { name: 'Jobs', href: '/jobs', icon: Briefcase },
         { name: 'Career Board', href: '/career-board', icon: Compass },
         { name: 'Events', href: '/events', icon: Calendar },
-        { name: 'Contests', href: '/contests', icon: Code },
+
         { name: 'Projects', href: '/projects', icon: Layers },
         { name: 'Project Collab', href: '/project-collaboration', icon: GitMerge },
         { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },

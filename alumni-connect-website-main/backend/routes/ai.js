@@ -18,7 +18,7 @@ router.post('/chat', protect, async (req, res) => {
       return res.status(400).json({ message: 'Message is required' });
     }
 
-    const apiKey = process.env.GROQ_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
+    const apiKey = process.env.GROQ_API_KEY?.trim();
 
     if (!apiKey) {
       // Fallback Mock Response if no API key is set
@@ -104,7 +104,7 @@ router.post('/analyze-resume', protect, upload.single('resume'), async (req, res
     const pdfData = await pdfParse(req.file.buffer);
     const resumeText = pdfData.text;
 
-    const apiKey = process.env.GROQ_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
+    const apiKey = process.env.GROQ_API_KEY?.trim();
     if (!apiKey) {
       // Mock Response
       return res.json({
@@ -154,13 +154,18 @@ Provide the output strictly in the following JSON format without any markdown wr
     );
 
     let reply = response.data.choices[0].message.content;
+    
+    // Strip markdown formatting if AI included it
+    reply = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
+    
     const parsedData = JSON.parse(reply);
 
     res.json(parsedData);
 
   } catch (error) {
+    const apiError = error?.response?.data?.error?.message || error.message;
     console.error('AI Resume Analyze Error:', error?.response?.data || error.message);
-    res.status(500).json({ message: 'Failed to analyze resume' });
+    res.status(500).json({ message: `Failed to analyze resume: ${apiError}` });
   }
 });
 

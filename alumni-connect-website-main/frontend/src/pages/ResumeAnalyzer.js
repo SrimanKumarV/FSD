@@ -2,11 +2,13 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, UploadCloud, CheckCircle, AlertCircle, TrendingUp, 
-  Target, Zap, FileSearch, ShieldCheck, ChevronRight
+  Target, Zap, FileSearch, ShieldCheck, ChevronRight, Star, StarHalf
 } from 'lucide-react';
+import api from '../utils/api';
 
 const ResumeAnalyzer = () => {
   const [file, setFile] = useState(null);
+  const [jobDescription, setJobDescription] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const fileInputRef = useRef(null);
@@ -32,27 +34,53 @@ const ResumeAnalyzer = () => {
     }
   };
 
-  const analyzeResume = () => {
-    if (!file) return;
+  const analyzeResume = async () => {
+    if (!file) {
+      alert('Please upload a resume.');
+      return;
+    }
+    if (!jobDescription.trim()) {
+      alert('Please provide a job description for accurate analysis.');
+      return;
+    }
+    
     setIsAnalyzing(true);
     
-    // Simulate AI analysis delay
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setResults({
-        atsScore: 78,
-        grammarScore: 92,
-        impactScore: 65,
-        rating: "Good, but needs action verbs",
-        missingSkills: ["Cloud Architecture (AWS/Azure)", "Docker/Kubernetes", "GraphQL"],
-        suggestions: [
-          "Use more quantifiable metrics (e.g., 'Increased efficiency by 20%')",
-          "Add a dedicated 'Projects' section highlighting full-stack apps",
-          "Remove high school details since you are in college/alumni stage",
-          "Include links to live project deployments, not just GitHub repos"
-        ]
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      formData.append('jobDescription', jobDescription);
+
+      const response = await api.post('/ai/analyze-resume', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
-    }, 3500);
+      
+      setResults(response.data);
+    } catch (error) {
+      console.error('Error analyzing resume:', error);
+      alert('Failed to analyze resume. Please ensure backend is running or try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(<Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />);
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(<StarHalf key={i} className="w-6 h-6 text-yellow-400 fill-current" />);
+      } else {
+        stars.push(<Star key={i} className="w-6 h-6 text-slate-300 dark:text-slate-700" />);
+      }
+    }
+    return stars;
   };
 
   return (
@@ -143,6 +171,19 @@ const ResumeAnalyzer = () => {
             )}
           </div>
 
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+            <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Target className="w-5 h-5 text-indigo-500" /> Target Job Description
+            </h4>
+            <p className="text-sm text-slate-500">Paste the job description here to analyze how well your resume matches the role.</p>
+            <textarea
+              className="w-full h-40 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+              placeholder="Paste Job Description here..."
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+            />
+          </div>
+
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-500" /> Privacy Guaranteed
@@ -177,10 +218,15 @@ const ResumeAnalyzer = () => {
               <div className="flex items-start justify-between mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
                 <div>
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Analysis Complete</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    {renderStars(results.stars || 0)}
+                    <span className="text-lg font-bold text-slate-700 dark:text-slate-300 ml-2">{results.stars || 0}/5</span>
+                  </div>
                   <p className="text-slate-500 font-medium">Verdict: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{results.rating}</span></p>
                 </div>
-                <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full border-4 border-indigo-500 flex items-center justify-center">
-                  <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{results.atsScore}</span>
+                <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-full border-4 border-indigo-500 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{results.atsScore}</span>
+                  <span className="text-xs font-bold text-indigo-500/70 uppercase">Score</span>
                 </div>
               </div>
 

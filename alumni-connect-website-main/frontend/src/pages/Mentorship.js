@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import MentorAllocation from './mentorship/MentorAllocation';
+import MentorRewardLeaderboard from '../components/MentorRewardLeaderboard';
 import { useSocket } from '../contexts/SocketContext';
 import { 
   Search, 
@@ -320,14 +321,24 @@ const Mentorship = () => {
                     My Mentorships
                   </button>
                   <button
-                    onClick={() => setActiveTab('leaderboard')}
+                    onClick={() => setActiveTab('allocation')}
                     className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
-                      activeTab === 'leaderboard'
+                      activeTab === 'allocation'
                         ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                     }`}
                   >
                     Smart Mentor Allocation
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('rewards')}
+                    className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                      activeTab === 'rewards'
+                        ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                  >
+                    Mentor Rewards
                   </button>
                 </nav>
               </div>
@@ -731,14 +742,25 @@ const Mentorship = () => {
           </motion.div>
         )}
 
-        {/* Leaderboard Tab (Now Smart Mentor Allocation) */}
-        {activeTab === 'leaderboard' && (
+        {/* Smart Mentor Allocation Tab */}
+        {activeTab === 'allocation' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
             <MentorAllocation />
+          </motion.div>
+        )}
+
+        {/* Mentor Rewards Tab */}
+        {activeTab === 'rewards' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <MentorRewardLeaderboard />
           </motion.div>
         )}
 

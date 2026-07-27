@@ -47,15 +47,29 @@ const MentorAllocation = () => {
 
   const requestMentor = async (mentorId) => {
     try {
-      await api.post('/mentorship/request', {
-        mentorId,
-        domain: 'General Guidance',
-        message: 'I would like you to be my mentor.'
+      await api.post('/mentorship', {
+        targetUserId: mentorId,
+        title: 'Mentorship Request from Smart Allocation',
+        description: 'I would like to request you as a mentor based on my domain interest.',
+        focusAreas: ['General Guidance'],
+        goals: ['Career Growth'],
+        expectedDuration: 12,
+        communicationMethod: 'chat'
       });
       toast.success('Mentorship requested successfully');
       fetchMentors();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to request mentorship');
+    }
+  };
+
+  const autoAssignMentor = async () => {
+    try {
+      await api.post('/mentorship/auto-assign');
+      toast.success('Mentor auto-assigned successfully!');
+      fetchMentors();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to auto-assign mentor');
     }
   };
 
@@ -85,9 +99,20 @@ const MentorAllocation = () => {
 
   return (
     <div className="w-full">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Smart Mentor Allocation</h2>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Automated matching based on domain expertise and availability.</p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Smart Mentor Allocation</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Automated matching based on domain expertise and availability.</p>
+        </div>
+        {user?.role === 'student' && (
+          <button 
+            onClick={autoAssignMentor}
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
+          >
+            <Star className="w-5 h-5" />
+            Auto-Allocate Best Match
+          </button>
+        )}
       </div>
 
       {user?.role === 'student' && (

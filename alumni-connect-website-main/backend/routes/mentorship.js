@@ -252,6 +252,95 @@ router.post('/', [protect], [
   }
 });
 
+// @desc    Auto-assign best mentor for student
+// @route   POST /api/mentorship/auto-assign
+// @access  Private (Student only)
+router.post('/auto-assign', protect, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ message: 'Only students can auto-assign mentors' });
+    }
+
+    const studentUser = await User.findById(req.user.id);
+    const college = studentUser.college;
+    if (!college) {
+      return res.status(400).json({ message: 'College information missing from your profile.' });
+    }
+
+    const SEAT_LIMIT = 10;
+    const alumni = await User.find({
+      role: 'alumni',
+      college: college,
+      isApproved: true
+    }).select('_id name college');
+
+    if (!alumni.length) {
+      return res.status(404).json({ message: 'No available mentors found from your college.' });
+    }
+
+    // Check if student already has a pending or active mentorship
+    const existingMentorship = await Mentorship.findOne({
+      student: req.user.id,
+      status: { $in: ['pending', 'active', 'accepted'] }
+    });
+    if (existingMentorship) {
+      return res.status(400).json({ message: 'You already have an active or pending mentorship request.' });
+    }
+
+    const mentorIds = alumni.map(a => a._id);
+    const counts = await Mentorship.aggregate([
+      { $match: { mentor: { $in: mentorIds }, status: { $in: ['pending', 'accepted', 'active'] } } },
+      { $group: { _id: '$mentor', count: { $sum: 1 } } }
+    ]);
+    const countMap = {};
+    counts.forEach(c => { countMap[c._id.toString()] = c.count; });
+
+    let bestMentor = null;
+    let maxCapacity = -1;
+    for (const alum of alumni) {
+      const used = countMap[alum._id.toString()] || 0;
+      const remaining = SEAT_LIMIT - used;
+      if (remaining > maxCapacity) {
+        maxCapacity = remaining;
+        bestMentor = alum;
+      }
+    }
+
+    if (!bestMentor || maxCapacity <= 0) {
+      return res.status(404).json({ message: 'All mentors are currently at full capacity.' });
+    }
+
+    const mentorship = new Mentorship({
+      student: req.user.id,
+      mentor: bestMentor._id,
+      title: 'Auto-Assigned Mentorship',
+      description: 'This mentorship was automatically requested via Smart Allocation based on your college affiliation.',
+      focusAreas: ['General Guidance'],
+      goals: ['Academic & Career Support'],
+      expectedDuration: 12,
+      communicationMethod: ['chat'],
+      status: 'pending',
+      isAutoAssigned: true
+    });
+    await mentorship.save();
+
+    await Notification.createNotification({
+      recipient: bestMentor._id,
+      sender: req.user.id,
+      type: 'mentorship_request',
+      title: 'New Auto-Assigned Student',
+      content: `A new student from ${college} has been auto-assigned to you as a mentee.`,
+      relatedData: { mentorshipId: mentorship._id }
+    });
+
+    res.json({ success: true, message: 'Mentor auto-assigned successfully!', mentorship });
+  } catch (error) {
+    console.error('Error auto-assigning mentor:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // @desc    Update mentorship status
 // @route   PUT /api/mentorship/:id/status
 // @access  Private

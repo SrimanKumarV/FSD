@@ -26,8 +26,8 @@ const Network = () => {
 
   // Fetch users
   const { data, isLoading } = useQuery(
-    ['network-users', debouncedSearch],
-    () => api.get(`/users/search?q=${debouncedSearch}`),
+    ['network-users', debouncedSearch, currentUser?.role],
+    () => api.get(`/users/search?q=${debouncedSearch}&role=${currentUser?.role}`),
     {
       keepPreviousData: true
     }
@@ -46,8 +46,8 @@ const Network = () => {
   // Fetch suggested users based on interests/skills
   const userInterests = currentUser?.interests?.join(',') || currentUser?.skills?.join(',') || '';
   const { data: suggestionsData } = useQuery(
-    ['suggested-users', userInterests],
-    () => api.get(`/users/search?skills=${userInterests}&limit=4`),
+    ['suggested-users', userInterests, currentUser?.role],
+    () => api.get(`/users/search?skills=${userInterests}&role=${currentUser?.role}&limit=4`),
     { enabled: !!userInterests }
   );
   // Filter out already connected/following users from suggestions

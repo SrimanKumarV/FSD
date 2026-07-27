@@ -158,6 +158,12 @@ Provide the output strictly in the following JSON format without any markdown wr
     // Strip markdown formatting if AI included it
     reply = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
     
+    // Attempt to extract just the JSON object in case there's prefix text
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      reply = jsonMatch[0];
+    }
+    
     const parsedData = JSON.parse(reply);
 
     res.json(parsedData);

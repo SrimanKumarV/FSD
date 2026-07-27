@@ -61,7 +61,8 @@ const ResumeAnalyzer = () => {
       setResults(response.data);
     } catch (error) {
       console.error('Error analyzing resume:', error);
-      alert('Failed to analyze resume. Please ensure backend is running or try again.');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to analyze resume. Please ensure backend is running or try again.';
+      alert(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }

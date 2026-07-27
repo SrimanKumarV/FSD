@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import MentorAllocation from './mentorship/MentorAllocation';
 import { useSocket } from '../contexts/SocketContext';
 import { 
   Search, 
@@ -677,56 +678,14 @@ const Mentorship = () => {
           </motion.div>
         )}
 
-        {/* Leaderboard Tab */}
+        {/* Leaderboard Tab (Now Smart Mentor Allocation) */}
         {activeTab === 'leaderboard' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              </div>
-            ) : leaderboard.length > 0 ? (
-              <div className="glass-card rounded-2xl overflow-hidden shadow-sm p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Top Mentors</h2>
-                <div className="space-y-4">
-                  {leaderboard.map((mentor, index) => (
-                    <div key={mentor._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center font-bold text-lg text-white" style={{
-                          backgroundColor: index === 0 ? '#f59e0b' : index === 1 ? '#94a3b8' : index === 2 ? '#b45309' : '#3b82f6'
-                        }}>
-                          #{index + 1}
-                        </div>
-                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-                          {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
-                            <img loading="lazy" src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <DefaultAvatar className="w-full h-full" />
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{mentor.name}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{mentor.alumniInfo?.position} at {mentor.alumniInfo?.company}</p>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary-600">{mentor.alumniInfo?.studentsPlaced || 0}</p>
-                        <p className="text-xs font-semibold text-gray-500 uppercase">Students Placed</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No data available</h3>
-                <p className="text-gray-600 mb-4">No mentors have placed students yet.</p>
-              </div>
-            )}
+            <MentorAllocation />
           </motion.div>
         )}
 

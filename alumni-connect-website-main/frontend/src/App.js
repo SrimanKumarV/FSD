@@ -46,7 +46,7 @@ const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const BusinessDirectory = lazy(() => import('./pages/BusinessDirectory'));
-const MentorAllocation = lazy(() => import('./pages/mentorship/MentorAllocation'));
+
 const TechHub = lazy(() => import('./pages/tech-hub/TechHub'));
 const CareerBoard = lazy(() => import('./pages/opportunities/CareerBoard'));
 const ProjectCollaboration = lazy(() => import('./pages/projects/ProjectCollaboration'));
@@ -267,14 +267,6 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <ProjectShowcase />
-                      </Layout>
-                    </ProtectedRoute>
-                  } />
-
-                  <Route path="/mentor-allocation" element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <MentorAllocation />
                       </Layout>
                     </ProtectedRoute>
                   } />

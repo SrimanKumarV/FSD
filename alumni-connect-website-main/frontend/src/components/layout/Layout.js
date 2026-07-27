@@ -89,7 +89,7 @@ const Layout = ({ children }) => {
         { name: 'Network', href: '/network', icon: Globe },
         { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
-        { name: 'Smart Mentors', href: '/mentor-allocation', icon: Sparkles },
+
         { name: 'Tech Hub', href: '/tech-hub', icon: Terminal },
         { name: 'Forum', href: '/forum', icon: MessageSquare },
         { name: 'Chat', href: '/chat', icon: MessageCircle },

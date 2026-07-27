@@ -123,6 +123,10 @@ const forumPostSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  reportCount: {
+    type: Number,
+    default: 0
+  },
   moderatedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

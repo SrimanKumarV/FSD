@@ -39,6 +39,220 @@ const JobLogo = ({ logo, company }) => {
   );
 };
 
+const MyPostedJobs = ({ onSelectJob }) => {
+  const [myJobs, setMyJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMyJobs = async () => {
+      try {
+        const res = await api.get('/jobs/my-posts');
+        setMyJobs(res.data?.jobs || []);
+      } catch (err) {
+        console.error('Failed to fetch my posted jobs', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMyJobs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[300px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  if (myJobs.length === 0) {
+    return (
+      <div className="glass-card rounded-3xl p-12 text-center h-[500px] flex flex-col items-center justify-center border-dashed border-2 border-gray-200 dark:border-gray-700">
+        <Briefcase className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">You haven't posted any jobs yet</h3>
+        <p className="text-gray-500 dark:text-gray-400">Share opportunities with the alumni network!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-card rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur p-2 rounded-lg z-10 border-b border-gray-100 dark:border-gray-700">
+        My Posted Jobs & Referrals
+      </h3>
+      <div className="space-y-4">
+        {myJobs.map(job => (
+          <div key={job._id} className="p-4 border border-gray-100 dark:border-gray-700 rounded-2xl hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-800/50 cursor-pointer" onClick={() => onSelectJob(job)}>
+            <div className="flex justify-between items-start">
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white text-lg">{job.title}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{job.company}</p>
+              </div>
+              <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${job.jobType === 'referral' ? 'bg-amber-100 text-amber-700' : 'bg-primary-100 text-primary-700'}`}>
+                {job.jobType}
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+              <span className="flex items-center"><Users className="w-4 h-4 mr-1"/> {job.applications?.length || 0} Apps</span>
+              <span className="flex items-center"><Eye className="w-4 h-4 mr-1"/> {job.views || 0} Views</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs ${job.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>
+                {job.status}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const PostJobModal = ({ onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    company: '',
+    location: '',
+    jobType: 'full-time',
+    category: 'technology',
+    isRemote: false,
+    requirements: [''],
+    skills: [''],
+    experience: 'entry',
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const payload = {
+        ...formData,
+        requirements: formData.requirements.filter(r => r.trim() !== ''),
+        skills: formData.skills.filter(s => s.trim() !== '')
+      };
+      await api.post('/jobs', payload);
+      toast.success('Job posted successfully!');
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to post job');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleArrayChange = (field, index, value) => {
+    const newArr = [...formData[field]];
+    newArr[index] = value;
+    setFormData(prev => ({ ...prev, [field]: newArr }));
+  };
+
+  const addArrayItem = (field) => {
+    setFormData(prev => ({ ...prev, [field]: [...prev[field], ''] }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative my-8 custom-scrollbar">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold">&times;</button>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Post a Job or Referral</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
+              <input required type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.title} onChange={e => setFormData(prev => ({...prev, title: e.target.value}))} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Company</label>
+              <input required type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.company} onChange={e => setFormData(prev => ({...prev, company: e.target.value}))} />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Location</label>
+            <input required type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.location} onChange={e => setFormData(prev => ({...prev, location: e.target.value}))} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Job Type</label>
+              <select className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.jobType} onChange={e => setFormData(prev => ({...prev, jobType: e.target.value}))}>
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+                <option value="internship">Internship</option>
+                <option value="contract">Contract</option>
+                <option value="freelance">Freelance</option>
+                <option value="referral">Referral</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Experience</label>
+              <select className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.experience} onChange={e => setFormData(prev => ({...prev, experience: e.target.value}))}>
+                <option value="entry">Entry Level</option>
+                <option value="junior">Junior</option>
+                <option value="mid">Mid Level</option>
+                <option value="senior">Senior</option>
+                <option value="lead">Lead</option>
+                <option value="executive">Executive</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category</label>
+            <select className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.category} onChange={e => setFormData(prev => ({...prev, category: e.target.value}))}>
+              <option value="technology">Technology</option>
+              <option value="business">Business</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="education">Education</option>
+              <option value="finance">Finance</option>
+              <option value="marketing">Marketing</option>
+              <option value="design">Design</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <input type="checkbox" checked={formData.isRemote} onChange={e => setFormData(prev => ({...prev, isRemote: e.target.checked}))} className="rounded text-primary-600 focus:ring-primary-500" />
+              <span>Is Remote?</span>
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <textarea required rows="4" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.description} onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}></textarea>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Skills</label>
+            {formData.skills.map((skill, index) => (
+              <input key={index} type="text" placeholder="Skill" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2 text-black dark:text-white" value={skill} onChange={(e) => handleArrayChange('skills', index, e.target.value)} />
+            ))}
+            <button type="button" onClick={() => addArrayItem('skills')} className="text-sm text-primary-600 hover:text-primary-700 font-semibold">+ Add Skill</button>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Requirements</label>
+            {formData.requirements.map((req, index) => (
+              <input key={index} type="text" placeholder="Requirement" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2 text-black dark:text-white" value={req} onChange={(e) => handleArrayChange('requirements', index, e.target.value)} />
+            ))}
+            <button type="button" onClick={() => addArrayItem('requirements')} className="text-sm text-primary-600 hover:text-primary-700 font-semibold">+ Add Requirement</button>
+          </div>
+
+          <div className="pt-4 flex justify-end">
+            <button type="button" onClick={onClose} className="px-6 py-2 mr-4 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold">Cancel</button>
+            <button type="submit" disabled={loading} className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30">
+              {loading ? 'Posting...' : 'Post Job'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const Jobs = () => {
   const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
@@ -192,13 +406,20 @@ const Jobs = () => {
           className="glass-card rounded-3xl p-8 mb-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-400/20 to-alumni-400/20 dark:from-primary-500/10 dark:to-alumni-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between mb-8">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Job Opportunities</h1>
               <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
                 Discover exciting career opportunities from our alumni network
               </p>
             </div>
+            <button
+              onClick={() => setShowPostForm(true)}
+              className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg hover:shadow-primary-500/30 transition-all shrink-0"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Post Job / Referral
+            </button>
           </div>
 
           {/* Stats */}
@@ -558,10 +779,7 @@ const Jobs = () => {
                   </div>
                 </motion.div>
               ) : (
-                <div className="glass-card rounded-3xl p-12 text-center h-[500px] flex flex-col items-center justify-center border-dashed border-2 border-gray-200 dark:border-gray-700">
-                  <Briefcase className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-                  <h3 className="text-xl font-bold text-gray-500 dark:text-gray-400">Select a job to view details</h3>
-                </div>
+                <MyPostedJobs onSelectJob={setSelectedJob} />
               )}
             </div>
 
@@ -606,6 +824,16 @@ const Jobs = () => {
           </div>
         )}
       </div>
+
+      {showPostForm && (
+        <PostJobModal 
+          onClose={() => setShowPostForm(false)} 
+          onSuccess={() => {
+            setShowPostForm(false);
+            fetchJobs();
+          }} 
+        />
+      )}
     </div>
   );
 };

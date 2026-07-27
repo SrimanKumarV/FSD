@@ -230,6 +230,30 @@ const Forum = () => {
     }
   };
 
+  const handleSavePost = async (postId) => {
+    try {
+      await api.post(`/forum/${postId}/save`);
+      toast.success('Post saved status updated');
+    } catch (error) {
+      toast.error('Failed to save post');
+    }
+  };
+
+  const handleReportPost = async (postId) => {
+    try {
+      await api.post(`/forum/${postId}/report`);
+      toast.success('Post reported to moderators');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to report post');
+    }
+  };
+
+  const handleSharePost = (postId) => {
+    const url = `${window.location.origin}/forum?post=${postId}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Link copied to clipboard!');
+  };
+
   if (error) {
     return (
       <div className="text-center py-12">
@@ -418,6 +442,9 @@ const Forum = () => {
                     onDelete={handleDeletePost}
                     onSelect={setSelectedPost}
                     onEdit={setEditingPost}
+                    onSave={handleSavePost}
+                    onReport={handleReportPost}
+                    onShare={handleSharePost}
                     user={user}
                     isActive={selectedPost?._id === post._id}
                   />
@@ -484,6 +511,9 @@ const Forum = () => {
                 onClosePost={handleClosePost}
                 onDeleteComment={handleDeleteComment}
                 onEdit={setEditingPost}
+                onSave={handleSavePost}
+                onReport={handleReportPost}
+                onShare={handleSharePost}
                 isModal={false}
               />
             ) : (
@@ -534,6 +564,9 @@ const Forum = () => {
             onClosePost={handleClosePost}
             onDeleteComment={handleDeleteComment}
             onEdit={setEditingPost}
+            onSave={handleSavePost}
+            onReport={handleReportPost}
+            onShare={handleSharePost}
             isModal={true}
           />
         )}
@@ -543,42 +576,25 @@ const Forum = () => {
 };
 
 // Post Card Component
-const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit, isActive }) => {
+const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit, isActive, onSave, onReport, onShare }) => {
   const [showActions, setShowActions] = useState(false);
 
   const handleShare = async (e) => {
     e.stopPropagation();
     setShowActions(false);
-    const url = `${window.location.origin}/forum`; 
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: post.title,
-          text: `Check out this post on Alumnex Connect: ${post.title}`,
-          url: url,
-        });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard');
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard');
-      }
-    }
+    if (onShare) onShare(post._id);
   };
 
   const handleSave = (e) => {
     e.stopPropagation();
     setShowActions(false);
-    toast.success('Post saved successfully!');
+    if (onSave) onSave(post._id);
   };
 
   const handleReport = (e) => {
     e.stopPropagation();
     setShowActions(false);
-    toast.success('Post reported to moderators');
+    if (onReport) onReport(post._id);
   };
 
   const getCategoryColor = (category) => {
@@ -1005,40 +1021,23 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes, initialData
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment, onEdit, isModal = true }) => {
+const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting, onDelete, onClosePost, onDeleteComment, onEdit, onSave, onReport, onShare, isModal = true }) => {
   const [newComment, setNewComment] = useState('');
   const [showActions, setShowActions] = useState(false);
 
   const handleShare = async () => {
     setShowActions(false);
-    const url = `${window.location.origin}/forum`; 
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: post.title,
-          text: `Check out this post on Alumnex Connect: ${post.title}`,
-          url: url,
-        });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard');
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard');
-      }
-    }
+    if (onShare) onShare(post._id);
   };
 
   const handleSave = () => {
     setShowActions(false);
-    toast.success('Post saved successfully!');
+    if (onSave) onSave(post._id);
   };
 
   const handleReport = () => {
     setShowActions(false);
-    toast.success('Post reported to moderators');
+    if (onReport) onReport(post._id);
   };
 
   const handleAddComment = (e) => {

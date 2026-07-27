@@ -111,6 +111,10 @@ const userSchema = new mongoose.Schema({
       type: Number,
       min: 0
     },
+    studentsPlaced: {
+      type: Number,
+      default: 0
+    },
     employmentProofUrl: {
       type: String,
       trim: true
@@ -265,6 +269,16 @@ const userSchema = new mongoose.Schema({
   completedTasks: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Task'
+  }],
+  
+  // Forum interactions
+  savedPosts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ForumPost'
+  }],
+  reportedPosts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ForumPost'
   }],
   
   // Password Reset

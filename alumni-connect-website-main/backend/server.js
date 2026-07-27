@@ -91,6 +91,7 @@ app.use('/api/institutions', require('./routes/institutions'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/tech-hub', require('./routes/tech-hub'));
+app.use('/api/business', require('./routes/business'));
 
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);

@@ -237,7 +237,62 @@ router.post('/', [protect], [
 
     res.status(201).json({ post });
   } catch (error) {
-    console.error('Error creating forum post:', error);
+    console.error('Error creating post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Save/Unsave a post
+// @route   POST /api/forum/:id/save
+// @access  Private
+router.post('/:id/save', protect, async (req, res) => {
+  try {
+    const post = await ForumPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    const user = await User.findById(req.user.id);
+    const savedIndex = user.savedPosts.indexOf(req.params.id);
+    
+    if (savedIndex === -1) {
+      user.savedPosts.push(req.params.id);
+    } else {
+      user.savedPosts.splice(savedIndex, 1);
+    }
+    
+    await user.save();
+    res.json({ saved: savedIndex === -1 });
+  } catch (error) {
+    console.error('Error saving post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Report a post
+// @route   POST /api/forum/:id/report
+// @access  Private
+router.post('/:id/report', protect, async (req, res) => {
+  try {
+    const post = await ForumPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    const user = await User.findById(req.user.id);
+    if (user.reportedPosts.includes(req.params.id)) {
+      return res.status(400).json({ message: 'You have already reported this post' });
+    }
+    
+    user.reportedPosts.push(req.params.id);
+    await user.save();
+    
+    post.reportCount = (post.reportCount || 0) + 1;
+    await post.save();
+    
+    res.json({ message: 'Post reported successfully' });
+  } catch (error) {
+    console.error('Error reporting post:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

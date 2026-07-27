@@ -30,9 +30,10 @@ const Mentorship = () => {
   const { user } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('find');
+  const [activeTab, setActiveTab] = useState(user?.role === 'alumni' ? 'requests' : 'find');
   const [mentors, setMentors] = useState([]);
   const [mentorships, setMentorships] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     skills: '',
@@ -117,6 +118,8 @@ const Mentorship = () => {
   useEffect(() => {
     if (activeTab === 'find') {
       fetchMentors();
+    } else if (activeTab === 'leaderboard') {
+      fetchLeaderboard();
     } else {
       fetchMentorships();
     }
@@ -143,6 +146,19 @@ const Mentorship = () => {
     } catch (error) {
       console.error('Error fetching mentorships:', error);
       toast.error('Failed to fetch mentorships');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/mentorship/leaderboard');
+      setLeaderboard(response.data?.topMentors || response.topMentors || []);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      toast.error('Failed to fetch leaderboard');
     } finally {
       setLoading(false);
     }
@@ -267,16 +283,30 @@ const Mentorship = () => {
             <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
               <div className="border-b border-gray-200/50 dark:border-gray-700/50">
                 <nav className="flex space-x-8 px-6">
-                  <button
-                    onClick={() => setActiveTab('find')}
-                    className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
-                      activeTab === 'find'
-                        ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
-                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                    }`}
-                  >
-                    {user.role === 'alumni' ? 'Find Students' : 'Find Mentors'}
-                  </button>
+                  {user?.role === 'student' && (
+                    <button
+                      onClick={() => setActiveTab('find')}
+                      className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                        activeTab === 'find'
+                          ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                      }`}
+                    >
+                      Find Mentors
+                    </button>
+                  )}
+                  {user?.role === 'alumni' && (
+                    <button
+                      onClick={() => setActiveTab('requests')}
+                      className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                        activeTab === 'requests'
+                          ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                      }`}
+                    >
+                      Requested Students
+                    </button>
+                  )}
                   <button
                     onClick={() => setActiveTab('my-mentorships')}
                     className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
@@ -286,6 +316,16 @@ const Mentorship = () => {
                     }`}
                   >
                     My Mentorships
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('leaderboard')}
+                    className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                      activeTab === 'leaderboard'
+                        ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                  >
+                    Smart Mentor Allocation
                   </button>
                 </nav>
               </div>
@@ -504,8 +544,12 @@ const Mentorship = () => {
               </div>
             ) : mentorships.length > 0 ? (
               <div className="space-y-4">
-                {mentorships.map((mentorship) => (
-                  <motion.div whileHover={{ y: -5 }} key={mentorship.id} className="glass-card rounded-2xl p-6 group">
+                {mentorships.filter(m => {
+                  if (activeTab === 'requests') return m.status === 'pending';
+                  if (user?.role === 'alumni') return m.status !== 'pending';
+                  return true;
+                }).map((mentorship) => (
+                  <motion.div whileHover={{ y: -5 }} key={mentorship._id || mentorship.id} className="glass-card rounded-2xl p-6 group">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">{mentorship.title}</h3>
@@ -628,6 +672,58 @@ const Mentorship = () => {
           </motion.div>
         )}
 
+        {/* Leaderboard Tab */}
+        {activeTab === 'leaderboard' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              </div>
+            ) : leaderboard.length > 0 ? (
+              <div className="glass-card rounded-2xl overflow-hidden shadow-sm p-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Top Mentors</h2>
+                <div className="space-y-4">
+                  {leaderboard.map((mentor, index) => (
+                    <div key={mentor._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center font-bold text-lg text-white" style={{
+                          backgroundColor: index === 0 ? '#f59e0b' : index === 1 ? '#94a3b8' : index === 2 ? '#b45309' : '#3b82f6'
+                        }}>
+                          #{index + 1}
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
+                          {mentor.photo && mentor.photo !== 'default-avatar.png' ? (
+                            <img loading="lazy" src={mentor.photo} alt={mentor.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <DefaultAvatar className="w-full h-full" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{mentor.name}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{mentor.alumniInfo?.position} at {mentor.alumniInfo?.company}</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-primary-600">{mentor.alumniInfo?.studentsPlaced || 0}</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">Students Placed</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No data available</h3>
+                <p className="text-gray-600 mb-4">No mentors have placed students yet.</p>
+              </div>
+            )}
+          </motion.div>
+        )}
 
       </div>
 

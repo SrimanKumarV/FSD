@@ -210,20 +210,63 @@ const BusinessDirectory = () => {
               <div>
                 <div className="flex items-center gap-1.5 text-slate-400 mb-1">
                   <Briefcase className="w-3.5 h-3.5" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Jobs</span>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Startup Name *</label>
+                  <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="e.g. Acme Corp" />
                 </div>
-                <p className="text-sm font-semibold text-emerald-500">{biz.hiring ? 'Hiring Now' : 'No Openings'}</p>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Industry *</label>
+                  <input type="text" name="industry" required value={formData.industry} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="e.g. Technology" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Location *</label>
+                  <input type="text" name="location" required value={formData.location} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="e.g. San Francisco, CA" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Stage</label>
+                  <select name="stage" value={formData.stage} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl">
+                    <option value="Idea">Idea</option>
+                    <option value="Seed">Seed</option>
+                    <option value="Early Stage">Early Stage</option>
+                    <option value="Growth">Growth</option>
+                    <option value="Established">Established</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description *</label>
+                  <textarea name="description" required rows="4" value={formData.description} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="What does your startup do?"></textarea>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Website URL</label>
+                  <input type="url" name="website" value={formData.website} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Logo URL (Optional)</label>
+                  <input type="url" name="logo" value={formData.logo} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="https://..." />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tags (comma separated)</label>
+                  <input type="text" name="tags" value={formData.tags} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="AI, SaaS, B2B" />
+                </div>
+                <div className="md:col-span-2 flex items-center">
+                  <input type="checkbox" id="hiring" name="hiring" checked={formData.hiring} onChange={handleInputChange} className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                  <label htmlFor="hiring" className="ml-3 font-medium text-gray-700 dark:text-gray-300">We are actively hiring!</label>
+                </div>
               </div>
-            </div>
+              
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-6 flex gap-4">
+                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 px-4 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 py-3 px-4 font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl shadow-lg transition-all">
+                  Submit Listing
+                </button>
+              </div>
+            </form>
           </motion.div>
-        ))}
-      </div>
-
-      {filteredBusinesses.length === 0 && (
-        <div className="py-20 text-center">
-          <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-500 mb-2">No startups found</h3>
-          <p className="text-slate-400">Try adjusting your search terms or filters.</p>
         </div>
       )}
     </div>

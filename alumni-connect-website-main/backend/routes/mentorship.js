@@ -82,6 +82,22 @@ router.get('/mentors', protect, async (req, res) => {
   }
 });
 
+// @desc    Get mentor leaderboard
+// @route   GET /api/mentorship/leaderboard
+// @access  Private
+router.get('/leaderboard', protect, async (req, res) => {
+  try {
+    const topMentors = await User.find({ role: 'alumni', 'alumniInfo.studentsPlaced': { $gt: 0 } })
+      .select('name email photo alumniInfo bio location')
+      .sort({ 'alumniInfo.studentsPlaced': -1 })
+      .limit(10);
+    res.json({ topMentors });
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get mentorship by ID
 // @route   GET /api/mentorship/:id
 // @access  Private
@@ -244,6 +260,9 @@ router.put('/:id/status', [protect], [
       mentorship.startDate = new Date();
     } else if (status === 'completed') {
       mentorship.endDate = new Date();
+      if (oldStatus !== 'completed') {
+        await User.findByIdAndUpdate(mentorship.mentor, { $inc: { 'alumniInfo.studentsPlaced': 1 } });
+      }
     } else if (status === 'accepted') {
       // Bi-directional follower logic: responder automatically follows requester
       const requesterId = req.user.id === mentorship.mentor.toString() ? mentorship.student : mentorship.mentor;

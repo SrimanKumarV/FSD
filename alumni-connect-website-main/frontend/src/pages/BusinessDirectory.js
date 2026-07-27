@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Building2, Search, ExternalLink, MapPin, 
-  Users, TrendingUp, Briefcase, Filter, ShieldCheck, ChevronRight
+  Users, TrendingUp, Briefcase, Filter, ShieldCheck, ChevronRight, X
 } from 'lucide-react';
 
 // Mock Data for Startups/Businesses
@@ -64,6 +64,21 @@ const mockBusinesses = [
 const BusinessDirectory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '', industry: '', location: '', stage: 'Idea', description: '', website: '', logo: '', tags: '', hiring: false
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(formData);
+    setShowAddModal(false);
+  };
 
   const industries = ["All", "Artificial Intelligence", "CleanTech", "FinTech", "HealthTech"];
 
@@ -103,7 +118,7 @@ const BusinessDirectory = () => {
             </p>
           </div>
           <div className="hidden md:flex flex-col gap-4">
-            <button className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2">
+            <button onClick={() => setShowAddModal(true)} className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2">
               List Your Startup <ChevronRight className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 text-slate-400 text-sm font-medium px-2">
@@ -210,6 +225,29 @@ const BusinessDirectory = () => {
               <div>
                 <div className="flex items-center gap-1.5 text-slate-400 mb-1">
                   <Briefcase className="w-3.5 h-3.5" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Industry</span>
+                </div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{biz.industry}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Add Startup Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-10">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Add Your Startup</h2>
+              <button onClick={() => setShowAddModal(false)} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

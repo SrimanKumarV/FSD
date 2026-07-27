@@ -104,22 +104,31 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed — clear session and redirect once
         isRefreshing = false;
         onRefreshFailed();
 
-        // Only clear and redirect if there's actually a stored session to clear
-        if (localStorage.getItem('token')) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          // Dispatch a custom event so AuthContext can react cleanly
-          window.dispatchEvent(new Event('auth:logout'));
-          // Small delay to let pending state updates settle before redirect
-          setTimeout(() => {
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login';
-            }
-          }, 100);
+        // Only clear session and redirect if the refresh explicitly failed due to an auth issue (401/403)
+        // If it failed because of a network timeout or 500 error, we shouldn't log the user out!
+        const isAuthError = refreshError.response && (refreshError.response.status === 401 || refreshError.response.status === 403);
+        
+        if (isAuthError) {
+          if (localStorage.getItem('token')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.dispatchEvent(new Event('auth:logout'));
+            setTimeout(() => {
+              if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+              }
+            }, 100);
+          }
+        } else {
+          // It was a network or server error during refresh, just show a network error toast
+          console.warn('Network error during token refresh:', refreshError.message);
+          if (!originalRequest._toastShown) {
+            toast.error('Network error. Servers are currently unreachable.');
+            originalRequest._toastShown = true;
+          }
         }
         return Promise.reject(error);
       }

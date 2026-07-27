@@ -540,15 +540,33 @@ router.get('/me', protect, async (req, res) => {
 
 // @route   POST /api/auth/refresh
 // @desc    Refresh JWT token
-// @access  Private
-router.post('/refresh', protect, async (req, res) => {
+// @access  Public (verifies token manually ignoring expiration)
+router.post('/refresh', async (req, res) => {
   try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    // Verify token ignoring expiration so we can refresh an expired token!
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+
+    // Ensure the user still exists and is active
+    const user = await User.findById(decoded.id);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'User not found or deactivated' });
+    }
+
     // Generate new token
-    const token = generateToken(req.user._id);
+    const newToken = generateToken(user._id);
 
     res.json({
       success: true,
-      token
+      token: newToken
     });
 
   } catch (error) {

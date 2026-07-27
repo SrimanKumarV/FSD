@@ -126,7 +126,14 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
           if (error.name === 'CanceledError' || error.name === 'AbortError') return;
           console.error('Auth check failed:', error);
-          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+          // Only log out if it's explicitly an auth error (401/403)
+          // Don't log out on 500s or Network Errors (like when Render backend is sleeping/restarting)
+          if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            dispatch({ type: AUTH_ACTIONS.LOGOUT });
+          } else {
+            // Keep the user logged in but stop the loading spinner
+            dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+          }
         }
       } else {
         dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });

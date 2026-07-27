@@ -134,7 +134,7 @@ const Dashboard = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-            Welcome back, {user?.name}! 👋
+            Welcome back, {user?.name}!
           </h1>
           <p className="text-cyan-50 text-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
             Here's what's happening in your professional network today.
@@ -176,16 +176,6 @@ const Dashboard = () => {
                 </div>
                 <div className={`p-4 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 shadow-inner`}>
                   <Icon className={`w-7 h-7 text-cyan-600 dark:text-cyan-400`} />
-                </div>
-              </div>
-              <div className="relative z-10 mt-4 flex items-center">
-                <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
-                  stat.changeType === 'increase' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-                }`}>
-                  <TrendingUp className={`w-3 h-3 mr-1 ${
-                    stat.changeType === 'increase' ? 'text-green-500' : 'text-red-500'
-                  }`} />
-                  {stat.change}
                 </div>
               </div>
             </motion.div>
@@ -339,48 +329,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Bottom Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-        className="glass-card rounded-2xl p-8 overflow-hidden relative border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-      >
-        <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-tr from-primary-400/10 to-transparent dark:from-primary-500/5 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
-        
-        <div className="relative z-10 flex items-center justify-between mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Progress</h2>
-          <Link to="/profile" className="text-sm font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 bg-primary-50 dark:bg-primary-900/30 px-4 py-2 rounded-lg transition-colors">
-            View Details
-          </Link>
-        </div>
-        
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <motion.div whileHover={{ y: -5 }} className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 shadow-sm">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-            <p className="text-sm font-bold text-gray-600 dark:text-gray-400">Profile Complete</p>
-            <p className="text-3xl font-extrabold text-green-600 dark:text-green-400 mt-2">85%</p>
-          </motion.div>
-          
-          <motion.div whileHover={{ y: -5 }} className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 shadow-sm">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <Star className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-sm font-bold text-gray-600 dark:text-gray-400">Network Score</p>
-            <p className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2">720</p>
-          </motion.div>
-          
-          <motion.div whileHover={{ y: -5 }} className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 shadow-sm">
-            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <TrendingUp className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-            </div>
-            <p className="text-sm font-bold text-gray-600 dark:text-gray-400">Growth Rate</p>
-            <p className="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-2">+15%</p>
-          </motion.div>
-        </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

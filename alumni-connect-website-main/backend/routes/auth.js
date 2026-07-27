@@ -40,38 +40,19 @@ router.post('/google', async (req, res) => {
     
     let isNewUser = false;
     if (!user) {
-      // Create new student user by default
-      user = new User({
-        name,
-        email,
-        password: await bcrypt.hash(sub + process.env.JWT_SECRET, 10), // Random secure password
-        role: 'student',
-        photo: picture,
-        isVerified: true,
-        studentInfo: {}
+      // Issue temporary token for role selection
+      const tempToken = jwt.sign(
+        { email, name, picture, sub, provider: 'google' },
+        process.env.JWT_SECRET,
+        { expiresIn: '15m' }
+      );
+      
+      return res.json({
+        success: true,
+        requiresRoleSelection: true,
+        tempToken,
+        message: 'Please select your role to complete registration'
       });
-      await user.save();
-      isNewUser = true;
-
-      // Send Welcome Email for OAuth
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Welcome to Alumnex Connect!',
-          message: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
-              <p>Hi ${user.name},</p>
-              <p>Your account has been successfully created via Google.</p>
-              <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
-              <br/>
-              <p>Best regards,<br/>The Alumnex Connect Team</p>
-            </div>
-          `
-        });
-      } catch (err) {
-        console.error('Welcome email send error:', err);
-      }
     } else {
       let needsSave = false;
       if (!user.photo && picture) {
@@ -185,38 +166,19 @@ router.post('/github', async (req, res) => {
     
     let isNewUser = false;
     if (!user) {
-      // Create new student user by default
-      user = new User({
-        name,
-        email,
-        password: await bcrypt.hash(githubUser.id.toString() + process.env.JWT_SECRET, 10), // Random secure password
-        role: 'student',
-        photo: picture,
-        isVerified: true,
-        studentInfo: {}
+      // Issue temporary token for role selection
+      const tempToken = jwt.sign(
+        { email, name, picture, sub: githubUser.id.toString(), provider: 'github' },
+        process.env.JWT_SECRET,
+        { expiresIn: '15m' }
+      );
+      
+      return res.json({
+        success: true,
+        requiresRoleSelection: true,
+        tempToken,
+        message: 'Please select your role to complete registration'
       });
-      await user.save();
-      isNewUser = true;
-
-      // Send Welcome Email for OAuth
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Welcome to Alumnex Connect!',
-          message: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
-              <p>Hi ${user.name},</p>
-              <p>Your account has been successfully created via GitHub.</p>
-              <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
-              <br/>
-              <p>Best regards,<br/>The Alumnex Connect Team</p>
-            </div>
-          `
-        });
-      } catch (err) {
-        console.error('Welcome email send error:', err);
-      }
     } else {
       let needsSave = false;
       if (!user.photo && picture) {
@@ -247,6 +209,90 @@ router.post('/github', async (req, res) => {
   } catch (error) {
     console.error('GitHub auth error:', error);
     res.status(401).json({ message: error.message || 'Invalid GitHub authentication' });
+  }
+});
+
+// @route   POST /api/auth/oauth-complete
+// @desc    Complete OAuth registration by selecting role
+// @access  Public
+router.post('/oauth-complete', [
+  body('tempToken', 'Token is required').exists(),
+  body('role', 'Role must be student or alumni').isIn(['student', 'alumni'])
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { tempToken, role } = req.body;
+
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'Token is invalid or expired. Please login again.' });
+    }
+
+    if (!decoded.email || !decoded.provider) {
+      return res.status(400).json({ message: 'Invalid token payload' });
+    }
+
+    // Double check user doesn't exist
+    let user = await User.findOne({ email: decoded.email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    user = new User({
+      name: decoded.name,
+      email: decoded.email,
+      password: await bcrypt.hash(decoded.sub + process.env.JWT_SECRET, 10), // Random secure password
+      role: role,
+      photo: decoded.picture,
+      isVerified: true,
+      studentInfo: role === 'student' ? {} : undefined,
+      alumniInfo: role === 'alumni' ? {} : undefined,
+      isApproved: role === 'student' ? true : false // Alumni needs approval
+    });
+    
+    await user.save();
+
+    // Send Welcome Email
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Welcome to Alumnex Connect!',
+        message: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
+            <p>Hi ${user.name},</p>
+            <p>Your account has been successfully created via ${decoded.provider === 'google' ? 'Google' : 'GitHub'}.</p>
+            <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
+            <br/>
+            <p>Best regards,<br/>The Alumnex Connect Team</p>
+          </div>
+        `
+      });
+    } catch (err) {
+      console.error('Welcome email send error:', err);
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+    const userResponse = user.getPublicProfile();
+
+    res.json({
+      success: true,
+      token,
+      user: userResponse,
+      isNewUser: true,
+      message: `${decoded.provider === 'google' ? 'Google' : 'GitHub'} account linked! Welcome to Alumnex.`
+    });
+
+  } catch (error) {
+    console.error('OAuth complete error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, X, User, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -10,7 +10,9 @@ import { useGoogleLogin } from '@react-oauth/google';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, loginWithGoogle, loginWithGithub } = useAuth();
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [oauthTempToken, setOauthTempToken] = useState(null);
+  const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,7 +20,10 @@ const Login = () => {
     try {
       setIsLoading(true);
       const result = await loginWithGoogle(tokenResponse.credential || tokenResponse.access_token);
-      if (result.requires2FA) {
+      if (result.requiresRoleSelection) {
+        setOauthTempToken(result.tempToken);
+        setShowRoleModal(true);
+      } else if (result.requires2FA) {
         navigate('/verify-2fa', { state: { email: result.email, availableMethods: result.availableMethods, methodSent: result.methodSent } });
       } else if (result.success) {
         navigate(from, { replace: true });
@@ -52,7 +57,10 @@ const Login = () => {
     setIsLoading(true);
     try {
       const result = await loginWithGithub(code);
-      if (result.requires2FA) {
+      if (result.requiresRoleSelection) {
+        setOauthTempToken(result.tempToken);
+        setShowRoleModal(true);
+      } else if (result.requires2FA) {
         navigate('/verify-2fa', { state: { email: result.email, availableMethods: result.availableMethods, methodSent: result.methodSent } });
       } else if (result.success) {
         navigate(from, { replace: true });
@@ -106,8 +114,27 @@ const Login = () => {
         type: 'manual',
         message: 'An unexpected error occurred. Please try again.'
       });
+      } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRoleSelection = async (role) => {
+    setIsLoading(true);
+    setShowRoleModal(false);
+    try {
+      const result = await completeOAuthLogin(oauthTempToken, role);
+      if (result.success) {
+        navigate(from, { replace: true });
+      } else {
+        toast.error(result.error || 'Failed to complete registration');
+      }
+    } catch (error) {
+      console.error('Role selection error:', error);
+      toast.error('An unexpected error occurred.');
     } finally {
       setIsLoading(false);
+      setOauthTempToken(null);
     }
   };
 
@@ -366,6 +393,74 @@ const Login = () => {
           </p>
         </motion.div>
       </div>
+
+      {/* Role Selection Modal */}
+      {showRoleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+          >
+            <div className="p-6 relative">
+              <button
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setOauthTempToken(null);
+                }}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                Select Your Role
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-6 text-sm">
+                Please let us know if you are joining as a student or an alumni.
+              </p>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleRoleSelection('student')}
+                  disabled={isLoading}
+                  className="w-full group flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-800/50 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div className="ml-4 text-left">
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      Student
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      I am currently studying.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleRoleSelection('alumni')}
+                  disabled={isLoading}
+                  className="w-full group flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-alumni-500 dark:hover:border-alumni-500 transition-colors bg-gray-50 dark:bg-gray-800/50 hover:bg-alumni-50 dark:hover:bg-alumni-900/20"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 bg-alumni-100 dark:bg-alumni-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <GraduationCap className="w-6 h-6 text-alumni-600 dark:text-alumni-400" />
+                  </div>
+                  <div className="ml-4 text-left">
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-alumni-600 dark:group-hover:text-alumni-400 transition-colors">
+                      Alumni
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      I have already graduated.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

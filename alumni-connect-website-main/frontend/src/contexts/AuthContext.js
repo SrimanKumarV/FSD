@@ -198,8 +198,13 @@ export const AuthProvider = ({ children }) => {
         credential
       });
 
-      const { user, token, isNewUser, requires2FA, availableMethods, methodSent, message } = response.data;
+      const { user, token, isNewUser, requiresRoleSelection, tempToken, requires2FA, availableMethods, methodSent, message } = response.data;
       
+      if (requiresRoleSelection) {
+        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+        return { success: true, requiresRoleSelection: true, tempToken };
+      }
+
       if (requires2FA) {
         dispatch({ type: AUTH_ACTIONS.LOGOUT });
         if(methodSent) toast.success(message || 'OTP sent successfully!');
@@ -233,8 +238,13 @@ export const AuthProvider = ({ children }) => {
         code
       });
 
-      const { user, token, isNewUser, requires2FA, availableMethods, methodSent, message } = response.data;
+      const { user, token, isNewUser, requiresRoleSelection, tempToken, requires2FA, availableMethods, methodSent, message } = response.data;
       
+      if (requiresRoleSelection) {
+        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+        return { success: true, requiresRoleSelection: true, tempToken };
+      }
+
       if (requires2FA) {
         dispatch({ type: AUTH_ACTIONS.LOGOUT });
         if(methodSent) toast.success(message || 'OTP sent successfully!');
@@ -250,6 +260,36 @@ export const AuthProvider = ({ children }) => {
       return { success: true, isNewUser };
     } catch (error) {
       const message = error.response?.data?.message || 'GitHub Login failed';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: message
+      });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
+  // Complete OAuth login with selected role
+  const completeOAuthLogin = async (tempToken, role) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      
+      const response = await api.post('/auth/oauth-complete', {
+        tempToken,
+        role
+      });
+
+      const { user, token, message } = response.data;
+      
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user, token }
+      });
+
+      toast.success(message || 'Login successful!');
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to complete registration';
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
         payload: message
@@ -522,6 +562,7 @@ export const AuthProvider = ({ children }) => {
     login,
     loginWithGoogle,
     loginWithGithub,
+    completeOAuthLogin,
     register,
     logout,
     updateUser,

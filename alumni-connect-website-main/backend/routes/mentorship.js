@@ -71,11 +71,32 @@ router.get('/mentors', protect, async (req, res) => {
       selectFields += ' alumniInfo';
     }
 
+    const SEAT_LIMIT = 10;
+
     const mentors = await User.find(query)
       .select(selectFields)
       .sort({ name: 1 });
 
-    res.json({ mentors });
+    // For each mentor (alumni), calculate remaining seat capacity
+    const mentorIds = mentors.map(m => m._id);
+    const activeCounts = await Mentorship.aggregate([
+      { $match: { mentor: { $in: mentorIds }, status: { $in: ['pending', 'accepted', 'active'] } } },
+      { $group: { _id: '$mentor', count: { $sum: 1 } } }
+    ]);
+    const countMap = {};
+    activeCounts.forEach(entry => { countMap[entry._id.toString()] = entry.count; });
+
+    const mentorsWithCapacity = mentors.map(mentor => {
+      const obj = mentor.toObject();
+      const usedSeats = countMap[mentor._id.toString()] || 0;
+      const maxSeats = SEAT_LIMIT;
+      obj.totalSeats = maxSeats;
+      obj.usedSeats = usedSeats;
+      obj.remainingCapacity = Math.max(0, maxSeats - usedSeats);
+      return obj;
+    });
+
+    res.json({ mentors: mentorsWithCapacity });
   } catch (error) {
     console.error('Error fetching mentors:', error);
     res.status(500).json({ message: 'Server error' });
@@ -169,11 +190,21 @@ router.post('/', [protect], [
     const existingMentorship = await Mentorship.findOne({
       student: studentId,
       mentor: mentorId,
-      status: { $in: ['pending', 'active'] }
+      status: { $in: ['pending', 'active', 'accepted'] }
     });
 
     if (existingMentorship) {
-      return res.status(400).json({ message: 'Mentorship request already exists' });
+      return res.status(400).json({ message: 'Mentorship request already exists or is already active' });
+    }
+
+    // Enforce seat limit: check how many active/pending requests this mentor has
+    const SEAT_LIMIT = 10;
+    const currentMenteeCount = await Mentorship.countDocuments({
+      mentor: mentorId,
+      status: { $in: ['pending', 'accepted', 'active'] }
+    });
+    if (currentMenteeCount >= SEAT_LIMIT) {
+      return res.status(400).json({ message: 'This mentor has no available seats. Please choose another mentor.' });
     }
 
     const mentorship = new Mentorship({

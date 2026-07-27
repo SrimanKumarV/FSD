@@ -232,7 +232,7 @@ const BusinessDirectory = () => {
             </div>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Add Startup Modal */}
       {showAddModal && (

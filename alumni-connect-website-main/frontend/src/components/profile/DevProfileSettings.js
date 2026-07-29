@@ -83,7 +83,10 @@ const DevProfileSettings = () => {
   );
 
   const verifyPlatformMutation = useMutation(
-    (platform) => api.post('/dev-activity/verify-platform', { platform }),
+    (platform) => api.post('/dev-activity/verify-platform', { 
+      platform, 
+      username: usernames[platform]?.username 
+    }),
     {
       onSuccess: (res, platform) => {
         toast.success(res.data.message);

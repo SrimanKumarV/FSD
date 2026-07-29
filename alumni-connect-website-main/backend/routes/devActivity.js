@@ -259,7 +259,7 @@ router.post('/generate-code', protect, async (req, res) => {
 // @access  Private
 router.post('/verify-platform', protect, async (req, res) => {
   try {
-    const { platform } = req.body;
+    const { platform, username } = req.body;
     const userEmail = req.user.email;
     
     const profile = await DevProfile.findOne({ email: userEmail });
@@ -271,9 +271,8 @@ router.post('/verify-platform', protect, async (req, res) => {
       return res.status(400).json({ message: 'Verification code expired. Please generate a new one.' });
     }
 
-    const username = profile.usernames[platform]?.username;
     if (!username) {
-      return res.status(400).json({ message: `No username saved for ${platform}` });
+      return res.status(400).json({ message: `No username provided for ${platform}` });
     }
 
     const code = profile.verificationCode;
@@ -284,8 +283,10 @@ router.post('/verify-platform', protect, async (req, res) => {
     isVerified = true;
 
     if (isVerified) {
-      profile.usernames[platform].isVerified = true;
+      if (!profile.usernames) profile.usernames = {};
+      profile.usernames[platform] = { username, isVerified: true };
       profile.markModified(`usernames.${platform}`);
+      profile.lastUpdated = null; // force refresh
       await profile.save();
       return res.json({ message: `${platform} verified successfully!`, usernames: profile.usernames });
     } else {

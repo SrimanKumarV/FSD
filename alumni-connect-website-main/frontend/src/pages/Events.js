@@ -39,7 +39,11 @@ const Events = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    title: '', description: '', startDate: '', endDate: '', location: '', eventType: 'meetup', category: 'technology'
+    title: '', description: '', startDate: '', endDate: '', location: '', eventType: 'meetup', category: 'technology',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    isVirtual: false,
+    isRegistrationRequired: true,
+    isFree: true
   });
 
   const platformsList = ['All', 'Events', 'LeetCode', 'Codeforces', 'CodeChef', 'GeeksForGeeks', 'HackerRank'];
@@ -380,6 +384,20 @@ const Events = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location / Platform</label>
                   <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" />
+                </div>
+                <div className="grid grid-cols-3 gap-4 pt-2">
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" checked={formData.isVirtual} onChange={e => setFormData({...formData, isVirtual: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                    <span>Is Virtual?</span>
+                  </label>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" checked={formData.isRegistrationRequired} onChange={e => setFormData({...formData, isRegistrationRequired: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                    <span>Requires Reg?</span>
+                  </label>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" checked={formData.isFree} onChange={e => setFormData({...formData, isFree: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                    <span>Is Free?</span>
+                  </label>
                 </div>
                 <div className="pt-4 flex gap-3">
                   <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 py-2.5 px-4 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-semibold">Cancel</button>

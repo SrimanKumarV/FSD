@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import MentorRewardLeaderboard from '../components/MentorRewardLeaderboard';
+import UserAvatar from '../components/UserAvatar';
 import { Star } from 'lucide-react';
 
 const COUNTRIES_WITH_FLAGS = [
@@ -285,12 +286,8 @@ const Leaderboard = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-500 to-alumni-500 flex items-center justify-center text-white font-medium shadow-sm">
-                            {profile.photo ? (
-                              <img loading="lazy" src={profile.photo} alt={profile.name} className="w-full h-full rounded-full object-cover" />
-                            ) : (
-                              profile.name?.charAt(0).toUpperCase()
-                            )}
+                          <div className="w-16 h-16 rounded-full p-1 bg-white dark:bg-gray-800 shrink-0 relative z-10 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                            <UserAvatar src={profile.photo} name={profile.name} className="w-full h-full" />
                           </div>
                           <div className="ml-4">
                             <div className="font-bold text-gray-900 dark:text-white flex items-center">

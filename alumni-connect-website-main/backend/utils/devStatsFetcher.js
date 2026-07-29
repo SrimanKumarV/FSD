@@ -128,12 +128,28 @@ const fetchGFGStats = async (username) => {
 
 const fetchCodechefStats = async (username) => {
   if (!username) return null;
-  // Codechef doesn't have a reliable open API, mocking for demo
-  return {
-    rating: Math.floor(Math.random() * 1000) + 1200,
-    stars: Math.floor(Math.random() * 5) + 1,
-    url: `https://www.codechef.com/users/${username}`
-  };
+  try {
+    const response = await axios.get(`https://www.codechef.com/users/${username}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const $ = cheerio.load(response.data);
+    const ratingStr = $('.rating-number').text();
+    const rating = parseInt(ratingStr, 10);
+    
+    const starsStr = $('.rating-star').text();
+    const stars = (starsStr.match(/★/g) || []).length || 1;
+    
+    if (isNaN(rating)) throw new Error("Rating not found");
+    
+    return {
+      rating,
+      stars,
+      url: `https://www.codechef.com/users/${username}`
+    };
+  } catch (error) {
+    console.warn(`Scraping Codechef failed for ${username}, returning null.`);
+    return null;
+  }
 };
 
 const fetchCodeforcesStats = async (username) => {
@@ -151,13 +167,8 @@ const fetchCodeforcesStats = async (username) => {
     }
     return null;
   } catch (error) {
-    console.warn(`Codeforces API failed for ${username}, returning mock.`);
-    return {
-      rating: Math.floor(Math.random() * 1000) + 1200,
-      maxRating: Math.floor(Math.random() * 1000) + 1500,
-      rank: 'expert',
-      url: `https://codeforces.com/profile/${username}`
-    };
+    console.warn(`Codeforces API failed for ${username}, returning null.`);
+    return null;
   }
 };
 

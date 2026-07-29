@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const { protect, alumni, verified, approved } = require('../middleware/auth');
 const Job = require('../models/Job');
+const JobApplication = require('../models/JobApplication');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 
@@ -241,6 +242,12 @@ router.post('/', [protect, alumni, approved], [
     // Populate for response
     await job.populate('postedBy', 'name photo role');
 
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('job:new', job);
+    }
+
     res.status(201).json({ job });
   } catch (error) {
     console.error('Error creating job:', error);
@@ -305,6 +312,11 @@ router.put('/:id', protect, [
     }
 
     await job.save();
+    
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('job:updated', job);
+    }
 
     res.json({ job });
   } catch (error) {
@@ -328,6 +340,12 @@ router.delete('/:id', protect, async (req, res) => {
     }
 
     await job.remove();
+    
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('job:deleted', { jobId: req.params.id });
+    }
+    
     res.json({ message: 'Job deleted successfully' });
   } catch (error) {
     console.error('Error deleting job:', error);
@@ -354,15 +372,26 @@ router.post('/:id/apply', protect, async (req, res) => {
     }
 
     // Check if already applied
-    if (job.applications.includes(req.user.id)) {
+    const existingApplication = await JobApplication.findOne({ job: job._id, applicant: req.user.id });
+    if (existingApplication) {
       return res.status(400).json({ message: 'Already applied for this job' });
     }
+
+    // Create application
+    const { coverLetter, resumeLink } = req.body;
+    const application = new JobApplication({
+      job: job._id,
+      applicant: req.user.id,
+      coverLetter,
+      resumeLink
+    });
+    await application.save();
 
     // Increment applications count
     await job.incrementApplications();
 
     // Create notification for job poster
-    await Notification.createNotification({
+    const notification = await Notification.createNotification({
       recipient: job.postedBy,
       sender: req.user.id,
       type: 'job_application',
@@ -371,9 +400,99 @@ router.post('/:id/apply', protect, async (req, res) => {
       relatedData: { jobId: job._id }
     });
 
-    res.json({ message: 'Application submitted successfully' });
+    // Real-time notification
+    const io = req.app.get('io');
+    if (io) {
+      io.to(job.postedBy.toString()).emit('notification:received', notification);
+    }
+
+    res.json({ message: 'Application submitted successfully', application });
   } catch (error) {
     console.error('Error applying for job:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get current user's job applications
+// @route   GET /api/jobs/applications/me
+// @access  Private
+router.get('/applications/me', protect, async (req, res) => {
+  try {
+    const applications = await JobApplication.find({ applicant: req.user.id })
+      .populate('job', 'title company companyLogo location jobType status')
+      .sort({ createdAt: -1 });
+    res.json({ applications });
+  } catch (error) {
+    console.error('Error fetching my applications:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get applicants for a specific job
+// @route   GET /api/jobs/:id/applications
+// @access  Private
+router.get('/:id/applications', protect, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    
+    if (job.postedBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const applications = await JobApplication.find({ job: job._id })
+      .populate('applicant', 'name photo email headline skills')
+      .sort({ createdAt: -1 });
+      
+    res.json({ applications });
+  } catch (error) {
+    console.error('Error fetching job applications:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Update application status
+// @route   PUT /api/jobs/applications/:appId/status
+// @access  Private
+router.put('/applications/:appId/status', protect, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['pending', 'reviewed', 'accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const application = await JobApplication.findById(req.params.appId).populate('job');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.job.postedBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    application.status = status;
+    await application.save();
+
+    // Notify applicant
+    const notification = await Notification.createNotification({
+      recipient: application.applicant,
+      sender: req.user.id,
+      type: 'job_application_status',
+      title: 'Application Status Updated',
+      content: `Your application for ${application.job.title} is now ${status}.`,
+      relatedData: { jobId: application.job._id, applicationId: application._id }
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(application.applicant.toString()).emit('notification:received', notification);
+    }
+
+    res.json({ application });
+  } catch (error) {
+    console.error('Error updating application status:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -483,7 +602,7 @@ router.get('/:id/stats', protect, async (req, res) => {
 
     const stats = {
       views: job.views,
-      applications: job.applications.length,
+      applications: job.applications, // now just returning the number
       savedCount: job.savedBy.length,
       daysPosted: Math.ceil((Date.now() - job.createdAt) / (1000 * 60 * 60 * 24))
     };

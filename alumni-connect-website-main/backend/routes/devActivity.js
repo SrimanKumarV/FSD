@@ -183,16 +183,34 @@ router.post('/usernames', protect, async (req, res) => {
     if (newCodechef === '' && profile.usernames.codechef?.username) profile.stats.codechef = null;
     if (newCodeforces === '' && profile.usernames.codeforces?.username) profile.stats.codeforces = null;
 
-    profile.usernames.github.username = newGithub;
-    profile.usernames.leetcode.username = newLeetcode;
-    profile.usernames.hackerrank.username = newHackerrank;
-    profile.usernames.gfg.username = newGfg;
+    if (newGithub !== profile.usernames.github.username) {
+      profile.usernames.github.username = newGithub;
+      profile.usernames.github.isVerified = false;
+    }
+    if (newLeetcode !== profile.usernames.leetcode.username) {
+      profile.usernames.leetcode.username = newLeetcode;
+      profile.usernames.leetcode.isVerified = false;
+    }
+    if (newHackerrank !== profile.usernames.hackerrank.username) {
+      profile.usernames.hackerrank.username = newHackerrank;
+      profile.usernames.hackerrank.isVerified = false;
+    }
+    if (newGfg !== profile.usernames.gfg.username) {
+      profile.usernames.gfg.username = newGfg;
+      profile.usernames.gfg.isVerified = false;
+    }
     
     if (!profile.usernames.codechef) profile.usernames.codechef = { username: '', isVerified: false };
     if (!profile.usernames.codeforces) profile.usernames.codeforces = { username: '', isVerified: false };
     
-    profile.usernames.codechef.username = newCodechef;
-    profile.usernames.codeforces.username = newCodeforces;
+    if (newCodechef !== profile.usernames.codechef.username) {
+      profile.usernames.codechef.username = newCodechef;
+      profile.usernames.codechef.isVerified = false;
+    }
+    if (newCodeforces !== profile.usernames.codeforces.username) {
+      profile.usernames.codeforces.username = newCodeforces;
+      profile.usernames.codeforces.isVerified = false;
+    }
 
     // Force refresh next time by clearing lastUpdated
     profile.lastUpdated = null;

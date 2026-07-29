@@ -7,6 +7,7 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import UserAvatar from '../components/UserAvatar';
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -453,11 +454,7 @@ const DevPulse = () => {
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-cyan-500 rounded-[2rem] blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
               <div className="w-24 h-24 md:w-32 md:h-32 rounded-[2rem] overflow-hidden relative z-10 border-2 border-white/20 bg-slate-800 shadow-2xl flex items-center justify-center">
-                {profilePhoto ? (
-                  <img src={profilePhoto} alt={profileName} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-4xl font-black text-white">{profileName?.charAt(0).toUpperCase()}</span>
-                )}
+                <UserAvatar src={profilePhoto} name={profileName} className="w-full h-full rounded-[2rem]" />
               </div>
             </div>
             

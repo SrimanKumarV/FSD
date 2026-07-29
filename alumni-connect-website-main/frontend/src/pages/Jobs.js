@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -118,6 +119,7 @@ const PostJobModal = ({ onClose, onSuccess }) => {
     requirements: [''],
     skills: [''],
     experience: 'entry',
+    applicationLink: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -224,6 +226,11 @@ const PostJobModal = ({ onClose, onSuccess }) => {
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <textarea required rows="4" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.description} onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}></textarea>
           </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Application Link</label>
+            <input required type="url" placeholder="https://" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.applicationLink} onChange={e => setFormData(prev => ({...prev, applicationLink: e.target.value}))} />
+          </div>
           
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Skills</label>
@@ -245,6 +252,57 @@ const PostJobModal = ({ onClose, onSuccess }) => {
             <button type="button" onClick={onClose} className="px-6 py-2 mr-4 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold">Cancel</button>
             <button type="submit" disabled={loading} className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30">
               {loading ? 'Posting...' : 'Post Job'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const ApplyJobModal = ({ job, onClose, onSuccess }) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    coverLetter: '',
+    resumeLink: ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await api.post(`/jobs/${job._id || job.id}/apply`, formData);
+      toast.success('Successfully applied for this job!');
+      onSuccess(job._id || job.id);
+    } catch (error) {
+      console.error('Error applying:', error);
+      toast.error(error.response?.data?.message || 'Failed to apply for job');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold">&times;</button>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Apply for {job.title}</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">{job.company}</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Resume Link (Optional)</label>
+            <input type="url" placeholder="https://link-to-resume.com" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.resumeLink} onChange={e => setFormData(prev => ({...prev, resumeLink: e.target.value}))} />
+            <p className="text-xs text-gray-400 mt-1">Provide a link to your Google Drive or Portfolio resume.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Cover Letter / Note</label>
+            <textarea rows="5" placeholder="Why are you a good fit for this role?" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white custom-scrollbar" value={formData.coverLetter} onChange={e => setFormData(prev => ({...prev, coverLetter: e.target.value}))}></textarea>
+          </div>
+          <div className="pt-4 flex justify-end">
+            <button type="button" onClick={onClose} className="px-6 py-2 mr-4 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold">Cancel</button>
+            <button type="submit" disabled={loading} className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30">
+              {loading ? 'Submitting...' : 'Submit Application'}
             </button>
           </div>
         </form>
@@ -278,6 +336,31 @@ const Jobs = () => {
   const [requestedReferrals, setRequestedReferrals] = useState([]);
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
+  const [showApplyModal, setShowApplyModal] = useState(null); // stores the job being applied to
+  const { socket } = useSocket();
+
+  // Socket.io Real-time integration for new jobs
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleNewJob = (newJob) => {
+      setJobs(prev => [newJob, ...prev]);
+      toast.success(`New job posted: ${newJob.title} at ${newJob.company}`, { icon: '💼' });
+    };
+    
+    const handleJobDeleted = ({ jobId }) => {
+      setJobs(prev => prev.filter(j => j._id !== jobId));
+      if (selectedJob && selectedJob._id === jobId) setSelectedJob(null);
+    };
+
+    socket.on('job:new', handleNewJob);
+    socket.on('job:deleted', handleJobDeleted);
+    
+    return () => {
+      socket.off('job:new', handleNewJob);
+      socket.off('job:deleted', handleJobDeleted);
+    };
+  }, [socket, selectedJob]);
 
   useEffect(() => {
     fetchJobs();
@@ -344,15 +427,8 @@ const Jobs = () => {
     setCurrentPage(1);
   };
 
-  const handleApply = async (jobId) => {
-    try {
-      await api.post(`/jobs/${jobId}/apply`);
-      toast.success('Successfully applied for this job!');
-      setAppliedJobs([...appliedJobs, jobId]);
-    } catch (error) {
-      console.error('Error applying for job:', error);
-      toast.error(error.response?.data?.message || 'Failed to apply for job');
-    }
+  const handleApply = (job) => {
+    setShowApplyModal(job);
   };
 
   const handleSave = async (jobId) => {
@@ -366,9 +442,23 @@ const Jobs = () => {
     }
   };
 
-  const handleReferralRequest = (jobId, companyName) => {
-    setRequestedReferrals([...requestedReferrals, jobId]);
-    toast.success(`Referral request sent to alumni network at ${companyName}!`);
+  const handleReferralRequest = (jobId, companyName, postedBy) => {
+    if (!postedBy || !postedBy._id) {
+      toast.error('Cannot find the alumni who posted this.');
+      return;
+    }
+    
+    if (socket) {
+      socket.emit('message:send', {
+        receiverId: postedBy._id,
+        content: `Hi! I saw your referral opportunity for ${companyName} and I'm very interested. Could we discuss this?`,
+        messageType: 'text'
+      });
+      setRequestedReferrals([...requestedReferrals, jobId]);
+      toast.success(`Referral request sent as a direct message to ${postedBy.name}!`);
+    } else {
+      toast.error('Chat connection not available.');
+    }
   };
 
   const sortedJobs = jobs; // Backend handles sorting and filtering
@@ -781,7 +871,7 @@ const Jobs = () => {
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleReferralRequest(selectedJob._id || selectedJob.id, selectedJob.company)}
+                            onClick={() => handleReferralRequest(selectedJob._id || selectedJob.id, selectedJob.company, selectedJob.postedBy)}
                             className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
                           >
                             <UserPlus className="w-5 h-5" /> Request Referral
@@ -794,7 +884,7 @@ const Jobs = () => {
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleApply(selectedJob._id || selectedJob.id)}
+                            onClick={() => handleApply(selectedJob)}
                             className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30"
                           >
                             Apply Now
@@ -866,6 +956,17 @@ const Jobs = () => {
             setShowPostForm(false);
             fetchJobs();
           }} 
+        />
+      )}
+
+      {showApplyModal && (
+        <ApplyJobModal
+          job={showApplyModal}
+          onClose={() => setShowApplyModal(null)}
+          onSuccess={(jobId) => {
+            setShowApplyModal(null);
+            setAppliedJobs([...appliedJobs, jobId]);
+          }}
         />
       )}
     </div>

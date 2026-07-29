@@ -99,7 +99,7 @@ const DevProfileSettings = () => {
   const handleChange = (e) => {
     setUsernames({
       ...usernames,
-      [e.target.name]: { ...usernames[e.target.name], username: e.target.value }
+      [e.target.name]: { ...usernames[e.target.name], username: e.target.value, isVerified: false }
     });
   };
 
@@ -138,8 +138,7 @@ const DevProfileSettings = () => {
             value={usernames[platformKey]?.username || ''}
             onChange={handleChange}
             placeholder={placeholder}
-            disabled={isVerified}
-            className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+            className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors"
           />
           {!isVerified && usernames[platformKey]?.username && (
             <button

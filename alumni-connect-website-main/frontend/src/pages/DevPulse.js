@@ -193,35 +193,63 @@ const StatPill = ({ label, value, color }) => (
   </div>
 );
 
-const BadgeCard = ({ badge, platformLabel }) => (
-  <motion.div
-    whileHover={{ y: -4, scale: 1.05 }}
-    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-    className="relative flex flex-col items-center gap-2 p-4 rounded-2xl border backdrop-blur-xl text-center group cursor-default"
-    style={{ background: `${badge.color}12`, borderColor: `${badge.color}30` }}
-    title={`${badge.name} — ${platformLabel}`}
-  >
-    <div
-      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg ring-1"
-      style={{ background: `${badge.color}20`, ringColor: `${badge.color}30` }}
+const BadgeCard = ({ badge, platformLabel }) => {
+  const [imgError, setImgError] = React.useState(false);
+  const showImage = badge.imageUrl && !imgError;
+
+  return (
+    <motion.div
+      whileHover={{ y: -5, scale: 1.07 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+      className="relative flex flex-col items-center gap-2 p-3 rounded-2xl border backdrop-blur-xl text-center group cursor-default"
+      style={{ background: `${badge.color}12`, borderColor: `${badge.color}35` }}
+      title={`${badge.name} — ${platformLabel}${badge.earnedAt ? `\nEarned: ${new Date(badge.earnedAt * 1000).toDateString()}` : ''}`}
     >
-      {badge.icon}
-    </div>
-    <p className="text-[11px] font-bold leading-tight" style={{ color: badge.color }}>{badge.name}</p>
-    <p className="text-[10px] text-slate-400 font-medium">{platformLabel}</p>
-    {badge.stars && (
-      <div className="flex gap-0.5">
-        {Array.from({ length: badge.stars }).map((_, i) => (
-          <span key={i} className="text-xs" style={{ color: badge.color }}>★</span>
-        ))}
+      {/* Glow on hover */}
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ boxShadow: `0 0 24px ${badge.color}40` }} />
+
+      {/* Badge icon / image */}
+      <div className="relative w-14 h-14 flex items-center justify-center">
+        {showImage ? (
+          <img
+            src={badge.imageUrl}
+            alt={badge.name}
+            onError={() => setImgError(true)}
+            className="w-14 h-14 object-contain drop-shadow-lg"
+            loading="lazy"
+          />
+        ) : (
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg"
+            style={{ background: `${badge.color}22`, border: `1px solid ${badge.color}40` }}
+          >
+            {badge.icon}
+          </div>
+        )}
       </div>
-    )}
-    <div
-      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-      style={{ boxShadow: `0 0 20px ${badge.color}30` }}
-    />
-  </motion.div>
-);
+
+      <p className="text-[11px] font-bold leading-tight line-clamp-2 w-full" style={{ color: badge.color }}>{badge.name}</p>
+
+      {/* Star rating for HackerRank */}
+      {badge.stars > 0 && (
+        <div className="flex gap-0.5">
+          {Array.from({ length: Math.min(badge.stars, 5) }).map((_, i) => (
+            <span key={i} className="text-[10px]" style={{ color: badge.color }}>★</span>
+          ))}
+        </div>
+      )}
+
+      {/* Domain tag for HackerRank */}
+      {badge.domain && (
+        <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide"
+          style={{ background: `${badge.color}20`, color: badge.color }}>
+          {badge.domain}
+        </span>
+      )}
+    </motion.div>
+  );
+};
 
 // ── Main Component ────────────────────────────────────────────────────────────
 const DevPulse = () => {

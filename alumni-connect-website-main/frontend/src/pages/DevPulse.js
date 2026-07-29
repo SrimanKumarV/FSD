@@ -193,6 +193,36 @@ const StatPill = ({ label, value, color }) => (
   </div>
 );
 
+const BadgeCard = ({ badge, platformLabel }) => (
+  <motion.div
+    whileHover={{ y: -4, scale: 1.05 }}
+    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+    className="relative flex flex-col items-center gap-2 p-4 rounded-2xl border backdrop-blur-xl text-center group cursor-default"
+    style={{ background: `${badge.color}12`, borderColor: `${badge.color}30` }}
+    title={`${badge.name} — ${platformLabel}`}
+  >
+    <div
+      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg ring-1"
+      style={{ background: `${badge.color}20`, ringColor: `${badge.color}30` }}
+    >
+      {badge.icon}
+    </div>
+    <p className="text-[11px] font-bold leading-tight" style={{ color: badge.color }}>{badge.name}</p>
+    <p className="text-[10px] text-slate-400 font-medium">{platformLabel}</p>
+    {badge.stars && (
+      <div className="flex gap-0.5">
+        {Array.from({ length: badge.stars }).map((_, i) => (
+          <span key={i} className="text-xs" style={{ color: badge.color }}>★</span>
+        ))}
+      </div>
+    )}
+    <div
+      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      style={{ boxShadow: `0 0 20px ${badge.color}30` }}
+    />
+  </motion.div>
+);
+
 // ── Main Component ────────────────────────────────────────────────────────────
 const DevPulse = () => {
   const { user } = useAuth();
@@ -380,6 +410,19 @@ const DevPulse = () => {
       url: getPlatformUrl(stats, usernames, 'codeforces'),
     },
   ];
+
+  // ── Aggregate all badges from every platform ──────────────────────────────
+  const platformBadgeSources = [
+    { key: 'github',     label: 'GitHub' },
+    { key: 'leetcode',   label: 'LeetCode' },
+    { key: 'hackerrank', label: 'HackerRank' },
+    { key: 'gfg',        label: 'GeeksforGeeks' },
+    { key: 'codechef',   label: 'CodeChef' },
+    { key: 'codeforces', label: 'Codeforces' },
+  ];
+  const allBadges = platformBadgeSources.flatMap(({ key, label }) =>
+    (stats?.[key]?.badges || []).map(b => ({ ...b, platform: key, platformLabel: label }))
+  );
 
   if (isLoading) {
     return (
@@ -647,6 +690,75 @@ const DevPulse = () => {
           )}
         </motion.div>
       </div>
+
+      {/* ── Badges & Awards ── */}
+      {allBadges.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.5 }}
+          className="rounded-[2.5rem] border border-gray-200 dark:border-slate-700/50 p-8 shadow-2xl bg-white dark:bg-[#0f172a] relative overflow-hidden"
+        >
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 relative z-10 gap-4">
+            <div>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                <span className="text-3xl">🏅</span> Badges &amp; Awards
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">
+                Achievements earned across all your coding platforms
+              </p>
+            </div>
+            <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-xl shrink-0">
+              {allBadges.length} <span className="text-sm font-semibold">badges</span>
+            </div>
+          </div>
+
+          {/* Platform groups */}
+          {platformBadgeSources.map(({ key, label }) => {
+            const platformBadges = allBadges.filter(b => b.platform === key);
+            if (!platformBadges.length) return null;
+            const platformColors = {
+              github: '#cbd5e1', leetcode: '#f59e0b', hackerrank: '#22c55e',
+              gfg: '#10b981', codechef: '#8b5cf6', codeforces: '#ef4444',
+            };
+            const pColor = platformColors[key] || '#6366f1';
+            return (
+              <div key={key} className="mb-8 last:mb-0 relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: pColor }} />
+                  <h4 className="text-sm font-black tracking-wider uppercase" style={{ color: pColor }}>
+                    {label}
+                  </h4>
+                  <div className="flex-1 h-px" style={{ background: `${pColor}20` }} />
+                  <span className="text-xs font-semibold px-2 py-1 rounded-lg" style={{ background: `${pColor}15`, color: pColor }}>
+                    {platformBadges.length} badge{platformBadges.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+                  {platformBadges.map((badge) => (
+                    <BadgeCard key={badge.id} badge={badge} platformLabel={label} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
+      )}
+
+      {/* Empty badges state */}
+      {allBadges.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.5 }}
+          className="rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-700/50 p-10 shadow-sm bg-white dark:bg-[#0f172a] flex flex-col items-center justify-center text-center"
+        >
+          <span className="text-5xl mb-4">🏅</span>
+          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No Badges Yet</h3>
+          <p className="text-gray-500 dark:text-slate-400 max-w-sm text-sm">
+            Start solving problems on LeetCode, earn certifications on HackerRank, or contribute on GitHub — your badges will appear here automatically!
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 };

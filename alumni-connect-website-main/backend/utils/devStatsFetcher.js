@@ -83,10 +83,19 @@ const fetchHackerRankStats = async (username) => {
   if (!username) return null;
   try {
     const headers = { 'User-Agent': BROWSER_UA };
-    const profileRes = await axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${username}/profile`, { headers });
-    const model = profileRes.data.model;
+    
+    // Fetch profile and badges concurrently
+    const [profileRes, badgesRes] = await Promise.allSettled([
+      axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${username}/profile`, { headers }),
+      axios.get(`https://www.hackerrank.com/rest/hackers/${username}/badges`, { headers })
+    ]);
+    
+    if (profileRes.status !== 'fulfilled') return null;
+    const model = profileRes.value.data.model;
     
     const badges = [];
+    
+    // 1. Level badge (overall)
     if (model.level >= 1) {
       badges.push({ 
         id: 'hr-lvl', 
@@ -95,6 +104,23 @@ const fetchHackerRankStats = async (username) => {
         stars: Math.min(model.level, 5), 
         color: '#10b981', 
         type: 'real' 
+      });
+    }
+
+    // 2. Domain badges (Problem Solving, C++, etc)
+    if (badgesRes.status === 'fulfilled' && badgesRes.value.data?.models) {
+      const badgeColors = ['#94a3b8', '#cd7f32', '#94a3b8', '#fbbf24', '#f97316', '#ef4444', '#8b5cf6'];
+      badgesRes.value.data.models.forEach(b => {
+        if (b.stars > 0) {
+          badges.push({
+            id: `hr-${b.badge_type}`,
+            name: b.badge_name,
+            icon: '🏅',
+            stars: b.stars,
+            color: badgeColors[Math.min(b.stars, 6)] || '#10b981',
+            type: 'real'
+          });
+        }
       });
     }
 

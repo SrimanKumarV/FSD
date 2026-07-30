@@ -297,8 +297,9 @@ const Leaderboard = () => {
                               )}
                             </div>
                             <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
-                              {profile.usernames?.github?.username && <span>GH: {profile.stats?.github}</span>}
-                              {profile.usernames?.leetcode?.username && <span>LC: {profile.stats?.leetcode}</span>}
+                               {profile.stats?.github > 0 && <span className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">GH {profile.stats.github} repos</span>}
+                               {profile.stats?.leetcode > 0 && <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">LC {profile.stats.leetcode} solved</span>}
+                               {profile.stats?.hackerrank > 0 && <span className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">HR {profile.stats.hackerrank} badges</span>}
                             </div>
                           </div>
                         </div>

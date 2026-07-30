@@ -62,6 +62,72 @@ const Mentorship = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
 
+  // AI Mentorship Request State
+  const [isDrafting, setIsDrafting] = useState(false);
+  const [requestTargetMentor, setRequestTargetMentor] = useState(null);
+  const [requestMessage, setRequestMessage] = useState('');
+
+  const handleOpenRequestModal = (mentor) => {
+    setRequestTargetMentor(mentor);
+    setRequestMessage('');
+    setShowRequestForm(true);
+  };
+
+  const handleDraftWithAI = async () => {
+    if (!requestTargetMentor) return;
+    setIsDrafting(true);
+    try {
+      const response = await api.post('/ai/draft-request', {
+        mentorProfile: {
+          name: requestTargetMentor.name,
+          headline: requestTargetMentor.alumniInfo?.position || '',
+          industry: requestTargetMentor.alumniInfo?.industry || '',
+          company: requestTargetMentor.alumniInfo?.company || ''
+        },
+        studentProfile: {
+          name: user.name,
+          headline: user.studentInfo?.course || ''
+        }
+      });
+      setRequestMessage(response.data.draft);
+      toast.success('AI Draft generated!');
+    } catch (error) {
+      console.error('Error drafting with AI:', error);
+      toast.error('Failed to generate draft');
+    } finally {
+      setIsDrafting(false);
+    }
+  };
+
+  const submitMentorshipRequest = async () => {
+    if (!requestMessage.trim()) {
+      toast.error('Please enter a message');
+      return;
+    }
+    setLoading(true);
+    try {
+      const submitData = {
+        targetUserId: requestTargetMentor._id || requestTargetMentor.id,
+        title: `Mentorship Request from ${user.name}`,
+        description: requestMessage,
+        focusAreas: ['General Mentorship'],
+        goals: ['Career Guidance'],
+        expectedDuration: 12, // in weeks
+        communicationMethod: 'chat'
+      };
+      
+      await api.post('/mentorship', submitData);
+      toast.success('Mentorship request sent successfully!');
+      fetchMentorships();
+      setShowRequestForm(false);
+    } catch (error) {
+      console.error('Error submitting request:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBookSession = (mentor) => {
     setSelectedMentor(mentor);
     setShowBookingModal(true);
@@ -581,7 +647,7 @@ const Mentorship = () => {
 
                           return (
                             <button
-                              onClick={() => !btnDisabled && handleQuickRequest(mentor)}
+                              onClick={() => !btnDisabled && handleOpenRequestModal(mentor)}
                               disabled={btnDisabled}
                               className={`flex-1 xl:flex-none px-4 py-2.5 font-semibold text-sm rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center gap-1.5 ${btnClass} ${!btnDisabled ? 'hover:shadow-md active:scale-95' : ''}`}
                             >
@@ -765,6 +831,80 @@ const Mentorship = () => {
         )}
 
       </div>
+
+      {/* Mentorship Request Modal */}
+      {showRequestForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden"
+          >
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Request Mentorship</h3>
+              <button onClick={() => setShowRequestForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-primary-50 dark:bg-primary-900/20 rounded-2xl mb-4">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-100">
+                  {requestTargetMentor?.photo && requestTargetMentor.photo !== 'default-avatar.png' ? (
+                    <img loading="lazy" src={requestTargetMentor.photo} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <DefaultAvatar className="w-full h-full" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">Connecting with {requestTargetMentor?.name}</p>
+                  <p className="text-sm text-primary-600 dark:text-primary-400">{requestTargetMentor?.alumniInfo?.position || 'Mentor'}</p>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Your Message</label>
+                  <button 
+                    onClick={handleDraftWithAI}
+                    disabled={isDrafting}
+                    className="flex items-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-colors bg-primary-50 dark:bg-primary-900/30 px-3 py-1.5 rounded-lg"
+                  >
+                    {isDrafting ? (
+                      <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mr-1"></div>
+                    ) : (
+                      <span className="mr-1">✨</span>
+                    )}
+                    Draft with AI
+                  </button>
+                </div>
+                <textarea
+                  value={requestMessage}
+                  onChange={(e) => setRequestMessage(e.target.value)}
+                  placeholder="Introduce yourself and explain why you'd like them to be your mentor..."
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 min-h-[120px] resize-none"
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex gap-4">
+              <button 
+                onClick={() => setShowRequestForm(false)}
+                className="flex-1 py-3 px-4 font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitMentorshipRequest}
+                disabled={loading}
+                className="flex-1 py-3 px-4 font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-md shadow-primary-500/20 transition-all flex justify-center items-center"
+              >
+                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Send Request'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Booking Modal */}
       {showBookingModal && (

@@ -106,6 +106,7 @@ const Layout = ({ children }) => {
         { name: 'Projects', href: '/projects', icon: Layers },
         { name: 'Project Collab', href: '/project-collaboration', icon: GitMerge },
         { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },
+        { name: 'AI Mock Interview', href: '/mock-interview', icon: Sparkles },
       ]
     },
     {

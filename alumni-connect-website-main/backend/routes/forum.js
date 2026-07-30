@@ -6,6 +6,7 @@ const ForumPost = require('../models/ForumPost');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const sendEmail = require('../utils/sendEmail');
+const { callAIWithFallback } = require('../utils/aiHelper');
 
 // @desc    Get all forum posts with filters
 // @route   GET /api/forum
@@ -188,6 +189,28 @@ router.post('/', [protect], [
       title, content, postType, category, tags, isAnonymous = false,
       attachments, poll, successStory
     } = req.body;
+
+    // AI Content Moderation Check
+    try {
+      const systemPrompt = "You are a strict content moderation AI. Analyze the forum post title and content. Determine if it contains explicit toxic language, severe hate speech, obvious malicious spam, or highly inappropriate adult content. Reply strictly with a JSON object: {\"isToxic\": boolean, \"reason\": \"short string\"}";
+      const userPrompt = `Title: ${title}\n\nContent: ${content}`;
+      
+      let aiResponse = await callAIWithFallback([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ], systemPrompt, true);
+      
+      aiResponse = aiResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) aiResponse = jsonMatch[0];
+      
+      const parsedMod = JSON.parse(aiResponse);
+      if (parsedMod.isToxic) {
+        return res.status(400).json({ message: `Post blocked by community guidelines AI: ${parsedMod.reason}` });
+      }
+    } catch (modError) {
+      console.warn("Moderation API failed, allowing post by default:", modError.message);
+    }
 
     const post = new ForumPost({
       title,

@@ -331,6 +331,8 @@ const Jobs = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [jobSource, setJobSource] = useState('internal'); // 'internal' | 'external'
   const [selectedJob, setSelectedJob] = useState(null);
+  const [matchResult, setMatchResult] = useState(null);
+  const [matchLoading, setMatchLoading] = useState(false);
   
   // Track actions to update UI
   const [requestedReferrals, setRequestedReferrals] = useState([]);
@@ -340,6 +342,10 @@ const Jobs = () => {
   const { socket } = useSocket();
 
   // Socket.io Real-time integration for new jobs
+  useEffect(() => {
+    setMatchResult(null);
+  }, [selectedJob]);
+
   useEffect(() => {
     if (!socket) return;
     
@@ -425,6 +431,25 @@ const Jobs = () => {
   const handleSortChange = (value) => {
     setSortBy(value);
     setCurrentPage(1);
+  };
+
+  const handleCalculateMatch = async () => {
+    if (!selectedJob || !user) return;
+    setMatchLoading(true);
+    try {
+      const payload = {
+        jobDescription: selectedJob.description,
+        studentSkills: user.skills?.join(', ') || 'None listed',
+        studentExperience: user.bio || 'None listed'
+      };
+      const response = await api.post('/ai/match-job', payload);
+      setMatchResult(response.data);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to calculate match score');
+    } finally {
+      setMatchLoading(false);
+    }
   };
 
   const handleApply = (job) => {
@@ -853,7 +878,44 @@ const Jobs = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-4">
+                  {matchResult && (
+                    <div className="mb-8 p-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                          <span className="text-2xl mr-2">✨</span> AI Match Analysis
+                        </h3>
+                        <div className={`px-4 py-2 rounded-xl font-bold text-lg ${matchResult.matchScore >= 80 ? 'bg-green-100 text-green-700' : matchResult.matchScore >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                          {matchResult.matchScore}% Match
+                        </div>
+                      </div>
+                      <p className="font-semibold text-gray-800 dark:text-gray-200 mb-4">{matchResult.verdict}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-bold text-green-700 dark:text-green-400 mb-2">Top Strengths</h4>
+                          <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300">
+                            {matchResult.strengths?.map((s, i) => <li key={i}>{s}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-red-700 dark:text-red-400 mb-2">Areas to Improve</h4>
+                          <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300">
+                            {matchResult.weaknesses?.map((w, i) => <li key={i}>{w}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 flex-wrap">
+                    {!matchResult && (
+                      <button
+                        onClick={handleCalculateMatch}
+                        disabled={matchLoading}
+                        className="flex-1 min-w-[200px] py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2"
+                      >
+                        {matchLoading ? 'Analyzing...' : '✨ Calculate AI Match'}
+                      </button>
+                    )}
                     {selectedJob.isExternal ? (
                       <a
                         href={selectedJob.applicationLink}

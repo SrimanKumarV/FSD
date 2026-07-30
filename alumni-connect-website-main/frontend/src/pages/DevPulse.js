@@ -14,7 +14,8 @@ import { useAuth } from '../contexts/AuthContext';
 import UserAvatar from '../components/UserAvatar';
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 
 // ── Heatmap styles ─────────────────────────────────────────────────────────
@@ -511,47 +512,98 @@ const DevPulse = () => {
         return (
           <div className="space-y-6">
             <PlatformHeader label="GitHub" username={uname} icon={GitCommit} color="#e2e8f0" url={url} />
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 border border-slate-700/50 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-700/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                <BookOpen className="w-12 h-12 text-slate-400 mb-4" />
-                <h3 className="text-4xl font-black text-white mb-1">{g.publicRepos ?? '—'}</h3>
-                <p className="text-sm font-semibold text-slate-400">Public Repositories</p>
+
+            {/* Top Metrics Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{g.totalContributions?.toLocaleString() || '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Contributions</p>
               </div>
-              
-              <div className="md:col-span-2 grid grid-cols-2 gap-6">
-                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20">
-                    <Users className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <h3 className="text-3xl font-black text-white mb-1">{g.followers ?? '—'}</h3>
-                  <p className="text-sm font-semibold text-slate-400">Followers</p>
-                </div>
-                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 border border-emerald-500/20">
-                    <GitFork className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <h3 className="text-3xl font-black text-white mb-1">{g.following ?? '—'}</h3>
-                  <p className="text-sm font-semibold text-slate-400">Following</p>
-                </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{g.heatmap?.points?.length || '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Active Days</p>
+              </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{g.followers?.toLocaleString() || '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Followers</p>
+              </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{g.publicRepos?.toLocaleString() || '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Public Repositories</p>
               </div>
             </div>
-            {/* Real GitHub Achievement Badges */}
-            {g.badges?.length > 0 && (
+
+            {/* Contribution Heatmap */}
+            {g.heatmap && (
               <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <span>🏆</span> GitHub Achievements
-                  <span className="ml-auto text-sm font-semibold text-slate-400">{g.badges.length}</span>
-                </h3>
-                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-3">
-                  {g.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex gap-6 text-xs font-semibold text-slate-400">
+                    <span className="flex flex-col"><span className="text-white text-lg font-black">{g.totalContributions?.toLocaleString()}</span> Contributions</span>
+                    <span className="flex flex-col"><span className="text-emerald-400 text-lg font-black">{g.heatmap.maxStreak}</span> Max Streak</span>
+                    <span className="flex flex-col"><span className="text-amber-400 text-lg font-black">{g.heatmap.currentStreak}</span> Current Streak</span>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="min-w-[700px]">
+                    <CalendarHeatmap
+                      startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
+                      endDate={new Date()}
+                      values={g.heatmap.points}
+                      classForValue={v => !v ? 'color-empty' : `color-github-${Math.min(v.count, 4)}`}
+                      titleForValue={v => v ? `${v.count} contributions on ${v.date}` : 'No activity'}
+                      showWeekdayLabels
+                      gutterSize={2}
+                    />
+                  </div>
                 </div>
               </div>
             )}
-            {g.badges?.length === 0 && (
-              <div className="bg-slate-800/40 rounded-2xl p-6 border border-slate-700/50 text-center text-slate-500 text-sm">
-                No GitHub achievements yet. Contribute to open source to earn badges!
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Languages Breakdown */}
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col">
+                <h3 className="font-bold text-white mb-6">Languages</h3>
+                {g.languages?.length > 0 ? (
+                  <>
+                    <div className="w-full h-4 rounded-full overflow-hidden flex mb-6">
+                      {g.languages.map(lang => (
+                        <div key={lang.name} style={{ width: `${lang.percentage}%`, backgroundColor: lang.color }} className="h-full" title={`${lang.name}: ${lang.percentage}%`} />
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                      {g.languages.map(lang => (
+                        <div key={lang.name} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: lang.color }} />
+                          <span className="text-sm font-semibold text-slate-300 flex-1 truncate">{lang.name}</span>
+                          <span className="text-xs font-bold text-slate-500">{lang.percentage}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-sm text-slate-500">No language data found.</div>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col">
+                <h3 className="font-bold text-white mb-6">Stats</h3>
+                <div className="flex-1 space-y-4">
+                  <StatPill icon={Star} label="Stars" value={g.stars || 0} color="#fbbf24" />
+                  <StatPill icon={GitCommit} label="Contributions" value={g.totalContributions || 0} color="#f97316" />
+                  <StatPill icon={GitFork} label="PRs" value={g.pullRequests || 0} color="#22c55e" />
+                  <StatPill icon={AlertCircle} label="Issues" value={g.issues || 0} color="#ef4444" />
+                </div>
+              </div>
+            </div>
+
+            {/* Real GitHub Achievement Badges */}
+            {g.badges?.length > 0 && (
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
+                <h3 className="font-bold text-white mb-4">🏆 GitHub Achievements</h3>
+                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-3">
+                  {g.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
+                </div>
               </div>
             )}
           </div>
@@ -576,54 +628,35 @@ const DevPulse = () => {
           <div className="space-y-6">
             <PlatformHeader label="LeetCode" username={uname} icon={Code} color="#f59e0b" url={url} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Doughnut */}
-              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="font-black text-white mb-5">Problems Solved by Difficulty</h3>
-                <div className="flex items-center gap-6">
-                  <div className="relative w-36 h-36 shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={dsaData.filter(d => d.value > 0)} cx="50%" cy="50%" innerRadius={48} outerRadius={65} paddingAngle={3} dataKey="value" stroke="none">
-                          {dsaData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-2xl font-black text-white">{totalDsa}</div>
-                        <div className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Total</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {dsaData.map(d => (
-                      <DiffPill key={d.name} label={d.name} count={d.value} color={d.color} />
-                    ))}
-                  </div>
-                </div>
+            {/* Top Metrics Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{totalDsa}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Questions Solved</p>
               </div>
-
-              {/* Stats */}
-              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 space-y-3">
-                <h3 className="font-black text-white mb-5">Profile Stats</h3>
-                <StatPill icon={Star} label="Global Ranking" value={lc.ranking ? `#${lc.ranking.toLocaleString()}` : '—'} color="#f59e0b" />
-                <StatPill icon={Activity} label="Reputation" value={lc.reputation ?? '—'} color="#f59e0b" />
-                <StatPill icon={Trophy} label="Contest Rating" value={lc.contestRating ? Math.round(lc.contestRating) : 'Unrated'} color="#f59e0b" />
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{heatmapData.points.filter(p => p.count > 0).length}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Days</p>
+              </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{lc.ranking ? `#${lc.ranking.toLocaleString()}` : '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Global Rank</p>
+              </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{lc.contestRating ? Math.round(lc.contestRating) : '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contest Rating</p>
               </div>
             </div>
 
             {/* LeetCode Activity Heatmap */}
             {heatmapData.isReal && (
               <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="font-black text-white">Submission Activity</h3>
-                  <span className="text-xs text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">Real Data</span>
-                </div>
-                <div className="flex gap-4 text-xs font-semibold text-slate-400 mb-4">
-                  <span>Max Streak: <strong className="text-emerald-400">{heatmapData.maxStreak} days</strong></span>
-                  <span>Current: <strong className="text-amber-400">{heatmapData.currentStreak} days</strong></span>
-                  <span>Total: <strong className="text-white">{heatmapData.totalContributions.toLocaleString()}</strong></span>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex gap-6 text-xs font-semibold text-slate-400">
+                    <span className="flex flex-col"><span className="text-white text-lg font-black">{heatmapData.totalContributions.toLocaleString()}</span> Submissions</span>
+                    <span className="flex flex-col"><span className="text-emerald-400 text-lg font-black">{heatmapData.maxStreak}</span> Max Streak</span>
+                    <span className="flex flex-col"><span className="text-amber-400 text-lg font-black">{heatmapData.currentStreak}</span> Current Streak</span>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <div className="min-w-[700px]">
@@ -641,33 +674,65 @@ const DevPulse = () => {
               </div>
             )}
 
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Doughnut */}
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col">
+                <h3 className="font-bold text-white mb-5">DSA Problems Solved</h3>
+                <div className="flex items-center gap-6 flex-1">
+                  <div className="relative w-36 h-36 shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={dsaData.filter(d => d.value > 0)} cx="50%" cy="50%" innerRadius={48} outerRadius={65} paddingAngle={3} dataKey="value" stroke="none">
+                          {dsaData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-2xl font-black text-white">{totalDsa}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    {dsaData.map(d => (
+                      <div key={d.name} className="flex items-center justify-between bg-slate-900/50 rounded-lg px-4 py-2 border border-slate-700/30">
+                        <span className="text-sm font-semibold" style={{ color: d.color }}>{d.name}</span>
+                        <span className="font-black text-white">{d.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* LeetCode Topics Bar Chart */}
+              {lc.topics?.length > 0 && (
+                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col">
+                  <h3 className="font-bold text-white mb-5">DSA Topic Analysis</h3>
+                  <div className="flex-1 min-h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={lc.topics.slice(0, 15)} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                        <RechartsTooltip cursor={{ fill: '#334155', opacity: 0.4 }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                        <Bar dataKey="solved" fill="#3b82f6" radius={[0, 4, 4, 0]}>
+                          {lc.topics.slice(0, 15).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index < 3 ? '#2563eb' : '#3b82f6'} fillOpacity={1 - index * 0.05} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* LeetCode real badges */}
             {lc.badges?.length > 0 && (
               <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <span>🏅</span> LeetCode Medals &amp; Badges
-                  <span className="ml-auto text-sm font-semibold text-slate-400">{lc.badges.length}</span>
-                </h3>
+                <h3 className="font-bold text-white mb-4">🏅 LeetCode Medals &amp; Badges</h3>
                 <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-3">
                   {lc.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
-                </div>
-              </div>
-            )}
-            
-            {/* LeetCode Topics */}
-            {lc.topics?.length > 0 && (
-              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
-                <h3 className="font-black text-white mb-5 flex items-center gap-2">
-                  <Code className="w-5 h-5 text-amber-500" /> Topics Mastered
-                  <span className="ml-auto text-xs font-semibold text-slate-400 bg-slate-800 px-3 py-1 rounded-lg">{lc.topics.length} topics</span>
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {lc.topics.map(t => (
-                    <div key={t.name} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors">
-                      <span className="text-xs font-semibold text-amber-200/80">{t.name}</span>
-                      <span className="text-xs font-black text-white bg-amber-500/20 px-1.5 rounded">{t.solved}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
             )}
@@ -690,26 +755,23 @@ const DevPulse = () => {
           <div className="space-y-6">
             <PlatformHeader label="HackerRank" username={uname} icon={Trophy} color="#22c55e" url={url} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gradient-to-br from-emerald-900/40 to-slate-900 rounded-3xl p-6 border border-emerald-700/30 flex items-center gap-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-                <div className="relative z-10 shrink-0">
-                  <ScoreRing score={hr.level || 0} max={6} />
-                </div>
-                <div className="relative z-10">
-                  <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">Hacker Level</h3>
-                  <div className="text-4xl font-black text-white">{levelBadge ? `Level ${hr.level}` : hr.level ?? '—'}</div>
-                  {levelBadge && <p className="text-xs text-slate-400 mt-2">Ranked based on domain mastery</p>}
-                </div>
+            {/* Top Metrics Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{hr.level ?? '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hacker Level</p>
               </div>
-
-              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center relative overflow-hidden">
-                <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-green-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-4 border border-green-500/20">
-                  <Trophy className="w-6 h-6 text-green-400" />
-                </div>
-                <h3 className="text-4xl font-black text-white mb-1">{hr.badgesCount ?? '—'}</h3>
-                <p className="text-sm font-semibold text-slate-400">Total Badges Earned</p>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{hr.badgesCount ?? '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Badges</p>
+              </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{hr.followers?.toLocaleString() ?? '—'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Followers</p>
+              </div>
+              <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-white mb-1">{levelBadge ? 'Yes' : 'No'}</h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Level Badge Earned</p>
               </div>
             </div>
 
@@ -741,37 +803,69 @@ const DevPulse = () => {
         const url = platformUrl(stats, usernames, 'gfg');
         if (!uname || !gfg || gfg.fetchError) return <ConnectionStatus platformKey="GeeksforGeeks" stats={gfg} username={uname} url={url} isPublicView={isPublicView} />;
 
+        const gfgData = [ { name: 'Total Solved', value: gfg.problemsSolved || 0, color: '#10b981' } ];
+
         return (
           <div className="space-y-6">
             <PlatformHeader label="GeeksforGeeks" username={uname} icon={TrendingUp} color="#10b981" url={url} />
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 bg-gradient-to-br from-teal-900/40 to-slate-900 rounded-3xl p-8 border border-teal-700/30 flex justify-between items-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-                <div className="relative z-10">
-                  <h3 className="text-sm font-bold text-teal-400 uppercase tracking-wider mb-2">Overall Coding Score</h3>
-                  <div className="text-6xl md:text-7xl font-black text-white">{gfg.codingScore ?? '—'}</div>
-                </div>
-                <div className="w-24 h-24 rounded-full border-4 border-teal-500/30 flex items-center justify-center bg-teal-500/10 backdrop-blur-sm relative z-10">
-                  <TrendingUp className="w-10 h-10 text-teal-400" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Problems Overview Doughnut */}
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col">
+                <h3 className="font-bold text-white mb-5">Problems Overview</h3>
+                <div className="flex items-center gap-6 flex-1">
+                  <div className="relative w-40 h-40 shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={gfgData.filter(d => d.value > 0)} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={3} dataKey="value" stroke="none">
+                          {gfgData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-3xl font-black text-white">{gfg.problemsSolved ?? 0}</div>
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold leading-tight mt-1">Problems<br/>Solved</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center justify-between bg-slate-900/50 rounded-lg px-4 py-2 border border-slate-700/30">
+                       <span className="text-sm font-semibold text-emerald-400">Total Solved</span>
+                       <span className="font-black text-white">{gfg.problemsSolved ?? 0}</span>
+                    </div>
+                    <div className="text-xs text-slate-500 italic mt-4 px-2">
+                       Detailed difficulty breakdown is hidden by GFG's private API.
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-6">
-                <div className="flex-1 bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
-                  <h3 className="text-4xl font-black text-white mb-1">{gfg.problemsSolved ?? '—'}</h3>
-                  <p className="text-sm font-semibold text-slate-400">Problems Solved</p>
-                </div>
-                {gfg.instituteRank ? (
-                  <div className="flex-1 bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
-                    <h3 className="text-3xl font-black text-white mb-1">#{gfg.instituteRank}</h3>
-                    <p className="text-sm font-semibold text-slate-400">Institute Rank</p>
+              {/* Top Metrics Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center mb-3 border border-teal-500/20">
+                    <Code className="w-5 h-5 text-teal-400" />
                   </div>
-                ) : (
-                   <div className="flex-1 bg-slate-800/40 rounded-3xl p-6 border border-emerald-500/20 border-dashed flex flex-col justify-center items-center text-center">
-                      <p className="text-xs text-slate-500">Institute rank not available publicly.</p>
-                   </div>
-                )}
+                  <h3 className="text-3xl font-black text-white mb-1">{gfg.codingScore ?? '—'}</h3>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Coding Score</p>
+                </div>
+                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-3 border border-emerald-500/20">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white mb-1">{gfg.problemsSolved ?? '—'}</h3>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Problems Solved</p>
+                </div>
+                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                     <div>
+                       <h3 className="text-3xl font-black text-white mb-1">{gfg.instituteRank ? `#${gfg.instituteRank}` : '—'}</h3>
+                       <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Institute Rank</p>
+                     </div>
+                     <Trophy className="w-12 h-12 text-slate-700/50" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

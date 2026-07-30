@@ -6,15 +6,98 @@ const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 const fetchGitHubStats = async (username) => {
   if (!username) return null;
   try {
-    const headers = { 'User-Agent': 'AlumnexConnect-App' };
-    if (process.env.GITHUB_TOKEN) headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
-    const [apiRes, htmlRes] = await Promise.allSettled([
-      axios.get(`https://api.github.com/users/${username}`, { headers }),
-      axios.get(`https://github.com/${username}`, { headers: { 'User-Agent': BROWSER_UA } }),
-    ]);
-    if (apiRes.status !== 'fulfilled') return null;
-    const data = apiRes.value.data;
+    const headers = { 'User-Agent': BROWSER_UA };
+    
+    // Check if token is available
+    if (!process.env.GITHUB_TOKEN) {
+       console.warn("GITHUB_TOKEN is missing in env, GitHub detailed fetch may fail or be rate limited.");
+    } else {
+       // Clean token in case of weird whitespace
+       const token = process.env.GITHUB_TOKEN.replace(/\s+/g, '');
+       headers['Authorization'] = `bearer ${token}`;
+    }
 
+    const query = `
+      query($login: String!) {
+        user(login: $login) {
+          createdAt
+          url
+          repositories(first: 100, ownerAffiliations: OWNER, isFork: false, orderBy: {field: PUSHED_AT, direction: DESC}) {
+            nodes {
+              stargazerCount
+              languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+                edges { size node { name color } }
+              }
+            }
+          }
+          pullRequests(first: 1) { totalCount }
+          issues(first: 1) { totalCount }
+          contributionsCollection {
+            contributionCalendar {
+              totalContributions
+              weeks { contributionDays { date contributionCount color } }
+            }
+          }
+          followers { totalCount }
+          following { totalCount }
+        }
+      }
+    `;
+
+    const [graphqlRes, htmlRes] = await Promise.allSettled([
+      axios.post('https://api.github.com/graphql', { query, variables: { login: username } }, { headers }),
+      axios.get(`https://github.com/${username}`, { headers: { 'User-Agent': BROWSER_UA } })
+    ]);
+
+    if (graphqlRes.status !== 'fulfilled' || graphqlRes.value.data.errors) {
+       // fallback to old logic if GraphQL fails (e.g. no token)
+       const apiRes = await axios.get(`https://api.github.com/users/${username}`, { headers: { 'User-Agent': BROWSER_UA, ...(process.env.GITHUB_TOKEN && {'Authorization': `token ${process.env.GITHUB_TOKEN.replace(/\s+/g, '')}`}) } });
+       const data = apiRes.data;
+       return { publicRepos: data.public_repos, followers: data.followers, following: data.following, createdAt: data.created_at, url: data.html_url, badges: [] };
+    }
+
+    const data = graphqlRes.value.data.data.user;
+    if (!data) return null;
+
+    // Process languages
+    const langSize = {};
+    const langColor = {};
+    let totalSize = 0;
+    
+    data.repositories.nodes.forEach(repo => {
+      repo.languages.edges.forEach(edge => {
+        langSize[edge.node.name] = (langSize[edge.node.name] || 0) + edge.size;
+        langColor[edge.node.name] = edge.node.color;
+        totalSize += edge.size;
+      });
+    });
+
+    const languages = Object.entries(langSize).map(([name, size]) => ({
+      name, size, color: langColor[name], percentage: ((size / totalSize) * 100).toFixed(1)
+    })).sort((a, b) => b.size - a.size).slice(0, 6);
+
+    const stars = data.repositories.nodes.reduce((acc, r) => acc + r.stargazerCount, 0);
+    const heatmapPoints = [];
+    let maxStreak = 0, currentStreak = 0, tempStreak = 0;
+    const today = new Date().toISOString().split('T')[0];
+
+    data.contributionsCollection.contributionCalendar.weeks.forEach(w => {
+      w.contributionDays.forEach(d => {
+        if (d.contributionCount > 0) {
+          heatmapPoints.push({ date: d.date, count: d.contributionCount });
+          tempStreak++;
+          maxStreak = Math.max(maxStreak, tempStreak);
+          if (d.date === today) currentStreak = tempStreak;
+        } else {
+          if (d.date !== today || tempStreak > 0) {
+            if (d.date < today) currentStreak = tempStreak; // Last known streak before today
+            tempStreak = 0;
+          }
+        }
+      });
+    });
+
+    // Scrape real badges
     const realBadges = [];
     if (htmlRes.status === 'fulfilled') {
       const $ = cheerio.load(htmlRes.value.data);
@@ -27,7 +110,20 @@ const fetchGitHubStats = async (username) => {
       });
     }
 
-    return { publicRepos: data.public_repos, followers: data.followers, following: data.following, createdAt: data.created_at, url: data.html_url, badges: realBadges };
+    return {
+      followers: data.followers.totalCount,
+      following: data.following.totalCount,
+      publicRepos: data.repositories.nodes.length,
+      stars,
+      pullRequests: data.pullRequests.totalCount,
+      issues: data.issues.totalCount,
+      totalContributions: data.contributionsCollection.contributionCalendar.totalContributions,
+      languages,
+      heatmap: { points: heatmapPoints, maxStreak, currentStreak },
+      createdAt: data.createdAt,
+      url: data.url,
+      badges: realBadges
+    };
   } catch (error) {
     console.error(`GitHub fetch failed for ${username}:`, error.message);
     return null;

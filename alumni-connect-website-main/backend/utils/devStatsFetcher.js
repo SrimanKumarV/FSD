@@ -27,17 +27,7 @@ const fetchGitHubStats = async (username) => {
       });
     }
 
-    const yearsOnGithub = Math.floor((Date.now() - new Date(data.created_at)) / (1000 * 60 * 60 * 24 * 365));
-    const milestoneBadges = [];
-    if (data.public_repos >= 1)  milestoneBadges.push({ id: 'gh-1-repo',  name: 'First Repository', icon: '📁', color: '#6e7681' });
-    if (data.public_repos >= 5)  milestoneBadges.push({ id: 'gh-5-repos', name: '5 Repositories',   icon: '📂', color: '#238636' });
-    if (data.public_repos >= 10) milestoneBadges.push({ id: 'gh-10-repos',name: '10 Repositories',  icon: '🌐', color: '#1f6feb' });
-    if (data.public_repos >= 50) milestoneBadges.push({ id: 'gh-50-repos',name: 'Prolific Dev',      icon: '🚀', color: '#1f6feb' });
-    if (data.followers >= 10)    milestoneBadges.push({ id: 'gh-10-fol',  name: '10 Followers',     icon: '⭐', color: '#e3b341' });
-    if (data.followers >= 100)   milestoneBadges.push({ id: 'gh-100-fol', name: '100 Followers',    icon: '🌟', color: '#f78166' });
-    if (yearsOnGithub >= 1) milestoneBadges.push({ id: `gh-${yearsOnGithub}yr`, name: `${yearsOnGithub}yr Veteran`, icon: '🏛️', color: '#8b5cf6' });
-
-    return { publicRepos: data.public_repos, followers: data.followers, following: data.following, createdAt: data.created_at, url: data.html_url, badges: [...realBadges, ...milestoneBadges] };
+    return { publicRepos: data.public_repos, followers: data.followers, following: data.following, createdAt: data.created_at, url: data.html_url, badges: realBadges };
   } catch (error) {
     console.error(`GitHub fetch failed for ${username}:`, error.message);
     return null;
@@ -55,8 +45,8 @@ const fetchLeetCodeStats = async (username) => {
           userCalendar { submissionCalendar }
           badges { id name displayName icon creationDate medal { slug config { iconGif iconGifBackground } } }
           activeBadge { id displayName icon creationDate }
-          userContestRanking { rating globalRanking attendedContestsCount }
         }
+        userContestRanking(username: $username) { rating globalRanking attendedContestsCount }
       }
     `;
     const response = await axios.post('https://leetcode.com/graphql', { query, variables: { username } }, {
@@ -78,15 +68,7 @@ const fetchLeetCodeStats = async (username) => {
       return { id: b.id, name: b.displayName || b.name, imageUrl, icon: '🏅', color: '#f59e0b', earnedAt: b.creationDate, type: 'real' };
     });
 
-    if (totalSolved >= 50)  badges.push({ id: 'lc-50',   name: '50 Solved',   icon: '🥉', color: '#cd7f32' });
-    if (totalSolved >= 100) badges.push({ id: 'lc-100',  name: '100 Solved',  icon: '🥈', color: '#94a3b8' });
-    if (totalSolved >= 200) badges.push({ id: 'lc-200',  name: '200 Solved',  icon: '🥇', color: '#f59e0b' });
-    if (totalSolved >= 500) badges.push({ id: 'lc-500',  name: '500 Solved',  icon: '💎', color: '#06b6d4' });
-    if (hardSolved >= 10)   badges.push({ id: 'lc-h10',  name: '10 Hard',     icon: '🔥', color: '#ef4444' });
-    if (hardSolved >= 50)   badges.push({ id: 'lc-h50',  name: '50 Hard',     icon: '🔱', color: '#dc2626' });
-
-    const ci = user.userContestRanking;
-    if (ci?.attendedContestsCount >= 1) badges.push({ id: 'lc-contest', name: `${ci.attendedContestsCount} Contests`, icon: '🏆', color: '#f59e0b' });
+    const ci = response.data.data.userContestRanking;
 
     return { totalSolved, easySolved, mediumSolved, hardSolved, ranking: user.profile.ranking, reputation: user.profile.reputation,
       calendar: user.userCalendar?.submissionCalendar ? JSON.parse(user.userCalendar.submissionCalendar) : null,
@@ -142,15 +124,6 @@ const fetchGFGStats = async (username) => {
     const problemsSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
 
     const badges = [];
-    if (problemsSolved >= 1)   badges.push({ id: 'gfg-1',    name: 'First Solve',   icon: '🌱', color: '#10b981' });
-    if (problemsSolved >= 10)  badges.push({ id: 'gfg-10',   name: '10 Problems',   icon: '🌿', color: '#10b981' });
-    if (problemsSolved >= 50)  badges.push({ id: 'gfg-50',   name: '50 Problems',   icon: '🌳', color: '#059669' });
-    if (problemsSolved >= 100) badges.push({ id: 'gfg-100',  name: '100 Problems',  icon: '🏆', color: '#047857' });
-    if (problemsSolved >= 200) badges.push({ id: 'gfg-200',  name: '200 Problems',  icon: '🔰', color: '#d97706' });
-    if (problemsSolved >= 500) badges.push({ id: 'gfg-500',  name: '500 Problems',  icon: '💠', color: '#7c3aed' });
-    if (codingScore >= 100)    badges.push({ id: 'gfg-s100', name: 'Score 100+',    icon: '⭐', color: '#f59e0b' });
-    if (codingScore >= 500)    badges.push({ id: 'gfg-s500', name: 'Score 500+',    icon: '🌟', color: '#f59e0b' });
-    if (codingScore >= 1000)   badges.push({ id: 'gfg-s1k',  name: 'Score 1000+',   icon: '💫', color: '#fbbf24' });
 
     if (!codingScore && !problemsSolved) throw new Error('Stats not found');
     return { codingScore, problemsSolved, currentStreak: 0, instituteRank: null, url: `https://www.geeksforgeeks.org/user/${username}/`, badges };
@@ -181,12 +154,6 @@ const fetchCodechefStats = async (username) => {
       imageUrl: `https://cdn.codechef.com/sites/all/themes/abessive/images/user/${stars}star.svg`,
       color: starBadgeColors[stars - 1] || '#f59e0b', type: 'real' });
     badges.push({ id: `cc-div${division}`, name: `Division ${division}`, icon: '🏅', color: divColors[division] });
-    if (problemsSolved >= 10)  badges.push({ id: 'cc-p10',  name: '10 Problems',  icon: '🌱', color: '#10b981' });
-    if (problemsSolved >= 50)  badges.push({ id: 'cc-p50',  name: '50 Problems',  icon: '🌿', color: '#059669' });
-    if (problemsSolved >= 100) badges.push({ id: 'cc-p100', name: '100 Problems', icon: '🌳', color: '#047857' });
-    if (rating >= 1200) badges.push({ id: 'cc-1200', name: '1200+ Rating', icon: '🥉', color: '#cd7f32' });
-    if (rating >= 1600) badges.push({ id: 'cc-1600', name: '1600+ Rating', icon: '🥇', color: '#f59e0b' });
-    if (rating >= 1800) badges.push({ id: 'cc-1800', name: '1800+ Rating', icon: '💎', color: '#06b6d4' });
     return { rating, stars, division, problemsSolved, url: `https://www.codechef.com/users/${username}`, badges };
   } catch (error) {
     console.warn(`CodeChef scrape failed for ${username}: ${error.message}`);
@@ -216,15 +183,7 @@ const fetchCodeforcesStats = async (username) => {
     ];
     if (maxRank && maxRank !== rank)
       badges.push({ id: `cf-peak-${maxRank.replace(/\s+/g,'-')}`, name: `Peak: ${toTitle(maxRank)}`, icon: rankIcons[maxRank.toLowerCase()]||'📈', color: rankColors[maxRank.toLowerCase()]||'#f59e0b', type: 'peak' });
-    if (rating >= 1200) badges.push({ id:'cf-1200', name:'1200+', icon:'🌿', color:'#008000' });
-    if (rating >= 1400) badges.push({ id:'cf-1400', name:'1400+', icon:'💻', color:'#03a89e' });
-    if (rating >= 1600) badges.push({ id:'cf-1600', name:'1600+', icon:'🧠', color:'#0000ff' });
-    if (rating >= 1900) badges.push({ id:'cf-1900', name:'1900+', icon:'👑', color:'#aa00aa' });
-    if (rating >= 2100) badges.push({ id:'cf-2100', name:'2100+', icon:'🔱', color:'#ff8c00' });
     const contestCount = ratingRes.status==='fulfilled' && Array.isArray(ratingRes.value?.data?.result) ? ratingRes.value.data.result.length : 0;
-    if (contestCount >= 1)  badges.push({ id:'cf-c1',  name:'Contestant',               icon:'🏁', color:'#64748b' });
-    if (contestCount >= 10) badges.push({ id:'cf-c10', name:`${contestCount} Contests`,  icon:'🏆', color:'#f59e0b' });
-    if (contestCount >= 50) badges.push({ id:'cf-c50', name:'Contest Veteran',           icon:'🌟', color:'#fbbf24' });
     return { rating, maxRating, rank, maxRank, contestCount, url: `https://codeforces.com/profile/${username}`, badges };
   } catch (error) {
     console.warn(`Codeforces fetch failed for ${username}: ${error.message}`);

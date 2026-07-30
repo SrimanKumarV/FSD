@@ -214,6 +214,32 @@ const PlatformHeader = ({ label, username, icon: Icon, color, url, isLinked }) =
   </div>
 );
 
+/** Clickable platform summary card for Overview tab */
+const PlatformSummaryCard = ({ platformKey, label, icon: Icon, color, value, subtitle, onClick, hasError, isLinked }) => {
+  return (
+    <motion.div
+      whileHover={{ y: -4, scale: 1.02 }}
+      onClick={onClick}
+      className="cursor-pointer bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 hover:border-slate-500/50 transition-all relative overflow-hidden group"
+    >
+      <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" style={{ background: color }}></div>
+      <div className="flex items-start justify-between mb-4">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center border" style={{ background: `${color}15`, borderColor: `${color}30` }}>
+          <Icon className="w-5 h-5" style={{ color }} />
+        </div>
+        <div className="relative z-10 flex items-center">
+          {hasError && <AlertCircle className="w-4 h-4 text-red-400" title="Sync Failed" />}
+          {!isLinked && !hasError && <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Not Linked</span>}
+        </div>
+      </div>
+      <div className="relative z-10">
+        <h3 className="text-2xl font-black text-white mb-0.5">{value ?? '—'}</h3>
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{subtitle || label}</p>
+      </div>
+    </motion.div>
+  );
+};
+
 // ── Main Component ─────────────────────────────────────────────────────────
 const DevPulse = () => {
   const { user } = useAuth();
@@ -344,19 +370,44 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            {/* Overview stat cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[
-                { label: 'Alumnex Score', value: alumnexScore, color: '#6366f1' },
-                { label: 'Problems Solved', value: totalSolved || '—', color: '#f59e0b' },
-                { label: 'GitHub Repos', value: (stats?.github?.publicRepos ?? '—'), color: '#e2e8f0' },
-                { label: 'Active Days (LC)', value: heatmapData.activeDays || '—', color: '#10b981' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50 backdrop-blur-sm">
-                  <p className="text-xs font-semibold text-slate-400 mb-2">{label}</p>
-                  <p className="text-3xl font-black" style={{ color }}>{value}</p>
-                </div>
-              ))}
+            {/* Platform Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <PlatformSummaryCard 
+                platformKey="github" label="GitHub" icon={GitCommit} color="#e2e8f0" 
+                value={stats?.github?.publicRepos ?? '—'} subtitle="Public Repos"
+                isLinked={!!usernames?.github?.username} hasError={stats?.github?.fetchError}
+                onClick={() => setActiveTab('github')}
+              />
+              <PlatformSummaryCard 
+                platformKey="leetcode" label="LeetCode" icon={Code} color="#f59e0b" 
+                value={stats?.leetcode?.totalSolved ?? '—'} subtitle="Problems Solved"
+                isLinked={!!usernames?.leetcode?.username} hasError={stats?.leetcode?.fetchError}
+                onClick={() => setActiveTab('leetcode')}
+              />
+              <PlatformSummaryCard 
+                platformKey="hackerrank" label="HackerRank" icon={Trophy} color="#22c55e" 
+                value={stats?.hackerrank?.badgesCount ?? '—'} subtitle="Badges Earned"
+                isLinked={!!usernames?.hackerrank?.username} hasError={stats?.hackerrank?.fetchError}
+                onClick={() => setActiveTab('hackerrank')}
+              />
+              <PlatformSummaryCard 
+                platformKey="gfg" label="GeeksforGeeks" icon={TrendingUp} color="#10b981" 
+                value={stats?.gfg?.codingScore ?? '—'} subtitle="Coding Score"
+                isLinked={!!usernames?.gfg?.username} hasError={stats?.gfg?.fetchError}
+                onClick={() => setActiveTab('gfg')}
+              />
+              <PlatformSummaryCard 
+                platformKey="codechef" label="CodeChef" icon={Target} color="#8b5cf6" 
+                value={stats?.codechef?.rating ?? '—'} subtitle="Rating"
+                isLinked={!!usernames?.codechef?.username} hasError={stats?.codechef?.fetchError}
+                onClick={() => setActiveTab('codechef')}
+              />
+              <PlatformSummaryCard 
+                platformKey="codeforces" label="Codeforces" icon={Zap} color="#ef4444" 
+                value={stats?.codeforces?.rating || (usernames?.codeforces?.username && !stats?.codeforces?.fetchError ? 'Unrated' : '—')} subtitle="Rating"
+                isLinked={!!usernames?.codeforces?.username} hasError={stats?.codeforces?.fetchError}
+                onClick={() => setActiveTab('codeforces')}
+              />
             </div>
 
             {/* Heatmap */}
@@ -601,6 +652,24 @@ const DevPulse = () => {
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-3">
                   {lc.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
+                </div>
+              </div>
+            )}
+            
+            {/* LeetCode Topics */}
+            {lc.topics?.length > 0 && (
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
+                <h3 className="font-black text-white mb-5 flex items-center gap-2">
+                  <Code className="w-5 h-5 text-amber-500" /> Topics Mastered
+                  <span className="ml-auto text-xs font-semibold text-slate-400 bg-slate-800 px-3 py-1 rounded-lg">{lc.topics.length} topics</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {lc.topics.map(t => (
+                    <div key={t.name} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors">
+                      <span className="text-xs font-semibold text-amber-200/80">{t.name}</span>
+                      <span className="text-xs font-black text-white bg-amber-500/20 px-1.5 rounded">{t.solved}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

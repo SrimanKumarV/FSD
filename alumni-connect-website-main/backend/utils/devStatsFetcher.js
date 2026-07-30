@@ -45,6 +45,11 @@ const fetchLeetCodeStats = async (username) => {
           userCalendar { submissionCalendar }
           badges { id name displayName icon creationDate medal { slug config { iconGif iconGifBackground } } }
           activeBadge { id displayName icon creationDate }
+          tagProblemCounts {
+            advanced { tagName problemsSolved }
+            intermediate { tagName problemsSolved }
+            fundamental { tagName problemsSolved }
+          }
         }
         userContestRanking(username: $username) { rating globalRanking attendedContestsCount }
       }
@@ -70,9 +75,17 @@ const fetchLeetCodeStats = async (username) => {
 
     const ci = response.data.data.userContestRanking;
 
+    let topics = [];
+    if (user.tagProblemCounts) {
+      const { advanced = [], intermediate = [], fundamental = [] } = user.tagProblemCounts;
+      topics = [...advanced, ...intermediate, ...fundamental]
+        .map(t => ({ name: t.tagName, solved: t.problemsSolved }))
+        .sort((a, b) => b.solved - a.solved); // highest solved first
+    }
+
     return { totalSolved, easySolved, mediumSolved, hardSolved, ranking: user.profile.ranking, reputation: user.profile.reputation,
       calendar: user.userCalendar?.submissionCalendar ? JSON.parse(user.userCalendar.submissionCalendar) : null,
-      url: `https://leetcode.com/${username}`, badges, activeBadge: user.activeBadge, contestRating: ci?.rating };
+      url: `https://leetcode.com/${username}`, badges, activeBadge: user.activeBadge, contestRating: ci?.rating, topics };
   } catch (error) {
     console.error(`LeetCode fetch failed for ${username}:`, error.message);
     return null;

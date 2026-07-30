@@ -81,12 +81,25 @@ router.get('/:email', protect, async (req, res) => {
     ]);
 
     // Update profile
+    // If fetch returns null (e.g., 404 or scraper error), we save an object with { fetchError: true }
+    // so the frontend knows we tried to sync but failed, rather than leaving it undefined.
     if (githubStats) profile.stats.github = githubStats;
+    else if (profile.usernames.github?.username) profile.stats.github = { fetchError: true };
+
     if (leetcodeStats) profile.stats.leetcode = leetcodeStats;
+    else if (profile.usernames.leetcode?.username) profile.stats.leetcode = { fetchError: true };
+
     if (hackerrankStats) profile.stats.hackerrank = hackerrankStats;
+    else if (profile.usernames.hackerrank?.username) profile.stats.hackerrank = { fetchError: true };
+
     if (gfgStats) profile.stats.gfg = gfgStats;
+    else if (profile.usernames.gfg?.username) profile.stats.gfg = { fetchError: true };
+
     if (codechefStats) profile.stats.codechef = codechefStats;
+    else if (profile.usernames.codechef?.username) profile.stats.codechef = { fetchError: true };
+
     if (codeforcesStats) profile.stats.codeforces = codeforcesStats;
+    else if (profile.usernames.codeforces?.username) profile.stats.codeforces = { fetchError: true };
     
     // Calculate Alumnex Score
     let score = 0;

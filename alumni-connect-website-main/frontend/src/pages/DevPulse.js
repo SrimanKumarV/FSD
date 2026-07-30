@@ -109,51 +109,62 @@ const PlatformCard = ({ platform, icon: Icon, label, color, bgGradient, stats, u
       </div>
 
       {stats ? (
-        <div className="relative z-10 space-y-2">
-          {platform === 'github' && (
-            <>
-              <p className="text-4xl font-black text-white drop-shadow-md">{stats.publicRepos ?? '—'}</p>
-              <p className="text-sm font-medium text-slate-400">{stats.followers ?? 0} followers <span className="mx-1 opacity-50">•</span> {stats.following ?? 0} following</p>
-            </>
-          )}
-          {platform === 'leetcode' && (
-            <>
-              <p className="text-4xl font-black text-white drop-shadow-md">{stats.totalSolved ?? '—'}</p>
-              <p className="text-sm font-medium text-slate-400">problems <span className="mx-1 opacity-50">•</span> Rank #{(stats.ranking ?? '').toLocaleString()}</p>
-              <div className="flex gap-2 mt-3">
-                {[['Easy', stats.easySolved, '#10b981'], ['Med', stats.mediumSolved, '#f59e0b'], ['Hard', stats.hardSolved, '#ef4444']].map(([d, v, c]) => (
-                  <span key={d} className="text-[11px] font-bold px-2.5 py-1 rounded-lg border" style={{ background: `${c}15`, color: c, borderColor: `${c}30` }}>
-                    {d}: {v ?? 0}
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
-          {platform === 'hackerrank' && (
-            <>
-              <p className="text-4xl font-black text-white drop-shadow-md">{stats.badgesCount ?? '—'}</p>
-              <p className="text-sm font-medium text-slate-400">badges earned <span className="mx-1 opacity-50">•</span> Lvl {stats.level ?? 1}</p>
-            </>
-          )}
-          {platform === 'gfg' && (
-            <>
-              <p className="text-4xl font-black text-white drop-shadow-md">{stats.codingScore ?? '—'}</p>
-              <p className="text-sm font-medium text-slate-400">{stats.problemsSolved ?? 0} problems solved</p>
-            </>
-          )}
-          {platform === 'codechef' && (
-            <>
-              <p className="text-4xl font-black text-white drop-shadow-md">{stats.rating ?? '—'}</p>
-              <p className="text-sm font-medium text-slate-400">{stats.stars ?? 0} ★ rating</p>
-            </>
-          )}
-          {platform === 'codeforces' && (
-            <>
-              <p className="text-4xl font-black text-white drop-shadow-md">{stats.rating ?? '—'}</p>
-              <p className="text-sm font-medium text-slate-400">{stats.rank ?? 'Unrated'} <span className="mx-1 opacity-50">•</span> Max {stats.maxRating ?? 0}</p>
-            </>
-          )}
-        </div>
+        stats.fetchError ? (
+          <div className="relative z-10 mt-6">
+            <div className="space-y-1 bg-red-500/10 rounded-xl p-3 border border-red-500/20">
+              <p className="text-red-400 text-sm font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" /> Sync Failed
+              </p>
+              <p className="text-red-300/70 text-xs">Profile not found or private.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="relative z-10 space-y-2">
+            {platform === 'github' && (
+              <>
+                <p className="text-4xl font-black text-white drop-shadow-md">{stats.publicRepos ?? '—'}</p>
+                <p className="text-sm font-medium text-slate-400">{stats.followers ?? 0} followers <span className="mx-1 opacity-50">•</span> {stats.following ?? 0} following</p>
+              </>
+            )}
+            {platform === 'leetcode' && (
+              <>
+                <p className="text-4xl font-black text-white drop-shadow-md">{stats.totalSolved ?? '—'}</p>
+                <p className="text-sm font-medium text-slate-400">problems <span className="mx-1 opacity-50">•</span> Rank #{(stats.ranking ?? '').toLocaleString()}</p>
+                <div className="flex gap-2 mt-3">
+                  {[['Easy', stats.easySolved, '#10b981'], ['Med', stats.mediumSolved, '#f59e0b'], ['Hard', stats.hardSolved, '#ef4444']].map(([d, v, c]) => (
+                    <span key={d} className="text-[11px] font-bold px-2.5 py-1 rounded-lg border" style={{ background: `${c}15`, color: c, borderColor: `${c}30` }}>
+                      {d}: {v ?? 0}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {platform === 'hackerrank' && (
+              <>
+                <p className="text-4xl font-black text-white drop-shadow-md">{stats.badgesCount ?? '—'}</p>
+                <p className="text-sm font-medium text-slate-400">badges earned <span className="mx-1 opacity-50">•</span> Lvl {stats.level ?? 1}</p>
+              </>
+            )}
+            {platform === 'gfg' && (
+              <>
+                <p className="text-4xl font-black text-white drop-shadow-md">{stats.codingScore ?? '—'}</p>
+                <p className="text-sm font-medium text-slate-400">{stats.problemsSolved ?? 0} problems solved</p>
+              </>
+            )}
+            {platform === 'codechef' && (
+              <>
+                <p className="text-4xl font-black text-white drop-shadow-md">{stats.rating ?? '—'}</p>
+                <p className="text-sm font-medium text-slate-400">{stats.stars ?? 0} ★ rating</p>
+              </>
+            )}
+            {platform === 'codeforces' && (
+              <>
+                <p className="text-4xl font-black text-white drop-shadow-md">{stats.rating ?? '—'}</p>
+                <p className="text-sm font-medium text-slate-400">{stats.rank ?? 'Unrated'} <span className="mx-1 opacity-50">•</span> Max {stats.maxRating ?? 0}</p>
+              </>
+            )}
+          </div>
+        )
       ) : (
         <div className="relative z-10 mt-6">
           {username ? (

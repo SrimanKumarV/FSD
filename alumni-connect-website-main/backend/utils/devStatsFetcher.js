@@ -1,4 +1,4 @@
-﻿const axios = require('axios');
+const axios = require('axios');
 const cheerio = require('cheerio');
 
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -101,24 +101,29 @@ const fetchHackerRankStats = async (username) => {
   if (!username) return null;
   try {
     const headers = { 'User-Agent': BROWSER_UA };
-    const [profileRes, badgesRes] = await Promise.all([
-      axios.get(`https://www.hackerrank.com/rest/hackers/${username}/profile`, { headers }),
-      axios.get(`https://www.hackerrank.com/rest/hackers/${username}/badges`, { headers }),
-    ]);
+    const profileRes = await axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${username}/profile`, { headers });
     const model = profileRes.data.model;
-    const rawBadges = badgesRes.data.models || [];
-    const starColors = ['#94a3b8', '#10b981', '#22c55e', '#f59e0b', '#f97316', '#ef4444'];
-    const badges = rawBadges.map(b => {
-      const stars = b.stars || 1;
-      const slug = (b.name || '').toLowerCase().replace(/\s+/g, '-');
-      return {
-        id: b.id || slug, name: b.name,
-        imageUrl: `https://hrcdn.net/fcore/assets/badges/${slug}-${stars}star-new.svg`,
-        icon: '⭐'.repeat(Math.min(stars, 5)), stars, color: starColors[Math.min(stars - 1, 5)],
-        domain: b.badge_family || '', type: 'real',
-      };
-    });
-    return { name: model.name, level: model.level, followers: model.followers_count, badgesCount: badges.length, url: `https://www.hackerrank.com/profile/${username}`, badges };
+    
+    const badges = [];
+    if (model.level >= 1) {
+      badges.push({ 
+        id: 'hr-lvl', 
+        name: `Level ${model.level} Hacker`, 
+        icon: '⭐', 
+        stars: Math.min(model.level, 5), 
+        color: '#10b981', 
+        type: 'real' 
+      });
+    }
+
+    return { 
+      name: model.name, 
+      level: model.level, 
+      followers: model.followers_count || 0, 
+      badgesCount: badges.length, 
+      url: `https://www.hackerrank.com/profile/${username}`, 
+      badges 
+    };
   } catch (error) {
     console.warn(`HackerRank fetch failed for ${username}: ${error.message}`);
     return null;
@@ -128,17 +133,13 @@ const fetchHackerRankStats = async (username) => {
 const fetchGFGStats = async (username) => {
   if (!username) return null;
   try {
-    const [apiRes, htmlRes] = await Promise.allSettled([
-      axios.get(`https://authapi.geeksforgeeks.org/api-get/?itm=user-rank&user_name=${username}`, { headers: { 'User-Agent': BROWSER_UA } }),
-      axios.get(`https://www.geeksforgeeks.org/user/${username}/`, { headers: { 'User-Agent': BROWSER_UA } }),
-    ]);
-    if (htmlRes.status !== 'fulfilled') return null;
-    const $ = cheerio.load(htmlRes.value.data);
-    const codingScore    = parseInt($('.score_card_value').eq(0).text().trim(), 10) || 0;
-    const problemsSolved = parseInt($('.score_card_value').eq(1).text().trim(), 10) || 0;
-    const streakText     = $('[class*="streak"]').text() || '';
-    const currentStreak  = parseInt(streakText.match(/\d+/)?.[0] || '0', 10);
-    const instituteRank  = apiRes.status === 'fulfilled' ? (apiRes.value.data?.data?.institute_rank || null) : null;
+    const htmlRes = await axios.get(`https://www.geeksforgeeks.org/user/${username}/`, { headers: { 'User-Agent': BROWSER_UA } });
+    const html = htmlRes.data;
+    
+    const scoreMatch = html.match(/score\\":(\d+)/i) || html.match(/overall_coding_score.*?(\d+)/i);
+    const solvedMatch = html.match(/total_problems_solved\\":(\d+)/i) || html.match(/solved_problems.*?(\d+)/i);
+    const codingScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+    const problemsSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
 
     const badges = [];
     if (problemsSolved >= 1)   badges.push({ id: 'gfg-1',    name: 'First Solve',   icon: '🌱', color: '#10b981' });
@@ -150,12 +151,9 @@ const fetchGFGStats = async (username) => {
     if (codingScore >= 100)    badges.push({ id: 'gfg-s100', name: 'Score 100+',    icon: '⭐', color: '#f59e0b' });
     if (codingScore >= 500)    badges.push({ id: 'gfg-s500', name: 'Score 500+',    icon: '🌟', color: '#f59e0b' });
     if (codingScore >= 1000)   badges.push({ id: 'gfg-s1k',  name: 'Score 1000+',   icon: '💫', color: '#fbbf24' });
-    if (currentStreak >= 7)    badges.push({ id: 'gfg-str',  name: `${currentStreak}d Streak`, icon: '🔥', color: '#ef4444' });
-    if (instituteRank && parseInt(instituteRank) <= 10)
-      badges.push({ id: 'gfg-top10', name: `Rank #${instituteRank}`, icon: '🥇', color: '#f59e0b' });
 
     if (!codingScore && !problemsSolved) throw new Error('Stats not found');
-    return { codingScore, problemsSolved, currentStreak, instituteRank, url: `https://www.geeksforgeeks.org/user/${username}/`, badges };
+    return { codingScore, problemsSolved, currentStreak: 0, instituteRank: null, url: `https://www.geeksforgeeks.org/user/${username}/`, badges };
   } catch (error) {
     console.warn(`GFG fetch failed for ${username}: ${error.message}`);
     return null;

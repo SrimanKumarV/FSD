@@ -149,12 +149,13 @@ const ConnectionStatus = ({ platformKey, stats, username, url, isPublicView }) =
 const BadgeCard = ({ badge }) => {
   const [imgError, setImgError] = useState(false);
   const showImg = badge.imageUrl && !imgError;
+  const earnedDate = badge.earnedAt ? (typeof badge.earnedAt === 'string' ? new Date(badge.earnedAt) : new Date(badge.earnedAt * 1000)) : null;
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.05 }}
       className="flex flex-col items-center gap-2 p-3 rounded-2xl border text-center cursor-default group"
       style={{ background: `${badge.color}12`, borderColor: `${badge.color}30` }}
-      title={badge.name + (badge.earnedAt ? ` · Earned ${new Date(badge.earnedAt * 1000).toLocaleDateString()}` : '')}
+      title={badge.name + (earnedDate ? ` · Earned ${earnedDate.toLocaleDateString()}` : '')}
     >
       <div className="w-12 h-12 flex items-center justify-center relative">
         {showImg ? (
@@ -248,13 +249,18 @@ const DevPulse = () => {
   const navigate = useNavigate();
   const isPublicView = !!userId;
   const [activeTab, setActiveTab] = useState('overview');
+  const [isForceSyncing, setIsForceSyncing] = useState(false);
 
-  const { data, isLoading, error } = useQuery(
-    ['dev-activity', isPublicView ? userId : user?.email],
+  const { data, isLoading, error, refetch } = useQuery(
+    ['dev-activity', isPublicView ? userId : user?.email, isForceSyncing],
     () => isPublicView
-      ? api.get(`/dev-activity/public/${userId}`)
-      : api.get(`/dev-activity/${user?.email}`),
-    { enabled: isPublicView ? !!userId : !!user?.email, retry: false }
+      ? api.get(`/dev-activity/public/${userId}?force=${isForceSyncing}`)
+      : api.get(`/dev-activity/${user?.email}?force=${isForceSyncing}`),
+    { 
+      enabled: isPublicView ? !!userId : !!user?.email, 
+      retry: false,
+      onSettled: () => setIsForceSyncing(false)
+    }
   );
 
   const stats = data?.data?.stats;
@@ -262,6 +268,10 @@ const DevPulse = () => {
   const alumnexScore = data?.data?.alumnexScore || 0;
   const profileName = isPublicView ? data?.data?.name : user?.name;
   const profilePhoto = isPublicView ? data?.data?.photo : user?.photo;
+
+  const handleForceSync = () => {
+    setIsForceSyncing(true);
+  };
 
   // ── Heatmap data ──
   const heatmapData = useMemo(() => {
@@ -1012,6 +1022,11 @@ const DevPulse = () => {
               <p className="text-xs text-slate-500 flex items-center gap-1 justify-center sm:justify-start mt-2">
                 <RefreshCw className="w-3 h-3" />
                 Last synced: {new Date(data.data.lastUpdated).toLocaleString()}
+                {!isPublicView && (
+                  <button onClick={handleForceSync} disabled={isForceSyncing} className="hover:text-indigo-400 transition-colors ml-2 font-bold underline underline-offset-2">
+                    {isForceSyncing ? 'Syncing...' : 'Sync Now'}
+                  </button>
+                )}
               </p>
             )}
             {!isPublicView && (

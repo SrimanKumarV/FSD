@@ -54,12 +54,13 @@ router.get('/:email', protect, async (req, res) => {
       return res.status(404).json({ message: 'Developer profile not found or no usernames linked yet' });
     }
 
-    // Check if we need to fetch new stats (cache for 2 hours)
-    const CACHE_HOURS = 2;
+    // Check if we need to fetch new stats (cache for 10 minutes)
+    const CACHE_MINUTES = 10;
     const now = new Date();
-    const isCacheValid = profile.lastUpdated && (now - profile.lastUpdated) < (CACHE_HOURS * 60 * 60 * 1000);
+    const isCacheValid = profile.lastUpdated && (now - profile.lastUpdated) < (CACHE_MINUTES * 60 * 1000);
+    const forceRefresh = req.query.force === 'true';
 
-    if (isCacheValid) {
+    if (isCacheValid && !forceRefresh) {
       return res.json({
         usernames: profile.usernames,
         stats: profile.stats,

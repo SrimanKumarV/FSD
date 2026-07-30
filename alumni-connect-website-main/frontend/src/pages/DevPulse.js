@@ -349,7 +349,7 @@ const DevPulse = () => {
               {[
                 { label: 'Alumnex Score', value: alumnexScore, color: '#6366f1' },
                 { label: 'Problems Solved', value: totalSolved || '—', color: '#f59e0b' },
-                { label: 'GitHub Repos', value: stats?.github?.totalSolved || stats?.github?.publicRepos ?? '—', color: '#e2e8f0' },
+                { label: 'GitHub Repos', value: (stats?.github?.publicRepos ?? '—'), color: '#e2e8f0' },
                 { label: 'Active Days (LC)', value: heatmapData.activeDays || '—', color: '#10b981' },
               ].map(({ label, value, color }) => (
                 <div key={label} className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50 backdrop-blur-sm">

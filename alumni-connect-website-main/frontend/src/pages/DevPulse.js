@@ -461,17 +461,31 @@ const DevPulse = () => {
         return (
           <div className="space-y-6">
             <PlatformHeader label="GitHub" username={uname} icon={GitCommit} color="#e2e8f0" url={url} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {[
-                { icon: BookOpen, label: 'Public Repos', value: g.publicRepos, color: '#e2e8f0' },
-                { icon: Users, label: 'Followers', value: g.followers, color: '#94a3b8' },
-                { icon: GitFork, label: 'Following', value: g.following, color: '#64748b' },
-              ].map(({ icon, label, value, color }) => (
-                <div key={label} className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                  <p className="text-xs font-semibold text-slate-400 mb-2">{label}</p>
-                  <p className="text-3xl font-black" style={{ color }}>{value ?? '—'}</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 border border-slate-700/50 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-700/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                <BookOpen className="w-12 h-12 text-slate-400 mb-4" />
+                <h3 className="text-4xl font-black text-white mb-1">{g.publicRepos ?? '—'}</h3>
+                <p className="text-sm font-semibold text-slate-400">Public Repositories</p>
+              </div>
+              
+              <div className="md:col-span-2 grid grid-cols-2 gap-6">
+                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20">
+                    <Users className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white mb-1">{g.followers ?? '—'}</h3>
+                  <p className="text-sm font-semibold text-slate-400">Followers</p>
                 </div>
-              ))}
+                <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 border border-emerald-500/20">
+                    <GitFork className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white mb-1">{g.following ?? '—'}</h3>
+                  <p className="text-sm font-semibold text-slate-400">Following</p>
+                </div>
+              </div>
             </div>
             {/* Real GitHub Achievement Badges */}
             {g.badges?.length > 0 && (
@@ -610,14 +624,26 @@ const DevPulse = () => {
           <div className="space-y-6">
             <PlatformHeader label="HackerRank" username={uname} icon={Trophy} color="#22c55e" url={url} />
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                <p className="text-xs font-semibold text-slate-400 mb-2">Badges Earned</p>
-                <p className="text-4xl font-black text-green-400">{hr.badgesCount ?? '—'}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-emerald-900/40 to-slate-900 rounded-3xl p-6 border border-emerald-700/30 flex items-center gap-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+                <div className="relative z-10 shrink-0">
+                  <ScoreRing score={hr.level || 0} max={6} />
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">Hacker Level</h3>
+                  <div className="text-4xl font-black text-white">{levelBadge ? `Level ${hr.level}` : hr.level ?? '—'}</div>
+                  {levelBadge && <p className="text-xs text-slate-400 mt-2">Ranked based on domain mastery</p>}
+                </div>
               </div>
-              <div className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                <p className="text-xs font-semibold text-slate-400 mb-2">Hacker Level</p>
-                <p className="text-4xl font-black text-emerald-400">{levelBadge ? `Level ${hr.level}` : hr.level ?? '—'}</p>
+
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center relative overflow-hidden">
+                <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-green-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-4 border border-green-500/20">
+                  <Trophy className="w-6 h-6 text-green-400" />
+                </div>
+                <h3 className="text-4xl font-black text-white mb-1">{hr.badgesCount ?? '—'}</h3>
+                <p className="text-sm font-semibold text-slate-400">Total Badges Earned</p>
               </div>
             </div>
 
@@ -653,24 +679,35 @@ const DevPulse = () => {
         return (
           <div className="space-y-6">
             <PlatformHeader label="GeeksforGeeks" username={uname} icon={TrendingUp} color="#10b981" url={url} />
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                <p className="text-xs font-semibold text-slate-400 mb-2">Coding Score</p>
-                <p className="text-4xl font-black text-emerald-400">{gfg.codingScore ?? '—'}</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 bg-gradient-to-br from-teal-900/40 to-slate-900 rounded-3xl p-8 border border-teal-700/30 flex justify-between items-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="relative z-10">
+                  <h3 className="text-sm font-bold text-teal-400 uppercase tracking-wider mb-2">Overall Coding Score</h3>
+                  <div className="text-6xl md:text-7xl font-black text-white">{gfg.codingScore ?? '—'}</div>
+                </div>
+                <div className="w-24 h-24 rounded-full border-4 border-teal-500/30 flex items-center justify-center bg-teal-500/10 backdrop-blur-sm relative z-10">
+                  <TrendingUp className="w-10 h-10 text-teal-400" />
+                </div>
               </div>
-              <div className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                <p className="text-xs font-semibold text-slate-400 mb-2">Problems Solved</p>
-                <p className="text-4xl font-black text-green-400">{gfg.problemsSolved ?? '—'}</p>
+
+              <div className="flex flex-col gap-6">
+                <div className="flex-1 bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
+                  <h3 className="text-4xl font-black text-white mb-1">{gfg.problemsSolved ?? '—'}</h3>
+                  <p className="text-sm font-semibold text-slate-400">Problems Solved</p>
+                </div>
+                {gfg.instituteRank ? (
+                  <div className="flex-1 bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center">
+                    <h3 className="text-3xl font-black text-white mb-1">#{gfg.instituteRank}</h3>
+                    <p className="text-sm font-semibold text-slate-400">Institute Rank</p>
+                  </div>
+                ) : (
+                   <div className="flex-1 bg-slate-800/40 rounded-3xl p-6 border border-emerald-500/20 border-dashed flex flex-col justify-center items-center text-center">
+                      <p className="text-xs text-slate-500">Institute rank not available publicly.</p>
+                   </div>
+                )}
               </div>
-            </div>
-            {gfg.instituteRank && (
-              <div className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                <p className="text-xs font-semibold text-slate-400 mb-2">Institute Rank</p>
-                <p className="text-4xl font-black text-teal-400">#{gfg.instituteRank}</p>
-              </div>
-            )}
-            <div className="bg-slate-800/40 rounded-2xl p-5 border border-emerald-500/20 border-dashed text-slate-500 text-sm text-center">
-              GFG provides coding score and problems solved. More detailed topic data isn't available through the public API.
             </div>
           </div>
         );
@@ -687,17 +724,30 @@ const DevPulse = () => {
         return (
           <div className="space-y-6">
             <PlatformHeader label="CodeChef" username={uname} icon={Target} color="#8b5cf6" url={url} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {[
-                { label: 'Rating', value: cc.rating, color: '#8b5cf6' },
-                { label: 'Stars', value: cc.stars ? `${cc.stars}★` : '—', color: '#fbbf24' },
-                { label: 'Division', value: cc.division ? `Div ${cc.division}` : '—', color: '#a78bfa' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                  <p className="text-xs font-semibold text-slate-400 mb-2">{label}</p>
-                  <p className="text-3xl font-black" style={{ color }}>{value ?? '—'}</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-violet-900/40 to-slate-900 rounded-3xl p-6 border border-violet-700/30 text-center flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-violet-500/20 via-transparent to-transparent opacity-50"></div>
+                <Target className="w-10 h-10 text-violet-400 mb-4 relative z-10" />
+                <h3 className="text-5xl font-black text-white mb-2 relative z-10">{cc.rating ?? '—'}</h3>
+                <p className="text-sm font-semibold text-violet-300 relative z-10">Contest Rating</p>
+              </div>
+
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col items-center justify-center text-center">
+                <div className="text-amber-400 text-4xl mb-3 tracking-widest drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]">
+                  {cc.stars ? '★'.repeat(cc.stars) : '—'}
                 </div>
-              ))}
+                <h3 className="text-2xl font-black text-white mb-1">{cc.stars ? `${cc.stars} Star` : 'Unrated'}</h3>
+                <p className="text-sm font-semibold text-slate-400">CodeChef Stars</p>
+              </div>
+
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center mb-3">
+                  <span className="text-3xl font-black text-fuchsia-400">{cc.division ?? '-'}</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1">Division {cc.division ?? '—'}</h3>
+                <p className="text-sm font-semibold text-slate-400">Current Division</p>
+              </div>
             </div>
             {cc.badges?.length > 0 && (
               <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
@@ -722,20 +772,37 @@ const DevPulse = () => {
         return (
           <div className="space-y-6">
             <PlatformHeader label="Codeforces" username={uname} icon={Zap} color="#ef4444" url={url} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {[
-                { label: 'Rating', value: cf.rating || 'Unrated', color: '#ef4444' },
-                { label: 'Max Rating', value: cf.maxRating || '—', color: '#f97316' },
-                { label: 'Contests', value: cf.contestCount ?? '—', color: '#fbbf24' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/50">
-                  <p className="text-xs font-semibold text-slate-400 mb-2">{label}</p>
-                  <p className="text-3xl font-black" style={{ color }}>{value}</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-red-900/40 to-slate-900 rounded-3xl p-6 border border-red-700/30 relative overflow-hidden flex flex-col justify-center items-center text-center">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                 <Zap className="w-10 h-10 text-red-400 mb-3" />
+                 <h3 className="text-5xl font-black text-white mb-2">{cf.rating || 'Unrated'}</h3>
+                 <p className="text-sm font-semibold text-red-300">Current Rating</p>
+              </div>
+
+              <div className="grid grid-rows-2 gap-6">
+                <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 mb-1">Max Rating</p>
+                    <p className="text-3xl font-black text-orange-400">{cf.maxRating || '—'}</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-orange-500/30" />
                 </div>
-              ))}
+                <div className="bg-slate-800/40 rounded-3xl p-5 border border-slate-700/50 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 mb-1">Contests Participated</p>
+                    <p className="text-3xl font-black text-amber-400">{cf.contestCount ?? '—'}</p>
+                  </div>
+                  <Trophy className="w-8 h-8 text-amber-500/30" />
+                </div>
+              </div>
+
+              <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col justify-center space-y-4">
+                 <StatPill icon={Star} label="Current Rank" value={cf.rank || 'Newbie'} color="#ef4444" />
+                 <StatPill icon={TrendingUp} label="Peak Rank" value={cf.maxRank || '—'} color="#f97316" />
+              </div>
             </div>
-            <StatPill icon={Star} label="Current Rank" value={cf.rank || 'Newbie'} color="#ef4444" />
-            <StatPill icon={TrendingUp} label="Peak Rank" value={cf.maxRank || '—'} color="#f97316" />
             {cf.badges?.length > 0 && (
               <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50">
                 <h3 className="font-bold text-white mb-4">Codeforces Rank Badges</h3>

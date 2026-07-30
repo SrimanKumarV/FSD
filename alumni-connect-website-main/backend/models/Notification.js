@@ -29,7 +29,7 @@ const notificationSchema = new mongoose.Schema({
   content: {
     type: String,
     required: [true, 'Notification content is required'],
-    maxlength: [500, 'Content cannot exceed 500 characters']
+    maxlength: [2000, 'Content cannot exceed 2000 characters']
   },
   
   // Related Data

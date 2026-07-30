@@ -1007,9 +1007,9 @@ const SystemSettingsTab = () => {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                rows="4"
+                rows="10"
                 placeholder="Type the full message here..."
-                className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none resize-none"
+                className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none"
               ></textarea>
             </div>
 

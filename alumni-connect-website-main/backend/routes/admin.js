@@ -588,7 +588,7 @@ router.get('/analytics', [protect, admin], async (req, res) => {
 // @access  Private (Admin only)
 router.post('/notifications', [protect, admin], [
   body('title').trim().isLength({ min: 5, max: 100 }).withMessage('Title must be 5-100 characters'),
-  body('content').trim().isLength({ min: 10, max: 1000 }).withMessage('Content must be 10-1000 characters'),
+  body('content').trim().isLength({ min: 10, max: 2000 }).withMessage('Content must be 10-2000 characters'),
   body('type').isIn(['announcement', 'maintenance', 'update', 'warning']).withMessage('Invalid notification type'),
   body('recipients').isIn(['all', 'alumni', 'students', 'specific']).withMessage('Invalid recipient type'),
   body('specificUsers').optional().isArray().withMessage('Specific users must be an array'),

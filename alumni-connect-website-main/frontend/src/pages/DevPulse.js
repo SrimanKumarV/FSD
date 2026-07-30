@@ -15,7 +15,7 @@ import UserAvatar from '../components/UserAvatar';
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
 } from 'recharts';
 
 // ── Heatmap styles ─────────────────────────────────────────────────────────
@@ -250,6 +250,7 @@ const DevPulse = () => {
   const isPublicView = !!userId;
   const [activeTab, setActiveTab] = useState('overview');
   const [isForceSyncing, setIsForceSyncing] = useState(false);
+  const [showAllLcTopics, setShowAllLcTopics] = useState(false);
 
   const { data, isLoading, error, refetch } = useQuery(
     ['dev-activity', isPublicView ? userId : user?.email, isForceSyncing],
@@ -717,18 +718,29 @@ const DevPulse = () => {
               {/* LeetCode Topics Bar Chart */}
               {lc.topics?.length > 0 && (
                 <div className="bg-slate-800/40 rounded-3xl p-6 border border-slate-700/50 flex flex-col">
-                  <h3 className="font-bold text-white mb-5">DSA Topic Analysis</h3>
-                  <div className="flex-1 min-h-[300px]">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="font-bold text-white">DSA Topic Analysis</h3>
+                    {lc.topics.length > 15 && (
+                      <button 
+                        onClick={() => setShowAllLcTopics(!showAllLcTopics)}
+                        className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        {showAllLcTopics ? 'Show Less' : `Show All (${lc.topics.length})`}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex-1" style={{ minHeight: showAllLcTopics ? `${lc.topics.length * 28}px` : '350px', transition: 'min-height 0.3s ease' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={lc.topics.slice(0, 15)} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
+                      <BarChart data={showAllLcTopics ? lc.topics : lc.topics.slice(0, 15)} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }} barSize={14}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" opacity={0.3} />
                         <XAxis type="number" hide />
-                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                        <RechartsTooltip cursor={{ fill: '#334155', opacity: 0.4 }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }} width={110} />
+                        <RechartsTooltip cursor={{ fill: '#334155', opacity: 0.2 }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} />
                         <Bar dataKey="solved" fill="#3b82f6" radius={[0, 4, 4, 0]}>
-                          {lc.topics.slice(0, 15).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={index < 3 ? '#2563eb' : '#3b82f6'} fillOpacity={1 - index * 0.05} />
+                          { (showAllLcTopics ? lc.topics : lc.topics.slice(0, 15)).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index < 3 ? '#2563eb' : '#3b82f6'} fillOpacity={1 - Math.min(index * 0.02, 0.4)} />
                           ))}
+                          <LabelList dataKey="solved" position="insideLeft" fill="#ffffff" fontSize={10} fontWeight="bold" offset={10} />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>

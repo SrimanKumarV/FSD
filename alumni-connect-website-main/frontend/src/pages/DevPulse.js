@@ -506,8 +506,7 @@ const DevPulse = () => {
         const g = stats?.github;
         const uname = usernames?.github?.username;
         const url = platformUrl(stats, usernames, 'github');
-        const status = <ConnectionStatus platformKey="GitHub" stats={g} username={uname} url={url} isPublicView={isPublicView} />;
-        if (status) return <div>{status}</div>;
+        if (!uname || !g || g.fetchError) return <ConnectionStatus platformKey="GitHub" stats={g} username={uname} url={url} isPublicView={isPublicView} />;
 
         return (
           <div className="space-y-6">
@@ -564,8 +563,7 @@ const DevPulse = () => {
         const lc = stats?.leetcode;
         const uname = usernames?.leetcode?.username;
         const url = platformUrl(stats, usernames, 'leetcode');
-        const status = <ConnectionStatus platformKey="LeetCode" stats={lc} username={uname} url={url} isPublicView={isPublicView} />;
-        if (status) return <div>{status}</div>;
+        if (!uname || !lc || lc.fetchError) return <ConnectionStatus platformKey="LeetCode" stats={lc} username={uname} url={url} isPublicView={isPublicView} />;
 
         const totalDsa = (lc.easySolved || 0) + (lc.mediumSolved || 0) + (lc.hardSolved || 0);
         const dsaData = [
@@ -682,8 +680,7 @@ const DevPulse = () => {
         const hr = stats?.hackerrank;
         const uname = usernames?.hackerrank?.username;
         const url = platformUrl(stats, usernames, 'hackerrank');
-        const status = <ConnectionStatus platformKey="HackerRank" stats={hr} username={uname} url={url} isPublicView={isPublicView} />;
-        if (status) return <div>{status}</div>;
+        if (!uname || !hr || hr.fetchError) return <ConnectionStatus platformKey="HackerRank" stats={hr} username={uname} url={url} isPublicView={isPublicView} />;
 
         // Separate domain badges from level badge
         const domainBadges = (hr.badges || []).filter(b => b.id !== 'hr-lvl');
@@ -742,8 +739,7 @@ const DevPulse = () => {
         const gfg = stats?.gfg;
         const uname = usernames?.gfg?.username;
         const url = platformUrl(stats, usernames, 'gfg');
-        const status = <ConnectionStatus platformKey="GeeksforGeeks" stats={gfg} username={uname} url={url} isPublicView={isPublicView} />;
-        if (status) return <div>{status}</div>;
+        if (!uname || !gfg || gfg.fetchError) return <ConnectionStatus platformKey="GeeksforGeeks" stats={gfg} username={uname} url={url} isPublicView={isPublicView} />;
 
         return (
           <div className="space-y-6">
@@ -787,8 +783,7 @@ const DevPulse = () => {
         const cc = stats?.codechef;
         const uname = usernames?.codechef?.username;
         const url = platformUrl(stats, usernames, 'codechef');
-        const status = <ConnectionStatus platformKey="CodeChef" stats={cc} username={uname} url={url} isPublicView={isPublicView} />;
-        if (status) return <div>{status}</div>;
+        if (!uname || !cc || cc.fetchError) return <ConnectionStatus platformKey="CodeChef" stats={cc} username={uname} url={url} isPublicView={isPublicView} />;
 
         return (
           <div className="space-y-6">
@@ -835,8 +830,7 @@ const DevPulse = () => {
         const cf = stats?.codeforces;
         const uname = usernames?.codeforces?.username;
         const url = platformUrl(stats, usernames, 'codeforces');
-        const status = <ConnectionStatus platformKey="Codeforces" stats={cf} username={uname} url={url} isPublicView={isPublicView} />;
-        if (status) return <div>{status}</div>;
+        if (!uname || !cf || cf.fetchError) return <ConnectionStatus platformKey="Codeforces" stats={cf} username={uname} url={url} isPublicView={isPublicView} />;
 
         return (
           <div className="space-y-6">

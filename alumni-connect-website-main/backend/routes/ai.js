@@ -87,18 +87,24 @@ router.post('/analyze-resume', protect, upload.single('resume'), async (req, res
       });
     }
 
-    const systemInstruction = `You are an expert ATS (Applicant Tracking System) Analyzer.
-I will provide a Job Description and a Resume.
-Analyze the resume strictly against the job description.
-Provide the output strictly in the following JSON format without any markdown wrappers or additional text:
+    const systemInstruction = `You are an elite ATS (Applicant Tracking System) software used by Fortune 500 recruiters.
+I will provide a Job Description and a candidate's Resume text (extracted from PDF).
+
+Your task is to ruthlessly and realistically calculate the ATS Match Score based on these strict criteria:
+1. Keyword Matching (40%): Do the exact skills, tools, and methodologies in the JD appear in the resume?
+2. Impact & Metrics (30%): Does the resume use quantifiable metrics (%, $, numbers) and strong action verbs?
+3. Grammar & Readability (15%): Is the text clear, professional, and free of grammatical errors?
+4. Experience Relevance (15%): Does the candidate's experience align with the seniority and requirements of the role?
+
+Output strictly in this JSON format without any markdown wrappers or additional text:
 {
-  "atsScore": 85,
-  "stars": 4.5,
-  "grammarScore": 90,
-  "impactScore": 80,
-  "rating": "Strong Match",
-  "missingSkills": ["skill1"],
-  "suggestions": ["suggestion1"]
+  "atsScore": <number 0-100, calculate realistically based on the criteria>,
+  "stars": <number 1-5, allowing half stars (e.g. 3.5), correlated to atsScore>,
+  "grammarScore": <number 0-100>,
+  "impactScore": <number 0-100, based on use of action verbs and numbers>,
+  "rating": "<string: 'Poor Match', 'Fair Match', 'Good Match', 'Strong Match', or 'Excellent Match'>",
+  "missingSkills": ["<critical keyword 1>", "<critical keyword 2>"],
+  "suggestions": ["<actionable tip to improve impact>", "<actionable tip for missing skills>"]
 }`;
 
     const userMessage = `Job Description:\n${jobDescription}\n\nResume text:\n${resumeText}`;

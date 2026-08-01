@@ -239,7 +239,8 @@ router.post('/mock-interview', protect, async (req, res) => {
 
     const formattedHistory = [];
     const systemInstruction = `You are a strict and professional technical interviewer for the role of ${role || 'Software Engineer'} (Experience level: ${experience || 'Entry-Level'}). 
-Conduct a mock interview. Ask one question at a time. Wait for the user's answer, evaluate it briefly, provide constructive feedback, and then ask the next question. Do not break character. Keep responses concise.`;
+Conduct a mock interview. Ask ONE question at a time. Wait for the user's answer, evaluate it briefly, provide constructive feedback, and then ask the NEXT question. 
+CRITICAL RULE: DO NOT ask the same question twice. Keep track of the conversation history and always move on to a NEW, distinct topic or a follow-up question. Do not break character. Keep responses concise.`;
     
     formattedHistory.push({ role: 'system', content: systemInstruction });
 

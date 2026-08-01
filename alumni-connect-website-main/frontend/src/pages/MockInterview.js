@@ -27,14 +27,16 @@ const MockInterview = () => {
     setSessionActive(true);
     setLoading(true);
     try {
+      const userMessage = 'Hello, I am ready to begin the interview.';
       const payload = {
-        message: 'Hello, I am ready to begin the interview.',
+        message: userMessage,
         history: [],
         role,
         experience
       };
       const response = await api.post('/ai/mock-interview', payload);
       setMessages([
+        { role: 'user', content: userMessage },
         { role: 'assistant', content: response.data.reply }
       ]);
     } catch (error) {

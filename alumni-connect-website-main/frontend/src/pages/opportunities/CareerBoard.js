@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Briefcase, MapPin, Building, Clock, ExternalLink } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../contexts/AuthContext';
+import PostJobModal from '../../components/opportunities/PostJobModal';
 
 const CareerBoard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('jobs');
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPostModal, setShowPostModal] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -38,9 +42,14 @@ const CareerBoard = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Career Opportunities</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Find internships, jobs, referrals, and walk-in drives posted by alumni.</p>
         </div>
-        <button className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-primary-700 transition-colors">
-          Post Opportunity
-        </button>
+        {(user?.role === 'alumni' || user?.role === 'admin') && (
+          <button 
+            onClick={() => setShowPostModal(true)}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-primary-700 transition-colors"
+          >
+            Post Opportunity
+          </button>
+        )}
       </div>
 
       <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-800 mb-6">
@@ -112,6 +121,16 @@ const CareerBoard = () => {
             ))
           )}
         </div>
+      )}
+      
+      {showPostModal && (
+        <PostJobModal 
+          onClose={() => setShowPostModal(false)}
+          onSuccess={() => {
+            setShowPostModal(false);
+            fetchJobs();
+          }}
+        />
       )}
     </div>
   );

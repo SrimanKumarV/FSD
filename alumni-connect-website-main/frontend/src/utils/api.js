@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  timeout: 5000, // Reduced to 5s to quickly failover if Render is sleeping/suspended
+  timeout: 60000, // Increased to 60s to allow Render free tier to wake up
   headers: { 'Content-Type': 'application/json' },
 });
 

@@ -183,12 +183,20 @@ router.post('/usernames', protect, async (req, res) => {
       return str;
     };
 
+    if (!profile.usernames) profile.usernames = {};
+    if (!profile.usernames.github) profile.usernames.github = { username: '', isVerified: false };
+    if (!profile.usernames.leetcode) profile.usernames.leetcode = { username: '', isVerified: false };
+    if (!profile.usernames.hackerrank) profile.usernames.hackerrank = { username: '', isVerified: false };
+    if (!profile.usernames.gfg) profile.usernames.gfg = { username: '', isVerified: false };
+    if (!profile.usernames.codechef) profile.usernames.codechef = { username: '', isVerified: false };
+    if (!profile.usernames.codeforces) profile.usernames.codeforces = { username: '', isVerified: false };
+
     const newGithub = github !== undefined ? cleanUsername(github) : profile.usernames.github.username;
     const newLeetcode = leetcode !== undefined ? cleanUsername(leetcode) : profile.usernames.leetcode.username;
     const newHackerrank = hackerrank !== undefined ? cleanUsername(hackerrank) : profile.usernames.hackerrank.username;
     const newGfg = gfg !== undefined ? cleanUsername(gfg) : profile.usernames.gfg.username;
-    const newCodechef = codechef !== undefined ? cleanUsername(codechef) : profile.usernames.codechef?.username || '';
-    const newCodeforces = codeforces !== undefined ? cleanUsername(codeforces) : profile.usernames.codeforces?.username || '';
+    const newCodechef = codechef !== undefined ? cleanUsername(codechef) : profile.usernames.codechef.username;
+    const newCodeforces = codeforces !== undefined ? cleanUsername(codeforces) : profile.usernames.codeforces.username;
 
     if (newGithub === '' && profile.usernames.github.username !== '') profile.stats.github = null;
     if (newLeetcode === '' && profile.usernames.leetcode.username !== '') profile.stats.leetcode = null;

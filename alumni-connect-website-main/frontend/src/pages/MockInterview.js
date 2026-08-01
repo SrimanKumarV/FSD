@@ -81,8 +81,8 @@ const MockInterview = () => {
   };
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-[calc(100vh-8rem)] flex flex-col">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-white/50 dark:bg-gray-900/50">
+      <div className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col py-6 overflow-hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

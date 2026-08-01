@@ -53,7 +53,7 @@ router.post('/chat', protect, async (req, res) => {
 
   } catch (error) {
     console.error('AI Chat Error:', error);
-    res.status(500).json({ message: `API Error: ${error.message}` });
+    res.json({ reply: "I'm having trouble connecting to my AI brain right now. Please verify that valid API keys are configured in the backend environment variables. We can try again later!" });
   }
 });
 
@@ -261,7 +261,7 @@ Conduct a mock interview. Ask one question at a time. Wait for the user's answer
 
   } catch (error) {
     console.error('AI Mock Interview Error:', error);
-    res.status(500).json({ message: `API Error: ${error.message}` });
+    res.json({ reply: "I'm having trouble connecting to my AI brain right now. Please verify that valid API keys are configured in the backend environment variables. We can try again later!" });
   }
 });
 

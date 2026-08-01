@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Github, Code2, Terminal, Code, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Github, Code2, Terminal, Code, CheckCircle, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';

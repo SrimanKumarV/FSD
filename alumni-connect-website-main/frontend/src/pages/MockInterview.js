@@ -38,8 +38,9 @@ const MockInterview = () => {
         { role: 'assistant', content: response.data.reply }
       ]);
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to start interview');
+      console.error("Mock Interview Error:", error);
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      toast.error(`Failed: ${errorMsg}`);
       setSessionActive(false);
     } finally {
       setLoading(false);
@@ -72,8 +73,9 @@ const MockInterview = () => {
       const response = await api.post('/ai/mock-interview', payload);
       setMessages([...updatedHistory, { role: 'assistant', content: response.data.reply }]);
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to send message');
+      console.error("Mock Interview Send Error:", error);
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      toast.error(`Failed: ${errorMsg}`);
       setMessages(messages); // Revert on failure
     } finally {
       setLoading(false);

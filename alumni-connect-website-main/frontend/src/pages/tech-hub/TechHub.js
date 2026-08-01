@@ -20,7 +20,9 @@ const TechHub = () => {
       const res = await api.get('/tech-hub/questions');
       setQuestions(res.data);
     } catch (error) {
-      toast.error('Failed to load questions');
+      console.error("TechHub fetch error:", error);
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      toast.error(`Failed to load questions: ${errorMsg}`);
     } finally {
       setLoading(false);
     }

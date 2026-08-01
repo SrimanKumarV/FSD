@@ -140,28 +140,28 @@ const Contests = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col text-slate-200 px-4 sm:px-6 lg:px-8 py-4 font-sans overflow-hidden">
+    <div className="h-[calc(100vh-100px)] flex flex-col text-gray-900 dark:text-slate-200 px-4 sm:px-6 lg:px-8 py-4 font-sans overflow-hidden">
       <div className="max-w-7xl mx-auto w-full h-full flex flex-col space-y-6">
         
         {/* Top Header Controls */}
         <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
           <div className="relative w-full sm:flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-slate-400" />
             <input 
               type="text" 
               placeholder="Search Contests" 
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-slate-900/50 backdrop-blur-md text-slate-200 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow placeholder-slate-500 border border-slate-700/50 shadow-inner"
+              className="w-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-md text-gray-900 dark:text-slate-200 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow placeholder-slate-500 border border-gray-200 dark:border-gray-200 dark:border-slate-700/50 shadow-inner"
             />
           </div>
           <div className="relative w-full sm:w-72">
             <div 
               onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
-              className="bg-slate-900/50 backdrop-blur-md border border-slate-700/50 text-slate-300 rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-800/50 transition-colors shadow-inner"
+              className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-gray-200 dark:border-gray-200 dark:border-slate-700/50 text-gray-800 dark:text-slate-300 rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-gray-100/50 dark:bg-white dark:bg-slate-800/50 transition-colors shadow-inner"
             >
               <span>{platformFilter === 'All' ? 'All Platforms Selected' : platformFilter}</span>
-              <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${showPlatformDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-gray-500 dark:text-slate-500 transition-transform ${showPlatformDropdown ? 'rotate-180' : ''}`} />
             </div>
             
             <AnimatePresence>
@@ -170,13 +170,13 @@ const Contests = () => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50"
+                  className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50"
                 >
                   {platformsList.map(plat => (
                     <div 
                       key={plat}
                       onClick={() => { setPlatformFilter(plat); setShowPlatformDropdown(false); }}
-                      className="px-4 py-2.5 text-sm text-slate-300 hover:bg-indigo-600 hover:text-white cursor-pointer transition-colors"
+                      className="px-4 py-2.5 text-sm text-gray-800 dark:text-slate-300 hover:bg-indigo-600 hover:text-white cursor-pointer transition-colors"
                     >
                       {plat}
                     </div>
@@ -202,35 +202,35 @@ const Contests = () => {
           {/* Left Panel: Upcoming */}
           <div className="w-full xl:w-[350px] shrink-0 flex flex-col h-full">
             <div className="shrink-0 mb-4">
-              <h2 className="text-2xl font-black text-white drop-shadow-md">Upcoming Contests</h2>
-              <p className="text-slate-400 text-sm">Don't miss scheduled events</p>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white drop-shadow-md">Upcoming Contests</h2>
+              <p className="text-gray-600 dark:text-slate-400 text-sm">Don't miss scheduled events</p>
             </div>
             
             <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar flex-1 min-h-0">
               {Object.keys(upcomingContestsGrouped).length > 0 ? (
                 Object.entries(upcomingContestsGrouped).map(([dateStr, contests]) => (
                   <div key={dateStr}>
-                    <h3 className="text-slate-400 text-xs font-bold mb-3 tracking-wider">{dateStr}</h3>
+                    <h3 className="text-gray-600 dark:text-slate-400 text-xs font-bold mb-3 tracking-wider">{dateStr}</h3>
                     <div className="space-y-3">
                       {contests.map(c => (
-                        <div key={c._id} className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800/60 transition-colors shadow-sm group">
+                        <div key={c._id} className="bg-gray-100/40 dark:bg-white dark:bg-slate-800/40 backdrop-blur-sm border border-gray-200 dark:border-gray-200 dark:border-slate-700/50 rounded-xl p-4 hover:bg-gray-200/60 dark:bg-white dark:bg-slate-800/60 transition-colors shadow-sm group">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-2 h-2 rounded-full shadow-sm" style={{ background: getPlatformColor(c.platform) }} />
-                            <span className="text-slate-400 text-xs font-medium">
+                            <span className="text-gray-600 dark:text-slate-400 text-xs font-medium">
                               {dateStr} {formatTime(c.start)} - {formatTime(c.end)}
                             </span>
                           </div>
                           <div className="flex items-center gap-3 mb-4">
                             <PlatformIcon platform={c.platform} className="w-5 h-5 shrink-0" />
-                            <h4 className="font-semibold text-slate-200 leading-tight group-hover:text-white transition-colors">{c.title}</h4>
+                            <h4 className="font-semibold text-gray-900 dark:text-slate-200 leading-tight group-hover:text-white transition-colors">{c.title}</h4>
                           </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-                            <a href={getGoogleCalendarUrl(c)} target="_blank" rel="noreferrer" className="flex items-center text-slate-400 hover:text-indigo-400 text-xs font-semibold transition-colors">
+                          <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-200 dark:border-slate-700/50">
+                            <a href={getGoogleCalendarUrl(c)} target="_blank" rel="noreferrer" className="flex items-center text-gray-600 dark:text-slate-400 hover:text-indigo-400 text-xs font-semibold transition-colors">
                               <MapPin className="w-3.5 h-3.5 mr-1.5" />
                               Add to Calendar
                             </a>
                             {c.externalLink && (
-                              <a href={c.externalLink} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-indigo-400 transition-colors">
+                              <a href={c.externalLink} target="_blank" rel="noreferrer" className="text-gray-500 dark:text-slate-500 hover:text-indigo-400 transition-colors">
                                 <ExternalLink className="w-4 h-4" />
                               </a>
                             )}
@@ -241,24 +241,24 @@ const Contests = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-slate-500 text-center py-10 bg-slate-800/20 rounded-xl border border-slate-700/30 border-dashed">No upcoming contests found.</div>
+                <div className="text-gray-500 dark:text-slate-500 text-center py-10 bg-gray-50/20 dark:bg-white dark:bg-slate-800/20 rounded-xl border border-gray-200 dark:border-gray-200 dark:border-slate-700/30 border-dashed">No upcoming contests found.</div>
               )}
             </div>
           </div>
 
           {/* Right Panel: Calendar Grid */}
-          <div className="flex-1 bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-[2rem] p-6 flex flex-col h-full shadow-2xl relative overflow-hidden">
+          <div className="flex-1 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-gray-200 dark:border-gray-200 dark:border-slate-700/50 rounded-[2rem] p-6 flex flex-col h-full shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="flex items-center justify-between mb-6 relative z-10 shrink-0">
-              <h2 className="text-2xl font-black text-white">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">
                 {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
               </h2>
               <div className="flex gap-2">
-                <button onClick={prevMonth} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors">
-                  <ChevronLeft className="w-5 h-5 text-slate-300" />
+                <button onClick={prevMonth} className="p-2 bg-white dark:bg-slate-800 hover:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-700 transition-colors">
+                  <ChevronLeft className="w-5 h-5 text-gray-800 dark:text-slate-300" />
                 </button>
-                <button onClick={nextMonth} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors">
-                  <ChevronRight className="w-5 h-5 text-slate-300" />
+                <button onClick={nextMonth} className="p-2 bg-white dark:bg-slate-800 hover:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-700 transition-colors">
+                  <ChevronRight className="w-5 h-5 text-gray-800 dark:text-slate-300" />
                 </button>
               </div>
             </div>
@@ -266,21 +266,21 @@ const Contests = () => {
             {/* Calendar Header */}
             <div className="grid grid-cols-7 mb-2 shrink-0 relative z-10">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-sm font-bold text-slate-500 pb-2">
+                <div key={day} className="text-center text-sm font-bold text-gray-500 dark:text-slate-500 pb-2">
                   {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Body */}
-            <div className="grid grid-cols-7 flex-1 border-t border-l border-slate-700/50 overflow-hidden rounded-xl bg-slate-900/50 relative z-10">
+            <div className="grid grid-cols-7 flex-1 border-t border-l border-gray-200 dark:border-gray-200 dark:border-slate-700/50 overflow-hidden rounded-xl bg-white/50 dark:bg-slate-900/50 relative z-10">
               {calendarDays.map((cell, idx) => {
                 const cellDateStr = cell.date.toLocaleDateString('en-US');
                 const dayContests = allContests.filter(c => c.start.toLocaleDateString('en-US') === cellDateStr);
                 
                 return (
-                  <div key={idx} className={`min-h-[80px] border-r border-b border-slate-700/50 p-1.5 sm:p-2 flex flex-col ${!cell.isCurrentMonth ? 'bg-slate-900/30' : 'bg-transparent hover:bg-slate-800/30'} transition-colors`}>
-                    <div className={`text-xs font-bold mb-1 sm:mb-2 text-right ${!cell.isCurrentMonth ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <div key={idx} className={`min-h-[80px] border-r border-b border-gray-200 dark:border-gray-200 dark:border-slate-700/50 p-1.5 sm:p-2 flex flex-col ${!cell.isCurrentMonth ? 'bg-slate-900/30' : 'bg-transparent hover:bg-white dark:bg-slate-800/30'} transition-colors`}>
+                    <div className={`text-xs font-bold mb-1 sm:mb-2 text-right ${!cell.isCurrentMonth ? 'text-slate-600' : 'text-gray-600 dark:text-slate-400'}`}>
                       {cell.day}
                     </div>
                     <div className="space-y-1.5 overflow-y-auto flex-1 custom-scrollbar min-h-0 pr-1">
@@ -290,14 +290,14 @@ const Contests = () => {
                           href={c.externalLink || '#'} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/50 shadow-sm transition-colors"
+                          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white dark:bg-slate-800/80 hover:bg-slate-700 border border-gray-200 dark:border-gray-200 dark:border-slate-700/50 shadow-sm transition-colors"
                         >
                           <PlatformIcon platform={c.platform} className="w-3 h-3 shrink-0" />
-                          <span className="text-[10px] text-slate-300 truncate font-semibold">{c.title}</span>
+                          <span className="text-[10px] text-gray-800 dark:text-slate-300 truncate font-semibold">{c.title}</span>
                         </a>
                       ))}
                       {dayContests.length > 4 && (
-                        <div className="text-[10px] text-slate-500 font-bold px-2 py-0.5">
+                        <div className="text-[10px] text-gray-500 dark:text-slate-500 font-bold px-2 py-0.5">
                           +{dayContests.length - 4} more
                         </div>
                       )}

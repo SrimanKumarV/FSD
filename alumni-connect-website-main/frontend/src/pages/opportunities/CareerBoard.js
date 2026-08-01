@@ -31,7 +31,7 @@ const CareerBoard = () => {
   const filteredJobs = jobs.filter(job => {
     if (activeTab === 'jobs') return job.jobType === 'full-time' || job.jobType === 'part-time' || job.jobType === 'contract';
     if (activeTab === 'internships') return job.jobType === 'internship';
-    if (activeTab === 'referrals') return job.category === 'referral';
+    if (activeTab === 'referrals') return job.jobType === 'referral';
     return true; // fallback
   });
 

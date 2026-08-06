@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import NetworkBackground from '../components/NetworkBackground';
 import { 
   Users, 
   Briefcase, 
@@ -113,11 +114,12 @@ const Home = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32">
+      <section className="relative overflow-hidden min-h-screen flex items-center justify-center pt-20 pb-32 mt-[-4rem]">
+        <NetworkBackground />
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-alumni-400/20 to-transparent dark:from-alumni-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-16">
           <div className="text-center">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}

@@ -118,8 +118,10 @@ module.exports = {
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        'soft-xl': '0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -5px rgba(0, 0, 0, 0.04)',
         'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         'large': '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        'glow-primary': '0 0 20px -5px rgba(59, 130, 246, 0.4), 0 8px 16px -8px rgba(59, 130, 246, 0.3)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

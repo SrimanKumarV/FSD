@@ -20,13 +20,34 @@
     -webkit-user-select: none;
   }
   
-  /* Hide scrollbars completely across the app */
+  /* Custom text selection color */
+  ::selection {
+    @apply bg-primary-500/30 text-primary-900;
+  }
+  .dark ::selection {
+    @apply bg-primary-500/40 text-primary-100;
+  }
+
+  /* Premium slim scrollbar */
   ::-webkit-scrollbar {
-    display: none;
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 hover:bg-gray-600;
   }
   * {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  .dark * {
+    scrollbar-color: #334155 transparent;
   }
 
   .dark body {

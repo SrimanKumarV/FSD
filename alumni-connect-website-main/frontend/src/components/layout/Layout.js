@@ -43,6 +43,8 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import DefaultAvatar from '../DefaultAvatar';
 import MobileBottomNav from './MobileBottomNav';
 import UserAvatar from '../UserAvatar';
+import CommandPalette from './CommandPalette';
+import PageWrapper from './PageWrapper';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -186,6 +188,8 @@ const Layout = ({ children }) => {
 
   return (
     <div className={location.pathname === '/chat' ? 'h-dvh overflow-hidden' : 'min-h-screen'}>
+      <CommandPalette />
+      
       {/* Mobile sidebar overlay */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -512,8 +516,12 @@ const Layout = ({ children }) => {
 
         {/* Page content */}
         <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)] lg:p-4 lg:pt-0 overflow-hidden flex flex-col' : 'py-6 pb-24 lg:pb-6'}>
-          <div className={location.pathname === '/chat' ? 'h-full w-full glass-card border-none lg:rounded-3xl overflow-hidden' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
-            {children}
+          <div className={location.pathname === '/chat' ? 'h-full w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1'}>
+            <AnimatePresence mode="wait">
+              <PageWrapper key={location.pathname}>
+                {children}
+              </PageWrapper>
+            </AnimatePresence>
           </div>
         </main>
       </div>

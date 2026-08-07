@@ -187,7 +187,7 @@ const Layout = ({ children }) => {
 
 
   return (
-    <div className={location.pathname === '/chat' ? 'h-dvh overflow-hidden' : 'min-h-screen'}>
+    <div className={location.pathname === '/chat' ? 'h-dvh overflow-hidden flex flex-col' : 'min-h-screen flex flex-col'}>
       <CommandPalette />
       
       {/* Mobile sidebar overlay */}
@@ -354,9 +354,9 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
+      <div className={`transition-all duration-300 flex-1 flex flex-col ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
         {/* Top navigation */}
-        <div className="sticky top-0 z-30 glass-nav">
+        <div className={`sticky top-0 z-30 glass-nav ${location.pathname === '/chat' ? 'hidden lg:block' : ''}`}>
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             {/* Mobile Logo replacing menu button */}
             <div className="flex items-center gap-2 lg:hidden">
@@ -515,10 +515,10 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)] lg:p-4 lg:pt-0 overflow-hidden flex flex-col' : 'py-6 pb-24 lg:pb-6'}>
-          <div className={location.pathname === '/chat' ? 'h-full w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1'}>
+        <main className={location.pathname === '/chat' ? 'pb-[5.5rem] lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1'}>
+          <div className={location.pathname === '/chat' ? 'h-full w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col'}>
             <AnimatePresence mode="wait">
-              <PageWrapper key={location.pathname}>
+              <PageWrapper key={location.pathname} className="flex-1 flex flex-col">
                 {children}
               </PageWrapper>
             </AnimatePresence>

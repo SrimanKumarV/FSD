@@ -104,7 +104,7 @@ const ProjectShowcase = () => {
   };
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className="flex-1 flex flex-col w-full pb-8">
       {/* Sticky Header */}
       <div className="mb-8">
         <div className="max-w-7xl mx-auto space-y-6">

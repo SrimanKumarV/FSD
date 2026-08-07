@@ -98,7 +98,7 @@ const MentorAllocation = () => {
   if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
-    <div className="w-full">
+    <div className="w-full flex-1 flex flex-col">
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Smart Mentor Allocation</h2>
@@ -201,7 +201,7 @@ const MentorAllocation = () => {
               );
             })}
             {mentors.length === 0 && (
-              <div className="col-span-3 text-center py-10 text-gray-500 dark:text-gray-400">
+              <div className="col-span-1 md:col-span-3 text-center py-10 text-gray-500 dark:text-gray-400 min-h-[300px] flex items-center justify-center">
                 No mentors available for this domain.
               </div>
             )}
@@ -256,7 +256,7 @@ const MentorAllocation = () => {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan="4" className="px-6 py-20 text-center text-gray-500 dark:text-gray-400">
                     No active requests.
                   </td>
                 </tr>

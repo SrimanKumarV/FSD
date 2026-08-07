@@ -301,13 +301,13 @@ const Mentorship = () => {
   });
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex-1 flex flex-col w-full py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col w-full">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-3xl p-8 mb-8 relative overflow-hidden"
+          className="glass-card rounded-3xl p-5 md:p-8 mb-4 md:mb-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-400/20 to-alumni-400/20 dark:from-primary-500/10 dark:to-alumni-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between mb-8">
@@ -320,8 +320,8 @@ const Mentorship = () => {
 
           </div>
 
-          {/* Stats */}
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Stats - Hidden on mobile to save space */}
+          <div className="relative z-10 hidden md:grid grid-cols-1 md:grid-cols-4 gap-6">
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-2xl shadow-sm">
               <Users className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{mentors.length}</p>
@@ -350,12 +350,12 @@ const Mentorship = () => {
           <div className="max-w-7xl mx-auto space-y-4">
             {/* Tabs */}
             <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
-              <div className="border-b border-gray-200/50 dark:border-gray-700/50">
-                <nav className="flex space-x-8 px-6">
+              <div className="border-b border-gray-200/50 dark:border-gray-700/50 overflow-x-auto custom-scrollbar">
+                <nav className="flex space-x-8 px-6 min-w-max">
                   {user?.role === 'student' && (
                     <button
                       onClick={() => setActiveTab('find')}
-                      className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                      className={`py-4 px-6 border-b-2 font-bold text-sm whitespace-nowrap transition-all duration-300 ${
                         activeTab === 'find'
                           ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
                           : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
@@ -367,7 +367,7 @@ const Mentorship = () => {
                   {user?.role === 'alumni' && (
                     <button
                       onClick={() => setActiveTab('requests')}
-                      className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                      className={`py-4 px-6 border-b-2 font-bold text-sm whitespace-nowrap transition-all duration-300 ${
                         activeTab === 'requests'
                           ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
                           : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
@@ -378,7 +378,7 @@ const Mentorship = () => {
                   )}
                   <button
                     onClick={() => setActiveTab('my-mentorships')}
-                    className={`py-4 px-6 border-b-2 font-bold text-sm transition-all duration-300 ${
+                    className={`py-4 px-6 border-b-2 font-bold text-sm whitespace-nowrap transition-all duration-300 ${
                       activeTab === 'my-mentorships'
                         ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50'
@@ -498,7 +498,7 @@ const Mentorship = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-6 flex-1 flex flex-col w-full"
           >
 
             {/* Mentors Grid */}
@@ -663,7 +663,7 @@ const Mentorship = () => {
             )}
 
             {filteredMentors.length === 0 && !loading && (
-              <div className="text-center py-12">
+              <div className="text-center py-12 flex-1 flex flex-col items-center justify-center w-full min-h-[400px]">
                 <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No mentors found</h3>
                 <p className="text-gray-600">Try adjusting your filters or search criteria.</p>
@@ -677,7 +677,7 @@ const Mentorship = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-6 flex-1 flex flex-col w-full"
           >
             {loading ? (
               <div className="flex items-center justify-center py-12">
@@ -791,7 +791,7 @@ const Mentorship = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-12 flex-1 flex flex-col items-center justify-center w-full min-h-[400px]">
                 <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No mentorships yet</h3>
                 <p className="text-gray-600 mb-4">
@@ -813,7 +813,7 @@ const Mentorship = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-6 flex-1 flex flex-col w-full"
           >
             <MentorAllocation />
           </motion.div>
@@ -824,7 +824,7 @@ const Mentorship = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-6 flex-1 flex flex-col w-full"
           >
             <MentorRewardLeaderboard />
           </motion.div>

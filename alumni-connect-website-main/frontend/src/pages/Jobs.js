@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   Filter, 
@@ -518,13 +518,13 @@ const Jobs = () => {
   };
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="flex-1 flex flex-col w-full py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-3xl p-8 mb-8 relative overflow-hidden"
+          className="glass-card rounded-3xl p-5 md:p-8 mb-4 md:mb-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-400/20 to-alumni-400/20 dark:from-primary-500/10 dark:to-alumni-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -545,8 +545,8 @@ const Jobs = () => {
             )}
           </div>
 
-          {/* Stats */}
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Stats - Hidden on mobile to save space */}
+          <div className="relative z-10 hidden md:grid grid-cols-1 md:grid-cols-4 gap-6">
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-2xl shadow-sm">
               <BriefcaseIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{jobs.length}</p>
@@ -969,7 +969,67 @@ const Jobs = () => {
               )}
             </div>
 
-            {/* Mobile Modal for Job Details could go here (Optional, but using standard block for now) */}
+            {/* Mobile Modal for Job Details */}
+            <AnimatePresence>
+              {selectedJob && (
+                <motion.div
+                  initial={{ opacity: 0, y: "100%" }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="fixed inset-0 z-[2000] bg-white dark:bg-gray-900 lg:hidden overflow-y-auto"
+                >
+                  <div className="p-4 pb-24">
+                    <button onClick={() => setSelectedJob(null)} className="mb-4 flex items-center text-gray-500 font-semibold bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-xl w-fit">
+                      <span className="mr-2">&larr;</span> Back to Jobs
+                    </button>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 shrink-0 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
+                          <JobLogo logo={selectedJob.companyLogo} company={selectedJob.company} />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-1">{selectedJob.title}</h2>
+                          <p className="text-md font-medium text-gray-600 dark:text-gray-400">{selectedJob.company}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center"><MapPin className="w-3 h-3 mr-1 text-primary-500" />{selectedJob.location}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Salary</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center"><DollarSign className="w-3 h-3 mr-1 text-green-500" />{selectedJob.salary?.min ? `$${selectedJob.salary.min.toLocaleString()}` : 'Not listed'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Experience</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">{selectedJob.experience || 'Any'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">{(selectedJob.jobType || 'full-time').replace('-', ' ')}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Job Description</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{selectedJob.description}</p>
+                    </div>
+                    
+                    <div className="flex flex-col gap-3">
+                      {selectedJob.isExternal ? (
+                        <a href={selectedJob.applicationLink} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-center">Apply on External Site</a>
+                      ) : (
+                        <button onClick={() => { handleApply(selectedJob); }} className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-center shadow-lg">Apply Now</button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 

@@ -130,7 +130,7 @@ const Network = () => {
   };
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className="flex-1 flex flex-col w-full pb-8">
       {/* Sticky Header Container */}
       <div className="mb-8">
         <div className="max-w-7xl mx-auto">

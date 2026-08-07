@@ -14,7 +14,7 @@ const EmptyState = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`flex flex-col items-center justify-center p-8 md:p-12 text-center rounded-3xl border border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 ${className}`}
+      className={`flex flex-col flex-1 h-full w-full min-h-[400px] items-center justify-center p-8 md:p-12 text-center rounded-3xl border border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 ${className}`}
     >
       {Icon && (
         <div className="w-20 h-20 rounded-3xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mb-6 shadow-soft">

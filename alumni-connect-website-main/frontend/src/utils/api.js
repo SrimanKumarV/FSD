@@ -1,9 +1,16 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+const getBaseUrl = () => {
+  if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.includes('localhost')) {
+    return process.env.REACT_APP_API_URL;
+  }
+  return `http://${window.location.hostname}:5000/api`;
+};
+
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: getBaseUrl(),
   timeout: 60000, // Increased to 60s to allow Render free tier to wake up
   headers: { 'Content-Type': 'application/json' },
 });

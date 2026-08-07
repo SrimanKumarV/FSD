@@ -31,10 +31,15 @@ export const SocketProvider = ({ children }) => {
     const userId = user._id || user.id;
 
     // Create socket connection
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const getBaseUrl = () => {
+      if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.includes('localhost')) {
+        return process.env.REACT_APP_API_URL;
+      }
+      return `http://${window.location.hostname}:5000/api`;
+    };
+    const apiUrl = getBaseUrl();
     const defaultSocketUrl = apiUrl.replace(/\/api$/, '');
     const socketUrl = process.env.REACT_APP_SOCKET_URL || defaultSocketUrl;
-    
     const newSocket = io(socketUrl, {
       auth: {
         token: localStorage.getItem('token')

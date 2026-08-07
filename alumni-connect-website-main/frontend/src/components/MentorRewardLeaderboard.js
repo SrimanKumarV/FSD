@@ -50,7 +50,7 @@ const MentorRewardLeaderboard = ({ college }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 gap-3 text-gray-400">
+      <div className="flex-1 flex flex-col w-full items-center justify-center py-20 gap-3 text-gray-400 min-h-[400px]">
         <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
         <span className="text-sm">Loading mentor rankings...</span>
       </div>
@@ -59,7 +59,7 @@ const MentorRewardLeaderboard = ({ college }) => {
 
   if (leaderboard.length === 0) {
     return (
-      <div className="text-center py-16">
+      <div className="text-center py-16 flex-1 flex flex-col items-center justify-center w-full min-h-[400px]">
         <div className="p-5 bg-gradient-to-br from-primary-50 to-alumni-50 dark:from-primary-900/20 dark:to-alumni-900/20 rounded-2xl inline-block mb-4">
           <Trophy className="w-14 h-14 text-yellow-400 mx-auto" />
         </div>
@@ -84,7 +84,7 @@ const MentorRewardLeaderboard = ({ college }) => {
   const rest = leaderboard.slice(3);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex-1 flex flex-col w-full">
       {/* Point System Info */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {Object.values(POINT_BREAKDOWN_LABELS).map(({ label, pts, color }) => (

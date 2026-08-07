@@ -34,7 +34,7 @@ const PageWrapper = ({ children, className = '' }) => {
       exit="out"
       variants={pageVariants}
       transition={pageTransition}
-      className={`w-full h-full ${className}`}
+      className={`w-full ${className}`}
     >
       {children}
     </motion.div>

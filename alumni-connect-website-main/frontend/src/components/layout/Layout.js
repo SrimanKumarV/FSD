@@ -354,7 +354,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 flex-1 flex flex-col ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
+      <div className={`transition-all duration-300 flex-1 flex flex-col min-h-0 ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
         {/* Top navigation */}
         <div className={`sticky top-0 z-30 glass-nav ${location.pathname === '/chat' ? 'hidden lg:block' : ''}`}>
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -515,10 +515,10 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'pb-32 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1'}>
-          <div className={location.pathname === '/chat' ? 'w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col'}>
+        <main className={location.pathname === '/chat' ? 'pb-32 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1 min-h-0' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1 min-h-0'}>
+          <div className={location.pathname === '/chat' ? 'w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col min-h-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col min-h-0'}>
             <AnimatePresence mode="wait">
-              <PageWrapper key={location.pathname} className="flex-1 flex flex-col">
+              <PageWrapper key={location.pathname} className="flex-1 flex flex-col min-h-0">
                 {children}
               </PageWrapper>
             </AnimatePresence>

@@ -410,7 +410,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="w-full flex-1 flex flex-col md:flex-row overflow-hidden bg-white/50 dark:bg-gray-900/50 relative">
+    <div className="w-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden bg-white/50 dark:bg-gray-900/50 relative">
       {/* Sidebar - Chat List */}
       <div className={`w-full md:w-80 border-r border-gray-200 dark:border-gray-700/50 flex flex-col bg-white/50 dark:bg-gray-900/50 ${!showChatList ? 'hidden md:flex' : 'flex'}`}>
         {/* Header */}
@@ -600,7 +600,7 @@ const Chat = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex-col bg-white/40 dark:bg-gray-900/40 relative ${showChatList ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-900 relative ${showChatList ? 'hidden md:flex' : 'flex'}`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 dark:bg-primary-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
         {selectedChat ? (
           <>

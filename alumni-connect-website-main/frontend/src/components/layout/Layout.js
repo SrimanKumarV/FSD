@@ -41,6 +41,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import DefaultAvatar from '../DefaultAvatar';
+import MobileBottomNav from './MobileBottomNav';
 import UserAvatar from '../UserAvatar';
 
 const Layout = ({ children }) => {
@@ -353,13 +354,13 @@ const Layout = ({ children }) => {
         {/* Top navigation */}
         <div className="sticky top-0 z-30 glass-nav">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            {/* Mobile Logo replacing menu button */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <img loading="lazy" src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full shadow-sm" />
+              <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-alumni-600 bg-clip-text text-transparent">
+                Alumnex Connect
+              </h1>
+            </div>
 
             <div className="flex flex-1 justify-end items-center space-x-4">
               {/* Theme toggle removed from top nav */}
@@ -510,12 +511,17 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-4rem)] lg:p-4 lg:pt-0 overflow-hidden flex flex-col' : 'py-6'}>
+        <main className={location.pathname === '/chat' ? 'h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)] lg:p-4 lg:pt-0 overflow-hidden flex flex-col' : 'py-6 pb-24 lg:pb-6'}>
           <div className={location.pathname === '/chat' ? 'h-full w-full glass-card border-none lg:rounded-3xl overflow-hidden' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
             {children}
           </div>
         </main>
       </div>
+
+      <MobileBottomNav 
+        onMenuClick={() => setSidebarOpen(true)} 
+        unreadChatCount={0} 
+      />
 
       {/* Click outside to close dropdowns */}
       {(userMenuOpen || notificationsOpen) && (

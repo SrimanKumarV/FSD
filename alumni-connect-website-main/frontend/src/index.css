@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    /* Fluid base font-size so all 'rem' values (padding, margin, fonts) scale dynamically with screen size */
+    font-size: clamp(12px, 0.8vw + 8px, 18px);
+  }
+
   body {
     @apply font-sans text-gray-900 bg-gray-50 transition-colors duration-300;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;

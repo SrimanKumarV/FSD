@@ -515,7 +515,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'pb-32 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1 min-h-0' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1 min-h-0'}>
+        <main className={location.pathname === '/chat' ? 'pb-24 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1 min-h-0' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1 min-h-0'}>
           <div className={location.pathname === '/chat' ? 'w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col min-h-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col min-h-0'}>
             <AnimatePresence mode="wait">
               <PageWrapper key={location.pathname} className="flex-1 flex flex-col min-h-0">

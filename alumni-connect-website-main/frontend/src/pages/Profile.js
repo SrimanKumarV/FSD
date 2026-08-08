@@ -229,8 +229,8 @@ const Profile = () => {
           </div>
 
           {/* Profile Header */}
-          <div className="flex items-start space-x-6">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="relative shrink-0">
               <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
                 <UserAvatar src={isEditing ? formData.photo : user.photo} name={user.name} className="w-full h-full" />
               </div>
@@ -244,20 +244,20 @@ const Profile = () => {
               )}
             </div>
 
-            <div className="flex-1">
-              <div className="flex items-center space-x-4 mb-4">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{user.name}</h2>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.status)}`}>
+            <div className="flex-1 text-center sm:text-left w-full min-w-0">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white break-words max-w-full">{user.name}</h2>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium shrink-0 ${getStatusColor(user.status)}`}>
                   {user.status || 'offline'}
                 </span>
               </div>
               
-              <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-2" />
-                  {user.email}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-3 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center min-w-0">
+                  <Mail className="w-4 h-4 mr-2 shrink-0" />
+                  <span className="truncate">{user.email}</span>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center whitespace-nowrap shrink-0">
                   <Briefcase className="w-4 h-4 mr-2" />
                   <span className="capitalize">{user.role}</span>
                 </div>
@@ -300,35 +300,37 @@ const Profile = () => {
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-8">
-          <button
-            onClick={() => setActiveTab('about')}
-            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'about' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-          >
-            About
-            {activeTab === 'about' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
-          <button
-            onClick={() => setActiveTab('network')}
-            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'network' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-          >
-            Network
-            {activeTab === 'network' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
-          <button
-            onClick={() => setActiveTab('posts')}
-            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'posts' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-          >
-            Posts
-            {activeTab === 'posts' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
-          <button
-            onClick={() => setActiveTab('projects')}
-            className={`px-6 py-3 font-semibold text-sm transition-colors relative ${activeTab === 'projects' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-          >
-            Projects
-            {activeTab === 'projects' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
+        <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-200 dark:border-gray-700 mb-8">
+          <div className="flex min-w-max">
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${activeTab === 'about' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              About
+              {activeTab === 'about' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('network')}
+              className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${activeTab === 'network' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              Network
+              {activeTab === 'network' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('posts')}
+              className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${activeTab === 'posts' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              Posts
+              {activeTab === 'posts' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('projects')}
+              className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${activeTab === 'projects' ? 'text-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              Projects
+              {activeTab === 'projects' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+            </button>
+          </div>
         </div>
 
         {/* Profile Form */}

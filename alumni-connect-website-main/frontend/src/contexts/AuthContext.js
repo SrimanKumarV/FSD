@@ -242,7 +242,8 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       
       const response = await api.post('/auth/github', {
-        code
+        code,
+        clientId: process.env.REACT_APP_GITHUB_CLIENT_ID
       });
 
       const { user, token, isNewUser, requiresRoleSelection, tempToken, requires2FA, availableMethods, methodSent, message } = response.data;

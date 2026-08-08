@@ -172,11 +172,16 @@ router.post('/google', async (req, res) => {
 // @access  Public
 router.post('/github', async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, clientId } = req.body;
     
     if (!code) {
       return res.status(400).json({ message: 'GitHub authorization code is required' });
     }
+
+    // Determine if this is the mobile client or web client
+    const isMobile = clientId === 'Ov23liziKGoBWdUOVmxJ' || clientId === process.env.GITHUB_MOBILE_CLIENT_ID;
+    const activeClientId = isMobile ? 'Ov23liziKGoBWdUOVmxJ' : process.env.GITHUB_CLIENT_ID;
+    const activeClientSecret = isMobile ? '4439829704a6990d66d64877e2429eb4dba0f9b0' : process.env.GITHUB_CLIENT_SECRET;
 
     // 1. Exchange code for access token
     const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
@@ -186,8 +191,8 @@ router.post('/github', async (req, res) => {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: activeClientId,
+        client_secret: activeClientSecret,
         code
       })
     });

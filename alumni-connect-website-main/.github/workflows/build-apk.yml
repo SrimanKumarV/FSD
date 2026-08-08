@@ -1,0 +1,67 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            mobile-wrapper/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          CI: false
+
+      - name: Install Mobile Wrapper Dependencies
+        working-directory: ./mobile-wrapper
+        run: npm ci
+
+      - name: Sync Capacitor
+        working-directory: ./mobile-wrapper
+        run: |
+          mkdir -p www
+          cp -r ../frontend/build/* ./www/
+          npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Make gradlew executable
+        working-directory: ./mobile-wrapper/android
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        working-directory: ./mobile-wrapper/android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk

@@ -31,6 +31,8 @@ jobs:
         run: npm run build
         env:
           CI: false
+          REACT_APP_API_URL: https://alumnex-backend-9y5t.onrender.com/api
+          REACT_APP_BACKUP_API_URL: https://alumnex-backend-backup.onrender.com/api
 
       - name: Install Mobile Wrapper Dependencies
         working-directory: ./mobile-wrapper

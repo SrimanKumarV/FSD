@@ -404,12 +404,9 @@ const Forum = () => {
         </div>
       </div>
 
-      {/* Posts List & Details (Split Pane) */}
-      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
-          
-          {/* Left Pane: Posts List */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-4 max-h-[calc(100vh-250px)] overflow-y-auto custom-scrollbar pr-2">
+      {/* Posts List */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4 pb-12">
+        <div className="space-y-4 pb-20">
             {(() => {
               const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
               const currentPosts = activeTab === 'all' ? postsData?.data?.posts : feedData?.data?.posts;
@@ -474,7 +471,7 @@ const Forum = () => {
               );
             })()}
 
-            {/* Pagination inside left pane */}
+            {/* Pagination */}
             {postsData?.data?.pagination && postsData.data.pagination.pages > 1 && (
               <div className="flex justify-center mt-6 pb-6">
                 <nav className="flex items-center space-x-2">
@@ -496,35 +493,6 @@ const Forum = () => {
                 </nav>
               </div>
             )}
-          </div>
-
-          {/* Right Pane: Post Detail (Desktop) */}
-          <div className="hidden lg:block lg:col-span-7 xl:col-span-8 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar rounded-3xl">
-            {selectedPost ? (
-              <PostDetailModal
-                post={selectedPost}
-                onClose={() => setSelectedPost(null)}
-                onLike={handleLikePost}
-                onComment={handleCommentPost}
-                user={user}
-                isCommenting={commentMutation.isLoading}
-                onDelete={handleDeletePost}
-                onClosePost={handleClosePost}
-                onDeleteComment={handleDeleteComment}
-                onEdit={setEditingPost}
-                onSave={handleSavePost}
-                onReport={handleReportPost}
-                onShare={handleSharePost}
-                isModal={false}
-              />
-            ) : (
-              <div className="glass-card rounded-3xl p-12 text-center h-[500px] flex flex-col items-center justify-center border-dashed border-2 border-gray-200 dark:border-gray-700">
-                <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Select a post to read</h3>
-                <p className="text-gray-500">Dive into the discussion by selecting a post from the feed.</p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -551,27 +519,25 @@ const Forum = () => {
         />
       )}
 
-      {/* Mobile Post Detail Modal */}
-      <div className="block lg:hidden">
-        {selectedPost && (
-          <PostDetailModal
-            post={selectedPost}
-            onClose={() => setSelectedPost(null)}
-            onLike={handleLikePost}
-            onComment={handleCommentPost}
-            user={user}
-            isCommenting={commentMutation.isLoading}
-            onDelete={handleDeletePost}
-            onClosePost={handleClosePost}
-            onDeleteComment={handleDeleteComment}
-            onEdit={setEditingPost}
-            onSave={handleSavePost}
-            onReport={handleReportPost}
-            onShare={handleSharePost}
-            isModal={true}
-          />
-        )}
-      </div>
+      {/* Post Detail Modal (Universal) */}
+      {selectedPost && (
+        <PostDetailModal
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          onLike={handleLikePost}
+          onComment={handleCommentPost}
+          user={user}
+          isCommenting={commentMutation.isLoading}
+          onDelete={handleDeletePost}
+          onClosePost={handleClosePost}
+          onDeleteComment={handleDeleteComment}
+          onEdit={setEditingPost}
+          onSave={handleSavePost}
+          onReport={handleReportPost}
+          onShare={handleSharePost}
+          isModal={true}
+        />
+      )}
     </div>
   );
 };

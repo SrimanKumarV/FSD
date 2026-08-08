@@ -48,6 +48,13 @@ router.get('/mentors', protect, async (req, res) => {
     const targetRole = req.user.role === 'alumni' ? 'student' : 'alumni';
     let query = { role: targetRole };
 
+    // Strict department matching
+    const currentUser = await User.findById(req.user.id);
+    if (currentUser && currentUser.department) {
+      query.department = currentUser.department;
+    }
+
+
     if (skills) {
       const skillArray = skills.split(',').map(skill => skill.trim());
       query.skills = { $in: skillArray };
@@ -268,11 +275,15 @@ router.post('/auto-assign', protect, async (req, res) => {
     }
 
     const SEAT_LIMIT = 10;
-    const alumni = await User.find({
+    const query = {
       role: 'alumni',
       college: college,
       isApproved: true
-    }).select('_id name college alumniInfo skills interests');
+    };
+    if (studentUser.department) {
+      query.department = studentUser.department;
+    }
+    const alumni = await User.find(query).select('_id name college department alumniInfo skills interests');
 
     if (!alumni.length) {
       return res.status(404).json({ message: 'No available mentors found from your college.' });

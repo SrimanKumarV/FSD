@@ -207,6 +207,7 @@ router.put('/profile', protect, [
   body('location').optional().trim().isLength({ max: 100 }),
   body('country').optional().trim().isLength({ max: 100 }),
   body('college').optional().trim().isLength({ max: 200 }),
+  body('department').optional().trim().isLength({ max: 200 }),
   body('socialLinks.linkedin').optional({ checkFalsy: true }).isURL(),
   body('socialLinks.github').optional({ checkFalsy: true }).isURL(),
   body('socialLinks.twitter').optional({ checkFalsy: true }).isURL(),
@@ -224,7 +225,7 @@ router.put('/profile', protect, [
     }
 
     // Update allowed fields
-    const allowedFields = ['name', 'bio', 'skills', 'location', 'country', 'college', 'socialLinks', 'photo', 'phoneNumber', 'smsNotifications'];
+    const allowedFields = ['name', 'bio', 'skills', 'location', 'country', 'college', 'department', 'socialLinks', 'photo', 'phoneNumber', 'smsNotifications'];
     const updateData = {};
     let phoneChanged = false;
     

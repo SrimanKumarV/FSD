@@ -249,4 +249,51 @@ ${scrapedText}
     }
 });
 
+const STANDARD_DEPARTMENTS = [
+  'Computer Science and Engineering',
+  'Information Technology',
+  'Electronics and Communication Engineering',
+  'Electrical and Electronics Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Chemical Engineering',
+  'Aerospace Engineering',
+  'Biotechnology',
+  'Business Administration',
+  'Master of Computer Applications (MCA)',
+  'Artificial Intelligence and Data Science'
+];
+
+// @route   GET /api/institutions/departments
+// @desc    Get available departments (optionally for a specific college)
+// @access  Public
+router.get('/departments', async (req, res) => {
+    const { college } = req.query;
+    try {
+        let departments = [...STANDARD_DEPARTMENTS];
+        
+        if (college) {
+            // Find if a college registered and has scraped departments
+            const collegeUser = await User.findOne({ 
+                role: 'college', 
+                name: new RegExp(`^${college.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') 
+            });
+            
+            if (collegeUser && collegeUser.collegeInfo?.extractedProfile?.departments?.length > 0) {
+                const scrapedDepts = collegeUser.collegeInfo.extractedProfile.departments;
+                for (const dept of scrapedDepts) {
+                    if (!departments.includes(dept)) {
+                        departments.push(dept);
+                    }
+                }
+            }
+        }
+        
+        res.json(departments.sort());
+    } catch (err) {
+        console.error('[Institutions API] Department fetch error:', err);
+        res.json(STANDARD_DEPARTMENTS.sort());
+    }
+});
+
 module.exports = router;

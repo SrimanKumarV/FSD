@@ -72,6 +72,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  department: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   
   // Student-specific fields
   studentInfo: {

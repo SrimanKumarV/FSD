@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -78,6 +78,14 @@ const Layout = ({ children }) => {
     markAllAsRead, 
     formatNotificationTime 
   } = useNotifications();
+
+  const isProfileIncomplete = user && (user.role === 'student' || user.role === 'alumni') && !user.department;
+
+  useEffect(() => {
+    if (isProfileIncomplete && location.pathname !== '/profile') {
+       navigate('/profile', { replace: true });
+    }
+  }, [isProfileIncomplete, location.pathname, navigate]);
 
   const navigationGroups = [
     {
@@ -517,6 +525,14 @@ const Layout = ({ children }) => {
         {/* Page content */}
         <main className={location.pathname === '/chat' ? 'pb-24 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1 min-h-0 min-w-0' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1 min-h-0 min-w-0'}>
           <div className={location.pathname === '/chat' ? 'w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col min-h-0 min-w-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col min-h-0 min-w-0'}>
+            {isProfileIncomplete && location.pathname === '/profile' && (
+              <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-4 rounded-r shadow-sm flex items-center">
+                <ShieldAlert className="w-6 h-6 mr-3 shrink-0" />
+                <p className="font-medium text-sm sm:text-base">
+                  Action Required: Please update your profile by selecting your Department to access other features of the platform.
+                </p>
+              </div>
+            )}
             <AnimatePresence mode="wait">
               <PageWrapper key={location.pathname} className="flex-1 flex flex-col min-h-0 min-w-0">
                 {children}

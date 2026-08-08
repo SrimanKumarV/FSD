@@ -112,6 +112,7 @@ const Profile = () => {
         location: user.location || '',
         country: user.country || '',
         college: user.college || '',
+        department: user.department || '',
         skills: user.skills || [],
         photo: user.photo || '',
         socialLinks: {
@@ -279,6 +280,12 @@ const Profile = () => {
                     {user.college}
                   </div>
                 )}
+                {user.department && (
+                  <div className="flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    {user.department}
+                  </div>
+                )}
               </div>
 
               {user.bio && (
@@ -409,6 +416,19 @@ const Profile = () => {
                   type="text"
                   name="college"
                   value={formData.college}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Department
+                </label>
+                <input
+                  type="text"
+                  name="department"
+                  value={formData.department}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />

@@ -399,7 +399,15 @@ router.post('/register', [
   body('bio').optional().trim().isLength({ max: 500 }),
   body('collegeInfo.establishedYear').optional().isInt({ min: 1000, max: new Date().getFullYear() }),
   body('collegeInfo.accreditation').optional().trim(),
-  body('collegeInfo.officialUrl').optional().isURL()
+  body('collegeInfo.officialUrl').optional().isURL(),
+  body('college').optional().trim(),
+  body('country').optional().trim(),
+  body('department').custom((value, { req }) => {
+    if ((req.body.role === 'student' || req.body.role === 'alumni') && !value) {
+      throw new Error('Department is required');
+    }
+    return true;
+  }).trim()
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -419,7 +427,10 @@ router.post('/register', [
       interests,
       location,
       bio,
-      collegeInfo
+      collegeInfo,
+      college,
+      country,
+      department
     } = req.body;
 
     // Check if user already exists
@@ -437,7 +448,10 @@ router.post('/register', [
       skills: skills || [],
       interests: interests || [],
       location,
-      bio
+      bio,
+      college,
+      country,
+      department
     };
 
     // Add role-specific information

@@ -7,7 +7,7 @@ import {
   MapPin, Briefcase, MessageSquare, Users,
   Activity, Code, GitCommit, Trophy, TrendingUp,
   ExternalLink, Zap, Target, FolderGit2, Globe, Building2,
-  AlertTriangle, X
+  AlertTriangle, X, FileText
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -256,6 +256,9 @@ const UserProfile = () => {
                 )}
                 {targetUser.college && (
                   <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{targetUser.college}</span>
+                )}
+                {targetUser.department && (
+                  <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{targetUser.department}</span>
                 )}
                 {targetUser.role === 'alumni' && targetUser.alumniInfo?.company && (
                   <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{targetUser.alumniInfo.company}</span>

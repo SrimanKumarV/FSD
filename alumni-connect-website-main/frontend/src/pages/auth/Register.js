@@ -115,6 +115,7 @@ const Register = () => {
     accreditation: '',
     country: '',
     college: '',
+    department: '',
     employmentProofUrl: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -123,6 +124,22 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [universities, setUniversities] = useState([]);
   const [loadingUnis, setLoadingUnis] = useState(false);
+  const [departments, setDepartments] = useState([]);
+
+  useEffect(() => {
+    if (formData.college) {
+      api.get(`/institutions/departments?college=${encodeURIComponent(formData.college)}`)
+        .then(res => {
+          setDepartments(res.data.map(d => ({ value: d, label: d })));
+        })
+        .catch(err => {
+          console.error("Failed to fetch departments:", err);
+          setDepartments([]);
+        });
+    } else {
+      setDepartments([]);
+    }
+  }, [formData.college]);
 
   const loadUniversities = async (inputValue) => {
     if (!formData.country) return [];
@@ -211,6 +228,7 @@ const Register = () => {
     if (formData.role === 'student' || formData.role === 'alumni') {
       if (!formData.country) newErrors.country = 'Country is required';
       if (!formData.college) newErrors.college = 'College/University is required';
+      if (!formData.department) newErrors.department = 'Department is required';
     }
 
     if (formData.role === 'student' && !formData.graduationYear) {
@@ -252,6 +270,7 @@ const Register = () => {
     if (formData.role === 'student' || formData.role === 'alumni') {
       payload.country = formData.country;
       payload.college = formData.college;
+      payload.department = formData.department;
     }
 
     if (formData.role === 'student') {
@@ -503,6 +522,35 @@ const Register = () => {
                       <p className="mt-2 text-sm text-red-600 flex items-center">
                         <AlertCircle className="w-4 h-4 mr-1" />
                         {errors.college}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="col-span-1 md:col-span-2">
+                    <label htmlFor="department" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Department
+                    </label>
+                    <div className="mt-2 relative">
+                      <Select
+                        name="department"
+                        options={departments}
+                        isDisabled={!formData.college || departments.length === 0}
+                        className="basic-single z-10"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setFormData(prev => ({ ...prev, department: selected?.value || '' }));
+                          if (errors.department) setErrors(prev => ({ ...prev, department: '' }));
+                        }}
+                        placeholder={formData.college ? (departments.length > 0 ? "Select Department..." : "Loading departments...") : "Select College First"}
+                        styles={selectStyles}
+                        menuPortalTarget={document.body}
+                        value={formData.department ? { value: formData.department, label: formData.department } : null}
+                      />
+                    </div>
+                    {errors.department && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.department}
                       </p>
                     )}
                   </div>

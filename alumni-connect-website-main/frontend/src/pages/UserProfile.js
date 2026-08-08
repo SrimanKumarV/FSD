@@ -204,7 +204,7 @@ const UserProfile = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-10">
+    <div className="max-w-4xl mx-auto w-full min-w-0 space-y-6 pb-10 px-2 sm:px-0">
 
       {/* ── Hero Card ── */}
       <motion.div

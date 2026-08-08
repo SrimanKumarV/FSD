@@ -1000,7 +1000,7 @@ const DevPulse = () => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-16 px-4 sm:px-6 lg:px-8 py-6 selection:bg-indigo-500/20">
+    <div className="max-w-6xl mx-auto w-full min-w-0 space-y-6 pb-16 px-2 sm:px-6 lg:px-8 py-6 selection:bg-indigo-500/20">
       <style>{heatmapStyles}</style>
 
       {/* Back button for public view */}
@@ -1056,8 +1056,8 @@ const DevPulse = () => {
       </motion.div>
 
       {/* ── Platform Tab Bar */}
-      <div className="overflow-x-auto pb-1">
-        <div className="flex gap-2 min-w-max">
+      <div className="overflow-x-auto pb-1 custom-scrollbar">
+        <div className="flex gap-2 w-max">
           {PLATFORMS.map(({ key, label, icon: Icon, color }) => {
             const isActive = activeTab === key;
             const hasError = key !== 'overview' && stats?.[key]?.fetchError;

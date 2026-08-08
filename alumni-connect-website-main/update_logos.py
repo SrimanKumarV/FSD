@@ -24,14 +24,19 @@ print("Keeping original background...")
 img = Image.open(img_path)
 img = img.convert("RGBA")
 
-# Make it a perfect square by center-cropping
+# Add padding to prevent the logo from being over-zoomed on Android
 w, h = img.size
-min_dim = min(w, h)
-left = (w - min_dim) / 2
-top = (h - min_dim) / 2
-right = (w + min_dim) / 2
-bottom = (h + min_dim) / 2
-square_img = img.crop((left, top, right, bottom))
+max_dim = max(w, h)
+pad = int(max_dim * 0.2)  # 20% padding around the image
+new_dim = max_dim + (pad * 2)
+
+# Get the background color from the top left pixel to fill the padding
+bg_color = img.getpixel((5, 5))
+
+square_img = Image.new("RGBA", (new_dim, new_dim), bg_color)
+paste_x = (new_dim - w) // 2
+paste_y = (new_dim - h) // 2
+square_img.paste(img, (paste_x, paste_y))
 
 # Save frontend logo (can be larger, e.g. original size)
 square_img.save(frontend_logo_path, format="PNG")

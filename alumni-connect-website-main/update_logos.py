@@ -19,37 +19,19 @@ except Exception as e:
     print(f"Error reading image: {e}")
     sys.exit(1)
 
-# Remove background if rembg is available
-if remove:
-    print("Removing background...")
-    try:
-        out_data = remove(img_data)
-        import io
-        img = Image.open(io.BytesIO(out_data))
-    except Exception as e:
-        print(f"Failed to remove background: {e}")
-        img = Image.open(img_path)
-else:
-    img = Image.open(img_path)
-
-# Ensure RGBA
+# Keep original background (user requested this for dark mode visibility)
+print("Keeping original background...")
+img = Image.open(img_path)
 img = img.convert("RGBA")
 
-# Crop to bounding box to remove excess transparent space
-bbox = img.getbbox()
-if bbox:
-    img = img.crop(bbox)
-
-# Make it square by adding transparent padding
+# Make it a perfect square by center-cropping
 w, h = img.size
-max_dim = max(w, h)
-# Add some padding so the logo doesn't touch the edges (say 10%)
-padding = int(max_dim * 0.1)
-new_size = max_dim + 2 * padding
-square_img = Image.new("RGBA", (new_size, new_size), (0, 0, 0, 0))
-paste_x = (new_size - w) // 2
-paste_y = (new_size - h) // 2
-square_img.paste(img, (paste_x, paste_y), img)
+min_dim = min(w, h)
+left = (w - min_dim) / 2
+top = (h - min_dim) / 2
+right = (w + min_dim) / 2
+bottom = (h + min_dim) / 2
+square_img = img.crop((left, top, right, bottom))
 
 # Save frontend logo (can be larger, e.g. original size)
 square_img.save(frontend_logo_path, format="PNG")

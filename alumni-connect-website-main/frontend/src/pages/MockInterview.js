@@ -86,15 +86,15 @@ const MockInterview = () => {
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden bg-white/50 dark:bg-gray-900/50">
-      <div className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col py-6 overflow-hidden">
+      <div className="flex-1 w-full max-w-6xl mx-auto px-2 sm:px-6 lg:px-8 flex flex-col py-2 sm:py-6 overflow-hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex items-center justify-between"
+          className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
         >
           <div>
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center">
               <Award className="w-8 h-8 mr-3 text-primary-500" />
               AI Mock Interviews
             </h1>
@@ -120,7 +120,7 @@ const MockInterview = () => {
           className="glass-card rounded-3xl flex-1 flex flex-col border border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden"
         >
           {!sessionActive ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center">
               <div className="w-24 h-24 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mb-6">
                 <Briefcase className="w-12 h-12 text-primary-600" />
               </div>
@@ -166,7 +166,7 @@ const MockInterview = () => {
           ) : (
             <>
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 custom-scrollbar bg-gray-50/50 dark:bg-gray-900/50">
                 <AnimatePresence initial={false}>
                   {messages.map((msg, idx) => (
                     <motion.div
@@ -191,7 +191,7 @@ const MockInterview = () => {
                         )}
                       </div>
                       <div
-                        className={`p-4 rounded-2xl shadow-sm ${
+                        className={`p-3 sm:p-4 text-sm sm:text-base rounded-2xl shadow-sm ${
                           msg.role === 'user'
                             ? 'bg-primary-600 text-white rounded-tr-none'
                             : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-gray-700 whitespace-pre-wrap'
@@ -210,7 +210,7 @@ const MockInterview = () => {
                       <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-indigo-200 mr-4 flex items-center justify-center shrink-0">
                         <Bot className="w-5 h-5 text-indigo-700" />
                       </div>
-                      <div className="p-4 rounded-2xl rounded-tl-none bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex space-x-2">
+                      <div className="p-3 sm:p-4 rounded-2xl rounded-tl-none bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex space-x-2">
                         <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" />
                         <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                         <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
@@ -222,7 +222,7 @@ const MockInterview = () => {
               </div>
 
               {/* Chat Input */}
-              <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+              <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
                 <form onSubmit={sendMessage} className="flex space-x-4">
                   <input
                     type="text"

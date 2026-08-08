@@ -284,7 +284,7 @@ const UserProfile = () => {
           </div>
 
           {/* Follower stats */}
-          <div className="flex gap-6 mt-6 pt-6 border-t border-white/5">
+          <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-white/5">
             <div className="text-center">
               <p className="text-xl font-black text-white">{connData?.data?.followers?.length ?? 0}</p>
               <p className="text-xs text-slate-500">Followers</p>
@@ -304,7 +304,7 @@ const UserProfile = () => {
       </motion.div>
 
       {/* ── Tabs ── */}
-      <div className="flex border-b border-slate-700/50 gap-1">
+      <div className="flex border-b border-slate-700/50 gap-1 overflow-x-auto whitespace-nowrap custom-scrollbar">
         {tabs.map(tab => (
           <button
             key={tab.key}

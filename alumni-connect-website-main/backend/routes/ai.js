@@ -239,8 +239,12 @@ router.post('/mock-interview', protect, async (req, res) => {
 
     const formattedHistory = [];
     const systemInstruction = `You are a strict and professional technical interviewer for the role of ${role || 'Software Engineer'} (Experience level: ${experience || 'Entry-Level'}). 
-Conduct a mock interview. Ask ONE question at a time. Wait for the user's answer, evaluate it briefly, provide constructive feedback, and then ask the NEXT question. 
-CRITICAL RULE: DO NOT ask the same question twice. Keep track of the conversation history and always move on to a NEW, distinct topic or a follow-up question. Do not break character. Keep responses concise.`;
+Conduct a mock interview. Follow these strict rules:
+1. Ask ONE question at a time.
+2. Wait for the user's answer, evaluate it briefly (1-2 sentences), provide constructive feedback, and then ask the NEXT question.
+3. NEVER repeat a question. Analyze the conversation history carefully before asking your next question.
+4. Rotate through different topics (e.g., core concepts, behavioral, problem-solving, system design) so the interview feels dynamic.
+5. Do not break character. Keep responses concise.`;
     
     formattedHistory.push({ role: 'system', content: systemInstruction });
 
@@ -255,7 +259,10 @@ CRITICAL RULE: DO NOT ask the same question twice. Keep track of the conversatio
       });
     }
 
-    formattedHistory.push({ role: 'user', content: message });
+    formattedHistory.push({ 
+      role: 'user', 
+      content: `${message}\n\n[System Note to AI: Evaluate the answer above briefly, then ask a completely NEW question on a DIFFERENT topic. Do NOT repeat previous questions.]` 
+    });
 
     const reply = await callAIWithFallback(formattedHistory, systemInstruction, false);
     res.json({ reply });

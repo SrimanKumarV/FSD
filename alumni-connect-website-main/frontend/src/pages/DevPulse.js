@@ -383,7 +383,7 @@ const DevPulse = () => {
         return (
           <div className="space-y-6">
             {/* Platform Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <PlatformSummaryCard 
                 platformKey="github" label="GitHub" icon={GitCommit} color="#e2e8f0" 
                 value={stats?.github?.publicRepos ?? '—'} subtitle="Public Repos"
@@ -504,7 +504,7 @@ const DevPulse = () => {
                   <span className="ml-auto text-sm font-semibold text-gray-500 dark:text-slate-400">{allBadges.length} total</span>
                 </h3>
                 <p className="text-gray-500 dark:text-slate-500 text-sm mb-5">Real badges earned from your connected platforms</p>
-                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-10 gap-3">
                   {allBadges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
                 </div>
               </div>
@@ -525,7 +525,7 @@ const DevPulse = () => {
             <PlatformHeader label="GitHub" username={uname} icon={GitCommit} color="#e2e8f0" url={url} />
 
             {/* Top Metrics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
                 <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{g.totalContributions?.toLocaleString() || '—'}</h3>
                 <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Total Contributions</p>
@@ -581,7 +581,7 @@ const DevPulse = () => {
                         <div key={lang.name} style={{ width: `${lang.percentage}%`, backgroundColor: lang.color }} className="h-full" title={`${lang.name}: ${lang.percentage}%`} />
                       ))}
                     </div>
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
                       {g.languages.map(lang => (
                         <div key={lang.name} className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: lang.color }} />
@@ -612,7 +612,7 @@ const DevPulse = () => {
             {g.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">🏆 GitHub Achievements</h3>
-                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
                   {g.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
                 </div>
               </div>
@@ -640,7 +640,7 @@ const DevPulse = () => {
             <PlatformHeader label="LeetCode" username={uname} icon={Code} color="#f59e0b" url={url} />
 
             {/* Top Metrics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
                 <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{totalDsa}</h3>
                 <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Questions Solved</p>
@@ -689,7 +689,7 @@ const DevPulse = () => {
               {/* Doughnut */}
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-5">DSA Problems Solved</h3>
-                <div className="flex items-center gap-6 flex-1">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 flex-1">
                   <div className="relative w-36 h-36 shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -753,7 +753,7 @@ const DevPulse = () => {
             {lc.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">🏅 LeetCode Medals &amp; Badges</h3>
-                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
                   {lc.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
                 </div>
               </div>

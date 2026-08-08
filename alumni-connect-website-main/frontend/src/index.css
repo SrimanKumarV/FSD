@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+  }
+
   html {
     /* Fluid base font-size so all 'rem' values (padding, margin, fonts) scale dynamically with screen size */
     font-size: clamp(12px, 0.8vw + 8px, 18px);

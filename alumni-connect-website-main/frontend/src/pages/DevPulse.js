@@ -436,7 +436,7 @@ const DevPulse = () => {
                   <span>Submissions: <strong className="text-gray-900 dark:text-white">{heatmapData.totalContributions.toLocaleString()}</strong></span>
                 </div>
               </div>
-              <div className="overflow-x-auto">
+              <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar">
                 <div className="min-w-[700px]">
                   <CalendarHeatmap
                     startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
@@ -554,7 +554,7 @@ const DevPulse = () => {
                     <span className="flex flex-col"><span className="text-amber-400 text-lg font-black">{g.heatmap.currentStreak}</span> Current Streak</span>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar">
                   <div className="min-w-[700px]">
                     <CalendarHeatmap
                       startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
@@ -669,7 +669,7 @@ const DevPulse = () => {
                     <span className="flex flex-col"><span className="text-amber-400 text-lg font-black">{heatmapData.currentStreak}</span> Current Streak</span>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar">
                   <div className="min-w-[700px]">
                     <CalendarHeatmap
                       startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
@@ -1056,8 +1056,8 @@ const DevPulse = () => {
       </motion.div>
 
       {/* ── Platform Tab Bar */}
-      <div className="overflow-x-auto pb-1 custom-scrollbar">
-        <div className="flex gap-2 w-max">
+      <div className="w-full overflow-x-auto pb-1 touch-pan-x custom-scrollbar">
+        <div className="flex gap-2 min-w-max">
           {PLATFORMS.map(({ key, label, icon: Icon, color }) => {
             const isActive = activeTab === key;
             const hasError = key !== 'overview' && stats?.[key]?.fetchError;

@@ -32,7 +32,11 @@ const PostJobModal = ({ onClose, onSuccess }) => {
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || 'Failed to post job');
+      if (err.response?.data?.errors && err.response.data.errors.length > 0) {
+        toast.error(err.response.data.errors[0].msg);
+      } else {
+        toast.error(err.response?.data?.message || 'Failed to post job');
+      }
     } finally {
       setLoading(false);
     }
@@ -66,9 +70,24 @@ const PostJobModal = ({ onClose, onSuccess }) => {
             </div>
           </div>
           
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Location</label>
-            <input required type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.location} onChange={e => setFormData(prev => ({...prev, location: e.target.value}))} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Location</label>
+              <input required type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.location} onChange={e => setFormData(prev => ({...prev, location: e.target.value}))} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category</label>
+              <select className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.category} onChange={e => setFormData(prev => ({...prev, category: e.target.value}))}>
+                <option value="technology">Technology</option>
+                <option value="business">Business</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="education">Education</option>
+                <option value="finance">Finance</option>
+                <option value="marketing">Marketing</option>
+                <option value="design">Design</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -99,6 +118,26 @@ const PostJobModal = ({ onClose, onSuccess }) => {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <textarea required rows="4" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white custom-scrollbar" value={formData.description} onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}></textarea>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Requirements</label>
+              <button type="button" onClick={() => addArrayItem('requirements')} className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">+ Add</button>
+            </div>
+            {formData.requirements.map((req, index) => (
+              <input key={index} required={index === 0} type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white mb-2" placeholder="e.g. 3+ years of React experience" value={req} onChange={e => handleArrayChange('requirements', index, e.target.value)} />
+            ))}
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Skills</label>
+              <button type="button" onClick={() => addArrayItem('skills')} className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">+ Add</button>
+            </div>
+            {formData.skills.map((skill, index) => (
+              <input key={index} required={index === 0} type="text" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white mb-2" placeholder="e.g. JavaScript, React, Node.js" value={skill} onChange={e => handleArrayChange('skills', index, e.target.value)} />
+            ))}
           </div>
 
           <div>

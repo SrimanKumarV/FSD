@@ -4,6 +4,9 @@
   "description": "Frontend for Alumnex Connect Platform",
   "private": true,
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
+    "@capacitor/core": "^8.5.0",
     "@react-oauth/google": "^0.13.5",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",

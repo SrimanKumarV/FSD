@@ -13,6 +13,8 @@
   "type": "commonjs",
   "dependencies": {
     "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
     "@capacitor/core": "^8.4.1"
   },
   "devDependencies": {

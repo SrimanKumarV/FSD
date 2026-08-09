@@ -6,6 +6,9 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle, X, User, GraduationCap } from 'lu
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { useGoogleLogin } from '@react-oauth/google';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,6 +53,37 @@ const Login = () => {
       hasProcessedCode.current = true;
       handleGithubCallback(code);
     }
+    
+    // Setup deep link listener for native app oauth
+    let appUrlListener = null;
+    if (Capacitor.isNativePlatform()) {
+      App.addListener('appUrlOpen', async (event) => {
+        try {
+          const url = new URL(event.url);
+          if (url.protocol === 'com.alumnex.connect:') {
+            await Browser.close();
+            
+            if (url.pathname.includes('/oauth/github')) {
+              const mobileCode = url.searchParams.get('code');
+              if (mobileCode) handleGithubCallback(mobileCode);
+            } else if (url.pathname.includes('/oauth/google')) {
+              const credential = url.searchParams.get('credential');
+              if (credential) handleGoogleLoginSuccess({ credential });
+            }
+          }
+        } catch (err) {
+          console.error('Deep link error:', err);
+        }
+      }).then(listener => {
+        appUrlListener = listener;
+      });
+    }
+
+    return () => {
+      if (appUrlListener) {
+        appUrlListener.remove();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -76,10 +110,24 @@ const Login = () => {
     }
   };
 
-  const initiateGithubLogin = () => {
-    const clientId = process.env.REACT_APP_GITHUB_CLIENT_ID;
-    const redirectUri = window.location.origin + '/login';
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+  const initiateGithubLogin = async () => {
+    if (Capacitor.isNativePlatform()) {
+      const backendUrl = process.env.REACT_APP_API_URL.replace('/api', '');
+      await Browser.open({ url: `${backendUrl}/api/auth/mobile/github` });
+    } else {
+      const clientId = process.env.REACT_APP_GITHUB_CLIENT_ID;
+      const redirectUri = window.location.origin + '/login';
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+    }
+  };
+
+  const handleGoogleClick = async () => {
+    if (Capacitor.isNativePlatform()) {
+      const backendUrl = process.env.REACT_APP_API_URL.replace('/api', '');
+      await Browser.open({ url: `${backendUrl}/api/auth/mobile/google` });
+    } else {
+      googleLogin();
+    }
   };
 
   // Get the intended destination from location state or default to dashboard
@@ -336,7 +384,7 @@ const Login = () => {
           <div className="mt-6 grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() => googleLogin()}
+              onClick={() => handleGoogleClick()}
               disabled={isLoading}
               className="w-full inline-flex justify-center py-2.5 px-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-50"
             >

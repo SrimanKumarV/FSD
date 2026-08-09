@@ -1117,4 +1117,77 @@ router.post('/verify-2fa', [
   }
 });
 
+// ==========================================
+// MOBILE OAUTH PROXY ROUTES (CAPACITOR APK)
+// ==========================================
+
+// @route   GET /api/auth/mobile/github
+// @desc    Initiate GitHub OAuth for Mobile App
+// @access  Public
+router.get('/mobile/github', (req, res) => {
+  const isMobile = true;
+  const activeClientId = isMobile ? 'Ov23liziKGoBWdUOVmxJ' : process.env.GITHUB_CLIENT_ID;
+  
+  // The redirect_uri must match exactly what is registered in GitHub OAuth app
+  // To avoid URI mismatch errors, we omit redirect_uri if we haven't registered this specific dynamic URL,
+  // GitHub will use the default Authorization callback URL registered in the OAuth app.
+  // We will assume the default one is configured correctly, or we can explicitly pass our backend proxy if we know it.
+  // For safety, we will just pass client_id. If GitHub requires redirect_uri, we'll build it.
+  const backendUrl = req.protocol + '://' + req.get('host');
+  const redirectUri = `${backendUrl}/api/auth/mobile/github/callback`;
+  
+  res.redirect(`https://github.com/login/oauth/authorize?client_id=${activeClientId}&redirect_uri=${redirectUri}&scope=user:email`);
+});
+
+// @route   GET /api/auth/mobile/github/callback
+// @desc    Handle GitHub OAuth callback for Mobile App
+// @access  Public
+router.get('/mobile/github/callback', (req, res) => {
+  const { code } = req.query;
+  if (!code) {
+    return res.status(400).send('No code received from GitHub');
+  }
+  
+  // Redirect back to the mobile app using the custom scheme
+  res.redirect(`com.alumnex.connect://oauth/github?code=${code}`);
+});
+
+// @route   GET /api/auth/mobile/google
+// @desc    Initiate Google OAuth for Mobile App
+// @access  Public
+router.get('/mobile/google', (req, res) => {
+  const backendUrl = req.protocol + '://' + req.get('host');
+  const redirectUri = `${backendUrl}/api/auth/mobile/google/callback`;
+  const clientId = process.env.GOOGLE_CLIENT_ID || '253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com';
+  
+  // Using response_type=token so Google returns the token directly
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email profile`);
+});
+
+// @route   GET /api/auth/mobile/google/callback
+// @desc    Handle Google OAuth callback for Mobile App
+// @access  Public
+router.get('/mobile/google/callback', (req, res) => {
+  // Google with response_type=token sends the token in the URL fragment (#access_token=...)
+  // The backend server cannot read the URL fragment, so we must serve a small HTML page
+  // that parses the fragment on the client side and redirects to our custom scheme.
+  res.send(`
+    <html>
+      <head><title>Authenticating...</title></head>
+      <body>
+        <script>
+          const hash = window.location.hash.substring(1);
+          const params = new URLSearchParams(hash);
+          const token = params.get('access_token');
+          if (token) {
+            window.location.href = 'com.alumnex.connect://oauth/google?credential=' + token;
+          } else {
+            document.body.innerHTML = 'Authentication failed. Please return to the app.';
+          }
+        </script>
+      </body>
+    </html>
+  `);
+});
+
 module.exports = router;

@@ -436,7 +436,7 @@ const DevPulse = () => {
                   <span>Submissions: <strong className="text-gray-900 dark:text-white">{heatmapData.totalContributions.toLocaleString()}</strong></span>
                 </div>
               </div>
-              <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+              <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar" onWheel={(e) => { if (e.deltaY !== 0) { e.currentTarget.scrollLeft += e.deltaY; } }}>
                 <div className="min-w-[700px]">
                   <CalendarHeatmap
                     startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
@@ -554,7 +554,7 @@ const DevPulse = () => {
                     <span className="flex flex-col"><span className="text-amber-400 text-lg font-black">{g.heatmap.currentStreak}</span> Current Streak</span>
                   </div>
                 </div>
-                <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+                <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar" onWheel={(e) => { if (e.deltaY !== 0) { e.currentTarget.scrollLeft += e.deltaY; } }}>
                   <div className="min-w-[700px]">
                     <CalendarHeatmap
                       startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
@@ -669,7 +669,7 @@ const DevPulse = () => {
                     <span className="flex flex-col"><span className="text-amber-400 text-lg font-black">{heatmapData.currentStreak}</span> Current Streak</span>
                   </div>
                 </div>
-                <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+                <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar" onWheel={(e) => { if (e.deltaY !== 0) { e.currentTarget.scrollLeft += e.deltaY; } }}>
                   <div className="min-w-[700px]">
                     <CalendarHeatmap
                       startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
@@ -1000,7 +1000,7 @@ const DevPulse = () => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-6xl mx-auto w-full min-w-0 space-y-6 pb-16 px-2 sm:px-6 lg:px-8 py-6 selection:bg-indigo-500/20">
+    <div className="max-w-6xl mx-auto w-full min-w-0 space-y-6 pb-16 px-2 sm:px-6 lg:px-8 py-6 selection:bg-indigo-500/20 max-h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar">
       <style>{heatmapStyles}</style>
 
       {/* Back button for public view */}
@@ -1056,7 +1056,7 @@ const DevPulse = () => {
       </motion.div>
 
       {/* ── Platform Tab Bar */}
-      <div className="w-full overflow-x-auto pb-1 touch-pan-x custom-scrollbar">
+      <div className="w-full overflow-x-auto pb-1 touch-pan-x custom-scrollbar" onWheel={(e) => { if (e.deltaY !== 0) { e.currentTarget.scrollLeft += e.deltaY; } }}>
         <div className="flex gap-2 min-w-max">
           {PLATFORMS.map(({ key, label, icon: Icon, color }) => {
             const isActive = activeTab === key;

@@ -196,7 +196,7 @@ const Dashboard = () => {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
           </div>
           <div className="p-8">
-            <div className="space-y-6">
+            <div className="space-y-6 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
               {(!recentActivities || recentActivities.length === 0) ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />

@@ -5,11 +5,6 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
-  }
-
   html {
     /* Fluid base font-size so all 'rem' values (padding, margin, fonts) scale dynamically with screen size */
     font-size: clamp(12px, 0.8vw + 8px, 18px);
@@ -167,4 +162,127 @@ body {
 input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-user-select: text;
+}
+
+/* ========================================= */
+/* Custom Themes (Premium & Elegant) */
+/* ========================================= */
+
+/* 1. Minimalist Light (Apple-esque, Clean, Soft) */
+html.theme-minimalist-light body {
+  background-color: #fafafa !important;
+  color: #1a1a1a !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+html.theme-minimalist-light .animated-bg {
+  display: none !important;
+}
+html.theme-minimalist-light .glass-card, 
+html.theme-minimalist-light .glass-nav,
+html.theme-minimalist-light .glass-input {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 16px !important;
+}
+html.theme-minimalist-light button.bg-primary-600 {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+html.theme-minimalist-light button.bg-primary-600:hover {
+  background-color: #333333 !important;
+  transform: translateY(-1px) !important;
+}
+html.theme-minimalist-light .text-primary-600,
+html.theme-minimalist-light .text-primary-500,
+html.theme-minimalist-light .text-primary-700 {
+  color: #333333 !important;
+}
+
+/* 2. Minimalist Dark (Sleek Charcoal, Premium) */
+html.theme-minimalist-dark body {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+html.theme-minimalist-dark .animated-bg {
+  display: none !important;
+}
+html.theme-minimalist-dark .glass-card, 
+html.theme-minimalist-dark .glass-nav,
+html.theme-minimalist-dark .glass-input {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 16px !important;
+}
+html.theme-minimalist-dark button.bg-primary-600 {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+html.theme-minimalist-dark button.bg-primary-600:hover {
+  background-color: #e0e0e0 !important;
+  transform: translateY(-1px) !important;
+}
+html.theme-minimalist-dark .text-primary-600,
+html.theme-minimalist-dark .text-primary-500,
+html.theme-minimalist-dark .text-primary-700 {
+  color: #e0e0e0 !important;
+}
+
+/* 3. Cyber Neon (Refined Glassmorphism & Subtle Glow) */
+html.theme-cyber-neon body {
+  background-color: #0a0514 !important;
+  color: #f8f8ff !important;
+}
+html.theme-cyber-neon .animated-bg {
+  background: radial-gradient(circle at 10% 20%, rgba(192, 38, 211, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 40%) !important;
+}
+html.theme-cyber-neon .glass-card,
+html.theme-cyber-neon .glass-nav {
+  background: rgba(20, 10, 35, 0.6) !important;
+  border: 1px solid rgba(192, 38, 211, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(192, 38, 211, 0.1) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(16px) !important;
+}
+html.theme-cyber-neon .glass-input {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(14, 165, 233, 0.4) !important;
+  color: #38bdf8 !important;
+  border-radius: 12px !important;
+}
+html.theme-cyber-neon .glass-input:focus {
+  border-color: rgba(192, 38, 211, 0.8) !important;
+  box-shadow: 0 0 12px rgba(192, 38, 211, 0.3) !important;
+}
+html.theme-cyber-neon button.bg-primary-600 {
+  background: linear-gradient(135deg, #c026d3, #3b82f6) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 15px rgba(192, 38, 211, 0.4) !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+html.theme-cyber-neon button.bg-primary-600:hover {
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6) !important;
+  transform: translateY(-2px) !important;
+}
+html.theme-cyber-neon .text-primary-600,
+html.theme-cyber-neon .text-primary-500,
+html.theme-cyber-neon .text-primary-700 {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
 }

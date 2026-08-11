@@ -26,19 +26,33 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     // Update local storage and document class when theme changes
     localStorage.setItem('theme', theme);
+    
+    // Remove previous theme classes
+    document.documentElement.classList.remove('dark', 'theme-minimalist-light', 'theme-minimalist-dark', 'theme-cyber-neon');
+    
+    // Apply appropriate classes based on the theme
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    } else if (theme !== 'light') {
+      document.documentElement.classList.add(`theme-${theme}`);
+      // For dark variants, also add 'dark' so that Tailwind dark utilities still apply
+      if (theme.includes('dark') || theme === 'cyber-neon') {
+        document.documentElement.classList.add('dark');
+      }
     }
   }, [theme]);
 
+  // Support legacy toggleTheme (defaults to toggling light/dark)
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
+  const changeTheme = (newTheme) => {
+    setTheme(newTheme);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, changeTheme }}>
       {children}
     </ThemeContext.Provider>
   );

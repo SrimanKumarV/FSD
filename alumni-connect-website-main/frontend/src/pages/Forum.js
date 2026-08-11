@@ -1010,22 +1010,8 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
     setNewComment('');
   };
 
-  const Container = isModal ? 
-    ({ children }) => (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800/95 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
-          {children}
-        </div>
-      </div>
-    ) : 
-    ({ children }) => (
-      <div className="glass-card bg-white/80 dark:bg-gray-800/80 rounded-3xl w-full h-full border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-        {children}
-      </div>
-    );
-
-  return (
-    <Container>
+  const content = (
+      <>
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white pr-4">{post.title}</h2>
@@ -1234,7 +1220,23 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
             </form>
           </div>
         </div>
-    </Container>
+      </>
+  );
+
+  if (isModal) {
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white dark:bg-gray-800/95 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-card bg-white/80 dark:bg-gray-800/80 rounded-3xl w-full h-full border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+      {content}
+    </div>
   );
 };
 

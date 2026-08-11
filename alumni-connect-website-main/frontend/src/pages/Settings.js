@@ -10,7 +10,7 @@ import DevProfileSettings from '../components/profile/DevProfileSettings';
 
 const Settings = () => {
   const { user, logout, updateUser } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, changeTheme } = useTheme();
   const navigate = useNavigate();
 
   // Phone settings
@@ -212,27 +212,49 @@ const Settings = () => {
           {/* Theme Settings */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Appearance</h3>
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
-              <div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+              <div className="mb-4">
                 <p className="font-medium text-gray-900 dark:text-white">Theme Preference</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Toggle between Light and Dark mode.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Choose a style that suits you best.</p>
               </div>
-              <button
-                onClick={toggleTheme}
-                className="p-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 shadow-sm border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center space-x-2"
-              >
-                {theme === 'dark' ? (
-                  <>
-                    <Sun className="w-5 h-5 text-yellow-500" />
-                    <span>Light Mode</span>
-                  </>
-                ) : (
-                  <>
-                    <Moon className="w-5 h-5 text-gray-600" />
-                    <span>Dark Mode</span>
-                  </>
-                )}
-              </button>
+              
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 w-full">
+                <button
+                  onClick={() => changeTheme('light')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'light' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <Sun className="w-6 h-6 text-yellow-500" />
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Light</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('dark')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'dark' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <Moon className="w-6 h-6 text-blue-400" />
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Dark</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('minimalist-light')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'minimalist-light' ? 'border-gray-900 bg-gray-100 dark:border-white dark:bg-gray-800' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <div className="w-6 h-6 border-2 border-black bg-white rounded-full"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Minimal Light</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('minimalist-dark')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'minimalist-dark' ? 'border-primary-500 bg-gray-800' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 border-2 border-white bg-black rounded-full"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Minimal Dark</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('cyber-neon')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'cyber-neon' ? 'border-fuchsia-500 bg-fuchsia-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 border-2 border-cyan-400 bg-fuchsia-600 rounded-full shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Cyber Neon</span>
+                </button>
+              </div>
             </div>
             {/* Language Switcher */}
             <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50">

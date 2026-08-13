@@ -39,7 +39,7 @@ const Events = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    title: '', description: '', startDate: '', endDate: '', location: '', eventType: 'meetup', category: 'technology',
+    title: '', description: '', startDate: '', endDate: '', location: '', eventType: 'webinar', category: 'technology',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     isVirtual: false,
     isRegistrationRequired: true,
@@ -381,9 +381,25 @@ const Events = () => {
                     <input type="datetime-local" required value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location / Platform</label>
-                  <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location / Platform</label>
+                    <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Type</label>
+                    <select value={formData.eventType} onChange={e => setFormData({...formData, eventType: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white">
+                      <option value="webinar">Webinar</option>
+                      <option value="exam">Exam</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="seminar">Seminar</option>
+                      <option value="networking">Networking</option>
+                      <option value="conference">Conference</option>
+                      <option value="hackathon">Hackathon</option>
+                      <option value="meetup">Meetup</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4 pt-2">
                   <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300">

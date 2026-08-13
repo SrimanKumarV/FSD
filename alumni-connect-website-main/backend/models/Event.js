@@ -17,7 +17,7 @@ const eventSchema = new mongoose.Schema({
   // Event Type
   eventType: {
     type: String,
-    enum: ['webinar', 'workshop', 'seminar', 'networking', 'conference', 'hackathon', 'other'],
+    enum: ['webinar', 'workshop', 'seminar', 'networking', 'conference', 'hackathon', 'meetup', 'exam', 'other'],
     required: [true, 'Event type is required']
   },
   

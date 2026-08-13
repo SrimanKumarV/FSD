@@ -1323,8 +1323,8 @@ const FeedbackAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
     finally { setUpdating(null); }
   };
 
-  const feedbacks = data?.data?.feedbacks || [];
-  const totalPages = data?.data?.pages || 1;
+  const feedbacks = data?.feedbacks || [];
+  const totalPages = data?.pages || 1;
 
   return (
     <div className="space-y-4">
@@ -1337,7 +1337,7 @@ const FeedbackAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
             {s === '' ? 'All' : FB_STATUS[s]?.label || s}
           </button>
         ))}
-        <span className="ml-auto text-xs text-gray-500">{data?.data?.total || 0} total</span>
+        <span className="ml-auto text-xs text-gray-500">{data?.total || 0} total</span>
       </div>
 
       {loading ? (

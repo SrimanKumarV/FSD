@@ -13,6 +13,7 @@ const MockInterview = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [evaluationReport, setEvaluationReport] = useState(null);
   const messagesEndRef = useRef(null);
 
   const [isListening, setIsListening] = useState(false);
@@ -107,14 +108,35 @@ const MockInterview = () => {
     }
   };
 
-  const endInterview = () => {
-    setSessionActive(false);
-    setMessages([]);
-    setInput('');
+  const endInterview = async () => {
+    if (messages.length < 3) {
+      // Too short to evaluate
+      setSessionActive(false);
+      setMessages([]);
+      setInput('');
+      return;
+    }
+
+    setLoading(true);
     window.speechSynthesis?.cancel();
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
+    }
+    
+    try {
+      const response = await api.post('/ai/evaluate-interview', {
+        history: messages,
+        role,
+        experience
+      });
+      setEvaluationReport(response.data);
+    } catch (error) {
+      console.error("Evaluation error:", error);
+      toast.error("Failed to generate evaluation report");
+      setSessionActive(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -243,6 +265,80 @@ const MockInterview = () => {
                 <PlayCircle className="w-6 h-6 mr-2" />
                 Start Interview
               </button>
+            </div>
+          ) : evaluationReport ? (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-50 dark:bg-gray-900/50">
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
+                    <div>
+                      <h2 className="text-2xl font-black text-gray-900 dark:text-white">Interview Evaluation</h2>
+                      <p className="text-gray-500">{role} ({experience})</p>
+                    </div>
+                    <div className="w-20 h-20 bg-primary-50 dark:bg-primary-900/20 rounded-full flex flex-col items-center justify-center border-4 border-primary-500">
+                      <span className="text-2xl font-black text-primary-600 dark:text-primary-400">{evaluationReport.score}</span>
+                      <span className="text-[10px] font-bold text-primary-500 uppercase tracking-wider">Score</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Overall Feedback</h3>
+                      <p className="text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl text-sm leading-relaxed">
+                        {evaluationReport.feedback}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">Strengths</h3>
+                        <ul className="space-y-2">
+                          {evaluationReport.strengths.map((str, i) => (
+                            <li key={i} className="flex items-start text-sm text-gray-600 dark:text-gray-300">
+                              <span className="text-emerald-500 mr-2 font-bold">+</span> {str}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">Areas to Improve</h3>
+                        <ul className="space-y-2">
+                          {evaluationReport.weaknesses.map((weak, i) => (
+                            <li key={i} className="flex items-start text-sm text-gray-600 dark:text-gray-300">
+                              <span className="text-amber-500 mr-2 font-bold">-</span> {weak}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">Actionable Tips</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {evaluationReport.tips.map((tip, i) => (
+                          <span key={i} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-lg border border-indigo-100 dark:border-indigo-800">
+                            {tip}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 flex justify-center">
+                    <button
+                      onClick={() => {
+                        setSessionActive(false);
+                        setEvaluationReport(null);
+                        setMessages([]);
+                        setInput('');
+                      }}
+                      className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-colors"
+                    >
+                      Start New Interview
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <>

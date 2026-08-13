@@ -278,5 +278,58 @@ Conduct a mock interview. Follow these strict rules:
     res.json({ reply: "I'm having trouble connecting to my AI brain right now. Please verify that valid API keys are configured in the backend environment variables. We can try again later!" });
   }
 });
+// @route   POST /api/ai/evaluate-interview
+// @desc    Evaluate the entire mock interview session
+// @access  Private
+router.post('/evaluate-interview', protect, async (req, res) => {
+  try {
+    const { history, role, experience } = req.body;
+
+    if (!history || history.length === 0) {
+      return res.status(400).json({ message: 'Interview history is required' });
+    }
+
+    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+      return res.json({
+        score: 80,
+        feedback: "Great job! This is a mock evaluation.",
+        strengths: ["Clear communication", "Good problem solving"],
+        weaknesses: ["Could be more detailed"],
+        tips: ["Practice more system design"]
+      });
+    }
+
+    const systemInstruction = `You are an expert technical recruiter. Review the following interview transcript for a ${experience || 'Entry-Level'} ${role || 'Software Engineer'}.
+Provide a strict JSON evaluation with the following format:
+{
+  "score": <number 0-100 overall performance score>,
+  "feedback": "<string: 2-3 sentences of overall constructive feedback>",
+  "strengths": ["<strength 1>", "<strength 2>"],
+  "weaknesses": ["<weakness 1>", "<weakness 2>"],
+  "tips": ["<actionable tip 1>", "<actionable tip 2>"]
+}`;
+
+    const formattedHistory = history.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n');
+    const userMessage = `Please evaluate this interview transcript:\n\n${formattedHistory}`;
+
+    const messages = [
+      { role: 'system', content: systemInstruction },
+      { role: 'user', content: userMessage }
+    ];
+
+    let reply = await callAIWithFallback(messages, systemInstruction, true);
+    
+    reply = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    if (jsonMatch) reply = jsonMatch[0];
+    
+    const parsedData = JSON.parse(reply);
+    res.json(parsedData);
+
+  } catch (error) {
+    console.error('AI Interview Evaluation Error:', error);
+    res.status(500).json({ message: `Failed to evaluate interview: ${error.message}` });
+  }
+});
 
 module.exports = router;

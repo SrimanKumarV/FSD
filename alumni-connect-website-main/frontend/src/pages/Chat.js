@@ -52,6 +52,7 @@ const Chat = () => {
   const fileInputRef = useRef(null);
   const [attachment, setAttachment] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const typingTimeoutRef = useRef(null);
   
   const emojis = ['😀', '😂', '🥰', '😎', '😭', '🥺', '😡', '👍', '❤️', '🔥', '✨', '🎉', '💡', '🚀', '👀', '💯'];
 
@@ -290,18 +291,12 @@ const Chat = () => {
     };
   }, [socket, isConnected, otherParticipantId, queryClient]);
 
-  // Auto-scroll to bottom when new messages arrive without shifting the whole page
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    const container = document.getElementById('chat-messages-scroll-container');
-    if (container) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth'
-      });
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [messagesData?.data?.messages]);
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
+  }, [messagesData?.data?.messages, isTyping, selectedChat]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -361,6 +356,12 @@ const Chat = () => {
   const handleTyping = () => {
     if (socket && isConnected && otherParticipantId) {
       socket.emit('typing:start', { receiverId: otherParticipantId });
+      
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit('typing:stop', { receiverId: otherParticipantId });
+      }, 2000);
     }
   };
 

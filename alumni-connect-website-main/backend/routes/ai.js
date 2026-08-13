@@ -82,7 +82,10 @@ router.post('/analyze-resume', protect, upload.single('resume'), async (req, res
         grammarScore: 90,
         impactScore: 80,
         rating: "Strong Match (Mock)",
-        missingSkills: ["Mock Skill 1", "Mock Skill 2"],
+        matchedSkills: ["React", "Node.js", "MongoDB"],
+        missingSkills: ["Docker", "AWS"],
+        strengths: ["Strong action verbs", "Clear formatting"],
+        weaknesses: ["Missing some technical keywords"],
         suggestions: ["Add real API key for real analysis."]
       });
     }
@@ -103,8 +106,11 @@ Output strictly in this JSON format without any markdown wrappers or additional 
   "grammarScore": <number 0-100>,
   "impactScore": <number 0-100, based on use of action verbs and numbers>,
   "rating": "<string: 'Poor Match', 'Fair Match', 'Good Match', 'Strong Match', or 'Excellent Match'>",
-  "missingSkills": ["<critical keyword 1>", "<critical keyword 2>"],
-  "suggestions": ["<actionable tip to improve impact>", "<actionable tip for missing skills>"]
+  "matchedSkills": ["<skill 1 found in both JD and resume>", "<skill 2>"],
+  "missingSkills": ["<critical keyword 1 missing from resume>", "<critical keyword 2>"],
+  "strengths": ["<specific strength 1 based on resume>", "<specific strength 2>"],
+  "weaknesses": ["<specific area of concern 1>", "<specific area of concern 2>"],
+  "suggestions": ["<actionable tip 1 to improve>", "<actionable tip 2>"]
 }`;
 
     const userMessage = `Job Description:\n${jobDescription}\n\nResume text:\n${resumeText}`;

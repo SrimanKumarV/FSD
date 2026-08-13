@@ -262,20 +262,67 @@ const ResumeAnalyzer = () => {
                     <Target className="w-4 h-4 text-indigo-500" /> Missing Industry Keywords
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {results.missingSkills.map((skill, i) => (
+                    {results.missingSkills?.map((skill, i) => (
                       <span key={i} className="px-3 py-1.5 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg border border-red-200 dark:border-red-900/30">
-                        + {skill}
+                        - {skill}
                       </span>
                     ))}
                   </div>
                 </div>
 
+                {results.matchedSkills && results.matchedSkills.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" /> Matched Keywords
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {results.matchedSkills.map((skill, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-lg border border-emerald-200 dark:border-emerald-900/30">
+                          + {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {results.strengths && results.strengths.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-blue-500" /> Strengths
+                    </h4>
+                    <ul className="space-y-3">
+                      {results.strengths.map((str, i) => (
+                        <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                          <CheckCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                          <span>{str}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {results.weaknesses && results.weaknesses.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-500" /> Areas of Concern
+                    </h4>
+                    <ul className="space-y-3">
+                      {results.weaknesses.map((weak, i) => (
+                        <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                          <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                          <span>{weak}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-500" /> Actionable Suggestions
+                    <Zap className="w-4 h-4 text-indigo-500" /> Actionable Suggestions
                   </h4>
                   <ul className="space-y-3">
-                    {results.suggestions.map((sug, i) => (
+                    {results.suggestions?.map((sug, i) => (
                       <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
                         <ChevronRight className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
                         <span>{sug}</span>

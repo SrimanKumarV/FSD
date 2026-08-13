@@ -1,65 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Building2, Search, ExternalLink, MapPin, 
   Users, TrendingUp, Briefcase, Filter, ShieldCheck, ChevronRight, X
 } from 'lucide-react';
-
-// Mock Data for Startups/Businesses
-const mockBusinesses = [
-  {
-    id: 1,
-    name: "NexusAI",
-    founder: "Sarah Chen (Class of '19)",
-    logo: "N",
-    industry: "Artificial Intelligence",
-    location: "San Francisco, CA",
-    employees: "10-50",
-    stage: "Series A",
-    description: "Building the next generation of predictive analytics for enterprise supply chains.",
-    hiring: true,
-    tags: ["Machine Learning", "Enterprise", "B2B"]
-  },
-  {
-    id: 2,
-    name: "EcoTrack",
-    founder: "Marcus Johnson (Class of '21)",
-    logo: "E",
-    industry: "CleanTech",
-    location: "Berlin, Germany",
-    employees: "1-10",
-    stage: "Seed",
-    description: "Smart IoT sensors for urban carbon footprint monitoring and optimization.",
-    hiring: false,
-    tags: ["IoT", "Sustainability", "Hardware"]
-  },
-  {
-    id: 3,
-    name: "FinFlow",
-    founder: "Priya Patel (Class of '18)",
-    logo: "F",
-    industry: "FinTech",
-    location: "London, UK",
-    employees: "50-200",
-    stage: "Series B",
-    description: "Democratizing cross-border payments with ultra-low latency blockchain infrastructure.",
-    hiring: true,
-    tags: ["Blockchain", "Payments", "Web3"]
-  },
-  {
-    id: 4,
-    name: "MedSync",
-    founder: "Dr. David Kim (Class of '15)",
-    logo: "M",
-    industry: "HealthTech",
-    location: "Boston, MA",
-    employees: "10-50",
-    stage: "Series A",
-    description: "Unified patient record platform standardizing data across state hospital systems.",
-    hiring: true,
-    tags: ["Healthcare", "Data Privacy", "SaaS"]
-  }
-];
+import { api } from '../utils/api';
+import toast from 'react-hot-toast';
 
 const BusinessDirectory = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,22 +15,53 @@ const BusinessDirectory = () => {
     name: '', industry: '', location: '', stage: 'Idea', description: '', website: '', logo: '', tags: '', hiring: false
   });
 
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBusinesses();
+  }, []);
+
+  const fetchBusinesses = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/business');
+      setBusinesses(res.data.businesses || []);
+    } catch (err) {
+      console.error('Error fetching businesses:', err);
+      toast.error('Failed to load startups');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    setShowAddModal(false);
+    try {
+      const dataToSubmit = {
+        ...formData,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+      };
+      await api.post('/business', dataToSubmit);
+      toast.success('Startup submitted successfully!');
+      setShowAddModal(false);
+      fetchBusinesses(); // Refresh list
+    } catch (err) {
+      console.error('Error creating business:', err);
+      toast.error(err.response?.data?.message || 'Failed to submit startup');
+    }
   };
 
-  const industries = ["All", "Artificial Intelligence", "CleanTech", "FinTech", "HealthTech"];
+  const industries = ["All", "Artificial Intelligence", "CleanTech", "FinTech", "HealthTech", "E-Commerce", "SaaS", "Other"];
 
-  const filteredBusinesses = mockBusinesses.filter(biz => {
-    const matchesSearch = biz.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          biz.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredBusinesses = businesses.filter(biz => {
+    const matchesSearch = biz.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          biz.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = activeFilter === "All" || biz.industry === activeFilter;
     return matchesSearch && matchesFilter;
   });
@@ -180,7 +157,7 @@ const BusinessDirectory = () => {
                   <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-2">
                     {biz.name}
                   </h3>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Founder: {biz.founder}</p>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Founder: {biz.founder?.name || 'Unknown'}</p>
                 </div>
               </div>
               <button className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all">

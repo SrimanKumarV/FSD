@@ -23,7 +23,7 @@ router.post('/', auth.protect, async (req, res) => {
 
     const business = new Business({
       name,
-      founder: req.user.userId,
+      founder: req.user.id,
       industry,
       location,
       stage,

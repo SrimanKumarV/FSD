@@ -107,8 +107,8 @@ router.get('/feed', protect, async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get posts from users the current user follows + own posts
-    const followingIds = [...(currentUser.following || []), req.user.id];
+    // Get posts from users the current user follows
+    const followingIds = currentUser.following || [];
 
     const posts = await ForumPost.find({
       author: { $in: followingIds },

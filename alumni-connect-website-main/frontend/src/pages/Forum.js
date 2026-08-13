@@ -56,7 +56,7 @@ const Forum = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [editingPost, setEditingPost] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('feed'); // default to feed (All Posts)
   const [filters, setFilters] = useState({
     category: '',
     postType: '',
@@ -80,11 +80,11 @@ const Forum = () => {
     }
   }, [location.state]);
 
-  // Fetch all forum posts
+  // Fetch all forum posts (or My Forum posts)
   const { data: postsData, isLoading, error } = useQuery(
-    ['forum-posts', filters],
-    () => api.get('/forum', { params: filters }),
-    { keepPreviousData: true, enabled: activeTab === 'all' }
+    ['forum-posts', filters, activeTab],
+    () => api.get('/forum', { params: activeTab === 'my-forum' ? { ...filters, author: user._id || user.id } : filters }),
+    { keepPreviousData: true, enabled: activeTab === 'my-forum' } // only for my-forum now
   );
 
   // Fetch feed posts (from followed users)
@@ -292,14 +292,14 @@ const Forum = () => {
           {/* Tab Switcher */}
           <div className="flex space-x-1 glass-card rounded-2xl p-1.5 w-fit">
             <button
-              onClick={() => setActiveTab('all')}
+              onClick={() => setActiveTab('my-forum')}
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === 'all'
+                activeTab === 'my-forum'
                   ? 'bg-primary-600 text-white shadow-md'
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              All Posts
+              My Forum
             </button>
             <button
               onClick={() => setActiveTab('feed')}
@@ -309,7 +309,7 @@ const Forum = () => {
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              My Feed
+              All Posts
             </button>
           </div>
 
@@ -408,8 +408,8 @@ const Forum = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4 pb-12">
         <div className="space-y-4 pb-20">
             {(() => {
-              const currentLoading = activeTab === 'all' ? isLoading : feedLoading;
-              const currentPosts = activeTab === 'all' ? postsData?.data?.posts : feedData?.data?.posts;
+              const currentLoading = activeTab === 'my-forum' ? isLoading : feedLoading;
+              const currentPosts = activeTab === 'my-forum' ? postsData?.data?.posts : feedData?.data?.posts;
 
               if (currentLoading) {
                 return (

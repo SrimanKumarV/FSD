@@ -218,7 +218,7 @@ const Settings = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">Choose a style that suits you best.</p>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 w-full">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 w-full">
                 <button
                   onClick={() => changeTheme('light')}
                   className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'light' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
@@ -253,6 +253,20 @@ const Settings = () => {
                 >
                    <div className="w-6 h-6 border-2 border-cyan-400 bg-fuchsia-600 rounded-full shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Cyber Neon</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('heroui-light')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'heroui-light' ? 'border-[#006FEE] bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 border-[3px] border-white bg-[#006FEE] rounded-2xl shadow-sm"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">HeroUI Light</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('heroui-dark')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'heroui-dark' ? 'border-[#006FEE] bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 border-[3px] border-gray-900 bg-[#006FEE] rounded-2xl shadow-sm"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">HeroUI Dark</span>
                 </button>
               </div>
 

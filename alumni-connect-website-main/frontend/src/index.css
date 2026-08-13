@@ -302,3 +302,101 @@ html.theme-cyber-neon .text-primary-700 {
   color: #38bdf8 !important;
   text-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
 }
+
+/* 4. HeroUI Light (NextUI style - High contrast, rounded, blue primary) */
+html.theme-heroui-light body {
+  background-color: #ffffff !important;
+  color: #11181C !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+html.theme-heroui-light .animated-bg {
+  display: none !important;
+}
+html.theme-heroui-light .glass-card, 
+html.theme-heroui-light .glass-nav {
+  background: #ffffff !important;
+  border: 1px solid #E4E4E7 !important;
+  box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.05), 0px 4px 6px -2px rgba(0,0,0,0.025) !important;
+  border-radius: 24px !important;
+  backdrop-filter: none !important;
+}
+html.theme-heroui-light .glass-input {
+  background: #F4F4F5 !important;
+  border: 2px solid transparent !important;
+  border-radius: 14px !important;
+  color: #11181C !important;
+  box-shadow: none !important;
+  transition: background-color 0.25s ease, border-color 0.25s ease !important;
+}
+html.theme-heroui-light .glass-input:focus {
+  background: #ffffff !important;
+  border-color: #006FEE !important;
+  box-shadow: none !important;
+}
+html.theme-heroui-light button.bg-primary-600 {
+  background-color: #006FEE !important;
+  color: #ffffff !important;
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  box-shadow: 0px 4px 14px 0px rgba(0, 111, 238, 0.4) !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease !important;
+}
+html.theme-heroui-light button.bg-primary-600:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0px 6px 20px 0px rgba(0, 111, 238, 0.5) !important;
+}
+html.theme-heroui-light .text-primary-600,
+html.theme-heroui-light .text-primary-500,
+html.theme-heroui-light .text-primary-700 {
+  color: #006FEE !important;
+}
+
+/* 5. HeroUI Dark (NextUI style - Sleek, distinct rounded corners) */
+html.theme-heroui-dark body {
+  background-color: #000000 !important;
+  color: #ECEDEE !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+html.theme-heroui-dark .animated-bg {
+  display: none !important;
+}
+html.theme-heroui-dark .glass-card, 
+html.theme-heroui-dark .glass-nav {
+  background: #18181B !important;
+  border: 1px solid #27272A !important;
+  box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.3), 0px 4px 6px -2px rgba(0,0,0,0.15) !important;
+  border-radius: 24px !important;
+  backdrop-filter: none !important;
+}
+html.theme-heroui-dark .glass-input {
+  background: #27272A !important;
+  border: 2px solid transparent !important;
+  border-radius: 14px !important;
+  color: #ECEDEE !important;
+  box-shadow: none !important;
+  transition: background-color 0.25s ease, border-color 0.25s ease !important;
+}
+html.theme-heroui-dark .glass-input:focus {
+  background: #18181B !important;
+  border-color: #006FEE !important;
+  box-shadow: none !important;
+}
+html.theme-heroui-dark button.bg-primary-600 {
+  background-color: #006FEE !important;
+  color: #ffffff !important;
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  box-shadow: 0px 4px 14px 0px rgba(0, 111, 238, 0.3) !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease !important;
+}
+html.theme-heroui-dark button.bg-primary-600:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0px 6px 20px 0px rgba(0, 111, 238, 0.45) !important;
+}
+html.theme-heroui-dark .text-primary-600,
+html.theme-heroui-dark .text-primary-500,
+html.theme-heroui-dark .text-primary-700 {
+  color: #006FEE !important;
+}

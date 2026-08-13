@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Bot, Briefcase, PlayCircle, StopCircle, Award } from 'lucide-react';
+import { Send, User, Bot, Briefcase, PlayCircle, StopCircle, Award, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,10 @@ const MockInterview = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  const [isListening, setIsListening] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const recognitionRef = useRef(null);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -22,6 +26,58 @@ const MockInterview = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput((prev) => prev + (prev ? ' ' : '') + transcript);
+      };
+      
+      recognitionRef.current.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+    
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error("Could not start speech recognition:", e);
+      }
+    }
+  };
+
+  const speakText = (text) => {
+    if (isVoiceEnabled && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const startInterview = async () => {
     setSessionActive(true);
@@ -35,10 +91,12 @@ const MockInterview = () => {
         experience
       };
       const response = await api.post('/ai/mock-interview', payload);
+      const aiReply = response.data.reply;
       setMessages([
         { role: 'user', content: userMessage },
-        { role: 'assistant', content: response.data.reply }
+        { role: 'assistant', content: aiReply }
       ]);
+      speakText(aiReply);
     } catch (error) {
       console.error("Mock Interview Error:", error);
       const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
@@ -53,6 +111,11 @@ const MockInterview = () => {
     setSessionActive(false);
     setMessages([]);
     setInput('');
+    window.speechSynthesis?.cancel();
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
   };
 
   const sendMessage = async (e) => {
@@ -73,7 +136,9 @@ const MockInterview = () => {
         experience
       };
       const response = await api.post('/ai/mock-interview', payload);
-      setMessages([...updatedHistory, { role: 'assistant', content: response.data.reply }]);
+      const aiReply = response.data.reply;
+      setMessages([...updatedHistory, { role: 'assistant', content: aiReply }]);
+      speakText(aiReply);
     } catch (error) {
       console.error("Mock Interview Send Error:", error);
       const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
@@ -103,13 +168,29 @@ const MockInterview = () => {
             </p>
           </div>
           {sessionActive && (
-            <button
-              onClick={endInterview}
-              className="flex items-center px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 font-bold rounded-xl transition-colors"
-            >
-              <StopCircle className="w-5 h-5 mr-2" />
-              End Session
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => {
+                  setIsVoiceEnabled(!isVoiceEnabled);
+                  if (isVoiceEnabled) window.speechSynthesis?.cancel();
+                }}
+                className={`flex items-center px-4 py-2 rounded-xl font-bold transition-colors ${
+                  isVoiceEnabled 
+                    ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                }`}
+                title={isVoiceEnabled ? "Mute AI Voice" : "Enable AI Voice"}
+              >
+                {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={endInterview}
+                className="flex items-center px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 font-bold rounded-xl transition-colors"
+              >
+                <StopCircle className="w-5 h-5 mr-2" />
+                End Session
+              </button>
+            </div>
           )}
         </motion.div>
 
@@ -228,10 +309,23 @@ const MockInterview = () => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type your answer..."
+                    placeholder="Type your answer or use the microphone..."
                     className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
                     disabled={loading}
                   />
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    disabled={loading || !recognitionRef.current}
+                    className={`px-4 py-3 rounded-xl transition-all shadow-md flex items-center justify-center shrink-0 ${
+                      isListening
+                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                        : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
+                    }`}
+                    title={recognitionRef.current ? (isListening ? "Stop Listening" : "Start Listening") : "Speech Recognition not supported"}
+                  >
+                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
                   <button
                     type="submit"
                     disabled={!input.trim() || loading}

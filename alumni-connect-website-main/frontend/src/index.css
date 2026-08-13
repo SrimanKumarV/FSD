@@ -400,3 +400,146 @@ html.theme-heroui-dark .text-primary-500,
 html.theme-heroui-dark .text-primary-700 {
   color: #006FEE !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* 6. DesignCode UI Light — Glassmorphism, Violet accent, Soft gradients     */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+html.theme-designcode-light body {
+  background-color: #F2F2F7 !important;
+  color: #1C1C1E !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif !important;
+}
+html.theme-designcode-light .animated-bg {
+  background: linear-gradient(135deg, #E8DEFF 0%, #C9E4FF 50%, #FFDDE4 100%) !important;
+  opacity: 0.4 !important;
+}
+html.theme-designcode-light .glass-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow:
+    0px 20px 40px -8px rgba(0, 0, 0, 0.08),
+    0px 8px 16px -4px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+}
+html.theme-designcode-light .glass-nav {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.06) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+}
+html.theme-designcode-light .glass-input {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 12px !important;
+  color: #1C1C1E !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: blur(20px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+html.theme-designcode-light .glass-input:focus {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: #7B61FF !important;
+  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+html.theme-designcode-light button.bg-primary-600 {
+  background: linear-gradient(135deg, #7B61FF 0%, #6E4AFF 100%) !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0px 6px 20px -4px rgba(123, 97, 255, 0.45) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+}
+html.theme-designcode-light button.bg-primary-600:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: 0px 10px 30px -4px rgba(123, 97, 255, 0.55) !important;
+}
+html.theme-designcode-light .text-primary-600,
+html.theme-designcode-light .text-primary-500,
+html.theme-designcode-light .text-primary-700 {
+  color: #7B61FF !important;
+}
+html.theme-designcode-light .bg-primary-600 {
+  background: linear-gradient(135deg, #7B61FF 0%, #6E4AFF 100%) !important;
+}
+html.theme-designcode-light ::selection {
+  background: rgba(123, 97, 255, 0.2) !important;
+  color: #3A1FBF !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* 7. DesignCode UI Dark — Deep Glassmorphism, Violet glow, Angular grads    */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+html.theme-designcode-dark body {
+  background-color: #000000 !important;
+  color: #F5F5F7 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif !important;
+}
+html.theme-designcode-dark .animated-bg {
+  background: linear-gradient(135deg, #2D1B69 0%, #1a0a3e 40%, #0D0D2B 70%, #0a1628 100%) !important;
+  opacity: 0.6 !important;
+}
+html.theme-designcode-dark .glass-card {
+  background: rgba(29, 29, 31, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow:
+    0px 20px 40px -8px rgba(0, 0, 0, 0.5),
+    0px 8px 16px -4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+}
+html.theme-designcode-dark .glass-nav {
+  background: rgba(29, 29, 31, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+}
+html.theme-designcode-dark .glass-input {
+  background: rgba(44, 44, 46, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  color: #F5F5F7 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+html.theme-designcode-dark .glass-input:focus {
+  background: rgba(44, 44, 46, 0.85) !important;
+  border-color: #7B61FF !important;
+  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+html.theme-designcode-dark button.bg-primary-600 {
+  background: linear-gradient(135deg, #7B61FF 0%, #9B7DFF 100%) !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0px 6px 20px -4px rgba(123, 97, 255, 0.35) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+}
+html.theme-designcode-dark button.bg-primary-600:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: 0px 10px 30px -4px rgba(123, 97, 255, 0.5),
+    0px 0px 40px -8px rgba(123, 97, 255, 0.2) !important;
+}
+html.theme-designcode-dark .text-primary-600,
+html.theme-designcode-dark .text-primary-500,
+html.theme-designcode-dark .text-primary-700 {
+  color: #9B7DFF !important;
+}
+html.theme-designcode-dark .bg-primary-600 {
+  background: linear-gradient(135deg, #7B61FF 0%, #9B7DFF 100%) !important;
+}
+html.theme-designcode-dark ::selection {
+  background: rgba(123, 97, 255, 0.3) !important;
+  color: #E8DEFF !important;
+}

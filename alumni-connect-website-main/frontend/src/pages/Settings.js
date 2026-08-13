@@ -268,6 +268,20 @@ const Settings = () => {
                    <div className="w-6 h-6 border-[3px] border-gray-900 bg-[#006FEE] rounded-2xl shadow-sm"></div>
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">HeroUI Dark</span>
                 </button>
+                <button
+                  onClick={() => changeTheme('designcode-light')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'designcode-light' ? 'border-[#7B61FF] bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #7B61FF, #C9E4FF)'}}></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">DC Light</span>
+                </button>
+                <button
+                  onClick={() => changeTheme('designcode-dark')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'designcode-dark' ? 'border-[#7B61FF] bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #2D1B69, #7B61FF)'}}></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">DC Dark</span>
+                </button>
               </div>
 
               </div>

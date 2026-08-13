@@ -41,26 +41,13 @@
     @apply bg-primary-500/40 text-primary-100;
   }
 
-  /* Premium slim scrollbar */
+  /* Hidden scrollbar — keeps scroll functionality, hides the bar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
-  }
-  .dark ::-webkit-scrollbar-thumb {
-    @apply bg-gray-700 hover:bg-gray-600;
+    display: none;
   }
   * {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-  }
-  .dark * {
-    scrollbar-color: #334155 transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .dark body {

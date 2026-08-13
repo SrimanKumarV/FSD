@@ -153,8 +153,10 @@ if (process.env.RENDER_EXTERNAL_URL) {
   console.log(`[Self-Ping] Mechanism enabled for ${process.env.RENDER_EXTERNAL_URL}`);
 }
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 module.exports = { app, server, io };

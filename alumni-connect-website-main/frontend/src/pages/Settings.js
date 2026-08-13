@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Trash2, ShieldAlert, Globe } from 'lucide-react';
+import { Sun, Moon, Trash2, ShieldAlert, Globe, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../utils/api';

@@ -79,10 +79,43 @@ const ProjectCollaboration = () => {
 
   // Like project mutation
   const likeProjectMutation = useMutation(
-    (projectId) => api.put(`/projects/${projectId}/like`),
+    (projectId) => api.put(`/projects/collab/${projectId}/like`),
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['all-projects']);
+      onMutate: async (projectId) => {
+        const userId = user?._id || user?.id;
+
+        // Optimistically update caches
+        queryClient.setQueriesData(['collab-projects'], (old) => {
+          if (!old?.projects) return old;
+          return {
+            ...old,
+            projects: old.projects.map(p => {
+              if (p._id === projectId) {
+                const hasLiked = p.likes?.includes(userId);
+                return {
+                  ...p,
+                  likes: hasLiked
+                    ? p.likes.filter(id => id !== userId)
+                    : [...(p.likes || []), userId]
+                };
+              }
+              return p;
+            })
+          };
+        });
+
+        if (selectedProject && selectedProject._id === projectId) {
+          const hasLiked = selectedProject.likes?.includes(userId);
+          setSelectedProject({
+            ...selectedProject,
+            likes: hasLiked
+              ? selectedProject.likes.filter(id => id !== userId)
+              : [...(selectedProject.likes || []), userId]
+          });
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries(['collab-projects']);
       }
     }
   );
@@ -515,12 +548,15 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
               <textarea
                 required
                 rows={6}
-                maxLength={100000}
+                maxLength={500}
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none transition-shadow"
                 placeholder="Describe your project in detail, features, challenges faced, and what you learned..."
               />
+              <div className="text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {formData.description.length} / 500
+              </div>
             </div>
 
             <div>

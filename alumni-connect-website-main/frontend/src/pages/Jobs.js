@@ -224,7 +224,10 @@ const PostJobModal = ({ onClose, onSuccess }) => {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
-            <textarea required rows="4" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.description} onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}></textarea>
+            <textarea required rows="4" maxLength={500} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.description} onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}></textarea>
+            <div className="text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {formData.description.length} / 500
+            </div>
           </div>
 
           <div>

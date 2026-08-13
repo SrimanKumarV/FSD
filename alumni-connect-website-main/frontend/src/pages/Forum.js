@@ -114,7 +114,49 @@ const Forum = () => {
   const likePostMutation = useMutation(
     (postId) => api.post(`/forum/${postId}/like`),
     {
-      onSuccess: () => {
+      onMutate: async (postId) => {
+        const userId = user?._id || user?.id;
+        
+        // Helper to update posts
+        const updatePosts = (old) => {
+          if (!old?.data?.posts) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              posts: old.data.posts.map(post => {
+                if (post._id === postId) {
+                  const hasLiked = post.likes?.includes(userId);
+                  return {
+                    ...post,
+                    likes: hasLiked 
+                      ? post.likes.filter(id => id !== userId)
+                      : [...(post.likes || []), userId]
+                  };
+                }
+                return post;
+              })
+            }
+          };
+        };
+
+        // Optimistically update caches
+        queryClient.setQueriesData(['forum-posts'], updatePosts);
+        queryClient.setQueriesData(['forum-feed'], updatePosts);
+
+        // Update selected post if open
+        if (selectedPost && selectedPost._id === postId) {
+          const hasLiked = selectedPost.likes?.includes(userId);
+          setSelectedPost({
+            ...selectedPost,
+            likes: hasLiked
+              ? selectedPost.likes.filter(id => id !== userId)
+              : [...(selectedPost.likes || []), userId]
+          });
+        }
+      },
+      onSettled: () => {
+        // Refetch in background to sync
         queryClient.invalidateQueries(['forum-posts']);
         queryClient.invalidateQueries(['forum-feed']);
       }
@@ -125,9 +167,48 @@ const Forum = () => {
   const commentMutation = useMutation(
     ({ postId, content }) => api.post(`/forum/${postId}/comments`, { content }),
     {
+      onMutate: async ({ postId, content }) => {
+        const tempComment = {
+          _id: Date.now().toString(),
+          content,
+          author: {
+            _id: user?._id || user?.id,
+            name: user?.name,
+            avatar: user?.avatar
+          },
+          createdAt: new Date().toISOString()
+        };
+
+        const updatePosts = (old) => {
+          if (!old?.data?.posts) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              posts: old.data.posts.map(post => {
+                if (post._id === postId) {
+                  return {
+                    ...post,
+                    comments: [...(post.comments || []), tempComment]
+                  };
+                }
+                return post;
+              })
+            }
+          };
+        };
+
+        queryClient.setQueriesData(['forum-posts'], updatePosts);
+        queryClient.setQueriesData(['forum-feed'], updatePosts);
+
+        if (selectedPost && selectedPost._id === postId) {
+          setSelectedPost({
+            ...selectedPost,
+            comments: [...(selectedPost.comments || []), tempComment]
+          });
+        }
+      },
       onSuccess: (data) => {
-        queryClient.invalidateQueries(['forum-posts']);
-        queryClient.invalidateQueries(['forum-feed']);
         if (selectedPost && selectedPost._id === data.data.post._id) {
           setSelectedPost(data.data.post);
         }
@@ -135,6 +216,10 @@ const Forum = () => {
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to add comment');
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries(['forum-posts']);
+        queryClient.invalidateQueries(['forum-feed']);
       }
     }
   );
@@ -856,11 +941,15 @@ const CreatePostModal = ({ onClose, onSubmit, categories, postTypes, initialData
             <textarea
               required
               rows={6}
+              maxLength={500}
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Share your thoughts, questions, or experiences..."
             />
+            <div className="text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {formData.content.length} / 500
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

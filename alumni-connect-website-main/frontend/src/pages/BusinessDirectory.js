@@ -252,7 +252,10 @@ const BusinessDirectory = () => {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description *</label>
-                  <textarea name="description" required rows="4" value={formData.description} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="What does your startup do?"></textarea>
+                  <textarea name="description" required rows="4" maxLength={500} value={formData.description} onChange={handleInputChange} className="glass-input w-full px-4 py-3 rounded-xl" placeholder="What does your startup do?"></textarea>
+                  <div className="text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {formData.description.length} / 500
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Website URL</label>

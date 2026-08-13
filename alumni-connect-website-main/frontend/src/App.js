@@ -73,7 +73,8 @@ const queryClient = new QueryClient({
       },
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000), // exponential backoff
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 2 * 60 * 60 * 1000, // 2 hours
+      cacheTime: 3 * 60 * 60 * 1000, // 3 hours
     },
     mutations: {
       retry: false, // never auto-retry mutations

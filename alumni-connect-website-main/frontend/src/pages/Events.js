@@ -369,7 +369,10 @@ const Events = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                  <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white resize-none" rows="3"></textarea>
+                  <textarea required maxLength={500} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white resize-none" rows="3"></textarea>
+                  <div className="text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {formData.description.length} / 500
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

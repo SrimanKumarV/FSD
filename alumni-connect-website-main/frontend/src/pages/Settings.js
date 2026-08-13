@@ -10,7 +10,7 @@ import DevProfileSettings from '../components/profile/DevProfileSettings';
 
 const Settings = () => {
   const { user, logout, updateUser } = useAuth();
-  const { theme, changeTheme } = useTheme();
+  const { theme, changeTheme, colorTheme, changeColorTheme } = useTheme();
   const navigate = useNavigate();
 
   // Phone settings
@@ -253,6 +253,42 @@ const Settings = () => {
                 >
                    <div className="w-6 h-6 border-2 border-cyan-400 bg-fuchsia-600 rounded-full shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Cyber Neon</span>
+                </button>
+              </div>
+
+              <div className="mt-6 mb-4 border-t border-gray-200/50 dark:border-gray-700/50 pt-6">
+                <p className="font-medium text-gray-900 dark:text-white">Color Accent</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Choose your primary color.</p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                <button
+                  onClick={() => changeColorTheme('blue')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${colorTheme === 'blue' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-blue-500"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Ocean Blue</span>
+                </button>
+                <button
+                  onClick={() => changeColorTheme('violet')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${colorTheme === 'violet' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-violet-500"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Violet</span>
+                </button>
+                <button
+                  onClick={() => changeColorTheme('emerald')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${colorTheme === 'emerald' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-emerald-500"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Emerald</span>
+                </button>
+                <button
+                  onClick={() => changeColorTheme('rose')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${colorTheme === 'rose' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-rose-500"></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Rose</span>
                 </button>
               </div>
             </div>

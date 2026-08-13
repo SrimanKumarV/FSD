@@ -23,6 +23,10 @@ export const ThemeProvider = ({ children }) => {
     return 'light';
   });
 
+  const [colorTheme, setColorTheme] = useState(() => {
+    return localStorage.getItem('colorTheme') || 'blue';
+  });
+
   useEffect(() => {
     // Update local storage and document class when theme changes
     localStorage.setItem('theme', theme);
@@ -42,6 +46,15 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [theme]);
 
+  useEffect(() => {
+    localStorage.setItem('colorTheme', colorTheme);
+    if (colorTheme === 'blue') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', colorTheme);
+    }
+  }, [colorTheme]);
+
   // Support legacy toggleTheme (defaults to toggling light/dark)
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -51,8 +64,12 @@ export const ThemeProvider = ({ children }) => {
     setTheme(newTheme);
   };
 
+  const changeColorTheme = (newColorTheme) => {
+    setColorTheme(newColorTheme);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, changeTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, changeTheme, colorTheme, changeColorTheme }}>
       {children}
     </ThemeContext.Provider>
   );

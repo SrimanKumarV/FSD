@@ -339,3 +339,101 @@ html.theme-cyber-neon .text-primary-700 {
   color: #38bdf8 !important;
   text-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
 }
+
+/* ==========================================================================
+   PREMIUM THEME OVERRIDES ("De-slop" Design System)
+   ========================================================================== */
+
+.theme-premium {
+  /* Tighter, more professional typography */
+  letter-spacing: -0.01em;
+}
+
+.theme-premium h1, .theme-premium h2, .theme-premium h3, .theme-premium h4, .theme-premium h5, .theme-premium h6 {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+/* Base Body Background adjustments */
+.theme-premium {
+  background-color: #fcfcfc;
+}
+
+.theme-premium.dark {
+  background-color: #09090b; /* Very dark slate / zinc instead of standard gray */
+}
+
+/* Glass Card Upgrades */
+.theme-premium .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.02), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+.theme-premium.dark .glass-card {
+  background: rgba(24, 24, 27, 0.6); /* Zinc 900 with opacity */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.theme-premium .glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
+
+.theme-premium.dark .glass-card:hover {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.7);
+}
+
+/* Overriding default generic borders to be ultra-subtle in premium mode */
+.theme-premium [class~="border-gray-200"] {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.theme-premium.dark [class~="border-gray-700"],
+.theme-premium.dark [class~="border-gray-800"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Premium Buttons (Primary) */
+.theme-premium button.bg-primary-600 {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(var(--color-primary-600) / 0.4);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(var(--color-primary-700) / 1);
+}
+
+.theme-premium button.bg-primary-600:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(var(--color-primary-600) / 0.5);
+  filter: brightness(1.1);
+}
+
+.theme-premium button.bg-primary-600:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Input Fields Upgrade */
+.theme-premium input[type="text"],
+.theme-premium input[type="email"],
+.theme-premium input[type="password"],
+.theme-premium textarea {
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.theme-premium input:focus,
+.theme-premium textarea:focus {
+  box-shadow: 0 0 0 2px transparent, 0 4px 12px rgba(var(--color-primary-500) / 0.15) !important;
+  border-color: rgba(var(--color-primary-500) / 0.5) !important;
+}
+
+.theme-premium.dark input:focus,
+.theme-premium.dark textarea:focus {
+  box-shadow: 0 0 0 2px transparent, 0 4px 16px rgba(var(--color-primary-500) / 0.25) !important;
+  border-color: rgba(var(--color-primary-500) / 0.7) !important;
+}

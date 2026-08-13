@@ -424,7 +424,7 @@ const Settings = () => {
               </button>
             </div>
           </div>
-        </div>
+
       </motion.div>
 
       {/* Delete Account Modal */}

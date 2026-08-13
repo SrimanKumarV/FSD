@@ -48,11 +48,8 @@ router.get('/mentors', protect, async (req, res) => {
     const targetRole = req.user.role === 'alumni' ? 'student' : 'alumni';
     let query = { role: targetRole };
 
-    // Strict department matching
     const currentUser = await User.findById(req.user.id);
-    if (currentUser && currentUser.department) {
-      query.department = currentUser.department;
-    }
+
 
 
     if (skills) {
@@ -72,7 +69,7 @@ router.get('/mentors', protect, async (req, res) => {
       query.status = 'available';
     }
 
-    let selectFields = 'name email photo bio skills location status role';
+    let selectFields = 'name email photo bio skills location status role department college interests';
     if (targetRole === 'student') {
       selectFields += ' studentInfo';
     } else {
@@ -94,14 +91,41 @@ router.get('/mentors', protect, async (req, res) => {
     const countMap = {};
     activeCounts.forEach(entry => { countMap[entry._id.toString()] = entry.count; });
 
-    const mentorsWithCapacity = mentors.map(mentor => {
+    let mentorsWithCapacity = mentors.map(mentor => {
       const obj = mentor.toObject();
       const usedSeats = countMap[mentor._id.toString()] || 0;
       const maxSeats = SEAT_LIMIT;
       obj.totalSeats = maxSeats;
       obj.usedSeats = usedSeats;
       obj.remainingCapacity = Math.max(0, maxSeats - usedSeats);
+      
+      // Calculate match score
+      let score = 0;
+      if (currentUser) {
+        if (currentUser.college && obj.college && currentUser.college.toLowerCase() === obj.college.toLowerCase()) score += 3;
+        if (currentUser.department && obj.department && currentUser.department.toLowerCase() === obj.department.toLowerCase()) score += 3;
+        
+        // Skill/Interest match
+        const userInterests = currentUser.interests || [];
+        const userSkills = currentUser.skills || [];
+        const mentorSkills = obj.skills || [];
+        const mentorInterests = obj.interests || [];
+        
+        const combinedUser = [...new Set([...userInterests, ...userSkills])].map(s => s.toLowerCase());
+        const combinedMentor = [...new Set([...mentorSkills, ...mentorInterests])].map(s => s.toLowerCase());
+        
+        const matches = combinedUser.filter(s => combinedMentor.includes(s));
+        score += matches.length; // +1 point for every matching skill/interest
+      }
+      obj.matchScore = score;
+      
       return obj;
+    });
+
+    // Sort by match score descending, then by remaining capacity
+    mentorsWithCapacity.sort((a, b) => {
+      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+      return b.remainingCapacity - a.remainingCapacity;
     });
 
     res.json({ mentors: mentorsWithCapacity });

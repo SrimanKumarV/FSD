@@ -537,6 +537,14 @@ const Mentorship = () => {
 
                     <p className="relative z-10 text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3">{mentor.bio}</p>
 
+                    {mentor.matchScore !== undefined && (
+                      <div className="relative z-10 mb-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                          Match Score: {mentor.matchScore} points
+                        </span>
+                      </div>
+                    )}
+
                     <div className="relative z-10 flex items-center space-x-4 mb-5 text-sm text-gray-600 dark:text-gray-400">
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-1" />

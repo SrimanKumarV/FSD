@@ -285,19 +285,14 @@ router.post('/verify-platform', protect, async (req, res) => {
     const userEmail = req.user.email;
     
     const profile = await DevProfile.findOne({ email: userEmail });
-    if (!profile || !profile.verificationCode) {
-      return res.status(400).json({ message: 'No verification code found. Please generate one first.' });
-    }
-
-    if (new Date() > profile.verificationExpires) {
-      return res.status(400).json({ message: 'Verification code expired. Please generate a new one.' });
+    if (!profile) {
+      return res.status(400).json({ message: 'Profile not found.' });
     }
 
     if (!username) {
       return res.status(400).json({ message: `No username provided for ${platform}` });
     }
 
-    const code = profile.verificationCode;
     let isVerified = false;
 
     // Scrape public profiles to look for the code

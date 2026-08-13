@@ -162,7 +162,7 @@ const DevProfileSettings = () => {
             <button
               type="button"
               onClick={() => verifyPlatformMutation.mutate(platformKey)}
-              disabled={verifyPlatformMutation.isLoading || !verificationCode}
+              disabled={verifyPlatformMutation.isLoading}
               className="px-4 py-2 bg-secondary-600 hover:bg-secondary-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors flex items-center"
             >
               {verifyPlatformMutation.isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Verify'}
@@ -194,36 +194,8 @@ const DevProfileSettings = () => {
     <div className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">DevPulse Integrations</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Link your coding profiles to track your Alumnex Score. To verify a profile, generate a code, paste it into your public bio on that platform, and click Verify.
+        Link your coding profiles to track your Alumnex Score. Save your usernames below to automatically fetch your stats.
       </p>
-
-      {/* Verification Code Section */}
-      <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800 rounded-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h4 className="text-sm font-bold text-primary-900 dark:text-primary-100">Bio Verification</h4>
-            <p className="text-xs text-primary-700 dark:text-primary-300 mt-1">
-              {verificationCode 
-                ? "Paste this exact code anywhere in your public bio/summary:" 
-                : "Generate a unique code to prove ownership of your accounts."}
-            </p>
-          </div>
-          {verificationCode ? (
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-primary-200 dark:border-primary-700">
-              <code className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400">{verificationCode}</code>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => generateCodeMutation.mutate()}
-              disabled={generateCodeMutation.isLoading}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium"
-            >
-              {generateCodeMutation.isLoading ? 'Generating...' : 'Generate Code'}
-            </button>
-          )}
-        </div>
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -237,7 +209,7 @@ const DevProfileSettings = () => {
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
           <div className="text-xs text-gray-500 flex items-center">
-            <AlertCircle className="w-4 h-4 mr-1" /> Save usernames first, then verify them individually.
+            <AlertCircle className="w-4 h-4 mr-1" /> Save usernames to fetch stats.
           </div>
           <button
             type="submit"

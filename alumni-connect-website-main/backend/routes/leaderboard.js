@@ -38,7 +38,9 @@ router.get('/', protect, async (req, res) => {
           github: p.stats?.github?.publicRepos || 0,
           leetcode: p.stats?.leetcode?.totalSolved || 0,
           hackerrank: p.stats?.hackerrank?.badgesCount || 0,
-          gfg: p.stats?.gfg?.problemsSolved || 0
+          gfg: p.stats?.gfg?.problemsSolved || 0,
+          codechef: p.stats?.codechef?.rating || 0,
+          codeforces: p.stats?.codeforces?.rating || 0
         },
         usernames: p.usernames
       }))

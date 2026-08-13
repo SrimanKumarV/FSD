@@ -300,6 +300,9 @@ const Leaderboard = () => {
                                {profile.stats?.github > 0 && <span className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">GH {profile.stats.github} repos</span>}
                                {profile.stats?.leetcode > 0 && <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">LC {profile.stats.leetcode} solved</span>}
                                {profile.stats?.hackerrank > 0 && <span className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">HR {profile.stats.hackerrank} badges</span>}
+                               {profile.stats?.gfg > 0 && <span className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">GFG {profile.stats.gfg} solved</span>}
+                               {profile.stats?.codechef > 0 && <span className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">CC {profile.stats.codechef} rating</span>}
+                               {profile.stats?.codeforces > 0 && <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-[10px] font-semibold">CF {profile.stats.codeforces} rating</span>}
                             </div>
                           </div>
                         </div>

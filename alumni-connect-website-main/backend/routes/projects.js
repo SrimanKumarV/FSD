@@ -27,6 +27,7 @@ router.get('/', async (req, res) => {
 
     const projects = await Project.find(query)
       .populate('user', 'name role avatar')
+      .populate('teamMembers', 'name avatar')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -61,6 +62,7 @@ router.get('/followers', protect, async (req, res) => {
     // Find projects where the owner is in the user's followers array
     const projects = await Project.find({ user: { $in: user.followers } })
       .populate('user', 'name role avatar')
+      .populate('teamMembers', 'name avatar')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -85,6 +87,7 @@ router.get('/user/:userId', async (req, res) => {
   try {
     const projects = await Project.find({ user: req.params.userId })
       .populate('user', 'name role avatar')
+      .populate('teamMembers', 'name avatar')
       .sort({ createdAt: -1 });
       
     res.json({ success: true, projects });
@@ -101,6 +104,7 @@ router.get('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
       .populate('user', 'name role avatar headline bio')
+      .populate('teamMembers', 'name avatar')
       .populate('likes', 'name avatar');
       
     if (!project) {
@@ -126,12 +130,13 @@ router.get('/:id', async (req, res) => {
 // @access  Private
 router.post('/', protect, async (req, res) => {
   try {
-    const { title, description, tags, githubLink, liveLink, thumbnail } = req.body;
+    const { title, description, tags, githubLink, liveLink, thumbnail, teamMembers } = req.body;
     
     const project = await Project.create({
       title,
       description,
       tags: tags || [],
+      teamMembers: teamMembers || [],
       githubLink,
       liveLink,
       thumbnail,

@@ -120,6 +120,7 @@ router.get('/search', protect, async (req, res) => {
     if (q) {
       query.$or = [
         { name: { $regex: q, $options: 'i' } },
+        { email: { $regex: q, $options: 'i' } },
         { bio: { $regex: q, $options: 'i' } },
         { skills: { $in: [new RegExp(q, 'i')] } },
         { country: { $regex: q, $options: 'i' } },

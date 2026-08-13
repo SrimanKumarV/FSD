@@ -288,15 +288,35 @@ const ProjectCard = ({ project, onLike, onClick, currentUser }) => {
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700/50 mt-auto">
-          <div className="flex items-center space-x-2">
-            {project.user?.avatar ? (
-              <img src={project.user.avatar} alt={project.user.name} className="w-6 h-6 rounded-full object-cover" />
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-xs font-medium text-primary-600">
-                {project.user?.name?.charAt(0) || 'U'}
-              </div>
+          <div className="flex items-center">
+            <div className="flex -space-x-2">
+              {project.user?.avatar ? (
+                <img src={project.user.avatar} title={project.user.name} alt={project.user.name} className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 object-cover relative z-30" />
+              ) : (
+                <div title={project.user?.name} className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-xs font-medium text-primary-600 relative z-30">
+                  {project.user?.name?.charAt(0) || 'U'}
+                </div>
+              )}
+              {project.teamMembers?.slice(0, 3).map((collab, idx) => (
+                <React.Fragment key={collab._id || idx}>
+                  {collab.avatar ? (
+                    <img src={collab.avatar} title={collab.name} alt={collab.name} className={`w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 object-cover relative z-${20 - idx}`} />
+                  ) : (
+                    <div title={collab.name} className={`w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 relative z-${20 - idx}`}>
+                      {collab.name?.charAt(0) || 'C'}
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+              {project.teamMembers?.length > 3 && (
+                <div className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[10px] font-medium text-gray-600 dark:text-gray-400 relative z-10">
+                  +{project.teamMembers.length - 3}
+                </div>
+              )}
+            </div>
+            {(!project.teamMembers || project.teamMembers.length === 0) && (
+              <span className="ml-2 text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{project.user?.name}</span>
             )}
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{project.user?.name}</span>
           </div>
 
           {/* Removed likes and views for a cleaner layout */}
@@ -342,6 +362,21 @@ const ProjectDetailsModal = ({ project, currentUser, onClose, onLike, onEdit, on
                     </div>
                   )}
                   <span className="text-white/90 font-medium">{project.user?.name}</span>
+                  {project.teamMembers?.length > 0 && (
+                    <div className="flex -space-x-2 ml-4">
+                      {project.teamMembers.map(collab => (
+                        <div key={collab._id} title={collab.name}>
+                          {collab.avatar ? (
+                            <img src={collab.avatar} alt={collab.name} className="w-8 h-8 rounded-full border-2 border-white/50 object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/50 flex items-center justify-center text-sm font-medium text-white">
+                              {collab.name?.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -358,6 +393,21 @@ const ProjectDetailsModal = ({ project, currentUser, onClose, onLike, onEdit, on
                     </div>
                   )}
                   <span className="text-white/90 font-medium">{project.user?.name}</span>
+                  {project.teamMembers?.length > 0 && (
+                    <div className="flex -space-x-2 ml-4">
+                      {project.teamMembers.map(collab => (
+                        <div key={collab._id} title={collab.name}>
+                          {collab.avatar ? (
+                            <img src={collab.avatar} alt={collab.name} className="w-8 h-8 rounded-full border-2 border-white/50 object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/50 flex items-center justify-center text-sm font-medium text-white">
+                              {collab.name?.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -429,6 +479,44 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
     tagsInput: project?.tags?.join(', ') || ''
   });
   
+  const [collaborators, setCollaborators] = useState(project?.teamMembers || []);
+  const [collabSearch, setCollabSearch] = useState('');
+  const [collabResults, setCollabResults] = useState([]);
+  const [isSearchingCollab, setIsSearchingCollab] = useState(false);
+  const collabDebounceRef = useRef(null);
+
+  useEffect(() => {
+    if (!collabSearch.trim()) {
+      setCollabResults([]);
+      return;
+    }
+    clearTimeout(collabDebounceRef.current);
+    collabDebounceRef.current = setTimeout(async () => {
+      setIsSearchingCollab(true);
+      try {
+        const { data } = await api.get('/users/search', { params: { q: collabSearch } });
+        setCollabResults(data.users || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearchingCollab(false);
+      }
+    }, 400);
+    return () => clearTimeout(collabDebounceRef.current);
+  }, [collabSearch]);
+
+  const addCollaborator = (user) => {
+    if (!collaborators.find(c => c._id === user._id)) {
+      setCollaborators([...collaborators, user]);
+    }
+    setCollabSearch('');
+    setCollabResults([]);
+  };
+
+  const removeCollaborator = (id) => {
+    setCollaborators(collaborators.filter(c => c._id !== id));
+  };
+  
   const [thumbnail, setThumbnail] = useState(project?.thumbnail || '');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -440,7 +528,7 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
       toast.error('Please add at least one tag');
       return;
     }
-    onSubmit({ ...formData, tags, thumbnail });
+    onSubmit({ ...formData, tags, thumbnail, teamMembers: collaborators.map(c => c._id) });
   };
 
   const handleImageUpload = async (e) => {
@@ -584,6 +672,61 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
                   placeholder="https://my-project.vercel.app"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Collaborators</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={collabSearch}
+                  onChange={(e) => setCollabSearch(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none transition-shadow"
+                  placeholder="Search by name or email..."
+                />
+                <AnimatePresence>
+                  {collabSearch.trim() && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                      className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto"
+                    >
+                      {isSearchingCollab ? (
+                        <div className="p-3 text-sm text-gray-500 text-center">Searching...</div>
+                      ) : collabResults.length > 0 ? (
+                        collabResults.map(u => (
+                          <div 
+                            key={u._id} 
+                            onClick={() => addCollaborator(u)}
+                            className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-3 transition-colors"
+                          >
+                            <img src={u.avatar || '/default-avatar.png'} alt={u.name} className="w-6 h-6 rounded-full object-cover" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{u.name}</div>
+                              <div className="text-xs text-gray-500">{u.email}</div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-sm text-gray-500 text-center">No users found</div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {collaborators.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {collaborators.map(c => (
+                    <div key={c._id} className="flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <img src={c.avatar || '/default-avatar.png'} alt={c.name} className="w-5 h-5 rounded-full mr-2 object-cover" />
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 mr-2">{c.name}</span>
+                      <button type="button" onClick={() => removeCollaborator(c._id)} className="text-gray-500 hover:text-red-500">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </form>
         </div>

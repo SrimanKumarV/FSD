@@ -411,7 +411,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden bg-white/50 dark:bg-gray-900/50 relative">
+    <div className="w-full h-full flex-1 flex flex-col md:flex-row h-0 overflow-hidden bg-white/50 dark:bg-gray-900/50 relative">
       {/* Sidebar - Chat List */}
       <div className={`w-full md:w-80 border-r border-gray-200 dark:border-gray-700/50 flex flex-col bg-white/50 dark:bg-gray-900/50 ${!showChatList ? 'hidden md:flex' : 'flex'}`}>
         {/* Header */}
@@ -601,7 +601,7 @@ const Chat = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-900 relative ${showChatList ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`flex-1 flex flex-col h-0 bg-white dark:bg-gray-900 relative ${showChatList ? 'hidden md:flex' : 'flex'}`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 dark:bg-primary-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
         {selectedChat ? (
           <>
@@ -687,7 +687,7 @@ const Chat = () => {
 
 
             {/* Messages */}
-            <div id="chat-messages-scroll-container" className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+            <div id="chat-messages-scroll-container" className="flex-1 h-0 overflow-y-auto p-4 space-y-4">
               {messagesLoading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>

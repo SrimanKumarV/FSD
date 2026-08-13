@@ -362,7 +362,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 flex-1 flex flex-col ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
+      <div className={`transition-all duration-300 flex-1 flex flex-col min-h-0 ${isSidebarCollapsed ? 'lg:pl-24' : 'lg:pl-64'}`}>
         {/* Top navigation */}
         <div className={`sticky top-0 z-30 glass-nav ${location.pathname === '/chat' ? 'hidden lg:block' : ''}`}>
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -523,8 +523,8 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className={location.pathname === '/chat' ? 'pb-24 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1 min-h-0 min-w-0' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1 w-full overflow-x-hidden'}>
-          <div className={location.pathname === '/chat' ? 'w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col min-h-0 min-w-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col'}>
+        <main className={location.pathname === '/chat' ? 'pb-24 lg:pb-0 lg:p-4 lg:pt-0 overflow-hidden flex flex-col flex-1 h-0 min-w-0' : 'py-6 pb-24 lg:pb-6 flex flex-col flex-1 w-full overflow-x-hidden'}>
+          <div className={location.pathname === '/chat' ? 'w-full glass-card border-none lg:rounded-3xl overflow-hidden flex-1 flex flex-col h-0 min-w-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col'}>
             {isProfileIncomplete && location.pathname === '/profile' && (
               <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-4 rounded-r shadow-sm flex items-center">
                 <ShieldAlert className="w-6 h-6 mr-3 shrink-0" />

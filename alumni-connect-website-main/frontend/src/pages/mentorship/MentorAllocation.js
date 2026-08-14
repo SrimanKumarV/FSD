@@ -13,10 +13,9 @@ const MentorAllocation = () => {
   const [domainFilter, setDomainFilter] = useState('');
 
   useEffect(() => {
+    fetchRequests();
     if (user?.role === 'student') {
       fetchMentors();
-    } else if (user?.role === 'alumni') {
-      fetchRequests();
     }
   }, [user, domainFilter]);
 
@@ -35,8 +34,7 @@ const MentorAllocation = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      // For alumni, fetch requests sent to them
-      const res = await api.get('/mentorship?type=active');
+      const res = await api.get('/mentorship');
       setRequests(res.data.mentorships || []);
     } catch (error) {
       toast.error('Failed to fetch requests');
@@ -68,6 +66,7 @@ const MentorAllocation = () => {
       await api.post('/mentorship/auto-assign');
       toast.success('Mentor auto-assigned successfully!');
       fetchMentors();
+      fetchRequests();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to auto-assign mentor');
     }
@@ -126,7 +125,7 @@ const MentorAllocation = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Smart Mentor Allocation</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Automated matching based on domain expertise and availability.</p>
         </div>
-        {user?.role === 'student' && (
+        {user?.role === 'student' && requests.filter(r => ['pending', 'active', 'accepted'].includes(r.status)).length === 0 && (
           <button 
             onClick={autoAssignMentor}
             className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
@@ -139,6 +138,30 @@ const MentorAllocation = () => {
 
       {user?.role === 'student' && (
         <>
+          {requests.length > 0 && (
+            <div className="mb-8 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-purple-900 dark:text-purple-300 mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" /> My Mentorship Requests
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {requests.map(req => (
+                  <div key={req._id} className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-purple-100/50 dark:border-purple-700/50">
+                    <div className="flex items-center gap-4">
+                      <UserAvatar src={req.mentor?.photo} name={req.mentor?.name} className="w-12 h-12" />
+                      <div>
+                        <h4 className="font-bold text-gray-900 dark:text-white">{req.mentor?.name}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{req.title}</p>
+                        <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 uppercase tracking-wide">
+                          Status: {req.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mb-6 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input

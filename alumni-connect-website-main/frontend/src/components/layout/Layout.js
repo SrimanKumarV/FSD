@@ -480,28 +480,28 @@ const Layout = ({ children }) => {
                       <Link
                         to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={() => setTimeout(() => setUserMenuOpen(false), 150)}
                       >
                         View / Edit Profile
                       </Link>
                       <Link
                         to="/settings"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={() => setTimeout(() => setUserMenuOpen(false), 150)}
                       >
                         Settings
                       </Link>
                       <Link
                         to="/feedback"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={() => setTimeout(() => setUserMenuOpen(false), 150)}
                       >
                         Feedback
                       </Link>
                       <Link
                         to="/help-centre"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={() => setTimeout(() => setUserMenuOpen(false), 150)}
                       >
                         Help Centre
                       </Link>

@@ -70,7 +70,7 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // relax limit for local testing
+  max: 5000, // relaxed limit to prevent 429 errors during normal app usage
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
@@ -129,6 +129,14 @@ app.get('/', (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
+});
+
+// Prevent unhandled promise rejections from crashing the server
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
 });
 
 // 404 handler

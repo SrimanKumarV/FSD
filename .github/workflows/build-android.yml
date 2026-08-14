@@ -1,9 +1,12 @@
-﻿name: Build Android APK
+name: Build Android APK
 
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -44,7 +47,6 @@ jobs:
       - name: Sync Capacitor
         working-directory: ./alumni-connect-website-main/mobile-wrapper
         run: |
-          # Manually clean and copy instead of running the JS script to avoid path issues
           rm -rf www
           mkdir -p www
           cp -R ../frontend/build/* www/
@@ -72,7 +74,7 @@ jobs:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: "Alumnex Connect APK - Build #${{ github.run_number }}"
           body: |
-            ## 📱 Alumnex Connect APK
+            ## Alumnex Connect APK
 
             **Build:** #${{ github.run_number }}
             **Branch:** ${{ github.ref_name }}
@@ -80,8 +82,7 @@ jobs:
 
             ### Download
             Download the APK below and install it on your Android device.
-
-            > ⚠️ You may need to enable "Install from Unknown Sources" in your Android settings.
+            You may need to enable Install from Unknown Sources in your Android settings.
           files: alumni-connect-website-main/mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
           draft: false
           prerelease: false

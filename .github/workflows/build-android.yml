@@ -1,10 +1,8 @@
-name: Build Android APK
+﻿name: Build Android APK
 
 on:
   push:
-    paths:
-      - 'alumni-connect-website-main/mobile-wrapper/**'
-      - '.github/workflows/build-android.yml'
+    branches: [ main, master ]
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:
@@ -36,6 +34,8 @@ jobs:
         env:
           CI: "false"
           REACT_APP_API_URL: "https://alumnex-backend-9y5t.onrender.com/api"
+          REACT_APP_BACKUP_API_URL: "https://alumnex-backend-backup.onrender.com/api"
+          REACT_APP_GITHUB_CLIENT_ID: "Ov23liziKGoBWdUOVmxJ"
 
       - name: Install Mobile Dependencies
         working-directory: ./alumni-connect-website-main/mobile-wrapper
@@ -61,3 +61,29 @@ jobs:
         with:
           name: alumnex-connect-app
           path: alumni-connect-website-main/mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Generate Release Tag
+        id: tag
+        run: echo "tag=v1.0.0-build.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "Alumnex Connect APK - Build #${{ github.run_number }}"
+          body: |
+            ## 📱 Alumnex Connect APK
+
+            **Build:** #${{ github.run_number }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+
+            ### Download
+            Download the APK below and install it on your Android device.
+
+            > ⚠️ You may need to enable "Install from Unknown Sources" in your Android settings.
+          files: alumni-connect-website-main/mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

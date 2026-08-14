@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Building2, Search, ExternalLink, MapPin, 
-  Users, TrendingUp, Briefcase, Filter, ShieldCheck, ChevronRight, X
+  Users, TrendingUp, Briefcase, Filter, ShieldCheck, ChevronRight, X,
+  Edit, Trash2
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
@@ -11,9 +13,18 @@ const BusinessDirectory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
+  const { user } = useAuth();
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '', industry: '', location: '', stage: 'Idea', description: '', website: '', logo: '', tags: '', hiring: false
   });
+
+  const resetForm = () => {
+    setFormData({
+      name: '', industry: '', location: '', stage: 'Idea', description: '', website: '', logo: '', tags: '', hiring: false
+    });
+    setEditingId(null);
+  };
 
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,15 +56,51 @@ const BusinessDirectory = () => {
     try {
       const dataToSubmit = {
         ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : formData.tags
       };
-      await api.post('/business', dataToSubmit);
-      toast.success('Startup submitted successfully!');
+
+      if (editingId) {
+        await api.put(`/business/${editingId}`, dataToSubmit);
+        toast.success('Startup updated successfully!');
+      } else {
+        await api.post('/business', dataToSubmit);
+        toast.success('Startup submitted successfully!');
+      }
+      
       setShowAddModal(false);
+      resetForm();
       fetchBusinesses(); // Refresh list
     } catch (err) {
-      console.error('Error creating business:', err);
-      toast.error(err.response?.data?.message || 'Failed to submit startup');
+      console.error('Error saving business:', err);
+      toast.error(err.response?.data?.message || 'Failed to save startup');
+    }
+  };
+
+  const handleEdit = (biz) => {
+    setFormData({
+      name: biz.name || '',
+      industry: biz.industry || '',
+      location: biz.location || '',
+      stage: biz.stage || 'Idea',
+      description: biz.description || '',
+      website: biz.website || '',
+      logo: biz.logo || '',
+      tags: biz.tags ? biz.tags.join(', ') : '',
+      hiring: biz.hiring || false
+    });
+    setEditingId(biz._id);
+    setShowAddModal(true);
+  };
+
+  const handleDelete = async (bizId) => {
+    if (!window.confirm('Are you sure you want to delete this startup?')) return;
+    try {
+      await api.delete(`/business/${bizId}`);
+      toast.success('Startup deleted successfully!');
+      fetchBusinesses();
+    } catch (err) {
+      console.error('Error deleting business:', err);
+      toast.error('Failed to delete startup');
     }
   };
 
@@ -95,7 +142,7 @@ const BusinessDirectory = () => {
             </p>
           </div>
           <div className="hidden md:flex flex-col gap-4">
-            <button onClick={() => setShowAddModal(true)} className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2">
+            <button onClick={() => { resetForm(); setShowAddModal(true); }} className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2">
               List Your Startup <ChevronRight className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 text-slate-400 text-sm font-medium px-2">
@@ -160,9 +207,23 @@ const BusinessDirectory = () => {
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Founder: {biz.founder?.name || 'Unknown'}</p>
                 </div>
               </div>
-              <button className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all">
-                <ExternalLink className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {(user?._id === biz.founder?._id || user?.role === 'admin') && (
+                  <>
+                    <button onClick={() => handleEdit(biz)} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(biz._id)} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+                {biz.website && (
+                  <a href={biz.website.startsWith('http') ? biz.website : `https://${biz.website}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all">
+                    <ExternalLink className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
             </div>
 
             <p className="text-slate-600 dark:text-slate-300 mb-6 line-clamp-2">
@@ -220,8 +281,8 @@ const BusinessDirectory = () => {
             className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
           >
             <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-10">
-              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Add Your Startup</h2>
-              <button onClick={() => setShowAddModal(false)} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">{editingId ? 'Edit Your Startup' : 'Add Your Startup'}</h2>
+              <button onClick={() => { setShowAddModal(false); resetForm(); }} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -276,7 +337,7 @@ const BusinessDirectory = () => {
               </div>
               
               <div className="border-t border-gray-100 dark:border-gray-700 pt-6 flex gap-4">
-                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 px-4 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                <button type="button" onClick={() => { setShowAddModal(false); resetForm(); }} className="flex-1 py-3 px-4 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
                   Cancel
                 </button>
                 <button type="submit" className="flex-1 py-3 px-4 font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl shadow-lg transition-all">

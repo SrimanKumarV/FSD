@@ -63,4 +63,58 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Update a business
+router.put('/:id', auth.protect, async (req, res) => {
+  try {
+    const business = await Business.findById(req.params.id);
+    if (!business) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    // Check ownership
+    if (business.founder.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to update this business' });
+    }
+
+    const { name, industry, location, stage, description, logo, website, hiring, tags } = req.body;
+    
+    business.name = name || business.name;
+    business.industry = industry || business.industry;
+    business.location = location || business.location;
+    business.stage = stage || business.stage;
+    business.description = description || business.description;
+    business.logo = logo !== undefined ? logo : business.logo;
+    business.website = website !== undefined ? website : business.website;
+    business.hiring = hiring !== undefined ? hiring : business.hiring;
+    business.tags = tags || business.tags;
+
+    await business.save();
+    res.json({ message: 'Business updated successfully', business });
+  } catch (error) {
+    console.error('Error updating business:', error);
+    res.status(500).json({ message: 'Server error updating business' });
+  }
+});
+
+// Delete a business
+router.delete('/:id', auth.protect, async (req, res) => {
+  try {
+    const business = await Business.findById(req.params.id);
+    if (!business) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    // Check ownership
+    if (business.founder.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to delete this business' });
+    }
+
+    await business.deleteOne();
+    res.json({ message: 'Business deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting business:', error);
+    res.status(500).json({ message: 'Server error deleting business' });
+  }
+});
+
 module.exports = router;

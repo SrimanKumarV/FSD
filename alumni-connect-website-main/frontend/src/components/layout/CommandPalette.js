@@ -19,7 +19,7 @@ const ACTIONS = [
   { id: 'projects', name: 'Projects', href: '/projects', icon: Layers, category: 'Opportunities' },
   { id: 'collab', name: 'Project Collab', href: '/project-collaboration', icon: GitMerge, category: 'Opportunities' },
   { id: 'resume', name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch, category: 'Opportunities' },
-  { id: 'mock', name: 'AI Mock Interview', href: '/mock-interview', icon: Sparkles, category: 'Opportunities' },
+
   
   { id: 'devpulse', name: 'DevPulse', href: '/devpulse', icon: Activity, category: 'Engagement' },
   { id: 'leaderboard', name: 'Leaderboard', href: '/leaderboard', icon: Trophy, category: 'Engagement' },

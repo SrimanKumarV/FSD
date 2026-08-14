@@ -46,7 +46,7 @@ const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const BusinessDirectory = lazy(() => import('./pages/BusinessDirectory'));
-const MockInterview = lazy(() => import('./pages/MockInterview'));
+
 
 const TechHub = lazy(() => import('./pages/tech-hub/TechHub'));
 const CareerBoard = lazy(() => import('./pages/opportunities/CareerBoard'));
@@ -241,13 +241,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   
-                  <Route path="/mock-interview" element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <MockInterview />
-                      </Layout>
-                    </ProtectedRoute>
-                  } />
+
                   
                   <Route path="/jobs" element={
                     <ProtectedRoute>

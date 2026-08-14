@@ -1355,7 +1355,7 @@ const FeedbackAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
   const totalPages = data?.pages || 1;
 
   return (
-    <div className="space-y-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 w-full">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>

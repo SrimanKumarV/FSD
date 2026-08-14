@@ -104,7 +104,7 @@ const Leaderboard = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
         <div className="animate-pulse space-y-4">
           <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-3xl w-full"></div>
           <div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-2xl w-full"></div>

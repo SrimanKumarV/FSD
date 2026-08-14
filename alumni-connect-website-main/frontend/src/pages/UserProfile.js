@@ -171,7 +171,7 @@ const UserProfile = () => {
 
   if (profileLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6 animate-pulse">
+      <div className="max-w-4xl mx-auto space-y-6 animate-pulse px-4 sm:px-6 lg:px-8">
         <div className="h-48 rounded-3xl bg-slate-800/60" />
         <div className="h-64 rounded-3xl bg-slate-800/60" />
       </div>

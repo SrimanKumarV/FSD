@@ -153,7 +153,7 @@ const Feedback = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-10">
+    <div className="max-w-3xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}

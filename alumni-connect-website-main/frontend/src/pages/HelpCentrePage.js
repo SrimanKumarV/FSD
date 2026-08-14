@@ -144,7 +144,7 @@ const HelpCentrePage = () => {
   }, [search, activeCategory]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-10">
+    <div className="max-w-4xl mx-auto space-y-8 pb-10 px-4 sm:px-6 lg:px-8">
 
       {/* Hero */}
       <motion.div

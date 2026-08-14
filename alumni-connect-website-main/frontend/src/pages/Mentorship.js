@@ -360,7 +360,7 @@ const Mentorship = () => {
 
         {/* Sticky Navigation and Search Area */}
         <div className="mb-8">
-          <div className="max-w-7xl mx-auto space-y-4">
+          <div className="max-w-7xl mx-auto space-y-4 px-4 sm:px-6 lg:px-8">
             {/* Tabs */}
             <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
               <div className="border-b border-gray-200/50 dark:border-gray-700/50 overflow-x-auto custom-scrollbar">

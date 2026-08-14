@@ -6,7 +6,7 @@ import { ArrowLeft, LifeBuoy, Search, BookOpen, MessageCircle } from 'lucide-rea
 const HelpCentre = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link to="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium mb-8 transition-colors">
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Home

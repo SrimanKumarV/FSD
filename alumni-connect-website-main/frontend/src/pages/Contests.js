@@ -141,7 +141,7 @@ const Contests = () => {
 
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col text-gray-900 dark:text-slate-200 px-4 sm:px-6 lg:px-8 py-4 font-sans overflow-hidden">
-      <div className="max-w-7xl mx-auto w-full h-full flex flex-col space-y-6">
+      <div className="max-w-7xl mx-auto w-full h-full flex flex-col space-y-6 px-4 sm:px-6 lg:px-8">
         
         {/* Top Header Controls */}
         <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">

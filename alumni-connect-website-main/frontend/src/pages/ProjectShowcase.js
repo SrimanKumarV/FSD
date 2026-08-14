@@ -140,7 +140,7 @@ const ProjectShowcase = () => {
     <div className="flex-1 flex flex-col w-full pb-8">
       {/* Sticky Header */}
       <div className="mb-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">

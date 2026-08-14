@@ -155,22 +155,21 @@ const Feedback = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
       {/* Hero */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-        className="rounded-3xl p-8 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg,#0f0c29,#1e1b4b,#0f172a)' }}
-      >
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl p-8 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl"
+        >
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
             <MessageSquarePlus className="w-6 h-6 text-indigo-400" />
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-white mb-1">Share Your Feedback</h1>
-            <p className="text-indigo-100 leading-relaxed">
-              Help us improve Alumnex Connect. Every piece of feedback is reviewed by our team and shapes what we build next.
-            </p>
-          </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-1">Share Your Feedback</h1>
+              <p className="text-slate-600 dark:text-indigo-100 leading-relaxed">
+                Help us improve Alumnex Connect. Every piece of feedback is reviewed by our team and shapes what we build next.
+              </p>
+            </div>
         </div>
       </motion.div>
 

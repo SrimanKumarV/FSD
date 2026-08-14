@@ -147,11 +147,10 @@ const HelpCentrePage = () => {
     <div className="max-w-4xl mx-auto space-y-8 pb-10 px-4 sm:px-6 lg:px-8">
 
       {/* Hero */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-        className="rounded-3xl p-10 relative overflow-hidden text-center"
-        style={{ background: 'linear-gradient(135deg,#0f0c29,#1e1b4b,#0f172a)' }}
-      >
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl p-10 relative overflow-hidden text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl"
+        >
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-indigo-600/15 rounded-full blur-3xl" />
         </div>
@@ -159,20 +158,20 @@ const HelpCentrePage = () => {
           <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center mx-auto mb-5">
             <LifeBuoy className="w-8 h-8 text-indigo-400" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-3">Help Centre</h1>
-          <p className="text-indigo-100 leading-relaxed mb-7 max-w-lg mx-auto">
-            Search our knowledge base, browse guides, or reach out to our support team.
-          </p>
-          {/* Search */}
-          <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-200 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search questions, topics, features…"
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-indigo-200 focus:outline-none focus:border-white focus:bg-white/20 transition-colors text-sm backdrop-blur-md"
-            />
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-3">Help Centre</h1>
+            <p className="text-slate-600 dark:text-indigo-100 leading-relaxed mb-7 max-w-lg mx-auto">
+              Search our knowledge base, browse guides, or reach out to our support team.
+            </p>
+            {/* Search */}
+            <div className="relative max-w-xl mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-indigo-200 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search questions, topics, features."
+                className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/20 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-indigo-200 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:border-white dark:focus:bg-white/20 transition-colors text-sm backdrop-blur-md"
+              />
           </div>
         </div>
       </motion.div>

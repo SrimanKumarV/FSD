@@ -120,11 +120,10 @@ const BusinessDirectory = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-white/10"
-        style={{ background: 'linear-gradient(135deg, #09090b 0%, #18181b 100%)' }}
+        className="rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900"
       >
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-600/20 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/10 dark:bg-emerald-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-600/10 dark:bg-teal-600/20 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
         
         <div className="relative z-10 p-8 md:p-12 lg:p-16 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="max-w-2xl">
@@ -134,10 +133,10 @@ const BusinessDirectory = () => {
               </div>
               <span className="text-sm font-bold tracking-widest text-emerald-400 uppercase">Alumni Ecosystem</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
-              Startup & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Business Network</span>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight leading-tight">
+              Startup & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400">Business Network</span>
             </h1>
-            <p className="text-slate-400 text-lg leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
               Discover innovative companies founded and led by our alumni. Connect for partnerships, explore investment opportunities, or find your next career move.
             </p>
           </div>

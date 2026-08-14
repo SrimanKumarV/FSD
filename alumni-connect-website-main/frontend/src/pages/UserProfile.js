@@ -206,17 +206,16 @@ const UserProfile = () => {
   return (
     <div className="max-w-4xl mx-auto w-full min-w-0 space-y-6 pb-10 px-2 sm:px-0">
 
-      {/* ── Hero Card ── */}
+      {/* ⭐ Hero Card ⭐ */}
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-        className="rounded-3xl overflow-hidden"
-        style={{ background: 'linear-gradient(135deg,#0f0c29,#1e1b4b,#0f172a)' }}
+        className="rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl"
       >
         <div className="p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-2xl">
                 {targetUser.photo && targetUser.photo !== 'default-avatar.png' ? (
                   <img loading="lazy" src={targetUser.photo} alt={targetUser.name} className="w-full h-full object-cover" />
                 ) : (
@@ -232,18 +231,18 @@ const UserProfile = () => {
 
             {/* Info */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-2xl font-black text-white mb-1">{targetUser.name}</h1>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-slate-400 mb-3">
-                <span className="capitalize bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">{targetUser.role}</span>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-1">{targetUser.name}</h1>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-slate-500 dark:text-slate-400 mb-3">
+                <span className="capitalize bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-white/10">{targetUser.role}</span>
                 
                 {/* Gamification Badges */}
                 {targetUser.role === 'alumni' && targetUser.adminVerifiedMentor && (
-                  <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-lg border border-emerald-500/20 font-semibold" title="Verified by Admin">
+                  <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-lg border border-emerald-500/20 font-semibold" title="Verified by Admin">
                     <Zap className="w-3 h-3" /> Verified Mentor
                   </span>
                 )}
                 {targetUser.rewardPoints > 50 && (
-                  <span className="flex items-center gap-1 bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-lg border border-amber-500/20 font-semibold" title={`Earned ${targetUser.rewardPoints} points!`}>
+                  <span className="flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-lg border border-amber-500/20 font-semibold" title={`Earned ${targetUser.rewardPoints} points!`}>
                     <Trophy className="w-3 h-3" /> Top Contributor
                   </span>
                 )}
@@ -264,7 +263,7 @@ const UserProfile = () => {
                   <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{targetUser.alumniInfo.company}</span>
                 )}
               </div>
-              {targetUser.bio && <p className="text-slate-400 text-sm leading-relaxed max-w-lg">{targetUser.bio}</p>}
+              {targetUser.bio && <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed max-w-lg">{targetUser.bio}</p>}
             </div>
 
             {/* Actions */}
@@ -278,7 +277,7 @@ const UserProfile = () => {
                 </button>
                 <button
                   onClick={() => setShowReportModal(true)}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm font-semibold rounded-xl transition-colors border border-red-500/20"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-500 text-sm font-semibold rounded-xl transition-colors border border-red-500/20"
                 >
                   <AlertTriangle className="w-4 h-4" /> Report
                 </button>
@@ -287,18 +286,18 @@ const UserProfile = () => {
           </div>
 
           {/* Follower stats */}
-          <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-white/5">
+          <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-white/5">
             <div className="text-center">
-              <p className="text-xl font-black text-white">{connData?.data?.followers?.length ?? 0}</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white">{connData?.data?.followers?.length ?? 0}</p>
               <p className="text-xs text-slate-500">Followers</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-black text-white">{connData?.data?.following?.length ?? 0}</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white">{connData?.data?.following?.length ?? 0}</p>
               <p className="text-xs text-slate-500">Following</p>
             </div>
             {hasDevProfile && (
               <div className="text-center">
-                <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">{alumnexScore}</p>
+                <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500">{alumnexScore}</p>
                 <p className="text-xs text-slate-500">Alumnex Score</p>
               </div>
             )}
@@ -307,18 +306,18 @@ const UserProfile = () => {
       </motion.div>
 
       {/* ── Tabs ── */}
-      <div className="flex border-b border-slate-700/50 gap-1 overflow-x-auto whitespace-nowrap custom-scrollbar">
+      <div className="flex border-b border-slate-200 dark:border-slate-700/50 gap-1 overflow-x-auto whitespace-nowrap custom-scrollbar">
         {tabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`px-5 py-3 text-sm font-semibold transition-colors relative ${
-              activeTab === tab.key ? 'text-white' : 'text-slate-500 hover:text-slate-300'
+              activeTab === tab.key ? 'text-indigo-600 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
             }`}
           >
             {tab.label}
             {activeTab === tab.key && (
-              <motion.div layoutId="upTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-cyan-500" />
+              <motion.div layoutId="upTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-gradient-to-r from-indigo-500 to-cyan-500" />
             )}
           </button>
         ))}
@@ -328,282 +327,30 @@ const UserProfile = () => {
       {activeTab === 'about' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
           {targetUser.skills?.length > 0 && (
-            <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Skills</h3>
+            <div className="rounded-2xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0f172a]">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Skills</h3>
               <div className="flex flex-wrap gap-2">
                 {targetUser.skills.map(s => (
-                  <span key={s} className="px-3 py-1 rounded-full text-sm bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">{s}</span>
+                  <span key={s} className="px-3 py-1 rounded-full text-sm bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300">{s}</span>
                 ))}
               </div>
             </div>
           )}
           {targetUser.role === 'alumni' && (targetUser.alumniInfo?.company || targetUser.alumniInfo?.position) && (
-            <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Work</h3>
-              <p className="text-white font-semibold">{targetUser.alumniInfo?.position}</p>
-              <p className="text-slate-400 text-sm">{targetUser.alumniInfo?.company} · {targetUser.alumniInfo?.industry}</p>
-            </div>
-          )}
-          {targetUser.role === 'college' && targetUser.collegeInfo && (
-            <div className="space-y-4">
-              <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Institution Details</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {targetUser.collegeInfo.establishedYear && (
-                    <div>
-                      <p className="text-slate-500 text-xs">Established</p>
-                      <p className="text-white font-semibold">{targetUser.collegeInfo.establishedYear}</p>
-                    </div>
-                  )}
-                  {targetUser.collegeInfo.accreditation && (
-                    <div>
-                      <p className="text-slate-500 text-xs">Accreditation</p>
-                      <p className="text-white font-semibold">{targetUser.collegeInfo.accreditation}</p>
-                    </div>
-                  )}
-                </div>
-                {targetUser.collegeInfo.websiteMetadata?.title && (
-                  <a 
-                    href={targetUser.collegeInfo.officialUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="block mt-4 rounded-xl border border-slate-700 overflow-hidden hover:border-indigo-500 transition-colors"
-                  >
-                    {targetUser.collegeInfo.websiteMetadata.image && (
-                      <img loading="lazy" src={targetUser.collegeInfo.websiteMetadata.image} alt="Website Preview" className="w-full h-32 object-cover" />
-                    )}
-                    <div className="p-4 bg-slate-800/50">
-                      <p className="text-white font-bold text-sm line-clamp-1">{targetUser.collegeInfo.websiteMetadata.title}</p>
-                      {targetUser.collegeInfo.websiteMetadata.description && (
-                        <p className="text-slate-400 text-xs line-clamp-2 mt-1">{targetUser.collegeInfo.websiteMetadata.description}</p>
-                      )}
-                      <p className="text-indigo-400 text-xs mt-2 truncate flex items-center gap-1"><ExternalLink className="w-3 h-3"/> {targetUser.collegeInfo.officialUrl}</p>
-                    </div>
-                  </a>
-                )}
-              </div>
-
-              {/* AI Extracted Profile Block */}
-              {targetUser.collegeInfo.extractedProfile && (
-                <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
-                  <div className="flex items-center gap-2 mb-6">
-                    <Zap className="w-5 h-5 text-indigo-400" />
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">AI Profile Snapshot</h3>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    {targetUser.collegeInfo.extractedProfile.aboutUs && (
-                      <div>
-                        <h4 className="text-white text-sm font-bold mb-2 flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-indigo-400" /> About
-                        </h4>
-                        <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
-                          {targetUser.collegeInfo.extractedProfile.aboutUs}
-                        </p>
-                      </div>
-                    )}
-
-                    {targetUser.collegeInfo.extractedProfile.mission && (
-                      <div>
-                        <h4 className="text-white text-sm font-bold mb-2 flex items-center gap-2">
-                          <Target className="w-4 h-4 text-indigo-400" /> Mission
-                        </h4>
-                        <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
-                          {targetUser.collegeInfo.extractedProfile.mission}
-                        </p>
-                      </div>
-                    )}
-
-                    {targetUser.collegeInfo.extractedProfile.vision && (
-                      <div>
-                        <h4 className="text-white text-sm font-bold mb-2 flex items-center gap-2">
-                          <Globe className="w-4 h-4 text-indigo-400" /> Vision
-                        </h4>
-                        <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
-                          {targetUser.collegeInfo.extractedProfile.vision}
-                        </p>
-                      </div>
-                    )}
-
-                    {(targetUser.collegeInfo.extractedProfile.contactEmail || 
-                      targetUser.collegeInfo.extractedProfile.contactPhone || 
-                      targetUser.collegeInfo.extractedProfile.address) && (
-                      <div className="pt-4 border-t border-slate-700/50">
-                        <h4 className="text-white text-sm font-bold mb-3">Contact Information</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {targetUser.collegeInfo.extractedProfile.contactEmail && (
-                            <div className="flex items-center gap-2 text-sm text-slate-400">
-                              <ExternalLink className="w-4 h-4 text-slate-500" />
-                              <a href={`mailto:${targetUser.collegeInfo.extractedProfile.contactEmail}`} className="hover:text-indigo-400 transition-colors">
-                                {targetUser.collegeInfo.extractedProfile.contactEmail}
-                              </a>
-                            </div>
-                          )}
-                          {targetUser.collegeInfo.extractedProfile.contactPhone && (
-                            <div className="flex items-center gap-2 text-sm text-slate-400">
-                              <ExternalLink className="w-4 h-4 text-slate-500" />
-                              <a href={`tel:${targetUser.collegeInfo.extractedProfile.contactPhone}`} className="hover:text-indigo-400 transition-colors">
-                                {targetUser.collegeInfo.extractedProfile.contactPhone}
-                              </a>
-                            </div>
-                          )}
-                          {targetUser.collegeInfo.extractedProfile.address && (
-                            <div className="flex items-start gap-2 text-sm text-slate-400 md:col-span-2">
-                              <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                              <span>{targetUser.collegeInfo.extractedProfile.address}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Comprehensive Details UI */}
-                    <div className="pt-4 border-t border-slate-700/50 space-y-6">
-                      
-                      {/* Programs */}
-                      {targetUser.collegeInfo.extractedProfile.programs && (targetUser.collegeInfo.extractedProfile.programs.ug?.length > 0 || targetUser.collegeInfo.extractedProfile.programs.pg?.length > 0 || targetUser.collegeInfo.extractedProfile.programs.phd?.length > 0) && (
-                        <div>
-                          <h4 className="text-white text-sm font-bold mb-3">Academic Programs</h4>
-                          <div className="space-y-4">
-                            {targetUser.collegeInfo.extractedProfile.programs.ug?.length > 0 && (
-                              <div className="bg-slate-800/30 p-3 rounded-lg border border-slate-700/30">
-                                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Undergraduate (UG)</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {targetUser.collegeInfo.extractedProfile.programs.ug.map((prog, i) => (
-                                    <span key={`ug-${i}`} className="px-2 py-1 bg-blue-500/10 text-blue-300 text-xs rounded-md border border-blue-500/20">{prog}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {targetUser.collegeInfo.extractedProfile.programs.pg?.length > 0 && (
-                              <div className="bg-slate-800/30 p-3 rounded-lg border border-slate-700/30">
-                                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Postgraduate (PG)</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {targetUser.collegeInfo.extractedProfile.programs.pg.map((prog, i) => (
-                                    <span key={`pg-${i}`} className="px-2 py-1 bg-purple-500/10 text-purple-300 text-xs rounded-md border border-purple-500/20">{prog}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {targetUser.collegeInfo.extractedProfile.programs.phd?.length > 0 && (
-                              <div className="bg-slate-800/30 p-3 rounded-lg border border-slate-700/30">
-                                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Doctoral (PhD)</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {targetUser.collegeInfo.extractedProfile.programs.phd.map((prog, i) => (
-                                    <span key={`phd-${i}`} className="px-2 py-1 bg-amber-500/10 text-amber-300 text-xs rounded-md border border-amber-500/20">{prog}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Departments */}
-                        {targetUser.collegeInfo.extractedProfile.departments && targetUser.collegeInfo.extractedProfile.departments.length > 0 && (
-                          <div>
-                            <h4 className="text-white text-sm font-bold mb-3">Departments</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {targetUser.collegeInfo.extractedProfile.departments.map((dept, i) => (
-                                <span key={`dept-${i}`} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-xs rounded-full border border-slate-700/50 hover:bg-slate-700 transition-colors">{dept}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Clubs and Cells */}
-                        {targetUser.collegeInfo.extractedProfile.clubsAndCells && targetUser.collegeInfo.extractedProfile.clubsAndCells.length > 0 && (
-                          <div>
-                            <h4 className="text-white text-sm font-bold mb-3">Clubs & Cells</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {targetUser.collegeInfo.extractedProfile.clubsAndCells.map((club, i) => (
-                                <span key={`club-${i}`} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-xs rounded-full border border-slate-700/50 hover:bg-slate-700 transition-colors">{club}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Facilities */}
-                        {targetUser.collegeInfo.extractedProfile.facilities && targetUser.collegeInfo.extractedProfile.facilities.length > 0 && (
-                          <div className="md:col-span-2">
-                            <h4 className="text-white text-sm font-bold mb-3">Campus Facilities</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {targetUser.collegeInfo.extractedProfile.facilities.map((fac, i) => (
-                                <span key={`fac-${i}`} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-xs rounded-full border border-slate-700/50 hover:bg-slate-700 transition-colors">{fac}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Placements */}
-                        {targetUser.collegeInfo.extractedProfile.placements && (targetUser.collegeInfo.extractedProfile.placements.highestPackage || targetUser.collegeInfo.extractedProfile.placements.averagePackage || targetUser.collegeInfo.extractedProfile.placements.topCompanies?.length > 0) && (
-                          <div className="md:col-span-2 bg-gradient-to-br from-green-500/10 to-emerald-500/5 p-4 rounded-xl border border-green-500/20 mt-2">
-                            <h4 className="text-green-400 text-sm font-bold mb-4 flex items-center gap-2">
-                              <TrendingUp className="w-4 h-4" /> Placements & Careers
-                            </h4>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                              {targetUser.collegeInfo.extractedProfile.placements.highestPackage && (
-                                <div>
-                                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Highest Package</p>
-                                  <p className="text-xl font-black text-white">{targetUser.collegeInfo.extractedProfile.placements.highestPackage}</p>
-                                </div>
-                              )}
-                              {targetUser.collegeInfo.extractedProfile.placements.averagePackage && (
-                                <div>
-                                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Average Package</p>
-                                  <p className="text-xl font-black text-white">{targetUser.collegeInfo.extractedProfile.placements.averagePackage}</p>
-                                </div>
-                              )}
-                            </div>
-                            {targetUser.collegeInfo.extractedProfile.placements.topCompanies?.length > 0 && (
-                              <div>
-                                <p className="text-xs text-slate-400 mb-2">Top Recruiters</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {targetUser.collegeInfo.extractedProfile.placements.topCompanies.map((comp, i) => (
-                                    <span key={`comp-${i}`} className="px-2 py-1 bg-white/10 text-green-300 text-xs rounded border border-white/5">{comp}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Upcoming Events */}
-                        {targetUser.collegeInfo.extractedProfile.upcomingEvents && targetUser.collegeInfo.extractedProfile.upcomingEvents.length > 0 && (
-                          <div className="md:col-span-2 mt-2">
-                            <h4 className="text-white text-sm font-bold mb-3 flex items-center gap-2">
-                              <Trophy className="w-4 h-4 text-amber-400" /> Upcoming Events
-                            </h4>
-                            <div className="space-y-3">
-                              {targetUser.collegeInfo.extractedProfile.upcomingEvents.map((ev, i) => (
-                                <div key={`ev-${i}`} className="bg-slate-800/30 p-3 rounded-lg border-l-2 border-l-amber-500 border-t border-t-slate-700/30 border-r border-r-slate-700/30 border-b border-b-slate-700/30">
-                                  <div className="flex justify-between items-start gap-4">
-                                    <p className="text-white font-semibold text-sm">{ev.title}</p>
-                                    {ev.date && <span className="text-xs text-amber-400 font-medium whitespace-nowrap bg-amber-500/10 px-2 py-0.5 rounded">{ev.date}</span>}
-                                  </div>
-                                  {ev.description && <p className="text-xs text-slate-400 mt-1 leading-relaxed">{ev.description}</p>}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="rounded-2xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0f172a]">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Work</h3>
+              <p className="text-slate-900 dark:text-white font-semibold">{targetUser.alumniInfo?.position}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">{targetUser.alumniInfo?.company} · {targetUser.alumniInfo?.industry}</p>
             </div>
           )}
           {targetUser.socialLinks && Object.values(targetUser.socialLinks).some(Boolean) && (
-            <div className="rounded-2xl p-6 border border-slate-700/50" style={{ background: '#0f172a' }}>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Links</h3>
+            <div className="rounded-2xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0f172a]">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Links</h3>
               <div className="flex flex-wrap gap-3">
-                {targetUser.socialLinks.github && <a href={targetUser.socialLinks.github} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>GitHub</a>}
-                {targetUser.socialLinks.linkedin && <a href={targetUser.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>LinkedIn</a>}
-                {targetUser.socialLinks.website && <a href={targetUser.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>Website</a>}
-                {targetUser.socialLinks.portfolio && <a href={targetUser.socialLinks.portfolio} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>Portfolio</a>}
+                {targetUser.socialLinks.github && <a href={targetUser.socialLinks.github} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>GitHub</a>}
+                {targetUser.socialLinks.linkedin && <a href={targetUser.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>LinkedIn</a>}
+                {targetUser.socialLinks.website && <a href={targetUser.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>Website</a>}
+                {targetUser.socialLinks.portfolio && <a href={targetUser.socialLinks.portfolio} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><ExternalLink className="w-3 h-3"/>Portfolio</a>}
               </div>
             </div>
           )}
@@ -615,25 +362,24 @@ const UserProfile = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
           {!hasDevProfile ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Activity className="w-12 h-12 text-slate-600 mb-4" />
-              <p className="text-slate-400 text-lg font-semibold">No DevPulse data yet</p>
+              <Activity className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
+              <p className="text-slate-600 dark:text-slate-400 text-lg font-semibold">No DevPulse data yet</p>
               <p className="text-slate-500 text-sm mt-1">{targetUser.name} hasn't linked any coding profiles.</p>
             </div>
           ) : (
             <>
               {/* Score Banner */}
               <div
-                className="rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 border border-white/5"
-                style={{ background: 'linear-gradient(135deg,#0f0c29,#1a1645)' }}
+                className="rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-800"
               >
                 <ScoreRing score={alumnexScore} />
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-4 h-4 text-indigo-400" />
-                    <span className="text-xs font-bold tracking-widest text-indigo-400 uppercase">Alumnex Score</span>
+                    <Zap className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                    <span className="text-xs font-bold tracking-widest text-indigo-500 dark:text-indigo-400 uppercase">Alumnex Score</span>
                   </div>
-                  <p className="text-3xl font-black text-white">{alumnexScore} <span className="text-base text-slate-500 font-medium">/ 1000</span></p>
-                  <p className="text-sm text-slate-400 mt-1 flex items-center gap-1"><Target className="w-3 h-3" /> Based on problems solved, repos & badges</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white">{alumnexScore} <span className="text-base text-slate-500 font-medium">/ 1000</span></p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1"><Target className="w-3 h-3" /> Based on problems solved, repos & badges</p>
                 </div>
               </div>
 
@@ -647,13 +393,13 @@ const UserProfile = () => {
 
               {/* Charts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="rounded-2xl p-5 border border-slate-700/50" style={{ background: '#0f172a' }}>
-                  <h3 className="text-sm font-bold text-white mb-1">Skill Radar</h3>
+                <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-[#0f172a]">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Skill Radar</h3>
                   <p className="text-xs text-slate-500 mb-3">Normalized performance</p>
                   <div style={{ height: 220 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                        <PolarGrid stroke="#1e293b" />
+                        <PolarGrid stroke="#cbd5e1" className="dark:stroke-slate-800" />
                         <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10 }} />
                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                         <Radar name="Skills" dataKey="A" stroke="#6366f1" fill="#6366f1" fillOpacity={0.3} strokeWidth={2} />
@@ -661,14 +407,14 @@ const UserProfile = () => {
                     </ResponsiveContainer>
                   </div>
                 </div>
-                <div className="rounded-2xl p-5 border border-slate-700/50" style={{ background: '#0f172a' }}>
-                  <h3 className="text-sm font-bold text-white mb-1">LeetCode Difficulty</h3>
-                  <p className="text-xs text-slate-500 mb-3">Problems by difficulty</p>
+                <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-[#0f172a]">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Activity Trend</h3>
+                  <p className="text-xs text-slate-500 mb-3">Problems & Commits over time</p>
                   <div style={{ height: 220 }}>
                     {lcBar.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={lcBar} barCategoryGap="35%">
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" className="dark:stroke-slate-800" />
                           <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
                           <RechartsTooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', color: '#fff' }} cursor={{ fill: '#1e293b' }} />

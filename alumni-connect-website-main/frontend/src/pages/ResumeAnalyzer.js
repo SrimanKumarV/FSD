@@ -92,10 +92,9 @@ const ResumeAnalyzer = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-white/10"
-        style={{ background: 'linear-gradient(135deg, #09090b 0%, #18181b 100%)' }}
+        className="rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900"
       >
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 dark:bg-indigo-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="relative z-10 p-8 md:p-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
@@ -103,10 +102,10 @@ const ResumeAnalyzer = () => {
             </div>
             <span className="text-sm font-bold tracking-widest text-indigo-400 uppercase">AI-Powered</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
-            Smart <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Resume Analyzer</span>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight leading-tight">
+            Smart <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500 dark:from-indigo-400 dark:to-cyan-400">Resume Analyzer</span>
           </h1>
-          <p className="text-slate-400 max-w-2xl text-lg">
+          <p className="text-slate-600 dark:text-slate-400 max-w-2xl text-lg">
             Upload your resume to get instant feedback on ATS compatibility, missing skills, grammar, and overall impact based on industry standards.
           </p>
         </div>

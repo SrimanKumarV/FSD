@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../utils/api';
-import { Search, UserCheck, Clock, Users, X, Check, Star } from 'lucide-react';
+import { Search, UserCheck, Clock, Users, X, Check, Star, Sparkles } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import UserAvatar from '../../components/UserAvatar';
 

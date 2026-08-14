@@ -265,16 +265,29 @@ const Mentorship = () => {
   };
 
   const handleStatusUpdate = async (mentorshipId, newStatus) => {
-    setLoading(true);
+    // Snapshot for rollback
+    const previousMentorships = [...mentorships];
+
+    // Optimistic update — instantly change the status in local state
+    setMentorships(prev =>
+      prev.map(m =>
+        (m._id || m.id) === mentorshipId
+          ? { ...m, status: newStatus }
+          : m
+      )
+    );
+    toast.success(`Mentorship request ${newStatus}`);
+
+    // Fire API in background — no loading spinner
     try {
       await api.put(`/mentorship/${mentorshipId}/status`, { status: newStatus });
-      toast.success(`Mentorship request ${newStatus}`);
+      // Background refetch for data consistency
       if (activeTab === 'my-mentorships') fetchMentorships();
     } catch (error) {
+      // Rollback on error
       console.error('Error updating status:', error);
+      setMentorships(previousMentorships);
       toast.error(error.response?.data?.message || 'Failed to update status');
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -56,32 +56,94 @@ const Network = () => {
     !followingIds.includes(u._id) && !connectionIds.includes(u._id)
   );
 
-  // Follow mutation
+  // Follow mutation — optimistic
   const followMutation = useMutation(
     (userId) => api.post(`/users/${userId}/follow`),
     {
-      onSuccess: (data) => {
-        toast.success(data?.data?.message || 'Request sent successfully');
+      onMutate: async (userId) => {
+        // Snapshot for rollback
+        const prevConnections = queryClient.getQueryData(['user-connections', currentUser?._id]);
+        const prevNetwork = queryClient.getQueriesData(['network-users']);
+
+        // Optimistically add to following or mark as requested
+        queryClient.setQueryData(['user-connections', currentUser?._id], (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              following: [...(old.data.following || []), { _id: userId }]
+            }
+          };
+        });
+
+        // Optimistically update followRequests on the user card
+        queryClient.setQueriesData(['network-users'], (old) => {
+          if (!old?.data?.users) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              users: old.data.users.map(u =>
+                u._id === userId
+                  ? { ...u, followRequests: [...(u.followRequests || []), currentUser?._id] }
+                  : u
+              )
+            }
+          };
+        });
+
+        toast.success('Request sent successfully');
+        return { prevConnections, prevNetwork };
+      },
+      onError: (error, userId, context) => {
+        // Rollback
+        if (context?.prevConnections) {
+          queryClient.setQueryData(['user-connections', currentUser?._id], context.prevConnections);
+        }
+        if (context?.prevNetwork) {
+          context.prevNetwork.forEach(([key, data]) => queryClient.setQueryData(key, data));
+        }
+        toast.error(error.response?.data?.message || 'Failed to follow user');
+      },
+      onSettled: () => {
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
         queryClient.invalidateQueries(['network-users']);
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to follow user');
       }
     }
   );
 
-  // Unfollow mutation
+  // Unfollow mutation — optimistic
   const unfollowMutation = useMutation(
     (userId) => api.post(`/users/${userId}/unfollow`),
     {
-      onSuccess: () => {
+      onMutate: async (userId) => {
+        const prevConnections = queryClient.getQueryData(['user-connections', currentUser?._id]);
+
+        // Optimistically remove from following
+        queryClient.setQueryData(['user-connections', currentUser?._id], (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              following: (old.data.following || []).filter(f => f._id !== userId)
+            }
+          };
+        });
+
         toast.success('Unfollowed successfully');
+        return { prevConnections };
+      },
+      onError: (error, userId, context) => {
+        if (context?.prevConnections) {
+          queryClient.setQueryData(['user-connections', currentUser?._id], context.prevConnections);
+        }
+        toast.error(error.response?.data?.message || 'Failed to unfollow user');
+      },
+      onSettled: () => {
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
         queryClient.invalidateQueries(['network-users']);
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to unfollow user');
       }
     }
   );
@@ -101,13 +163,41 @@ const Network = () => {
   const acceptMutation = useMutation(
     (userId) => api.post(`/users/${userId}/accept-follow`),
     {
-      onSuccess: (data, variables) => {
-        toast.success('Request accepted');
-        // Find the user who was accepted to show follow back option
-        const acceptedUser = pendingRequests.find(u => u._id === variables);
+      onMutate: async (userId) => {
+        const prevConnections = queryClient.getQueryData(['user-connections', currentUser?._id]);
+        const prevAccepted = [...recentlyAccepted];
+
+        // Find the user being accepted
+        const acceptedUser = pendingRequests.find(u => u._id === userId);
         if (acceptedUser) {
           setRecentlyAccepted(prev => [...prev, acceptedUser]);
         }
+
+        // Optimistically remove from followRequests in cache
+        queryClient.setQueryData(['user-connections', currentUser?._id], (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              followRequests: (old.data.followRequests || []).filter(u => u._id !== userId)
+            }
+          };
+        });
+
+        toast.success('Request accepted');
+        return { prevConnections, prevAccepted };
+      },
+      onError: (error, userId, context) => {
+        if (context?.prevConnections) {
+          queryClient.setQueryData(['user-connections', currentUser?._id], context.prevConnections);
+        }
+        if (context?.prevAccepted) {
+          setRecentlyAccepted(context.prevAccepted);
+        }
+        toast.error(error.response?.data?.message || 'Failed to accept request');
+      },
+      onSettled: () => {
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
         queryClient.invalidateQueries(['network-users']);
       }
@@ -117,8 +207,31 @@ const Network = () => {
   const declineMutation = useMutation(
     (userId) => api.post(`/users/${userId}/decline-follow`),
     {
-      onSuccess: () => {
+      onMutate: async (userId) => {
+        const prevConnections = queryClient.getQueryData(['user-connections', currentUser?._id]);
+
+        // Optimistically remove from followRequests
+        queryClient.setQueryData(['user-connections', currentUser?._id], (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              followRequests: (old.data.followRequests || []).filter(u => u._id !== userId)
+            }
+          };
+        });
+
         toast.success('Request declined');
+        return { prevConnections };
+      },
+      onError: (error, userId, context) => {
+        if (context?.prevConnections) {
+          queryClient.setQueryData(['user-connections', currentUser?._id], context.prevConnections);
+        }
+        toast.error(error.response?.data?.message || 'Failed to decline request');
+      },
+      onSettled: () => {
         queryClient.invalidateQueries(['user-connections', currentUser?._id]);
         queryClient.invalidateQueries(['network-users']);
       }

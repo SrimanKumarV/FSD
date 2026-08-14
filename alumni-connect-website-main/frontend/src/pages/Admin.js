@@ -674,15 +674,43 @@ const ContentModerationTab = () => {
     () => api.get('/admin/moderation')
   );
 
-  // Moderate content mutation
+  // Moderate content mutation — optimistic
   const moderateMutation = useMutation(
     ({ type, id, action, reason }) => api.put(`/admin/moderate/${type}/${id}`, { action, reason }),
     {
-      onSuccess: () => {
+      onMutate: async ({ type, id }) => {
+        // Cancel any outgoing refetches
+        await queryClient.cancelQueries(['admin-moderation']);
+
+        // Snapshot previous data for rollback
+        const prevData = queryClient.getQueryData(['admin-moderation']);
+
+        // Optimistically remove the item from the moderation queue
+        queryClient.setQueryData(['admin-moderation'], (old) => {
+          if (!old?.data) return old;
+          const key = type === 'posts' ? 'posts' : type;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              [key]: (old.data[key] || []).filter(item => item._id !== id)
+            }
+          };
+        });
+
         toast.success('Action applied successfully');
-        queryClient.invalidateQueries(['admin-moderation']);
+        return { prevData };
       },
-      onError: (error) => toast.error(error.response?.data?.message || 'Failed to apply action')
+      onError: (error, variables, context) => {
+        // Rollback on failure
+        if (context?.prevData) {
+          queryClient.setQueryData(['admin-moderation'], context.prevData);
+        }
+        toast.error(error.response?.data?.message || 'Failed to apply action');
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries(['admin-moderation']);
+      }
     }
   );
 

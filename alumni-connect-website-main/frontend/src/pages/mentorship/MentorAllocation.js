@@ -74,23 +74,45 @@ const MentorAllocation = () => {
   };
 
   const acceptRequest = async (requestId) => {
+    // Snapshot for rollback
+    const previousRequests = [...requests];
+
+    // Optimistic update — instantly change status
+    setRequests(prev =>
+      prev.map(r => r._id === requestId ? { ...r, status: 'accepted' } : r)
+    );
+    toast.success('Request accepted');
+
     try {
       await api.put(`/mentorship/accept/${requestId}`);
-      toast.success('Request accepted');
+      // Background refetch for consistency
       fetchRequests();
     } catch (error) {
+      // Rollback
+      setRequests(previousRequests);
       toast.error(error.response?.data?.message || 'Failed to accept');
     }
   };
 
   const rejectRequest = async (requestId) => {
+    // Snapshot for rollback
+    const previousRequests = [...requests];
+
+    // Optimistic update — instantly change status
+    setRequests(prev =>
+      prev.map(r => r._id === requestId ? { ...r, status: 'rejected' } : r)
+    );
+    toast.success('Request rejected');
+
     try {
       await api.put(`/mentorship/reject/${requestId}`, {
         rejectionReason: 'Currently at full capacity'
       });
-      toast.success('Request rejected');
+      // Background refetch for consistency
       fetchRequests();
     } catch (error) {
+      // Rollback
+      setRequests(previousRequests);
       toast.error('Failed to reject');
     }
   };

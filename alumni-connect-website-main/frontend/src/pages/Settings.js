@@ -282,6 +282,17 @@ const Settings = () => {
                    <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #2D1B69, #7B61FF)'}}></div>
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">DC Dark</span>
                 </button>
+                <button
+                  onClick={() => {
+                    toast('Premium UI (Stitch) is currently under development! Check back soon.', { icon: '✨', style: { background: '#0a0a0a', color: '#fff' } });
+                  }}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700`}
+                >
+                   <div className="w-6 h-6 rounded-full shadow-sm flex items-center justify-center" style={{background: 'linear-gradient(135deg, #F59E0B, #EC4899, #8B5CF6)'}}>
+                      <Sparkles className="w-3.5 h-3.5 text-white" />
+                   </div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Stitch (WIP)</span>
+                </button>
               </div>
 
               </div>

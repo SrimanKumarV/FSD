@@ -1013,7 +1013,7 @@ const DevPulse = () => {
           <div className="space-y-6">
             <PlatformHeader label="Duolingo" username={uname} icon={Globe} color="#58CC02" url={url} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
                 <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{duo.totalXp?.toLocaleString() || '—'}</h3>
                 <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Total XP</p>
@@ -1022,7 +1022,23 @@ const DevPulse = () => {
                 <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{duo.streak?.toLocaleString() || '—'}</h3>
                 <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Day Streak</p>
               </div>
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{duo.hasPlus ? 'Yes' : 'No'}</h3>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Super Duolingo</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{duo.creationDate ? new Date(duo.creationDate * 1000).getFullYear() : '—'}</h3>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Joined</p>
+              </div>
             </div>
+
+            {(duo.bio || duo.location) && (
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-3">About</h3>
+                {duo.bio && <p className="text-gray-700 dark:text-slate-300 text-sm mb-2">{duo.bio}</p>}
+                {duo.location && <p className="text-gray-500 dark:text-slate-500 text-xs flex items-center gap-1">📍 {duo.location}</p>}
+              </div>
+            )}
 
             {duo.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">

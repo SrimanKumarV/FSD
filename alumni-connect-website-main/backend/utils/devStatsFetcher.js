@@ -329,20 +329,32 @@ const fetchCodeforcesStats = async (username) => {
 const fetchDuolingoStats = async (username) => {
   if (!username) return null;
   try {
+    const userAgentHeader = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
     const response = await axios.get(`https://www.duolingo.com/2017-06-30/users?username=${username}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: userAgentHeader
     });
     if (!response.data || !response.data.users || response.data.users.length === 0) return null;
     
-    const user = response.data.users[0];
-    const totalXp = user.totalXp || 0;
-    const streak = user.streak || 0;
-    const courses = user.courses || [];
+    const userId = response.data.users[0].id;
+    const fields = 'id,username,name,bio,location,streak,totalXp,hasPlus,creationDate,courses,streakData';
+    const detailResponse = await axios.get(`https://www.duolingo.com/2017-06-30/users/${userId}?fields=${fields}`, {
+      headers: userAgentHeader
+    });
+    
+    const details = detailResponse.data;
+    const totalXp = details.totalXp || 0;
+    const streak = details.streak || 0;
+    const courses = details.courses || [];
+    const hasPlus = Boolean(details.hasPlus);
+    const creationDate = details.creationDate || null;
+    const bio = details.bio || null;
+    const location = details.location || null;
+    const streakData = details.streakData || {};
     
     // Create badges for active courses
     const activeCourses = courses.filter(c => c.xp > 0).sort((a, b) => b.xp - a.xp).slice(0, 3);
     const badges = activeCourses.map(course => ({
-      id: `duo-lang-${course.id}`,
+      id: `duo-lang-${course.title.toLowerCase().replace(/\s+/g, '-')}`,
       name: course.title,
       icon: '🌍',
       color: '#58cc02',
@@ -352,7 +364,12 @@ const fetchDuolingoStats = async (username) => {
     return { 
       totalXp, 
       streak, 
-      courses, 
+      courses,
+      hasPlus,
+      creationDate,
+      bio,
+      location,
+      streakData,
       url: `https://www.duolingo.com/profile/${username}`,
       badges
     };

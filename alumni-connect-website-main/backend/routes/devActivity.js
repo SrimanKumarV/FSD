@@ -253,6 +253,7 @@ router.post('/usernames', protect, async (req, res) => {
 
     // Force refresh next time by clearing lastUpdated
     profile.lastUpdated = null;
+    profile.markModified('usernames');
     
     await profile.save();
 

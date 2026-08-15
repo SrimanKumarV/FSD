@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Github, Code2, Terminal, Code, CheckCircle, AlertCircle, RefreshCw, Trash2, Globe } from 'lucide-react';
+import { CheckCircle, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
+import PlatformIcon from '../PlatformIcon';
 
 const DevProfileSettings = () => {
   const { user } = useAuth();
@@ -202,13 +203,13 @@ const DevProfileSettings = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {renderPlatformInput('github', <Github className="w-4 h-4 mr-2" />, 'GitHub', 'e.g. octocat')}
-          {renderPlatformInput('leetcode', <Code2 className="w-4 h-4 mr-2" />, 'LeetCode', 'e.g. alex123')}
-          {renderPlatformInput('hackerrank', <Terminal className="w-4 h-4 mr-2" />, 'HackerRank', 'e.g. john_doe')}
-          {renderPlatformInput('gfg', <Code className="w-4 h-4 mr-2" />, 'GeeksforGeeks', 'e.g. coder_gfg')}
-          {renderPlatformInput('codechef', <Code className="w-4 h-4 mr-2" />, 'CodeChef', 'e.g. coder_chef')}
-          {renderPlatformInput('codeforces', <Code className="w-4 h-4 mr-2" />, 'Codeforces', 'e.g. coder_forces')}
-          {renderPlatformInput('duolingo', <Globe className="w-4 h-4 mr-2" />, 'Duolingo', 'e.g. duo_learner')}
+          {renderPlatformInput('github', <PlatformIcon platform="github" className="w-4 h-4 mr-2" />, 'GitHub', 'e.g. octocat')}
+          {renderPlatformInput('leetcode', <PlatformIcon platform="leetcode" className="w-4 h-4 mr-2" />, 'LeetCode', 'e.g. alex123')}
+          {renderPlatformInput('hackerrank', <PlatformIcon platform="hackerrank" className="w-4 h-4 mr-2" />, 'HackerRank', 'e.g. john_doe')}
+          {renderPlatformInput('gfg', <PlatformIcon platform="gfg" className="w-4 h-4 mr-2" />, 'GeeksforGeeks', 'e.g. coder_gfg')}
+          {renderPlatformInput('codechef', <PlatformIcon platform="codechef" className="w-4 h-4 mr-2" />, 'CodeChef', 'e.g. coder_chef')}
+          {renderPlatformInput('codeforces', <PlatformIcon platform="codeforces" className="w-4 h-4 mr-2" />, 'Codeforces', 'e.g. coder_forces')}
+          {renderPlatformInput('duolingo', <PlatformIcon platform="duolingo" className="w-4 h-4 mr-2" />, 'Duolingo', 'e.g. duo_learner')}
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">

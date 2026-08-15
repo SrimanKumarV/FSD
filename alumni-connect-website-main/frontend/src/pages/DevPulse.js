@@ -17,6 +17,7 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
 } from 'recharts';
+import PlatformIcon from '../components/PlatformIcon';
 
 // ── Heatmap styles ─────────────────────────────────────────────────────────
 const heatmapStyles = `
@@ -33,13 +34,13 @@ const heatmapStyles = `
 // ── Platform config ────────────────────────────────────────────────────────
 const PLATFORMS = [
   { key: 'overview',   label: 'Overview',     icon: Activity,   color: '#6366f1' },
-  { key: 'github',     label: 'GitHub',       icon: GitCommit,  color: '#e2e8f0' },
-  { key: 'leetcode',   label: 'LeetCode',     icon: Code,       color: '#f59e0b' },
-  { key: 'hackerrank', label: 'HackerRank',   icon: Trophy,     color: '#22c55e' },
-  { key: 'gfg',        label: 'GeeksforGeeks',icon: TrendingUp, color: '#10b981' },
-  { key: 'codechef',   label: 'CodeChef',     icon: Target,     color: '#8b5cf6' },
-  { key: 'codeforces', label: 'Codeforces',   icon: Zap,        color: '#ef4444' },
-  { key: 'duolingo',   label: 'Duolingo',     icon: Globe,      color: '#58CC02' },
+  { key: 'github',     label: 'GitHub',       icon: (props) => <PlatformIcon platform="github" {...props} />,  color: '#e2e8f0' },
+  { key: 'leetcode',   label: 'LeetCode',     icon: (props) => <PlatformIcon platform="leetcode" {...props} />,       color: '#f59e0b' },
+  { key: 'hackerrank', label: 'HackerRank',   icon: (props) => <PlatformIcon platform="hackerrank" {...props} />,     color: '#22c55e' },
+  { key: 'gfg',        label: 'GeeksforGeeks',icon: (props) => <PlatformIcon platform="gfg" {...props} />, color: '#10b981' },
+  { key: 'codechef',   label: 'CodeChef',     icon: (props) => <PlatformIcon platform="codechef" {...props} />,     color: '#8b5cf6' },
+  { key: 'codeforces', label: 'Codeforces',   icon: (props) => <PlatformIcon platform="codeforces" {...props} />,        color: '#ef4444' },
+  { key: 'duolingo',   label: 'Duolingo',     icon: (props) => <PlatformIcon platform="duolingo" {...props} />,      color: '#58CC02' },
 ];
 
 const platformUrl = (stats, usernames, key) => {
@@ -434,7 +435,7 @@ const DevPulse = () => {
             <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-black text-gray-900 dark:text-white flex items-center gap-2">
-                  <GitCommit className="w-5 h-5 text-emerald-400" />
+                  <PlatformIcon platform="leetcode" className="w-5 h-5 text-emerald-400" />
                   Activity Calendar
                   <span className="text-xs font-normal text-gray-500 dark:text-slate-500 ml-1">{heatmapData.isReal ? '(LeetCode — Real)' : '(No data yet)'}</span>
                 </h3>
@@ -530,7 +531,7 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="GitHub" username={uname} icon={GitCommit} color="#e2e8f0" url={url} />
+            <PlatformHeader label="GitHub" username={uname} icon={(props) => <PlatformIcon platform="github" {...props} />} color="#e2e8f0" url={url} />
 
             {/* Top Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -609,7 +610,7 @@ const DevPulse = () => {
                 <h3 className="font-bold text-gray-900 dark:text-white mb-6">Stats</h3>
                 <div className="flex-1 space-y-4">
                   <StatPill icon={Star} label="Stars" value={g.stars || 0} color="#fbbf24" />
-                  <StatPill icon={GitCommit} label="Contributions" value={g.totalContributions || 0} color="#f97316" />
+                  <StatPill icon={(props) => <PlatformIcon platform="github" {...props} />} label="Contributions" value={g.totalContributions || 0} color="#f97316" />
                   <StatPill icon={GitFork} label="PRs" value={g.pullRequests || 0} color="#22c55e" />
                   <StatPill icon={AlertCircle} label="Issues" value={g.issues || 0} color="#ef4444" />
                 </div>
@@ -645,7 +646,7 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="LeetCode" username={uname} icon={Code} color="#f59e0b" url={url} />
+            <PlatformHeader label="LeetCode" username={uname} icon={(props) => <PlatformIcon platform="leetcode" {...props} />} color="#f59e0b" url={url} />
 
             {/* Top Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -783,7 +784,7 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="HackerRank" username={uname} icon={Trophy} color="#22c55e" url={url} />
+            <PlatformHeader label="HackerRank" username={uname} icon={(props) => <PlatformIcon platform="hackerrank" {...props} />} color="#22c55e" url={url} />
 
             {/* Top Metrics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -837,7 +838,7 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="GeeksforGeeks" username={uname} icon={TrendingUp} color="#10b981" url={url} />
+            <PlatformHeader label="GeeksforGeeks" username={uname} icon={(props) => <PlatformIcon platform="gfg" {...props} />} color="#10b981" url={url} />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Problems Overview Doughnut */}
@@ -875,7 +876,7 @@ const DevPulse = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
                   <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center mb-3 border border-teal-500/20">
-                    <Code className="w-5 h-5 text-teal-400" />
+                    <PlatformIcon platform="gfg" className="w-5 h-5 text-teal-400" />
                   </div>
                   <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{gfg.codingScore ?? '—'}</h3>
                   <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Coding Score</p>
@@ -893,7 +894,7 @@ const DevPulse = () => {
                        <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{gfg.instituteRank ? `#${gfg.instituteRank}` : '—'}</h3>
                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Institute Rank</p>
                      </div>
-                     <Trophy className="w-12 h-12 text-slate-700/50" />
+                    <PlatformIcon platform="hackerrank" className="w-12 h-12 text-slate-700/50" />
                   </div>
                 </div>
               </div>
@@ -911,12 +912,12 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="CodeChef" username={uname} icon={Target} color="#8b5cf6" url={url} />
+            <PlatformHeader label="CodeChef" username={uname} icon={(props) => <PlatformIcon platform="codechef" {...props} />} color="#8b5cf6" url={url} />
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-gradient-to-br from-violet-900/40 to-slate-900 rounded-3xl p-6 border border-violet-700/30 text-center flex flex-col items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-violet-500/20 via-transparent to-transparent opacity-50"></div>
-                <Target className="w-10 h-10 text-violet-400 mb-4 relative z-10" />
+                <PlatformIcon platform="codechef" className="w-10 h-10 text-violet-400 mb-4 relative z-10" />
                 <h3 className="text-5xl font-black text-gray-900 dark:text-white mb-2 relative z-10">{cc.rating ?? '—'}</h3>
                 <p className="text-sm font-semibold text-violet-300 relative z-10">Contest Rating</p>
               </div>
@@ -958,12 +959,12 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="Codeforces" username={uname} icon={Zap} color="#ef4444" url={url} />
+            <PlatformHeader label="Codeforces" username={uname} icon={(props) => <PlatformIcon platform="codeforces" {...props} />} color="#ef4444" url={url} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-gradient-to-br from-red-900/40 to-slate-900 rounded-3xl p-6 border border-red-700/30 relative overflow-hidden flex flex-col justify-center items-center text-center">
                  <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                 <Zap className="w-10 h-10 text-red-400 mb-3" />
+                 <PlatformIcon platform="codeforces" className="w-10 h-10 text-red-400 mb-3" />
                  <h3 className="text-5xl font-black text-gray-900 dark:text-white mb-2">{cf.rating || 'Unrated'}</h3>
                  <p className="text-sm font-semibold text-red-300">Current Rating</p>
               </div>
@@ -1011,7 +1012,7 @@ const DevPulse = () => {
 
         return (
           <div className="space-y-6">
-            <PlatformHeader label="Duolingo" username={uname} icon={Globe} color="#58CC02" url={url} />
+            <PlatformHeader label="Duolingo" username={uname} icon={(props) => <PlatformIcon platform="duolingo" {...props} />} color="#58CC02" url={url} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">

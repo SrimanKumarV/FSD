@@ -58,6 +58,17 @@ const PlatformIcon = ({ platform, className = "w-5 h-5" }) => {
     );
   }
 
+  if (p.includes('duolingo')) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#58CC02"/>
+        <path d="M10 14C10 14.55 9.55 15 9 15C8.45 15 8 14.55 8 14C8 13.45 8.45 13 9 13C9.55 13 10 13.45 10 14ZM16 14C16 14.55 15.55 15 15 15C14.45 15 14 14.55 14 14C14 13.45 14.45 13 15 13C15.55 13 16 13.45 16 14Z" fill="white"/>
+        <path d="M9 10C9 10 9.5 8 12 8C14.5 8 15 10 15 10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 18C10 18 9 17 9 17" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    );
+  }
+
   // Event platforms
   if (p.includes('meetup')) {
     return (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Github, Code2, Terminal, Code, CheckCircle, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
+import { Github, Code2, Terminal, Code, CheckCircle, AlertCircle, RefreshCw, Trash2, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,7 +15,8 @@ const DevProfileSettings = () => {
     hackerrank: { username: '', isVerified: false },
     gfg: { username: '', isVerified: false },
     codechef: { username: '', isVerified: false },
-    codeforces: { username: '', isVerified: false }
+    codeforces: { username: '', isVerified: false },
+    duolingo: { username: '', isVerified: false }
   });
 
   const [verificationCode, setVerificationCode] = useState('');
@@ -34,7 +35,8 @@ const DevProfileSettings = () => {
             hackerrank: res.data.usernames.hackerrank || { username: '', isVerified: false },
             gfg: res.data.usernames.gfg || { username: '', isVerified: false },
             codechef: res.data.usernames.codechef || { username: '', isVerified: false },
-            codeforces: res.data.usernames.codeforces || { username: '', isVerified: false }
+            codeforces: res.data.usernames.codeforces || { username: '', isVerified: false },
+            duolingo: res.data.usernames.duolingo || { username: '', isVerified: false }
           });
         }
       },
@@ -53,7 +55,8 @@ const DevProfileSettings = () => {
       hackerrank: newSettings.hackerrank?.username || '',
       gfg: newSettings.gfg?.username || '',
       codechef: newSettings.codechef?.username || '',
-      codeforces: newSettings.codeforces?.username || ''
+      codeforces: newSettings.codeforces?.username || '',
+      duolingo: newSettings.duolingo?.username || ''
     }),
     {
       onSuccess: (res) => {
@@ -205,6 +208,7 @@ const DevProfileSettings = () => {
           {renderPlatformInput('gfg', <Code className="w-4 h-4 mr-2" />, 'GeeksforGeeks', 'e.g. coder_gfg')}
           {renderPlatformInput('codechef', <Code className="w-4 h-4 mr-2" />, 'CodeChef', 'e.g. coder_chef')}
           {renderPlatformInput('codeforces', <Code className="w-4 h-4 mr-2" />, 'Codeforces', 'e.g. coder_forces')}
+          {renderPlatformInput('duolingo', <Globe className="w-4 h-4 mr-2" />, 'Duolingo', 'e.g. duo_learner')}
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">

@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 import {
   Activity, Code, GitCommit, Trophy, TrendingUp, AlertCircle, Settings,
   ExternalLink, Star, Zap, Target, ArrowLeft, CheckCircle2, XCircle,
-  Loader2, RefreshCw, GitFork, Users, BookOpen
+  Loader2, RefreshCw, GitFork, Users, BookOpen, Globe
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,6 +39,7 @@ const PLATFORMS = [
   { key: 'gfg',        label: 'GeeksforGeeks',icon: TrendingUp, color: '#10b981' },
   { key: 'codechef',   label: 'CodeChef',     icon: Target,     color: '#8b5cf6' },
   { key: 'codeforces', label: 'Codeforces',   icon: Zap,        color: '#ef4444' },
+  { key: 'duolingo',   label: 'Duolingo',     icon: Globe,      color: '#58CC02' },
 ];
 
 const platformUrl = (stats, usernames, key) => {
@@ -52,6 +53,7 @@ const platformUrl = (stats, usernames, key) => {
     gfg: `https://www.geeksforgeeks.org/user/${u}/`,
     codechef: `https://www.codechef.com/users/${u}`,
     codeforces: `https://codeforces.com/profile/${u}`,
+    duolingo: `https://www.duolingo.com/profile/${u}`,
   };
   return bases[key] || null;
 };
@@ -318,7 +320,7 @@ const DevPulse = () => {
 
   // ── Aggregate badges ──
   const allBadges = useMemo(() => {
-    return ['github', 'leetcode', 'hackerrank', 'codechef', 'codeforces'].flatMap(key =>
+    return ['github', 'leetcode', 'hackerrank', 'codechef', 'codeforces', 'duolingo'].flatMap(key =>
       (stats?.[key]?.badges || []).map(b => ({ ...b, platform: key }))
     );
   }, [stats]);
@@ -419,6 +421,12 @@ const DevPulse = () => {
                 value={stats?.codeforces?.rating || (usernames?.codeforces?.username && !stats?.codeforces?.fetchError ? 'Unrated' : '—')} subtitle="Rating"
                 isLinked={!!usernames?.codeforces?.username} hasError={stats?.codeforces?.fetchError}
                 onClick={() => setActiveTab('codeforces')}
+              />
+              <PlatformSummaryCard 
+                platformKey="duolingo" label="Duolingo" icon={Globe} color="#58CC02" 
+                value={stats?.duolingo?.totalXp ?? '—'} subtitle="Total XP"
+                isLinked={!!usernames?.duolingo?.username} hasError={stats?.duolingo?.fetchError}
+                onClick={() => setActiveTab('duolingo')}
               />
             </div>
 
@@ -987,6 +995,40 @@ const DevPulse = () => {
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">Codeforces Rank Badges</h3>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                   {cf.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // ────────────────────────────────────── DUOLINGO
+      case 'duolingo': {
+        const duo = stats?.duolingo;
+        const uname = usernames?.duolingo?.username;
+        const url = platformUrl(stats, usernames, 'duolingo');
+        if (!uname || !duo || duo.fetchError) return <ConnectionStatus platformKey="Duolingo" stats={duo} username={uname} url={url} isPublicView={isPublicView} />;
+
+        return (
+          <div className="space-y-6">
+            <PlatformHeader label="Duolingo" username={uname} icon={Globe} color="#58CC02" url={url} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{duo.totalXp?.toLocaleString() || '—'}</h3>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Total XP</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-5 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center">
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{duo.streak?.toLocaleString() || '—'}</h3>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Day Streak</p>
+              </div>
+            </div>
+
+            {duo.badges?.length > 0 && (
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">🌍 Active Courses</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
+                  {duo.badges.map((b, i) => <BadgeCard key={b.id || i} badge={b} />)}
                 </div>
               </div>
             )}

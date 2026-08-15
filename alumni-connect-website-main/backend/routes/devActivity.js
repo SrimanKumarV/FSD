@@ -8,7 +8,8 @@ const {
   fetchHackerRankStats,
   fetchGFGStats,
   fetchCodechefStats,
-  fetchCodeforcesStats
+  fetchCodeforcesStats,
+  fetchDuolingoStats
 } = require('../utils/devStatsFetcher');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -72,13 +73,14 @@ router.get('/:email', protect, async (req, res) => {
 
     // Fetch new stats concurrently only for verified or just-added accounts
     // We assume fetch functions handle empty strings gracefully
-    const [githubStats, leetcodeStats, hackerrankStats, gfgStats, codechefStats, codeforcesStats] = await Promise.all([
+    const [githubStats, leetcodeStats, hackerrankStats, gfgStats, codechefStats, codeforcesStats, duolingoStats] = await Promise.all([
       fetchGitHubStats(profile.usernames.github.username),
       fetchLeetCodeStats(profile.usernames.leetcode.username),
       fetchHackerRankStats(profile.usernames.hackerrank.username),
       fetchGFGStats(profile.usernames.gfg.username),
       fetchCodechefStats(profile.usernames.codechef?.username),
-      fetchCodeforcesStats(profile.usernames.codeforces?.username)
+      fetchCodeforcesStats(profile.usernames.codeforces?.username),
+      fetchDuolingoStats(profile.usernames.duolingo?.username)
     ]);
 
     // Update profile
@@ -101,6 +103,9 @@ router.get('/:email', protect, async (req, res) => {
 
     if (codeforcesStats) profile.stats.codeforces = codeforcesStats;
     else if (profile.usernames.codeforces?.username) profile.stats.codeforces = { fetchError: true };
+
+    if (duolingoStats) profile.stats.duolingo = duolingoStats;
+    else if (profile.usernames.duolingo?.username) profile.stats.duolingo = { fetchError: true };
     
     // Calculate Alumnex Score
     let score = 0;
@@ -126,6 +131,11 @@ router.get('/:email', protect, async (req, res) => {
     // GFG: Coding score directly maps to points (divided by 10 to keep it balanced)
     if (gfgStats && gfgStats.codingScore) {
       score += Math.floor(gfgStats.codingScore / 10);
+    }
+    
+    // Duolingo: 1 pt per 100 XP
+    if (duolingoStats && duolingoStats.totalXp) {
+      score += Math.floor(duolingoStats.totalXp / 100);
     }
 
     // Cap score at 1000
@@ -155,7 +165,7 @@ router.get('/:email', protect, async (req, res) => {
 // @access  Private
 router.post('/usernames', protect, async (req, res) => {
   try {
-    const { github, leetcode, hackerrank, gfg, codechef, codeforces } = req.body;
+    const { github, leetcode, hackerrank, gfg, codechef, codeforces, duolingo } = req.body;
     const userEmail = req.user.email;
     const userId = req.user._id;
 
@@ -190,6 +200,7 @@ router.post('/usernames', protect, async (req, res) => {
     if (!profile.usernames.gfg) profile.usernames.gfg = { username: '', isVerified: false };
     if (!profile.usernames.codechef) profile.usernames.codechef = { username: '', isVerified: false };
     if (!profile.usernames.codeforces) profile.usernames.codeforces = { username: '', isVerified: false };
+    if (!profile.usernames.duolingo) profile.usernames.duolingo = { username: '', isVerified: false };
 
     const newGithub = github !== undefined ? cleanUsername(github) : profile.usernames.github.username;
     const newLeetcode = leetcode !== undefined ? cleanUsername(leetcode) : profile.usernames.leetcode.username;
@@ -197,6 +208,7 @@ router.post('/usernames', protect, async (req, res) => {
     const newGfg = gfg !== undefined ? cleanUsername(gfg) : profile.usernames.gfg.username;
     const newCodechef = codechef !== undefined ? cleanUsername(codechef) : profile.usernames.codechef.username;
     const newCodeforces = codeforces !== undefined ? cleanUsername(codeforces) : profile.usernames.codeforces.username;
+    const newDuolingo = duolingo !== undefined ? cleanUsername(duolingo) : profile.usernames.duolingo.username;
 
     if (newGithub === '' && profile.usernames.github.username !== '') profile.stats.github = null;
     if (newLeetcode === '' && profile.usernames.leetcode.username !== '') profile.stats.leetcode = null;
@@ -204,6 +216,7 @@ router.post('/usernames', protect, async (req, res) => {
     if (newGfg === '' && profile.usernames.gfg.username !== '') profile.stats.gfg = null;
     if (newCodechef === '' && profile.usernames.codechef?.username) profile.stats.codechef = null;
     if (newCodeforces === '' && profile.usernames.codeforces?.username) profile.stats.codeforces = null;
+    if (newDuolingo === '' && profile.usernames.duolingo?.username) profile.stats.duolingo = null;
 
     if (newGithub !== profile.usernames.github.username) {
       profile.usernames.github.username = newGithub;
@@ -232,6 +245,10 @@ router.post('/usernames', protect, async (req, res) => {
     if (newCodeforces !== profile.usernames.codeforces.username) {
       profile.usernames.codeforces.username = newCodeforces;
       profile.usernames.codeforces.isVerified = false;
+    }
+    if (newDuolingo !== profile.usernames.duolingo.username) {
+      profile.usernames.duolingo.username = newDuolingo;
+      profile.usernames.duolingo.isVerified = false;
     }
 
     // Force refresh next time by clearing lastUpdated

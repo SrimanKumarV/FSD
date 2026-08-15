@@ -326,4 +326,40 @@ const fetchCodeforcesStats = async (username) => {
   }
 };
 
-module.exports = { fetchGitHubStats, fetchLeetCodeStats, fetchHackerRankStats, fetchGFGStats, fetchCodechefStats, fetchCodeforcesStats };
+const fetchDuolingoStats = async (username) => {
+  if (!username) return null;
+  try {
+    const response = await axios.get(`https://www.duolingo.com/2017-06-30/users?username=${username}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    if (!response.data || !response.data.users || response.data.users.length === 0) return null;
+    
+    const user = response.data.users[0];
+    const totalXp = user.totalXp || 0;
+    const streak = user.streak || 0;
+    const courses = user.courses || [];
+    
+    // Create badges for active courses
+    const activeCourses = courses.filter(c => c.xp > 0).sort((a, b) => b.xp - a.xp).slice(0, 3);
+    const badges = activeCourses.map(course => ({
+      id: `duo-lang-${course.id}`,
+      name: course.title,
+      icon: '🌍',
+      color: '#58cc02',
+      type: 'language'
+    }));
+
+    return { 
+      totalXp, 
+      streak, 
+      courses, 
+      url: `https://www.duolingo.com/profile/${username}`,
+      badges
+    };
+  } catch (error) {
+    console.warn(`Duolingo fetch failed for ${username}: ${error.message}`);
+    return null;
+  }
+};
+
+module.exports = { fetchGitHubStats, fetchLeetCodeStats, fetchHackerRankStats, fetchGFGStats, fetchCodechefStats, fetchCodeforcesStats, fetchDuolingoStats };

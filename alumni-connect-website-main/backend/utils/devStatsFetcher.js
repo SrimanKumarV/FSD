@@ -335,13 +335,7 @@ const fetchDuolingoStats = async (username) => {
     });
     if (!response.data || !response.data.users || response.data.users.length === 0) return null;
     
-    const userId = response.data.users[0].id;
-    const fields = 'id,username,name,bio,location,streak,totalXp,hasPlus,creationDate,courses,streakData';
-    const detailResponse = await axios.get(`https://www.duolingo.com/2017-06-30/users/${userId}?fields=${fields}`, {
-      headers: userAgentHeader
-    });
-    
-    const details = detailResponse.data;
+    const details = response.data.users[0];
     const totalXp = details.totalXp || 0;
     const streak = details.streak || 0;
     const courses = details.courses || [];

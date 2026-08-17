@@ -14,9 +14,10 @@ const csrfProtection = (req, res, next) => {
       httpOnly: false, // Must be false so frontend JS can read it
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/'
     });
   }
+  // Set header for cross-origin frontend to read
+  res.setHeader('X-CSRF-Token', token);
 
   // Safe methods don't need CSRF validation
   const isSafeMethod = ['GET', 'HEAD', 'OPTIONS'].includes(req.method);

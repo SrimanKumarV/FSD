@@ -31,19 +31,23 @@ const onRefreshFailed = () => {
   pendingRequests = [];
 };
 
+let csrfTokenMemory = null;
+
 // ─── Request Interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
     // Token is now handled automatically by the browser via HTTP-only cookies
     
     // Read XSRF-TOKEN from cookies for CSRF protection
-    const xsrfToken = document.cookie
+    const xsrfTokenCookie = document.cookie
       .split('; ')
       .find((row) => row.startsWith('XSRF-TOKEN='))
       ?.split('=')[1];
 
-    if (xsrfToken) {
-      config.headers['X-XSRF-TOKEN'] = xsrfToken;
+    const finalToken = xsrfTokenCookie || csrfTokenMemory;
+
+    if (finalToken) {
+      config.headers['X-XSRF-TOKEN'] = finalToken;
     }
 
     return config;
@@ -53,8 +57,17 @@ api.interceptors.request.use(
 
 // ─── Response Interceptor ─────────────────────────────────────────────────────
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.headers['x-csrf-token']) {
+      csrfTokenMemory = response.headers['x-csrf-token'];
+    }
+    return response;
+  },
   async (error) => {
+    if (error.response && error.response.headers['x-csrf-token']) {
+      csrfTokenMemory = error.response.headers['x-csrf-token'];
+    }
+
     const originalRequest = error.config || {};
 
     // ── Client-Side Failover Logic ──

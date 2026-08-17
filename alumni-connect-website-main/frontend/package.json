@@ -68,8 +68,23 @@
   "eslintConfig": {
     "extends": [
       "react-app",
-      "react-app/jest"
-    ]
+      "react-app/jest",
+      "plugin:jsx-a11y/recommended"
+    ],
+    "plugins": [
+      "jsx-a11y"
+    ],
+    "rules": {
+      "jsx-a11y/click-events-have-key-events": "warn",
+      "jsx-a11y/no-static-element-interactions": "warn",
+      "jsx-a11y/label-has-associated-control": "warn",
+      "jsx-a11y/anchor-is-valid": "warn",
+      "jsx-a11y/img-redundant-alt": "warn",
+      "jsx-a11y/anchor-has-content": "warn",
+      "jsx-a11y/media-has-caption": "warn",
+      "jsx-a11y/no-autofocus": "warn",
+      "jsx-a11y/no-noninteractive-element-interactions": "warn"
+    }
   },
   "browserslist": {
     "production": [
@@ -86,6 +101,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.14",
     "cypress": "^15.20.1",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2"
   },

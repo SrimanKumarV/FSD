@@ -13,6 +13,9 @@ const Skeleton = ({ className = '', circle = false }) => {
         ease: 'easeInOut' 
       }}
       className={`bg-gray-200 dark:bg-gray-800 ${circle ? 'rounded-full' : 'rounded-xl'} ${className}`}
+      role="status"
+      aria-label="Loading"
+      aria-busy="true"
     />
   );
 };

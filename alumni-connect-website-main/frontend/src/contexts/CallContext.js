@@ -15,7 +15,12 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:global.stun.twilio.com:3478' }
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    { 
+      urls: process.env.REACT_APP_TURN_URL || 'turn:global.turn.twilio.com:3478?transport=udp',
+      username: process.env.REACT_APP_TURN_USERNAME || 'guest',
+      credential: process.env.REACT_APP_TURN_PASSWORD || 'guest'
+    }
   ]
 };
 

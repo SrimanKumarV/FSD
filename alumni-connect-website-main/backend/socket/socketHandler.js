@@ -12,8 +12,17 @@ module.exports = (io) => {
   // Authentication middleware for Socket.IO
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.headers.authorization;
+      let token = socket.handshake.auth.token || socket.handshake.headers.authorization;
       
+      // Fallback to cookie if token is not provided (since we migrated to httpOnly cookies)
+      if (!token && socket.handshake.headers.cookie) {
+        const cookies = socket.handshake.headers.cookie.split(';').map(c => c.trim().split('='));
+        const tokenCookie = cookies.find(c => c[0] === 'token');
+        if (tokenCookie) {
+          token = tokenCookie[1];
+        }
+      }
+
       if (!token) {
         return next(new Error('Authentication error: No token provided'));
       }

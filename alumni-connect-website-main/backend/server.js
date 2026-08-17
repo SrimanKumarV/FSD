@@ -9,6 +9,8 @@ const dotenv = require('dotenv');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const mongoSanitize = require('express-mongo-sanitize');
 
 // Load environment variables
 dotenv.config();
@@ -90,8 +92,20 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 requests per 15 minutes for auth endpoints
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many authentication attempts, please try again later.'
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+app.use(mongoSanitize());
 
 // Database connection
 // Uses the MONGODB_URI from your .env or Render environment variables

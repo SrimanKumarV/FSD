@@ -306,12 +306,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-userSchema.index({ email: 1 });
-userSchema.index({ role: 1 });
-userSchema.index({ 'alumniInfo.industry': 1 });
 userSchema.index({ 'alumniInfo.company': 1 });
 userSchema.index({ skills: 1 });
-userSchema.index({ location: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {

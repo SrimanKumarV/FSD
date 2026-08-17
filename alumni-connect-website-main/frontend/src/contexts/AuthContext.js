@@ -8,7 +8,7 @@ const AuthContext = createContext();
 // Initial state
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: null,
   isAuthenticated: false,
   isLoading: true,
   error: null

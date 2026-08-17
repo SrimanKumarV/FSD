@@ -13,6 +13,7 @@ const api = axios.create({
   baseURL: getBaseUrl(),
   timeout: 60000, // Increased to 60s to allow Render free tier to wake up
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 // ─── Token Refresh / 401 Deduplication ───────────────────────────────────────
@@ -33,10 +34,7 @@ const onRefreshFailed = () => {
 // ─── Request Interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Token is now handled automatically by the browser via HTTP-only cookies
     return config;
   },
   (error) => Promise.reject(error)
@@ -88,25 +86,19 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Attempt silent token refresh
-        const currentToken = localStorage.getItem('token');
-        if (!currentToken) throw new Error('No token');
-
+        // Attempt silent token refresh via cookie (no auth header needed)
+        
         // Use the current base URL for refresh, which could be the backup if we failed over
         const refreshBaseUrl = originalRequest.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
         
-        const { data } = await axios.post(
+        await axios.post(
           `${refreshBaseUrl}/auth/refresh`,
           {},
-          { headers: { Authorization: `Bearer ${currentToken}` }, timeout: 10000 }
+          { timeout: 10000, withCredentials: true }
         );
 
-        const newToken = data.token;
-        localStorage.setItem('token', newToken);
-
-        // Replay the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        onTokenRefreshed(newToken);
+        // Replay the original request (cookie will be sent automatically)
+        onTokenRefreshed('refreshed');
         isRefreshing = false;
 
         return api(originalRequest);
@@ -119,16 +111,12 @@ api.interceptors.response.use(
         const isAuthError = refreshError.response && (refreshError.response.status === 401 || refreshError.response.status === 403);
         
         if (isAuthError) {
-          if (localStorage.getItem('token')) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.dispatchEvent(new Event('auth:logout'));
-            setTimeout(() => {
-              if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
-              }
-            }, 100);
-          }
+          window.dispatchEvent(new Event('auth:logout'));
+          setTimeout(() => {
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
+          }, 100);
         } else {
           // It was a network or server error during refresh, just show a network error toast
           console.warn('Network error during token refresh:', refreshError.message);

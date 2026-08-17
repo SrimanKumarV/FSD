@@ -60,7 +60,7 @@ To handle high concurrency and ensure reliability, the backend is optimized with
 1. **Clone the repository**
    ```bash
    git clone https://github.com/SrimanKumarV/FSD.git
-   cd FSD/Micro-project/alumni-connect-website-main
+   cd FSD/alumni-connect-website-main
    ```
 
 2. **Install Backend Dependencies**
@@ -79,7 +79,7 @@ To handle high concurrency and ensure reliability, the backend is optimized with
    Create a `.env` file in the `backend` directory with the following:
    ```env
    PORT=5000
-   MONGO_URI=your_mongodb_connection_string
+   MONGODB_URI=your_mongodb_connection_string
    JWT_SECRET=your_jwt_secret
    GROQ_API_KEY=your_groq_api_key_for_ai
    ```

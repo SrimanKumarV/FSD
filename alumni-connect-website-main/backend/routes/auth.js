@@ -91,6 +91,17 @@ const autoAssignMentor = async (studentId, college) => {
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Generate JWT Token
+
+const setTokenCookie = (res, token) => {
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax', // to allow cross-origin in dev if needed, or strict.
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+};
+
+// Generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'

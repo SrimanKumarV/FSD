@@ -13,7 +13,7 @@ const csrfProtection = (req, res, next) => {
     res.cookie('XSRF-TOKEN', token, {
       httpOnly: false, // Must be false so frontend JS can read it
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/'
     });
   }

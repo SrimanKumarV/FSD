@@ -8,7 +8,7 @@ const setTokenCookie = (res, token) => {
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 };
@@ -219,10 +219,11 @@ router.post('/reset-password', [
 router.post('/logout', protect, async (req, res) => {
   try {
     await req.user.updateLastActive();
-    res.clearCookie('token', {
-      httpOnly: true,
+    res.cookie('token', '', { 
+      httpOnly: true, 
+      expires: new Date(0),
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     });
     res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {

@@ -7,8 +7,7 @@ const MentorshipSession = require('../models/MentorshipSession');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const MentorReward = require('../models/MentorReward');
-const { getMentors, autoAssignMentor } = require('../services/mentorshipService');
-
+const { getMentors, autoAssignMentor, createMentorshipRequest, updateMentorshipStatus } = require('../services/mentorshipService');
 // @desc    Get all mentorship requests for a user
 // @route   GET /api/mentorship
 // @access  Private
@@ -126,87 +125,8 @@ router.post('/', [protect], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { targetUserId, title, description, focusAreas, goals, expectedDuration, communicationMethod } = req.body;
-
-    // Check if target user exists
-    const targetUser = await User.findById(targetUserId);
-    if (!targetUser) {
-      return res.status(400).json({ message: 'User not found' });
-    }
-
-    let studentId, mentorId;
-    if (req.user.role === 'alumni') {
-      if (targetUser.role !== 'student') return res.status(400).json({ message: 'Alumni can only mentor students' });
-      mentorId = req.user.id;
-      studentId = targetUserId;
-    } else {
-      if (targetUser.role !== 'alumni') return res.status(400).json({ message: 'Students can only request alumni' });
-      studentId = req.user.id;
-      mentorId = targetUserId;
-      
-      if (!targetUser.isApproved) {
-        return res.status(400).json({ message: 'Mentor account not approved' });
-      }
-    }
-
-    // Check if there's already a pending/active mentorship
-    const existingMentorship = await Mentorship.findOne({
-      student: studentId,
-      mentor: mentorId,
-      status: { $in: ['pending', 'active', 'accepted'] }
-    });
-
-    if (existingMentorship) {
-      return res.status(400).json({ message: 'Mentorship request already exists or is already active' });
-    }
-
-    // Enforce seat limit: check how many active/pending requests this mentor has
-    const SEAT_LIMIT = 10;
-    const currentMenteeCount = await Mentorship.countDocuments({
-      mentor: mentorId,
-      status: { $in: ['pending', 'accepted', 'active'] }
-    });
-    if (currentMenteeCount >= SEAT_LIMIT) {
-      return res.status(400).json({ message: 'This mentor has no available seats. Please choose another mentor.' });
-    }
-
-    const mentorship = new Mentorship({
-      student: studentId,
-      mentor: mentorId,
-      title,
-      description,
-      focusAreas,
-      goals,
-      expectedDuration,
-      communicationMethod,
-      status: 'pending'
-    });
-
-    await mentorship.save();
-
-    // Bi-directional follower logic: requester automatically follows target user
-    await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: targetUserId } });
-    await User.findByIdAndUpdate(targetUserId, { $addToSet: { followers: req.user.id } });
-
-    // Populate for response
-    await mentorship.populate('student', 'name photo role');
-    await mentorship.populate('mentor', 'name photo role');
-
-    // Create notification for mentor
-    await Notification.createNotification({
-      recipient: mentorId,
-      sender: req.user.id,
-      type: 'mentorship_request',
-      title: 'New Mentorship Request',
-      content: `${req.user.name} has requested mentorship from you`,
-      relatedData: { mentorshipId: mentorship._id }
-    });
-
     const io = req.app.get('io');
-    if (io) {
-      io.to(mentorId.toString()).emit('mentorship:new_request', { mentorship });
-    }
-
+    const mentorship = await createMentorshipRequest(req.user, req.body, io);
     res.status(201).json({ mentorship });
   } catch (error) {
     console.error('Error creating mentorship request:', error);
@@ -256,78 +176,8 @@ router.put('/:id/status', [protect], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { status, reason } = req.body;
-    const mentorship = await Mentorship.findById(req.params.id);
-
-    if (!mentorship) {
-      return res.status(404).json({ message: 'Mentorship request not found' });
-    }
-
-    if (mentorship.mentor.toString() !== req.user.id && mentorship.student.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const oldStatus = mentorship.status;
-    mentorship.status = status;
-    
-    if (reason) {
-      mentorship.statusHistory.push({
-        status,
-        changedBy: req.user.id,
-        reason,
-        changedAt: new Date()
-      });
-    }
-
-    if (status === 'active' && oldStatus === 'accepted') {
-      mentorship.startDate = new Date();
-    } else if (status === 'completed') {
-      mentorship.endDate = new Date();
-      if (oldStatus !== 'completed') {
-        await User.findByIdAndUpdate(mentorship.mentor, { $inc: { 'alumniInfo.studentsPlaced': 1 } });
-      }
-    } else if (status === 'accepted') {
-      // Bi-directional follower logic: responder automatically follows requester
-      const requesterId = req.user.id === mentorship.mentor.toString() ? mentorship.student : mentorship.mentor;
-      await User.findByIdAndUpdate(req.user.id, { $addToSet: { following: requesterId } });
-      await User.findByIdAndUpdate(requesterId, { $addToSet: { followers: req.user.id } });
-      
-      // Award Gamification Points for Mentorship Acceptance
-      if (oldStatus !== 'accepted') {
-        await User.findByIdAndUpdate(mentorship.mentor, { $inc: { rewardPoints: 50 } });
-        // Award MentorReward points
-        try {
-          const mentor = await User.findById(mentorship.mentor).select('college');
-          await MentorReward.addPoints(mentorship.mentor, 'accepted', null, mentor?.college || '');
-        } catch (e) { console.error('MentorReward accept error:', e.message); }
-      }
-    }
-
-    if (status === 'completed' && oldStatus !== 'completed') {
-      // Award completion reward points
-      try {
-        const mentor = await User.findById(mentorship.mentor).select('college');
-        await MentorReward.addPoints(mentorship.mentor, 'completed', null, mentor?.college || '');
-      } catch (e) { console.error('MentorReward complete error:', e.message); }
-    }
-
-    await mentorship.save();
-
-    // Create notification for student
-    await Notification.createNotification({
-      recipient: mentorship.student,
-      sender: req.user.id,
-      type: 'mentorship_status_update',
-      title: 'Mentorship Status Updated',
-      content: `Your mentorship request has been ${status}`,
-      relatedData: { mentorshipId: mentorship._id }
-    });
-
     const io = req.app.get('io');
-    if (io) {
-      io.to(mentorship.student.toString()).emit('mentorship:updated', { mentorship });
-    }
-
+    const mentorship = await updateMentorshipStatus(req.user, req.params.id, req.body, io);
     res.json({ mentorship });
   } catch (error) {
     console.error('Error updating mentorship status:', error);

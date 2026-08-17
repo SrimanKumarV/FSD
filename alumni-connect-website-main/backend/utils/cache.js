@@ -8,13 +8,15 @@ redisClient.on('error', (err) => console.log('Redis Client Error', err));
 redisClient.on('connect', () => console.log('Connected to Redis'));
 
 // Self-invoking function to connect
-(async () => {
-  try {
-    await redisClient.connect();
-  } catch (err) {
-    console.error('Failed to connect to Redis initially:', err);
-  }
-})();
+if (process.env.NODE_ENV !== 'test') {
+  (async () => {
+    try {
+      await redisClient.connect();
+    } catch (err) {
+      console.error('Failed to connect to Redis initially:', err);
+    }
+  })();
+}
 
 // Wrapping redis in an interface similar to node-cache, but asynchronous
 const cache = {

@@ -47,12 +47,14 @@ const io = socketIo(server, {
   }
 });
 
-const pubClient = cache.client.duplicate();
-const subClient = cache.client.duplicate();
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-  io.adapter(createAdapter(pubClient, subClient));
-  console.log('Socket.io Redis adapter connected');
-}).catch(err => console.error('Redis adapter error:', err));
+if (process.env.NODE_ENV !== 'test') {
+  const pubClient = cache.client.duplicate();
+  const subClient = cache.client.duplicate();
+  Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log('Socket.io Redis adapter connected');
+  }).catch(err => console.error('Redis adapter error:', err));
+}
 
 app.set('io', io);
 
@@ -106,6 +108,7 @@ app.use('/api/auth/register', authLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(require('./middleware/csrf'));
 app.use(mongoSanitize());
 app.use(hpp());
 

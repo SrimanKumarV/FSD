@@ -35,6 +35,17 @@ const onRefreshFailed = () => {
 api.interceptors.request.use(
   (config) => {
     // Token is now handled automatically by the browser via HTTP-only cookies
+    
+    // Read XSRF-TOKEN from cookies for CSRF protection
+    const xsrfToken = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('XSRF-TOKEN='))
+      ?.split('=')[1];
+
+    if (xsrfToken) {
+      config.headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

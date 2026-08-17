@@ -7,7 +7,7 @@ const JobApplication = require('../models/JobApplication');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 
-const { getExternalJobs, getInternalJobs } = require('../services/jobService');
+const { getExternalJobs, getInternalJobs, createJob, updateJob, deleteJob, applyForJob } = require('../services/jobService');
 
 // @desc    Get all jobs with filters
 // @route   GET /api/jobs
@@ -64,57 +64,8 @@ router.post('/', [protect, alumni, approved], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const {
-      title, description, company, companyLogo, companyWebsite, jobType, category,
-      location, isRemote, remoteType, requirements, skills, experience, education,
-      salary, benefits, applicationDeadline, applicationLink, applicationMethod,
-      contactEmail, contactPhone, perks, workCulture, growthOpportunities
-    } = req.body;
-
-    // Validate salary range
-    if (salary && salary.min && salary.max && salary.min > salary.max) {
-      return res.status(400).json({ message: 'Minimum salary cannot be greater than maximum salary' });
-    }
-
-    const job = new Job({
-      title,
-      description,
-      company,
-      companyLogo,
-      companyWebsite,
-      jobType,
-      category,
-      location,
-      isRemote,
-      remoteType,
-      requirements,
-      skills,
-      experience,
-      education,
-      salary,
-      benefits,
-      applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : undefined,
-      applicationLink,
-      applicationMethod,
-      postedBy: req.user.id,
-      contactEmail,
-      contactPhone,
-      perks,
-      workCulture,
-      growthOpportunities
-    });
-
-    await job.save();
-
-    // Populate for response
-    await job.populate('postedBy', 'name photo role');
-
-    // Emit real-time event
     const io = req.app.get('io');
-    if (io) {
-      io.emit('job:new', job);
-    }
-
+    const job = await createJob(req.user, req.body, io);
     res.status(201).json({ job });
   } catch (error) {
     console.error('Error creating job:', error);
@@ -149,42 +100,8 @@ router.put('/:id', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-
-    if (job.postedBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    // Update allowed fields
-    const allowedFields = [
-      'title', 'description', 'company', 'companyLogo', 'companyWebsite',
-      'jobType', 'category', 'location', 'isRemote', 'remoteType',
-      'requirements', 'skills', 'experience', 'education', 'salary',
-      'benefits', 'applicationDeadline', 'applicationLink', 'applicationMethod',
-      'contactEmail', 'contactPhone', 'perks', 'workCulture', 'growthOpportunities'
-    ];
-
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        job[field] = req.body[field];
-      }
-    });
-
-    // Validate salary range
-    if (job.salary && job.salary.min && job.salary.max && job.salary.min > job.salary.max) {
-      return res.status(400).json({ message: 'Minimum salary cannot be greater than maximum salary' });
-    }
-
-    await job.save();
-    
     const io = req.app.get('io');
-    if (io) {
-      io.emit('job:updated', job);
-    }
-
+    const job = await updateJob(req.user, req.params.id, req.body, io);
     res.json({ job });
   } catch (error) {
     console.error('Error updating job:', error);
@@ -197,22 +114,8 @@ router.put('/:id', protect, [
 // @access  Private (Job poster only)
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-
-    if (job.postedBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    await job.remove();
-    
     const io = req.app.get('io');
-    if (io) {
-      io.emit('job:deleted', { jobId: req.params.id });
-    }
-    
+    await deleteJob(req.user, req.params.id, io);
     res.json({ message: 'Job deleted successfully' });
   } catch (error) {
     console.error('Error deleting job:', error);
@@ -225,54 +128,8 @@ router.delete('/:id', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/apply', protect, async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-
-    if (job.status !== 'active') {
-      return res.status(400).json({ message: 'Job is not accepting applications' });
-    }
-
-    if (job.applicationDeadline && new Date() > job.applicationDeadline) {
-      return res.status(400).json({ message: 'Application deadline has passed' });
-    }
-
-    // Check if already applied
-    const existingApplication = await JobApplication.findOne({ job: job._id, applicant: req.user.id });
-    if (existingApplication) {
-      return res.status(400).json({ message: 'Already applied for this job' });
-    }
-
-    // Create application
-    const { coverLetter, resumeLink } = req.body;
-    const application = new JobApplication({
-      job: job._id,
-      applicant: req.user.id,
-      coverLetter,
-      resumeLink
-    });
-    await application.save();
-
-    // Increment applications count
-    await job.incrementApplications();
-
-    // Create notification for job poster
-    const notification = await Notification.createNotification({
-      recipient: job.postedBy,
-      sender: req.user.id,
-      type: 'job_application',
-      title: 'New Job Application',
-      content: `Someone has applied for your job posting: ${job.title}`,
-      relatedData: { jobId: job._id }
-    });
-
-    // Real-time notification
     const io = req.app.get('io');
-    if (io) {
-      io.to(job.postedBy.toString()).emit('notification:received', notification);
-    }
-
+    const application = await applyForJob(req.user, req.params.id, req.body, io);
     res.json({ message: 'Application submitted successfully', application });
   } catch (error) {
     console.error('Error applying for job:', error);

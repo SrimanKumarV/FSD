@@ -1,6 +1,8 @@
 const cache = require('../utils/cache');
 const fetchWithTimeout = require('../utils/fetchWithTimeout');
 const Job = require('../models/Job');
+const JobApplication = require('../models/JobApplication');
+const Notification = require('../models/Notification');
 
 const getExternalJobs = async ({ category = '', search = '', limit = 20, region = '' }) => {
   // Enforce max limit of 50
@@ -150,7 +152,134 @@ const getInternalJobs = async (filters) => {
   };
 };
 
+const createJob = async (user, data, io) => {
+  if (data.salary && data.salary.min && data.salary.max && data.salary.min > data.salary.max) {
+    throw new Error('Minimum salary cannot be greater than maximum salary');
+  }
+
+  const job = new Job({
+    ...data,
+    applicationDeadline: data.applicationDeadline ? new Date(data.applicationDeadline) : undefined,
+    postedBy: user.id
+  });
+
+  await job.save();
+  await job.populate('postedBy', 'name photo role');
+
+  if (io) {
+    io.emit('job:new', job);
+  }
+
+  return job;
+};
+
+const updateJob = async (user, jobId, data, io) => {
+  const job = await Job.findById(jobId);
+  if (!job) {
+    const err = new Error('Job not found');
+    err.status = 404;
+    throw err;
+  }
+
+  if (job.postedBy.toString() !== user.id) {
+    const err = new Error('Access denied');
+    err.status = 403;
+    throw err;
+  }
+
+  const allowedFields = [
+    'title', 'description', 'company', 'companyLogo', 'companyWebsite',
+    'jobType', 'category', 'location', 'isRemote', 'remoteType',
+    'requirements', 'skills', 'experience', 'education', 'salary',
+    'benefits', 'applicationDeadline', 'applicationLink', 'applicationMethod',
+    'contactEmail', 'contactPhone', 'perks', 'workCulture', 'growthOpportunities'
+  ];
+
+  allowedFields.forEach(field => {
+    if (data[field] !== undefined) {
+      job[field] = data[field];
+    }
+  });
+
+  if (job.salary && job.salary.min && job.salary.max && job.salary.min > job.salary.max) {
+    throw new Error('Minimum salary cannot be greater than maximum salary');
+  }
+
+  await job.save();
+  
+  if (io) {
+    io.emit('job:updated', job);
+  }
+
+  return job;
+};
+
+const deleteJob = async (user, jobId, io) => {
+  const job = await Job.findById(jobId);
+  if (!job) {
+    const err = new Error('Job not found');
+    err.status = 404;
+    throw err;
+  }
+
+  if (job.postedBy.toString() !== user.id) {
+    const err = new Error('Access denied');
+    err.status = 403;
+    throw err;
+  }
+
+  await job.remove();
+  
+  if (io) {
+    io.emit('job:deleted', { jobId });
+  }
+};
+
+const applyForJob = async (user, jobId, data, io) => {
+  const job = await Job.findById(jobId);
+  if (!job) {
+    const err = new Error('Job not found');
+    err.status = 404;
+    throw err;
+  }
+
+  if (job.status !== 'active') throw new Error('Job is not accepting applications');
+  if (job.applicationDeadline && new Date() > job.applicationDeadline) throw new Error('Application deadline has passed');
+
+  const existingApplication = await JobApplication.findOne({ job: job._id, applicant: user.id });
+  if (existingApplication) throw new Error('Already applied for this job');
+
+  const { coverLetter, resumeLink } = data;
+  const application = new JobApplication({
+    job: job._id,
+    applicant: user.id,
+    coverLetter,
+    resumeLink
+  });
+  await application.save();
+  await job.incrementApplications();
+
+  const notification = await Notification.createNotification({
+    recipient: job.postedBy,
+    sender: user.id,
+    type: 'job_application',
+    title: 'New Job Application',
+    content: `Someone has applied for your job posting: ${job.title}`,
+    relatedData: { jobId: job._id }
+  });
+
+  if (io) {
+    io.to(job.postedBy.toString()).emit('notification:received', notification);
+  }
+
+  return application;
+};
+
 module.exports = {
   getExternalJobs,
-  getInternalJobs
+  getInternalJobs,
+  createJob,
+  updateJob,
+  deleteJob,
+  applyForJob
 };

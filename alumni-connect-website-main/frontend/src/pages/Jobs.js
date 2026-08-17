@@ -2,32 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  MapPin, 
-  Briefcase, 
-  Building, 
-  DollarSign,
-  Calendar,
-  Clock,
-  Bookmark,
-  ExternalLink,
-  Plus,
-  Eye,
-  Users,
-  TrendingUp,
-  BriefcaseIcon,
-  UserPlus
-} from 'lucide-react';
+import { Briefcase, MapPin, Building2, Calendar, Clock, DollarSign, Filter, Search, ChevronDown, CheckCircle2, ChevronRight, Share2, BookOpen, Plus, Eye, Users, TrendingUp, BriefcaseIcon, UserPlus } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
+import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 
 const JobLogo = ({ logo, company }) => {
   const [error, setError] = useState(false);
 
   if (!logo || error) {
-    return <Building className="w-8 h-8 text-gray-500 dark:text-gray-500" />;
+    return <Building2 className="w-8 h-8 text-gray-500 dark:text-gray-500" />;
   }
 
   return (
@@ -154,11 +139,7 @@ const PostJobModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative my-8 custom-scrollbar">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold">&times;</button>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Post a Job or Referral</h2>
-        
+    <Modal isOpen={true} onClose={onClose} title="Post a Job or Referral" className="!p-8">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -253,13 +234,12 @@ const PostJobModal = ({ onClose, onSuccess }) => {
 
           <div className="pt-4 flex justify-end">
             <button type="button" onClick={onClose} className="px-6 py-2 mr-4 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold">Cancel</button>
-            <button type="submit" disabled={loading} className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30">
+            <Button variant="primary" type="submit" disabled={loading} className="px-6 py-2">
               {loading ? 'Posting...' : 'Post Job'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -286,11 +266,8 @@ const ApplyJobModal = ({ job, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-xl font-bold">&times;</button>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Apply for {job.title}</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">{job.company}</p>
+    <Modal isOpen={true} onClose={onClose} title={`Apply for ${job.title}`} className="max-w-lg !p-8">
+      <p className="text-gray-500 dark:text-gray-400 mb-6">{job.company}</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -304,13 +281,12 @@ const ApplyJobModal = ({ job, onClose, onSuccess }) => {
           </div>
           <div className="pt-4 flex justify-end">
             <button type="button" onClick={onClose} className="px-6 py-2 mr-4 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold">Cancel</button>
-            <button type="submit" disabled={loading} className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary-500/30">
+            <Button variant="primary" type="submit" disabled={loading} className="px-6 py-2">
               {loading ? 'Submitting...' : 'Submit Application'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -328,7 +304,7 @@ const Jobs = () => {
     salary: ''
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [showPostForm, setShowPostForm] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -491,17 +467,6 @@ const Jobs = () => {
 
   const sortedJobs = jobs; // Backend handles sorting and filtering
 
-  const getExperienceColor = (experience) => {
-    switch (experience) {
-      case 'entry': return 'text-green-600 bg-green-100';
-      case 'junior': return 'text-blue-600 bg-blue-100';
-      case 'mid': return 'text-yellow-600 bg-yellow-100';
-      case 'senior': return 'text-purple-600 bg-purple-100';
-      case 'lead': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
   const getJobTypeColor = (jobType) => {
     switch (jobType) {
       case 'full-time': return 'text-green-600 bg-green-100';
@@ -523,7 +488,6 @@ const Jobs = () => {
   return (
     <div className="flex-1 flex flex-col w-full py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -538,17 +502,12 @@ const Jobs = () => {
               </p>
             </div>
             {(user?.role === 'alumni' || user?.role === 'admin') && (
-              <button
-                onClick={() => setShowPostForm(true)}
-                className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg hover:shadow-primary-500/30 transition-all shrink-0"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Post Job / Referral
-              </button>
+              <Button variant="primary" onClick={() => setShowPostModal(true)} className="px-6 py-3 shrink-0">
+                <Plus className="w-5 h-5 mr-2" /> Post Opportunity
+              </Button>
             )}
           </div>
 
-          {/* Stats - Hidden on mobile to save space */}
           <div className="relative z-10 hidden md:grid grid-cols-1 md:grid-cols-4 gap-6">
             <motion.div whileHover={{ y: -5 }} className="text-center p-6 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-2xl shadow-sm">
               <BriefcaseIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
@@ -573,10 +532,8 @@ const Jobs = () => {
           </div>
         </motion.div>
 
-        {/* Sticky Filters Area */}
         <div className="mb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Source Toggle */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -596,7 +553,6 @@ const Jobs = () => {
               </button>
             </motion.div>
 
-            {/* Search and Filters */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -748,7 +704,6 @@ const Jobs = () => {
           </div>
         </div>
 
-        {/* Jobs List - Split Pane */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -756,7 +711,6 @@ const Jobs = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
             
-            {/* Left Pane: Job List */}
             <div className="lg:col-span-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar pr-2">
               {sortedJobs.map((job) => (
                 <motion.div
@@ -802,7 +756,6 @@ const Jobs = () => {
               )}
             </div>
 
-            {/* Right Pane: Job Details */}
             <div className="lg:col-span-7 sticky top-24 hidden lg:block">
               {selectedJob ? (
                 <motion.div
@@ -867,47 +820,6 @@ const Jobs = () => {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Job Description</h3>
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedJob.description}</p>
                   </div>
-
-                  {selectedJob.skills && selectedJob.skills.length > 0 && (
-                    <div className="mb-8">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Skills Required</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedJob.skills.map((skill, index) => (
-                          <span key={index} className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {matchResult && (
-                    <div className="mb-8 p-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                          <span className="text-2xl mr-2">✨</span> AI Match Analysis
-                        </h3>
-                        <div className={`px-4 py-2 rounded-xl font-bold text-lg ${matchResult.matchScore >= 80 ? 'bg-green-100 text-green-700' : matchResult.matchScore >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                          {matchResult.matchScore}% Match
-                        </div>
-                      </div>
-                      <p className="font-semibold text-gray-800 dark:text-gray-200 mb-4">{matchResult.verdict}</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-bold text-green-700 dark:text-green-400 mb-2">Top Strengths</h4>
-                          <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300">
-                            {matchResult.strengths?.map((s, i) => <li key={i}>{s}</li>)}
-                          </ul>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-red-700 dark:text-red-400 mb-2">Areas to Improve</h4>
-                          <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300">
-                            {matchResult.weaknesses?.map((w, i) => <li key={i}>{w}</li>)}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="flex gap-4 flex-wrap">
                     {!matchResult && (
@@ -1026,7 +938,7 @@ const Jobs = () => {
                       {selectedJob.isExternal ? (
                         <a href={selectedJob.applicationLink} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-center">Apply on External Site</a>
                       ) : (
-                        <button onClick={() => { handleApply(selectedJob); }} className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-center shadow-lg">Apply Now</button>
+                        <Button variant="primary" onClick={() => { handleApply(selectedJob); }} className="w-full py-3 text-center shadow-lg">Apply Now</Button>
                       )}
                     </div>
                   </div>

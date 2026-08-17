@@ -19,8 +19,8 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const setTokenCookie = (res, token) => {
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax', // to allow cross-origin in dev if needed, or strict.
+    secure: true, // Required for sameSite: 'none'
+    sameSite: 'none', // Required for cross-origin (e.g., localhost frontend to Render backend)
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 };
@@ -583,7 +583,9 @@ router.get('/me', protect, async (req, res) => {
 router.post('/refresh', async (req, res) => {
   try {
     let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
     
@@ -779,7 +781,11 @@ router.post('/logout', protect, async (req, res) => {
     // Update last active timestamp
     await req.user.updateLastActive();
 
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    });
     res.json({
       success: true,
       message: 'Logged out successfully'

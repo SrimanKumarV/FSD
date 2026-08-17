@@ -344,7 +344,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout API failed:', error);
+    }
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
     toast.success('Logged out successfully');
   };

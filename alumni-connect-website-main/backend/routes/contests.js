@@ -87,7 +87,7 @@ const fetchWithTimeout = require('../utils/fetchWithTimeout');
 router.get('/external', async (req, res) => {
   try {
     const cacheKey = 'external_contests';
-    const cachedContests = cache.get(cacheKey);
+    const cachedContests = await cache.get(cacheKey);
 
     if (cachedContests) {
       return res.json({ contests: cachedContests });
@@ -211,7 +211,7 @@ router.get('/external', async (req, res) => {
     });
 
     // Cache the merged results for 30 minutes
-    cache.set(cacheKey, contests);
+    await cache.set(cacheKey, contests);
 
     res.json({ contests });
   } catch (error) {

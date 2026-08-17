@@ -110,7 +110,7 @@ router.get('/external', async (req, res) => {
     
     // Create a unique cache key based on query params
     const cacheKey = `external_jobs_${category}_${search}_${limit}_${region}`;
-    const cachedJobs = cache.get(cacheKey);
+    const cachedJobs = await cache.get(cacheKey);
 
     if (cachedJobs) {
       return res.json(cachedJobs);
@@ -161,7 +161,7 @@ router.get('/external', async (req, res) => {
     };
 
     // Cache the response for 30 minutes
-    cache.set(cacheKey, result);
+    await cache.set(cacheKey, result);
 
     res.json(result);
   } catch (error) {

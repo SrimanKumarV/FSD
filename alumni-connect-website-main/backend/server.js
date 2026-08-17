@@ -32,6 +32,9 @@ if (process.env.FRONTEND_URL) {
   });
 }
 
+const { createAdapter } = require('@socket.io/redis-adapter');
+const cache = require('./utils/cache');
+
 // Socket.IO setup
 const io = socketIo(server, {
   cors: {
@@ -40,6 +43,14 @@ const io = socketIo(server, {
     credentials: true
   }
 });
+
+const pubClient = cache.client.duplicate();
+const subClient = cache.client.duplicate();
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log('Socket.io Redis adapter connected');
+}).catch(err => console.error('Redis adapter error:', err));
+
 app.set('io', io);
 
 // Middleware

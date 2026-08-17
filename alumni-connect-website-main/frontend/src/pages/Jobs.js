@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, MapPin, Building2, Calendar, Clock, DollarSign, Filter, Search, ChevronDown, CheckCircle2, ChevronRight, Share2, BookOpen, Plus, Eye, Users, TrendingUp, BriefcaseIcon, UserPlus } from 'lucide-react';
+import { Briefcase, MapPin, Building, Building2, Calendar, Clock, DollarSign, Filter, Search, ChevronDown, CheckCircle2, ChevronRight, Share2, BookOpen, Plus, Eye, Users, TrendingUp, BriefcaseIcon, UserPlus, Bookmark, ExternalLink } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
@@ -986,11 +986,11 @@ const Jobs = () => {
         )}
       </div>
 
-      {showPostForm && (
+      {showPostModal && (
         <PostJobModal 
-          onClose={() => setShowPostForm(false)} 
+          onClose={() => setShowPostModal(false)} 
           onSuccess={() => {
-            setShowPostForm(false);
+            setShowPostModal(false);
             fetchJobs();
           }} 
         />

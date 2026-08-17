@@ -1,328 +1,75 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
 const { protect } = require('../middleware/auth');
-const sendEmail = require('../utils/sendEmail');
-const { OAuth2Client } = require('google-auth-library');
-const Mentorship = require('../models/Mentorship');
-const MentorReward = require('../models/MentorReward');
-const Notification = require('../models/Notification');
-
-const { autoAssignMentor } = require('../services/mentorshipService');
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-// Generate JWT Token
+const authService = require('../services/authService');
 
 const setTokenCookie = (res, token) => {
   res.cookie('token', token, {
     httpOnly: true,
-    secure: true, // Required for sameSite: 'none'
-    sameSite: 'none', // Required for cross-origin (e.g., localhost frontend to Render backend)
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 };
 
-// Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
-  });
-};
-
-// @route   POST /api/auth/google
-// @desc    Login or Register with Google
-// @access  Public
 router.post('/google', async (req, res) => {
   try {
     const { credential } = req.body;
+    const result = await authService.processGoogleLogin(credential);
     
-    // useGoogleLogin returns an access_token, so we fetch user info directly from Google
-    const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-      headers: { Authorization: `Bearer ${credential}` }
-    });
-    
-    if (!googleResponse.ok) {
-      throw new Error('Failed to fetch user info from Google');
+    if (result.requiresRoleSelection) {
+      return res.json({ success: true, ...result });
     }
     
-    const payload = await googleResponse.json();
-    const { email, name, picture, sub } = payload;
-    
-    // Check if user exists
-    let user = await User.findOne({ email });
-    
-    let isNewUser = false;
-    if (!user) {
-      // Issue temporary token for role selection
-      const tempToken = jwt.sign(
-        { email, name, picture, sub, provider: 'google' },
-        process.env.JWT_SECRET,
-        { expiresIn: '15m' }
-      );
-      
-      return res.json({
-        success: true,
-        requiresRoleSelection: true,
-        tempToken,
-        message: 'Please select your role to complete registration'
-      });
-    } else {
-      let needsSave = false;
-      if (!user.photo && picture) {
-        user.photo = picture;
-        needsSave = true;
-      }
-      if (!user.isVerified) {
-        user.isVerified = true;
-        needsSave = true;
-      }
-      if (needsSave) {
-        await user.save();
-      }
-    }
-    
-    // Generate token
-    const token = generateToken(user._id);
-    const userResponse = user.getPublicProfile();
-    
-    setTokenCookie(res, token);
-    res.json({
-      success: true,
-      token,
-      user: userResponse,
-      isNewUser,
-      message: isNewUser ? 'Google account linked! Welcome to Alumnex.' : 'Login successful'
-    });
-    
+    setTokenCookie(res, result.token);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Google auth error:', error);
-    res.status(401).json({ message: 'Invalid Google token' });
+    res.status(error.status || 401).json({ message: error.message || 'Invalid Google token' });
   }
 });
 
-// @route   POST /api/auth/github
-// @desc    Login or Register with GitHub
-// @access  Public
 router.post('/github', async (req, res) => {
   try {
     const { code, clientId } = req.body;
-    
     if (!code) {
       return res.status(400).json({ message: 'GitHub authorization code is required' });
     }
 
-    // Determine if this is the mobile client or web client
-    const isMobile = clientId === 'Ov23liziKGoBWdUOVmxJ' || clientId === process.env.GITHUB_MOBILE_CLIENT_ID;
-    const activeClientId = isMobile ? 'Ov23liziKGoBWdUOVmxJ' : process.env.GITHUB_CLIENT_ID;
-    const activeClientSecret = isMobile ? '4439829704a6990d66d64877e2429eb4dba0f9b0' : process.env.GITHUB_CLIENT_SECRET;
-
-    // 1. Exchange code for access token
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        client_id: activeClientId,
-        client_secret: activeClientSecret,
-        code
-      })
-    });
-
-    const tokenData = await tokenResponse.json();
-    console.log('GitHub Token Response:', tokenData);
+    const result = await authService.processGithubLogin(code, clientId);
     
-    if (tokenData.error) {
-      throw new Error(tokenData.error_description || 'Failed to get GitHub token');
-    }
-
-    const accessToken = tokenData.access_token;
-
-    if (!accessToken) {
-      throw new Error('Access token missing from GitHub response');
-    }
-
-    // 2. Fetch user profile
-    const userResponse = await fetch('https://api.github.com/user', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json',
-        'User-Agent': 'Alumni-Connect-App'
-      }
-    });
-    
-    if (!userResponse.ok) {
-      const errorText = await userResponse.text();
-      console.error('GitHub User API Error:', errorText);
-      throw new Error('Failed to fetch user info from GitHub');
+    if (result.requiresRoleSelection) {
+      return res.json({ success: true, ...result });
     }
     
-    const githubUser = await userResponse.json();
-
-    // 3. Fetch user email (since email might be private on the profile)
-    const emailResponse = await fetch('https://api.github.com/user/emails', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json',
-        'User-Agent': 'Alumni-Connect-App'
-      }
-    });
-    
-    const emails = await emailResponse.json();
-    const primaryEmailObj = emails.find(e => e.primary) || emails[0];
-    
-    if (!primaryEmailObj || !primaryEmailObj.email) {
-      throw new Error('No email found in GitHub account');
-    }
-    
-    const email = primaryEmailObj.email;
-    const name = githubUser.name || githubUser.login;
-    const picture = githubUser.avatar_url;
-    
-    // 4. Check if user exists
-    let user = await User.findOne({ email });
-    
-    let isNewUser = false;
-    if (!user) {
-      // Issue temporary token for role selection
-      const tempToken = jwt.sign(
-        { email, name, picture, sub: githubUser.id.toString(), provider: 'github' },
-        process.env.JWT_SECRET,
-        { expiresIn: '15m' }
-      );
-      
-      return res.json({
-        success: true,
-        requiresRoleSelection: true,
-        tempToken,
-        message: 'Please select your role to complete registration'
-      });
-    } else {
-      let needsSave = false;
-      if (!user.photo && picture) {
-        user.photo = picture;
-        needsSave = true;
-      }
-      if (!user.isVerified) {
-        user.isVerified = true;
-        needsSave = true;
-      }
-      if (needsSave) {
-        await user.save();
-      }
-    }
-    
-    // Generate token
-    const token = generateToken(user._id);
-    const publicUser = user.getPublicProfile();
-    
-    setTokenCookie(res, token);
-    res.json({
-      success: true,
-      token,
-      user: publicUser,
-      isNewUser,
-      message: isNewUser ? 'GitHub account linked! Welcome to Alumnex.' : 'Login successful'
-    });
-    
+    setTokenCookie(res, result.token);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('GitHub auth error:', error);
-    res.status(401).json({ message: error.message || 'Invalid GitHub authentication' });
+    res.status(error.status || 401).json({ message: error.message || 'Invalid GitHub authentication' });
   }
 });
 
-// @route   POST /api/auth/oauth-complete
-// @desc    Complete OAuth registration by selecting role
-// @access  Public
 router.post('/oauth-complete', [
   body('tempToken', 'Token is required').exists(),
   body('role', 'Role must be student or alumni').isIn(['student', 'alumni'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { tempToken, role } = req.body;
-
-    let decoded;
-    try {
-      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({ message: 'Token is invalid or expired. Please login again.' });
-    }
-
-    if (!decoded.email || !decoded.provider) {
-      return res.status(400).json({ message: 'Invalid token payload' });
-    }
-
-    // Double check user doesn't exist
-    let user = await User.findOne({ email: decoded.email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    user = new User({
-      name: decoded.name,
-      email: decoded.email,
-      password: await bcrypt.hash(decoded.sub + process.env.JWT_SECRET, 10), // Random secure password
-      role: role,
-      photo: decoded.picture,
-      isVerified: true,
-      studentInfo: role === 'student' ? {} : undefined,
-      alumniInfo: role === 'alumni' ? {} : undefined,
-      isApproved: role === 'student' ? true : false // Alumni needs approval
-    });
+    const result = await authService.completeOAuth(tempToken, role);
     
-    await user.save();
-
-    // Send Welcome Email
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Welcome to Alumnex Connect!',
-        message: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
-            <p>Hi ${user.name},</p>
-            <p>Your account has been successfully created via ${decoded.provider === 'google' ? 'Google' : 'GitHub'}.</p>
-            <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
-            <br/>
-            <p>Best regards,<br/>The Alumnex Connect Team</p>
-          </div>
-        `
-      });
-    } catch (err) {
-      console.error('Welcome email send error:', err);
-    }
-
-    // Generate token
-    const token = generateToken(user._id);
-    const userResponse = user.getPublicProfile();
-
-    setTokenCookie(res, token);
-    res.json({
-      success: true,
-      token,
-      user: userResponse,
-      isNewUser: true,
-      message: `${decoded.provider === 'google' ? 'Google' : 'GitHub'} account linked! Welcome to Alumnex.`
-    });
-
+    setTokenCookie(res, result.token);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('OAuth complete error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
-// @access  Public
 router.post('/register', [
   body('name', 'Name is required').notEmpty().trim().isLength({ min: 2, max: 50 }),
   body('email', 'Please include a valid email').isEmail().normalizeEmail(),
@@ -353,233 +100,52 @@ router.post('/register', [
   }).trim()
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const {
-      name,
-      email,
-      password,
-      role,
-      studentInfo,
-      alumniInfo,
-      skills,
-      interests,
-      location,
-      bio,
-      collegeInfo,
-      college,
-      country,
-      department
-    } = req.body;
-
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Create user object
-    const userFields = {
-      name,
-      email,
-      password,
-      role,
-      skills: skills || [],
-      interests: interests || [],
-      location,
-      bio,
-      college,
-      country,
-      department
-    };
-
-    // Add role-specific information
-    if (role === 'student') {
-      userFields.studentInfo = studentInfo || {};
-    } else if (role === 'alumni') {
-      userFields.alumniInfo = alumniInfo || {};
-      // Alumni accounts need approval
-      userFields.isApproved = false;
-    } else if (role === 'college') {
-      userFields.collegeInfo = collegeInfo || {};
-      // College accounts need admin verification
-      userFields.isApproved = false; 
-    }
-
-    // Generate 6-digit OTP for email verification
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    userFields.verificationOtp = otp;
-    userFields.verificationOtpExpires = Date.now() + 15 * 60 * 1000; // 15 mins
-    userFields.isVerified = false;
-
-    // Create new user
-    user = new User(userFields);
-    await user.save();
-
-    // Send verification email
-    const message = `
-      <h1>Welcome to Alumnex Connect!</h1>
-      <p>Thank you for registering. Please verify your email address to complete your registration.</p>
-      <p>Your 6-digit verification code is: <strong>${otp}</strong></p>
-      <p>This code is valid for 15 minutes.</p>
-    `;
-    
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Alumnex Connect - Verify Your Email',
-        message
-      });
-    } catch (err) {
-      console.error('Registration email send error:', err);
-    }
-
-    res.status(201).json({
-      success: true,
-      requiresVerification: true,
-      user: { email: user.email },
-      message: 'Registration successful! Please check your email for the verification code.'
-    });
-
+    const result = await authService.register(req.body);
+    res.status(201).json({ success: true, ...result });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error during registration' });
   }
 });
 
-// @route   POST /api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
 router.post('/login', [
   body('email', 'Please include a valid email').isEmail().normalizeEmail(),
   body('password', 'Password is required').exists()
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, password } = req.body;
-
-    // Check if user exists
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(400).json({ message: 'Account is deactivated' });
-    }
-
-    // Check if user is verified
-    if (!user.isVerified) {
-      // Generate new OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      user.verificationOtp = otp;
-      user.verificationOtpExpires = Date.now() + 15 * 60 * 1000;
-      await user.save();
-      
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Alumnex Connect - Verify Your Email',
-          message: `<p>Your verification code is: <strong>${otp}</strong></p>`
-        });
-      } catch (e) {
-        console.error('Email failed', e);
-      }
-      
-      return res.status(403).json({ 
-        message: 'Please verify your email to login. A new OTP has been sent to your email.',
-        requiresVerification: true,
-        email: user.email
-      });
-    }
-
-    // Check if alumni account is approved
-    if (user.role === 'alumni' && !user.isApproved) {
-      return res.status(400).json({ 
-        message: 'Your alumni account is pending approval. Please wait for admin review.' 
-      });
-    }
-
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Update last active
-    try {
-      await user.updateLastActive();
-    } catch (updateError) {
-      console.warn('Failed to update last active:', updateError);
-      // Continue with login even if update fails
-    }
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Return user data (without password)
-    let userResponse;
-    try {
-      userResponse = user.getPublicProfile();
-    } catch (profileError) {
-      console.error('Error getting public profile:', profileError);
-      // Fallback to basic user info
-      userResponse = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        isApproved: user.isApproved
-      };
-    }
-
-    setTokenCookie(res, token);
-    res.json({
-      success: true,
-      token,
-      user: userResponse
-    });
+    const result = await authService.login(email, password);
+    
+    setTokenCookie(res, result.token);
+    res.json({ success: true, ...result });
   } catch (error) {
+    if (error.requiresVerification) {
+      return res.status(error.status || 403).json(error);
+    }
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error during login' });
   }
 });
 
-// @route   GET /api/auth/me
-// @desc    Get current user profile
-// @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
+    // Re-use User from models here for simplicity, or we can move it to user service
+    const User = require('../models/User');
     const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({
-      success: true,
-      user: user.getPublicProfile()
-    });
-
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ success: true, user: user.getPublicProfile() });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// @route   POST /api/auth/refresh
-// @desc    Refresh JWT token
-// @access  Public (verifies token manually ignoring expiration)
 router.post('/refresh', async (req, res) => {
   try {
     let token;
@@ -588,147 +154,50 @@ router.post('/refresh', async (req, res) => {
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
-    
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
 
-    // Verify token ignoring expiration so we can refresh an expired token!
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
-
-    // Ensure the user still exists and is active
-    const user = await User.findById(decoded.id);
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'User not found or deactivated' });
-    }
-
-    // Generate new token
-    const newToken = generateToken(user._id);
-
+    const newToken = await authService.refreshToken(token);
     setTokenCookie(res, newToken);
-    res.json({
-      success: true,
-      token: newToken
-    });
-
+    res.json({ success: true, token: newToken });
   } catch (error) {
     console.error('Token refresh error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/change-password
-// @desc    Change user password
-// @access  Private
 router.post('/change-password', [
   protect,
   body('currentPassword', 'Current password is required').exists(),
   body('newPassword', 'New password must be at least 6 characters').isLength({ min: 6 })
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { currentPassword, newPassword } = req.body;
-
-    // Get user with password
-    const user = await User.findById(req.user._id).select('+password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Check current password
-    const isMatch = await user.comparePassword(currentPassword);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
-    }
-
-    // Update password
-    user.password = newPassword;
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Password changed successfully'
-    });
-
+    const result = await authService.changePassword(req.user._id, currentPassword, newPassword);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/forgot-password
-// @desc    Send password reset OTP email
-// @access  Public
 router.post('/forgot-password', [
   body('email', 'Please include a valid email').isEmail().normalizeEmail()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      // Don't reveal if user exists or not
-      return res.json({
-        success: true,
-        message: 'If an account with that email exists, an OTP has been sent.'
-      });
-    }
-
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Set OTP and expiration (15 minutes)
-    user.resetPasswordOtp = otp;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
-    await user.save();
-
-    // Send email
-    const message = `
-      <h1>Password Reset Request</h1>
-      <p>You requested a password reset for your Alumnex Connect account.</p>
-      <p>Your 6-digit verification code is: <strong>${otp}</strong></p>
-      <p>This code is valid for 15 minutes.</p>
-      <p>If you did not request this, please ignore this email.</p>
-    `;
-
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Alumnex Connect - Password Reset Verification Code',
-        message
-      });
-
-      res.json({
-        success: true,
-        message: 'OTP sent to your email'
-      });
-    } catch (err) {
-      console.error('Email send error:', err);
-      user.resetPasswordOtp = undefined;
-      user.resetPasswordExpires = undefined;
-      await user.save();
-      return res.status(500).json({ message: 'Email could not be sent' });
-    }
-
+    const result = await authService.forgotPassword(email);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/reset-password
-// @desc    Reset password with OTP
-// @access  Public
 router.post('/reset-password', [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('otp', 'OTP is required').exists(),
@@ -736,390 +205,126 @@ router.post('/reset-password', [
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, otp, newPassword } = req.body;
-
-    // Find user with matching email and OTP that hasn't expired
-    const user = await User.findOne({
-      email,
-      resetPasswordOtp: otp,
-      resetPasswordExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
-
-    // Update password
-    user.password = newPassword;
-    
-    // Clear OTP fields
-    user.resetPasswordOtp = undefined;
-    user.resetPasswordExpires = undefined;
-    
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Password reset successfully'
-    });
-
+    const result = await authService.resetPassword(email, otp, newPassword);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Reset password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/logout
-// @desc    Logout user (client-side token removal)
-// @access  Private
 router.post('/logout', protect, async (req, res) => {
   try {
-    // Update last active timestamp
     await req.user.updateLastActive();
-
     res.clearCookie('token', {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
     });
-    res.json({
-      success: true,
-      message: 'Logged out successfully'
-    });
-
+    res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// @route   POST /api/auth/verify-email
-// @desc    Verify user email with OTP
-// @access  Public
 router.post('/verify-email', [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('otp', 'OTP is required').exists()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, otp } = req.body;
-
-    const user = await User.findOne({
-      email,
-      verificationOtp: otp,
-      verificationOtpExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'Email already verified' });
-    }
-
-    user.isVerified = true;
-    user.verificationOtp = undefined;
-    user.verificationOtpExpires = undefined;
-    await user.save();
-
-    // Send Welcome Email
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Welcome to Alumnex Connect!',
-        message: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #4f46e5;">Welcome to Alumnex Connect!</h1>
-            <p>Hi ${user.name},</p>
-            <p>Your email has been successfully verified, and your account is now active.</p>
-            <p>We are thrilled to have you on board! You can now explore the platform, connect with peers, find opportunities, and much more.</p>
-            <br/>
-            <p>Best regards,<br/>The Alumnex Connect Team</p>
-          </div>
-        `
-      });
-    } catch (err) {
-      console.error('Welcome email send error:', err);
-    }
-
-    const token = generateToken(user._id);
-
-    // Auto-assign mentor for new students (fire-and-forget, non-blocking)
-    if (user.role === 'student') {
-      autoAssignMentor(user._id, user.college).catch(e => console.error('Auto-assign error:', e));
-    }
-
-    setTokenCookie(res, token);
-    res.json({
-      success: true,
-      message: 'Email verified successfully! You are now logged in.',
-      token,
-      user: user.getPublicProfile()
-    });
-
+    const result = await authService.verifyEmail(email, otp);
+    
+    setTokenCookie(res, result.token);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Email verification error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/resend-verification
-// @desc    Resend email verification OTP
-// @access  Public
 router.post('/resend-verification', [
   body('email', 'Valid email is required').isEmail().normalizeEmail()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      // Return success even if user doesn't exist for security
-      return res.json({ success: true, message: 'If an account exists, a new OTP has been sent.' });
-    }
-
-    // Check if already verified
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'Email already verified' });
-    }
-
-    // Rate limiting: Check if an OTP was sent recently (e.g., within the last 60 seconds)
-    // We can estimate this if verificationOtpExpires is > 14 minutes from now
-    // (since it's set to 15 mins)
-    const fourteenMinsFromNow = Date.now() + 14 * 60 * 1000;
-    if (user.verificationOtpExpires && user.verificationOtpExpires > fourteenMinsFromNow) {
-      return res.status(429).json({ message: 'Please wait a minute before requesting a new OTP.' });
-    }
-
-    // Generate new 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.verificationOtp = otp;
-    user.verificationOtpExpires = Date.now() + 15 * 60 * 1000;
-    await user.save();
-
-    // Send verification email
-    const message = `
-      <h1>Alumnex Connect</h1>
-      <p>You requested a new verification code.</p>
-      <p>Your 6-digit verification code is: <strong>${otp}</strong></p>
-      <p>This code is valid for 15 minutes.</p>
-    `;
-    
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Alumnex Connect - New Verification Code',
-        message
-      });
-    } catch (err) {
-      console.error('Resend verification email error:', err);
-    }
-
-    res.json({
-      success: true,
-      message: 'A new verification OTP has been sent to your email.'
-    });
-
+    const result = await authService.resendVerification(email);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Resend verification error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/send-2fa
-// @desc    Send 2FA OTP via chosen method
-// @access  Public
 router.post('/send-2fa', [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('method', 'Method must be email or sms').isIn(['email', 'sms'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, method } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    if (!user.twoFactorOtp || user.twoFactorOtpExpires < Date.now()) {
-      // Regenerate OTP if expired or missing
-      user.twoFactorOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
-      await user.save();
-    }
-
-    if (method === 'sms') {
-      if (!user.phoneNumber) {
-        return res.status(400).json({ message: 'No phone number associated with this account' });
-      }
-      
-      // Simulating SMS integration (Twilio / Fast2SMS)
-      console.log(`[SMS OTP SIMULATION] Sending OTP ${user.twoFactorOtp} to ${user.phoneNumber}`);
-      // In production:
-      // await twilioClient.messages.create({
-      //   body: `Your Alumnex Connect login OTP is ${user.twoFactorOtp}.`,
-      //   from: process.env.TWILIO_PHONE,
-      //   to: user.phoneNumber
-      // });
-      
-    } else {
-      // Email
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Alumnex Connect - 2FA Login Verification',
-          message: `<p>Your secure verification code is: <strong>${user.twoFactorOtp}</strong></p>`
-        });
-      } catch (err) {
-        console.error('Email failed', err);
-        return res.status(500).json({ message: 'Failed to send OTP via email' });
-      }
-    }
-
-    res.json({
-      success: true,
-      message: `2FA OTP sent via ${method}`
-    });
+    const result = await authService.send2FA(email, method);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Send 2FA error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// @route   POST /api/auth/verify-2fa
-// @desc    Verify 2FA OTP and login
-// @access  Public
 router.post('/verify-2fa', [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('otp', 'OTP is required').exists()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, otp } = req.body;
-    const user = await User.findOne({
-      email,
-      twoFactorOtp: otp,
-      twoFactorOtpExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
-
-    // Clear 2FA OTP fields
-    user.twoFactorOtp = undefined;
-    user.twoFactorOtpExpires = undefined;
-    await user.save();
+    const result = await authService.verify2FA(email, otp);
     
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Return user data
-    let userResponse;
-    try {
-      userResponse = user.getPublicProfile();
-    } catch (profileError) {
-      console.error('Error getting public profile:', profileError);
-      userResponse = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        isApproved: user.isApproved
-      };
-    }
-
-    setTokenCookie(res, token);
-    res.json({
-      success: true,
-      token,
-      user: userResponse,
-      message: 'Login successful'
-    });
+    setTokenCookie(res, result.token);
+    res.json({ success: true, ...result });
   } catch (error) {
     console.error('Verify 2FA error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(error.status || 500).json({ message: error.message || 'Server error' });
   }
 });
 
-// ==========================================
-// MOBILE OAUTH PROXY ROUTES (CAPACITOR APK)
-// ==========================================
-
-// @route   GET /api/auth/mobile/github
-// @desc    Initiate GitHub OAuth for Mobile App
-// @access  Public
+// Mobile proxy routes
 router.get('/mobile/github', (req, res) => {
   const isMobile = true;
   const activeClientId = isMobile ? 'Ov23liziKGoBWdUOVmxJ' : process.env.GITHUB_CLIENT_ID;
-  
-  // The redirect_uri must match exactly what is registered in GitHub OAuth app
-  // To avoid URI mismatch errors, we omit redirect_uri if we haven't registered this specific dynamic URL,
-  // GitHub will use the default Authorization callback URL registered in the OAuth app.
-  // We will assume the default one is configured correctly, or we can explicitly pass our backend proxy if we know it.
-  // For safety, we will just pass client_id. If GitHub requires redirect_uri, we'll build it.
   const backendUrl = req.protocol + '://' + req.get('host');
   const redirectUri = `${backendUrl}/api/auth/mobile/github/callback`;
-  
   res.redirect(`https://github.com/login/oauth/authorize?client_id=${activeClientId}&redirect_uri=${redirectUri}&scope=user:email`);
 });
 
-// @route   GET /api/auth/mobile/github/callback
-// @desc    Handle GitHub OAuth callback for Mobile App
-// @access  Public
 router.get('/mobile/github/callback', (req, res) => {
   const { code } = req.query;
-  if (!code) {
-    return res.status(400).send('No code received from GitHub');
-  }
-  
-  // Redirect back to the mobile app using the custom scheme
+  if (!code) return res.status(400).send('No code received from GitHub');
   res.redirect(`com.alumnex.connect://oauth/github?code=${code}`);
 });
 
-// @route   GET /api/auth/mobile/google
-// @desc    Initiate Google OAuth for Mobile App
-// @access  Public
 router.get('/mobile/google', (req, res) => {
   const backendUrl = req.protocol + '://' + req.get('host');
   const redirectUri = `${backendUrl}/api/auth/mobile/google/callback`;
   const clientId = process.env.GOOGLE_CLIENT_ID || '253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com';
-  
-  // Using response_type=token so Google returns the token directly
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email profile`);
 });
 
-// @route   GET /api/auth/mobile/google/callback
-// @desc    Handle Google OAuth callback for Mobile App
-// @access  Public
 router.get('/mobile/google/callback', (req, res) => {
-  // Google with response_type=token sends the token in the URL fragment (#access_token=...)
-  // The backend server cannot read the URL fragment, so we must serve a small HTML page
-  // that parses the fragment on the client side and redirects to our custom scheme.
   res.send(`
     <html>
       <head><title>Authenticating...</title></head>

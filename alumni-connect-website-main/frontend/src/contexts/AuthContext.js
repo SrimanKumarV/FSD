@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { useAuthUtils } from '../hooks/useAuthUtils';
 
 // Create context
 const AuthContext = createContext();
@@ -97,6 +98,7 @@ const authReducer = (state, action) => {
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const authUtils = useAuthUtils(state.user);
 
   // Sync token to localStorage - removed for security (using HTTP-only cookies)
   useEffect(() => {
@@ -481,65 +483,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check if user is admin
-  const isAdmin = () => {
-    return state.user?.role === 'admin';
-  };
-
-  // Check if user is alumni
-  const isAlumni = () => {
-    return state.user?.role === 'alumni';
-  };
-
-  // Check if user is student
-  const isStudent = () => {
-    return state.user?.role === 'student';
-  };
-
-  // Check if user is college
-  const isCollege = () => {
-    return state.user?.role === 'college';
-  };
-
-  // Check if user is verified
-  const isVerified = () => {
-    return state.user?.isVerified;
-  };
-
-  // Check if user is approved (for alumni)
-  const isApproved = () => {
-    return state.user?.isApproved;
-  };
-
-  // Check if user can access feature
-  const canAccess = (feature) => {
-    if (!state.user) return false;
-    
-    switch (feature) {
-      case 'mentorship':
-        return state.user.role === 'student' || 
-               (state.user.role === 'alumni' && state.user.isApproved);
-      
-      case 'post-jobs':
-        return state.user.role === 'alumni' || state.user.role === 'admin' || state.user.role === 'college';
-      
-      case 'create-events':
-        return state.user.role === 'alumni' || state.user.role === 'admin' || state.user.role === 'college';
-      
-      case 'create-contests':
-        return state.user.role === 'alumni' || state.user.role === 'admin' || state.user.role === 'college';
-      
-      case 'moderate':
-        return state.user.role === 'admin' || 
-               (state.user.role === 'alumni' && state.user.isApproved);
-      
-      case 'admin':
-        return state.user.role === 'admin';
-      
-      default:
-        return true;
-    }
-  };
+  // Note: Utility functions (isAdmin, isAlumni, etc.) extracted to useAuthUtils
 
   const value = {
     // State
@@ -567,13 +511,7 @@ export const AuthProvider = ({ children }) => {
     verify2FA,
     
     // Utility functions
-    isAdmin,
-    isAlumni,
-    isStudent,
-    isCollege,
-    isVerified,
-    isApproved,
-    canAccess
+    ...authUtils
   };
 
   return (

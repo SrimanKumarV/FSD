@@ -21,7 +21,7 @@ jobs:
           node-version: '18'
           
       - name: Run Basic Server Health Check
-        run: node health_monitor.js
+        run: node scripts/health_monitor.js
         
       - name: Run Advanced Data Integrity Check
-        run: node advanced_monitor.js
+        run: node scripts/advanced_monitor.js

@@ -72,7 +72,7 @@ const FAQ = () => {
                   {openIndex === index ? (
                     <ChevronUp className="w-5 h-5 text-primary-500 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
                   )}
                 </button>
                 <AnimatePresence>

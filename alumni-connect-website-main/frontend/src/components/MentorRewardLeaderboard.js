@@ -50,7 +50,7 @@ const MentorRewardLeaderboard = ({ college }) => {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col w-full items-center justify-center py-20 gap-3 text-gray-400 min-h-[400px]">
+      <div className="flex-1 flex flex-col w-full items-center justify-center py-20 gap-3 text-gray-500 min-h-[400px]">
         <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
         <span className="text-sm">Loading mentor rankings...</span>
       </div>
@@ -230,7 +230,7 @@ const MentorRewardLeaderboard = ({ college }) => {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-gray-400" />
+                          <Users className="w-3.5 h-3.5 text-gray-500" />
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             {mentor.breakdown?.completedMentorships || 0} completed
                           </span>
@@ -244,7 +244,7 @@ const MentorRewardLeaderboard = ({ college }) => {
                             {mentor.totalPoints}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-400">reward pts</span>
+                        <span className="text-xs text-gray-500">reward pts</span>
                       </td>
                     </motion.tr>
                     {/* Expanded breakdown row */}

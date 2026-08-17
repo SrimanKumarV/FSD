@@ -201,7 +201,7 @@ const Leaderboard = () => {
                 >
                   <div className="p-2 border-b border-gray-100 dark:border-gray-700">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                       <input
                         type="text"
                         placeholder={activeTab === 'Country' ? 'Search country...' : `Search universities in ${selectedCountry}...`}
@@ -225,7 +225,7 @@ const Leaderboard = () => {
                           </div>
                         ))
                     ) : loadingUnis ? (
-                      <div className="flex items-center justify-center py-8 gap-2 text-gray-400">
+                      <div className="flex items-center justify-center py-8 gap-2 text-gray-500">
                         <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
                         <span className="text-sm">Loading universities...</span>
                       </div>
@@ -234,12 +234,12 @@ const Leaderboard = () => {
                         <div key={i} onClick={() => { setSelectedCollege(name); setDropdownSearch(''); setShowDropdown(false); }}
                           className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center gap-3 ${selectedCollege === name ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                         >
-                          <Building2 className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+                          <Building2 className="w-3.5 h-3.5 shrink-0 text-gray-500" />
                           <span className="truncate">{name}</span>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-8 text-gray-400 text-sm">
+                      <div className="text-center py-8 text-gray-500 text-sm">
                         {dropdownSearch ? 'No universities found' : 'Type to search...'}
                       </div>
                     )}

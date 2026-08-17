@@ -29,7 +29,7 @@ const HelpCentre = () => {
             
             <div className="mt-8 w-full max-w-xl relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-6 w-6 text-gray-400" />
+                <Search className="h-6 w-6 text-gray-500" />
               </div>
               <input
                 type="text"

@@ -130,7 +130,7 @@ const Notifications = () => {
           {filteredNotifications.length === 0 ? (
             <div className="py-16 text-center flex flex-col items-center">
               <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <Bell className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                <Bell className="w-8 h-8 text-gray-500 dark:text-gray-500" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Notifications Yet</h3>
               <p className="text-gray-500 dark:text-gray-400">When you get notifications, they'll show up here.</p>
@@ -153,7 +153,7 @@ const Notifications = () => {
                         <p className={`text-base text-gray-900 dark:text-white ${!notification.isRead ? 'font-bold' : 'font-medium'}`}>
                           {notification.title}
                         </p>
-                        <p className="text-sm text-gray-400 whitespace-nowrap ml-4">
+                        <p className="text-sm text-gray-500 whitespace-nowrap ml-4">
                           {formatNotificationTime(notification.createdAt)}
                         </p>
                       </div>

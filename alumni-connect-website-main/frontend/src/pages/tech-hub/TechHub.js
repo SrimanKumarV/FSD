@@ -136,7 +136,7 @@ const TechHub = () => {
                 <div key={reply._id} className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
                   <div className="flex justify-between items-start mb-2">
                     <span className="font-semibold text-sm text-gray-900 dark:text-white">{reply.author?.name}</span>
-                    <button className="flex items-center text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors">
+                    <button className="flex items-center text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors">
                       <ThumbsUp className="w-4 h-4 mr-1" />
                       <span className="text-xs">{reply.upvotes?.length || 0}</span>
                     </button>

@@ -432,7 +432,7 @@ const Mentorship = () => {
               >
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                     <input
                       type="text"
                       placeholder="Search mentors by skills, industry, or location..."
@@ -685,7 +685,7 @@ const Mentorship = () => {
 
             {filteredMentors.length === 0 && !loading && (
               <div className="text-center py-12 flex-1 flex flex-col items-center justify-center w-full min-h-[400px]">
-                <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <BookOpen className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No mentors found</h3>
                 <p className="text-gray-600">Try adjusting your filters or search criteria.</p>
               </div>
@@ -813,7 +813,7 @@ const Mentorship = () => {
               </div>
             ) : (
               <div className="text-center py-12 flex-1 flex flex-col items-center justify-center w-full min-h-[400px]">
-                <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <MessageCircle className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No mentorships yet</h3>
                 <p className="text-gray-600 mb-4">
                   Start your mentorship journey by finding a mentor who can guide you.
@@ -863,7 +863,7 @@ const Mentorship = () => {
           >
             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Request Mentorship</h3>
-              <button onClick={() => setShowRequestForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <button onClick={() => setShowRequestForm(false)} className="text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -937,7 +937,7 @@ const Mentorship = () => {
           >
             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Book 1:1 Session</h3>
-              <button onClick={() => setShowBookingModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <button onClick={() => setShowBookingModal(false)} className="text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-6 h-6" />
               </button>
             </div>

@@ -27,7 +27,7 @@ const JobLogo = ({ logo, company }) => {
   const [error, setError] = useState(false);
 
   if (!logo || error) {
-    return <Building className="w-8 h-8 text-gray-400 dark:text-gray-500" />;
+    return <Building className="w-8 h-8 text-gray-500 dark:text-gray-500" />;
   }
 
   return (
@@ -296,7 +296,7 @@ const ApplyJobModal = ({ job, onClose, onSuccess }) => {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Resume Link (Optional)</label>
             <input type="url" placeholder="https://link-to-resume.com" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.resumeLink} onChange={e => setFormData(prev => ({...prev, resumeLink: e.target.value}))} />
-            <p className="text-xs text-gray-400 mt-1">Provide a link to your Google Drive or Portfolio resume.</p>
+            <p className="text-xs text-gray-500 mt-1">Provide a link to your Google Drive or Portfolio resume.</p>
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Cover Letter / Note</label>
@@ -604,7 +604,7 @@ const Jobs = () => {
             >
           <div className="flex flex-col lg:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search jobs by title, company, or keywords..."
@@ -795,7 +795,7 @@ const Jobs = () => {
 
               {sortedJobs.length === 0 && (
                 <div className="text-center py-12">
-                  <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <Briefcase className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
                   <p className="text-gray-600">Try adjusting your filters or search criteria.</p>
                 </div>
@@ -827,7 +827,7 @@ const Jobs = () => {
                       className={`p-3 rounded-xl transition-all ${
                         savedJobs.includes(selectedJob._id || selectedJob.id) 
                           ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' 
-                          : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                          : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                       }`}
                     >
                       <Bookmark className={`w-6 h-6 ${savedJobs.includes(selectedJob._id || selectedJob.id) ? 'fill-current' : ''}`} />
@@ -836,27 +836,27 @@ const Jobs = () => {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
                     <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Location</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Location</p>
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center">
                         <MapPin className="w-4 h-4 mr-1 text-primary-500" />
                         {selectedJob.location}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Salary</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Salary</p>
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center">
                         <DollarSign className="w-4 h-4 mr-1 text-green-500" />
                         {selectedJob.salary?.min ? `$${selectedJob.salary.min.toLocaleString()}` : 'Not listed'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Experience</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Experience</p>
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200 capitalize">
                         {selectedJob.experience || 'Any'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Type</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Type</p>
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200 capitalize">
                         {(selectedJob.jobType || 'full-time').replace('-', ' ')}
                       </p>
@@ -1000,19 +1000,19 @@ const Jobs = () => {
                     
                     <div className="grid grid-cols-2 gap-3 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Location</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center"><MapPin className="w-3 h-3 mr-1 text-primary-500" />{selectedJob.location}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Salary</p>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Salary</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center"><DollarSign className="w-3 h-3 mr-1 text-green-500" />{selectedJob.salary?.min ? `$${selectedJob.salary.min.toLocaleString()}` : 'Not listed'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Experience</p>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Experience</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">{selectedJob.experience || 'Any'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Type</p>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Type</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">{(selectedJob.jobType || 'full-time').replace('-', ' ')}</p>
                       </div>
                     </div>

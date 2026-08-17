@@ -391,7 +391,7 @@ const Register = () => {
                   Full Name
                 </label>
                 <div className="mt-2 relative">
-                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="name"
                     name="name"
@@ -418,7 +418,7 @@ const Register = () => {
                   Email Address
                 </label>
                 <div className="mt-2 relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="email"
                     name="email"
@@ -563,7 +563,7 @@ const Register = () => {
                     Expected Graduation Year
                   </label>
                   <div className="mt-2 relative">
-                    <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                     <select
                       id="graduationYear"
                       name="graduationYear"
@@ -593,7 +593,7 @@ const Register = () => {
                       Established Year
                     </label>
                     <div className="mt-2 relative">
-                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
                       <input
                         id="establishedYear"
                         name="establishedYear"
@@ -663,7 +663,7 @@ const Register = () => {
                       Graduation Year
                     </label>
                     <div className="mt-2 relative">
-                      <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                       <select
                         id="graduationYear"
                         name="graduationYear"
@@ -692,7 +692,7 @@ const Register = () => {
                       Company
                     </label>
                     <div className="mt-2 relative">
-                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                      <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
                       <input
                         id="company"
                         name="company"
@@ -817,7 +817,7 @@ const Register = () => {
                   Password
                 </label>
                 <div className="mt-2 relative">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="password"
                     name="password"
@@ -833,7 +833,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -869,7 +869,7 @@ const Register = () => {
                   Confirm Password
                 </label>
                 <div className="mt-2 relative">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -885,7 +885,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>

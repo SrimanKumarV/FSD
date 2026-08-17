@@ -89,10 +89,10 @@ const CareerBoard = () => {
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white">{job.title}</h3>
                       <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-300">
-                        <span className="flex items-center"><Building className="w-4 h-4 mr-1 text-gray-400"/> {job.company}</span>
-                        <span className="flex items-center"><MapPin className="w-4 h-4 mr-1 text-gray-400"/> {job.location} {job.isRemote && '(Remote)'}</span>
-                        <span className="flex items-center"><Briefcase className="w-4 h-4 mr-1 text-gray-400"/> <span className="capitalize">{job.jobType}</span></span>
-                        <span className="flex items-center"><Clock className="w-4 h-4 mr-1 text-gray-400"/> {new Date(job.createdAt).toLocaleDateString()}</span>
+                        <span className="flex items-center"><Building className="w-4 h-4 mr-1 text-gray-500"/> {job.company}</span>
+                        <span className="flex items-center"><MapPin className="w-4 h-4 mr-1 text-gray-500"/> {job.location} {job.isRemote && '(Remote)'}</span>
+                        <span className="flex items-center"><Briefcase className="w-4 h-4 mr-1 text-gray-500"/> <span className="capitalize">{job.jobType}</span></span>
+                        <span className="flex items-center"><Clock className="w-4 h-4 mr-1 text-gray-500"/> {new Date(job.createdAt).toLocaleDateString()}</span>
                       </div>
                       {job.skills && job.skills.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-4">

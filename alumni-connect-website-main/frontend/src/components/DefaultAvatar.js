@@ -3,7 +3,7 @@ import React from 'react';
 const DefaultAvatar = ({ className = "w-10 h-10" }) => {
   return (
     <svg 
-      className={`${className} text-gray-400 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-full border-2 border-white dark:border-gray-700 shadow-sm transition-colors duration-200`} 
+      className={`${className} text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-full border-2 border-white dark:border-gray-700 shadow-sm transition-colors duration-200`} 
       fill="currentColor" 
       viewBox="0 0 24 24"
     >

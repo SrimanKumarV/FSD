@@ -498,7 +498,7 @@ const Chat = () => {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Search conversations..."
@@ -566,7 +566,7 @@ const Chat = () => {
                             <span className="flex items-center">
                               {lastMessage.sender === (user?._id || user?.id) && (
                                 <span className="mr-1">
-                                  {lastMessage.status === 'read' ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-gray-400" />}
+                                  {lastMessage.status === 'read' ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-gray-500" />}
                                 </span>
                               )}
                               {lastMessage.messageType === 'call-log' 
@@ -664,7 +664,7 @@ const Chat = () => {
                     <button 
                       onClick={() => startCall(otherParticipantId, false)}
                       disabled={isCalling || callStatus !== 'idle'}
-                      className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
+                      className="p-2 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
                       title="Start Voice Call"
                     >
                       <Phone className="w-5 h-5" />
@@ -672,14 +672,14 @@ const Chat = () => {
                     <button 
                       onClick={() => startCall(otherParticipantId, true)}
                       disabled={isCalling || callStatus !== 'idle'}
-                      className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
+                      className="p-2 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all disabled:opacity-50"
                       title="Start Video Call"
                     >
                       <Video className="w-5 h-5" />
                     </button>
                   </>
                 )}
-                <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                <button className="p-2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                   <MoreVertical className="w-5 h-5" />
                 </button>
               </div>
@@ -812,20 +812,20 @@ const Chat = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
+                  className="p-2 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
                 >
                   <Paperclip className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
+                  className="p-2 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all"
                 >
                   <Image className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className={`p-2 rounded-xl transition-all ${showEmojiPicker ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20' : 'text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
+                  className={`p-2 rounded-xl transition-all ${showEmojiPicker ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20' : 'text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
                 >
                   <Smile className="w-5 h-5" />
                 </button>
@@ -896,7 +896,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
   if (message.metadata?.isDeleted) {
     return (
       <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-        <div className="px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-400 dark:text-gray-500 italic text-sm">
+        <div className="px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-transparent text-gray-500 dark:text-gray-500 italic text-sm">
           This message was unsent.
         </div>
       </div>

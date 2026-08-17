@@ -232,7 +232,7 @@ const Layout = ({ children }) => {
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-600"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -380,7 +380,7 @@ const Layout = ({ children }) => {
               <div className="relative">
                 <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="p-2 text-gray-400 hover:text-primary-500 dark:text-gray-500 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl relative transition-all duration-300"
+                  className="p-2 text-gray-500 hover:text-primary-500 dark:text-gray-500 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl relative transition-all duration-300"
                 >
                   <Bell className="w-6 h-6" />
                   {unreadCount > 0 && (
@@ -430,7 +430,7 @@ const Layout = ({ children }) => {
                                     <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">
                                       {notification.content}
                                     </p>
-                                    <p className="text-xs text-gray-400 mt-1">
+                                    <p className="text-xs text-gray-500 mt-1">
                                       {formatNotificationTime(notification.createdAt)}
                                     </p>
                                   </div>
@@ -466,7 +466,7 @@ const Layout = ({ children }) => {
                     <p className="text-sm font-semibold text-gray-900 dark:text-white notranslate">{user?.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 capitalize font-medium">{user?.role}</p>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-500" />
                 </button>
 
                 <AnimatePresence>

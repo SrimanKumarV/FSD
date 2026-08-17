@@ -495,7 +495,7 @@ const DevPulse = () => {
                         <div className="flex items-center gap-2">
                           {hasStat && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                           {hasError && <AlertCircle className="w-4 h-4 text-red-400" />}
-                          {!uname && <span className="text-xs text-gray-400 dark:text-slate-600 italic">not linked</span>}
+                          {!uname && <span className="text-xs text-gray-500 dark:text-slate-600 italic">not linked</span>}
                           {url && <a href={url} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5 text-gray-500 dark:text-slate-500 hover:text-gray-900 dark:text-white" /></a>}
                         </div>
                       </div>

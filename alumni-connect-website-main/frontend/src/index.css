@@ -41,13 +41,13 @@
     @apply bg-primary-500/40 text-primary-100;
   }
 
-  /* Hidden scrollbar — keeps scroll functionality, hides the bar */
-  ::-webkit-scrollbar {
+  /* Scrollbar */
+  .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
   .dark body {

@@ -132,7 +132,7 @@ const DevProfileSettings = () => {
               <CheckCircle className="w-3 h-3 mr-1" /> Verified
             </span>
           ) : (
-            <span className="flex items-center text-xs font-medium text-gray-400">
+            <span className="flex items-center text-xs font-medium text-gray-500">
               Unverified
             </span>
           )}

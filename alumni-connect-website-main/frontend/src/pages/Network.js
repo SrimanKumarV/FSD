@@ -256,7 +256,7 @@ const Network = () => {
 
           <div className="glass-card p-4 sm:p-6 shadow-sm">
             <div className="relative max-w-2xl">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search by name, skills, or role..."
@@ -460,7 +460,7 @@ const Network = () => {
                     <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                       {user.alumniInfo.company && (
                         <div className="flex items-center">
-                          <Briefcase className="w-4 h-4 mr-2 text-gray-400" />
+                          <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
                           <span className="truncate">{user.alumniInfo.position} at {user.alumniInfo.company}</span>
                         </div>
                       )}
@@ -470,7 +470,7 @@ const Network = () => {
                     <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                       {user.studentInfo.course && (
                         <div className="flex items-center">
-                          <GraduationCap className="w-4 h-4 mr-2 text-gray-400" />
+                          <GraduationCap className="w-4 h-4 mr-2 text-gray-500" />
                           <span className="truncate">{user.studentInfo.course}</span>
                         </div>
                       )}
@@ -523,7 +523,7 @@ const Network = () => {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleMessage(user.email); }}
-                    className="p-2.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 active:scale-95"
+                    className="p-2.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 active:scale-95"
                     title="Message"
                   >
                     <MessageSquare className="w-5 h-5" />

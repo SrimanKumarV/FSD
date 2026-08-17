@@ -100,7 +100,7 @@ const VerifyEmail = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Key className="h-5 w-5 text-gray-400" />
+                  <Key className="h-5 w-5 text-gray-500" />
                 </div>
                 <input
                   type="text"
@@ -133,7 +133,7 @@ const VerifyEmail = () => {
               disabled={isResending || resendCooldown > 0}
               className={`inline-flex items-center justify-center text-sm font-semibold transition-colors ${
                 isResending || resendCooldown > 0
-                  ? 'text-gray-400 cursor-not-allowed'
+                  ? 'text-gray-500 cursor-not-allowed'
                   : 'text-primary-600 hover:text-primary-500 dark:text-primary-400'
               }`}
             >

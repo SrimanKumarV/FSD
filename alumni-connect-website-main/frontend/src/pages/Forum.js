@@ -404,7 +404,7 @@ const Forum = () => {
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search posts, topics, or tags..."
@@ -688,7 +688,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit, isA
             {post.isEdited && (
               <>
                 <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-gray-400">(edited)</span>
+                <span className="text-sm text-gray-500">(edited)</span>
               </>
             )}
           </div>
@@ -772,7 +772,7 @@ const PostCard = ({ post, onLike, onClose, onDelete, onSelect, user, onEdit, isA
               e.stopPropagation();
               setShowActions(!showActions);
             }}
-            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1.5 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <MoreVertical className="w-5 h-5" />
           </button>
@@ -1108,7 +1108,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
               <div className="relative">
                 <button
                   onClick={() => setShowActions(!showActions)}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <MoreVertical className="w-5 h-5" />
                 </button>
@@ -1189,7 +1189,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
               {isModal && (
                 <button
                   onClick={onClose}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1271,7 +1271,7 @@ const PostDetailModal = ({ post, onClose, onLike, onComment, user, isCommenting,
                           {(String(comment.author?._id || comment.author) === String(user?._id || user?.id)) && (
                             <button
                               onClick={() => onDeleteComment(post._id, comment._id)}
-                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                              className="text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
                               title="Delete Comment"
                             >
                               <Trash2 className="w-4 h-4" />

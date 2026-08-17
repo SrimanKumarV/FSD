@@ -95,7 +95,7 @@ const Verify2FA = () => {
                   <Smartphone className="w-5 h-5 mr-3" />
                   <span className="font-semibold">Send via SMS</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-500" />
               </button>
             )}
             
@@ -109,7 +109,7 @@ const Verify2FA = () => {
                   <Mail className="w-5 h-5 mr-3" />
                   <span className="font-semibold">Send via Email</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-500" />
               </button>
             )}
           </div>

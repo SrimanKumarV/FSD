@@ -801,7 +801,7 @@ const Profile = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <FolderGit2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <FolderGit2 className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                 <p className="text-gray-500 italic mb-4">You haven't added any projects yet.</p>
                 <button
                   onClick={() => navigate('/projects')}

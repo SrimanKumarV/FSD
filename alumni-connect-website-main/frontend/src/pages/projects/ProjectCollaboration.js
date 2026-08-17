@@ -156,7 +156,7 @@ const ProjectCollaboration = () => {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
             <input
               type="text"
               placeholder="Search projects by title, description, or tags..."
@@ -175,7 +175,7 @@ const ProjectCollaboration = () => {
           </div>
         ) : projects.length === 0 ? (
           <div className="text-center py-16 glass-card rounded-2xl">
-            <FolderGit2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <FolderGit2 className="w-16 h-16 text-gray-500 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No projects found</h3>
             <p className="text-gray-500">Be the first to showcase your work!</p>
           </div>
@@ -486,7 +486,7 @@ const ProjectFormModal = ({ mode, project, onClose, onSubmit, isLoading }) => {
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             {mode === 'add' ? 'Add New Project' : 'Edit Project'}
           </h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 transition-colors">
+          <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>

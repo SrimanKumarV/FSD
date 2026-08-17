@@ -308,9 +308,9 @@ const Feedback = () => {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-slate-600 mb-4" />
+              <AlertCircle className="w-12 h-12 text-gray-500 dark:text-slate-600 mb-4" />
               <p className="text-gray-500 dark:text-slate-400 font-semibold">No submissions yet</p>
-              <p className="text-gray-400 dark:text-slate-500 text-sm mt-1">Your feedback history will appear here.</p>
+              <p className="text-gray-500 dark:text-slate-500 text-sm mt-1">Your feedback history will appear here.</p>
               <button
                 onClick={() => setActiveTab('submit')}
                 className="mt-6 px-5 py-2.5 text-sm font-medium text-indigo-400 border border-indigo-500/30 rounded-xl hover:bg-indigo-500/10 transition-colors"

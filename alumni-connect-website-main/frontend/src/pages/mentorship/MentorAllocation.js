@@ -163,7 +163,7 @@ const MentorAllocation = () => {
           )}
 
           <div className="mb-6 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
             <input
               type="text"
               placeholder="Search by domain (e.g. Software Engineering)"

@@ -134,7 +134,7 @@ const VideoCallOverlay = () => {
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <User className="w-12 h-12 text-gray-400" />
+                <User className="w-12 h-12 text-gray-500" />
               )}
               <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-black/40 backdrop-blur-sm flex justify-center items-center">
                 <div className="flex space-x-1">
@@ -171,7 +171,7 @@ const VideoCallOverlay = () => {
             {/* Main Remote Video */}
             <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
               {!remoteStream ? (
-                <div className="flex flex-col items-center text-gray-400">
+                <div className="flex flex-col items-center text-gray-500">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
                   <p>Connecting P2P Video...</p>
                 </div>

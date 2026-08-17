@@ -459,7 +459,7 @@ const DashboardTab = ({ data, analyticsData, stats }) => {
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">New user registered: {user.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{user.email} • {user.role}</p>
                   </div>
-                  <div className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
+                  <div className="text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -473,7 +473,7 @@ const DashboardTab = ({ data, analyticsData, stats }) => {
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">New job posted: {job.title}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{job.company}</p>
                   </div>
-                  <div className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
+                  <div className="text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
                     {new Date(job.createdAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -526,7 +526,7 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search users by name or email..."
@@ -628,7 +628,7 @@ const UsersTab = ({ data, loading, filters, setFilters, onApproveUser, onSuspend
                           onSelectUser(user);
                           onShowModal(true);
                         }}
-                        className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                        className="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
                         title="Edit User"
                       >
                         <Settings className="w-4 h-4" />
@@ -957,7 +957,7 @@ const SystemSettingsTab = () => {
               <div className="bg-white/50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Search Users</label>
                 <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                   <input
                     type="text"
                     value={userSearch}
@@ -975,7 +975,7 @@ const SystemSettingsTab = () => {
                     ) : searchResults?.users?.length > 0 ? (
                       searchResults.users.map(u => (
                         <div key={u._id} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md">
-                          <span className="text-sm font-medium dark:text-gray-200">{u.name} <span className="text-xs text-gray-400">({u.email})</span></span>
+                          <span className="text-sm font-medium dark:text-gray-200">{u.name} <span className="text-xs text-gray-500">({u.email})</span></span>
                           <button
                             type="button"
                             onClick={() => {
@@ -1104,7 +1104,7 @@ const UserDetailModal = ({ user, onClose, onApproveUser, onSuspendUser, onUpdate
               {user.photo && user.photo !== 'default-avatar.png' ? (
                 <img src={user.photo} alt={user.name} className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white dark:border-gray-800 shadow-xl" loading="lazy" />
               ) : (
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-white dark:border-gray-800 shadow-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-white dark:border-gray-800 shadow-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500">
                   <UserCheck className="w-12 h-12" />
                 </div>
               )}
@@ -1391,7 +1391,7 @@ const FeedbackAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
                     <p className="text-xs text-gray-500 truncate">{fb.user?.name || 'Unknown'} · {fb.user?.email || ''}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <StarRow rating={fb.rating} />
-                      <span className="text-xs text-gray-400 capitalize">{fb.category}</span>
+                      <span className="text-xs text-gray-500 capitalize">{fb.category}</span>
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${FB_STATUS[fb.status]?.cls || 'bg-gray-100'}`}>
                         {FB_STATUS[fb.status]?.label || fb.status}
                       </span>
@@ -1399,8 +1399,8 @@ const FeedbackAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xs text-gray-400">{new Date(fb.createdAt).toLocaleDateString()}</span>
-                  <button onClick={() => setExpanded(e => e === fb._id ? null : fb._id)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                  <span className="text-xs text-gray-500">{new Date(fb.createdAt).toLocaleDateString()}</span>
+                  <button onClick={() => setExpanded(e => e === fb._id ? null : fb._id)} className="text-gray-500 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                     {expanded === fb._id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                 </div>
@@ -1546,16 +1546,16 @@ const HelpDeskAdminTab = ({ data, loading, page, setPage, status, setStatus, ref
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${HD_STATUS[t.status]?.cls || 'bg-gray-100'}`}>
                         {HD_STATUS[t.status]?.label || t.status}
                       </span>
-                      {t.user && <span className="text-xs text-gray-400">Registered user</span>}
+                      {t.user && <span className="text-xs text-gray-500">Registered user</span>}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xs text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs text-gray-500">{new Date(t.createdAt).toLocaleDateString()}</span>
                   <button onClick={() => handleDelete(t._id)} className="text-red-400 hover:text-red-600 transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => setExpanded(e => e === t._id ? null : t._id)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                  <button onClick={() => setExpanded(e => e === t._id ? null : t._id)} className="text-gray-500 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                     {expanded === t._id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                 </div>

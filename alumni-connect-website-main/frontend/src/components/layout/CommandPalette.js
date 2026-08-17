@@ -113,7 +113,7 @@ const CommandPalette = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center px-4 py-4 border-b border-gray-100 dark:border-gray-800">
-                <Search className="w-5 h-5 text-gray-400 mr-3" />
+                <Search className="w-5 h-5 text-gray-500 mr-3" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -125,7 +125,7 @@ const CommandPalette = () => {
                 />
                 <div className="hidden sm:flex items-center gap-1">
                   <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-500">ESC</span>
-                  <span className="text-xs text-gray-400">to close</span>
+                  <span className="text-xs text-gray-500">to close</span>
                 </div>
               </div>
               

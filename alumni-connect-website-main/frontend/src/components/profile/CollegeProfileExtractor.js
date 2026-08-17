@@ -40,7 +40,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1">
-          <h4 className="text-sm font-semibold text-gray-400 mb-1">{label}</h4>
+          <h4 className="text-sm font-semibold text-gray-500 mb-1">{label}</h4>
           <p className="text-gray-200 leading-relaxed">{value}</p>
         </div>
       </div>
@@ -60,7 +60,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
               <Sparkles className="w-6 h-6 text-primary" />
               AI Profile Extractor
             </h2>
-            <p className="text-gray-400 mt-2">
+            <p className="text-gray-500 mt-2">
               Automatically extract and summarize information from your official college website using AI.
             </p>
           </div>
@@ -72,7 +72,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
             disabled={isExtracting}
             className={`mt-4 md:mt-0 px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all ${
               isExtracting 
-                ? 'bg-gray-800 text-gray-400 cursor-not-allowed'
+                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-primary to-secondary text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]'
             }`}
           >
@@ -97,7 +97,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
               <Sparkles className="w-16 h-16 text-primary relative z-10 animate-bounce" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Groq AI is working its magic...</h3>
-            <p className="text-gray-400 max-w-md">
+            <p className="text-gray-500 max-w-md">
               We are currently fetching your website ({user?.collegeInfo?.officialUrl || 'URL'}), parsing the HTML, and extracting structured information.
             </p>
           </div>
@@ -134,7 +134,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
                     <div className="space-y-4">
                       {extractedData.programs.ug?.length > 0 && (
                         <div>
-                          <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Undergraduate (UG)</p>
+                          <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Undergraduate (UG)</p>
                           <div className="flex flex-wrap gap-2">
                             {extractedData.programs.ug.map((prog, i) => (
                               <span key={`ug-${i}`} className="px-2 py-1 bg-blue-500/10 text-blue-300 text-xs rounded border border-blue-500/20">{prog}</span>
@@ -144,7 +144,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
                       )}
                       {extractedData.programs.pg?.length > 0 && (
                         <div>
-                          <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Postgraduate (PG)</p>
+                          <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Postgraduate (PG)</p>
                           <div className="flex flex-wrap gap-2">
                             {extractedData.programs.pg.map((prog, i) => (
                               <span key={`pg-${i}`} className="px-2 py-1 bg-purple-500/10 text-purple-300 text-xs rounded border border-purple-500/20">{prog}</span>
@@ -154,7 +154,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
                       )}
                       {extractedData.programs.phd?.length > 0 && (
                         <div>
-                          <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Doctoral (PhD)</p>
+                          <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Doctoral (PhD)</p>
                           <div className="flex flex-wrap gap-2">
                             {extractedData.programs.phd.map((prog, i) => (
                               <span key={`phd-${i}`} className="px-2 py-1 bg-amber-500/10 text-amber-300 text-xs rounded border border-amber-500/20">{prog}</span>
@@ -205,20 +205,20 @@ const CollegeProfileExtractor = ({ initialData }) => {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       {extractedData.placements.highestPackage && (
                         <div>
-                          <p className="text-xs text-gray-400">Highest Package</p>
+                          <p className="text-xs text-gray-500">Highest Package</p>
                           <p className="text-lg font-bold text-green-400">{extractedData.placements.highestPackage}</p>
                         </div>
                       )}
                       {extractedData.placements.averagePackage && (
                         <div>
-                          <p className="text-xs text-gray-400">Average Package</p>
+                          <p className="text-xs text-gray-500">Average Package</p>
                           <p className="text-lg font-bold text-green-400">{extractedData.placements.averagePackage}</p>
                         </div>
                       )}
                     </div>
                     {extractedData.placements.topCompanies?.length > 0 && (
                       <div>
-                        <p className="text-xs text-gray-400 mb-2">Top Recruiters</p>
+                        <p className="text-xs text-gray-500 mb-2">Top Recruiters</p>
                         <div className="flex flex-wrap gap-2">
                           {extractedData.placements.topCompanies.map((comp, i) => (
                             <span key={`comp-${i}`} className="px-2 py-1 bg-green-500/10 text-green-300 text-xs rounded border border-green-500/20">{comp}</span>
@@ -237,7 +237,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
                         <div key={i} className="border-l-2 border-primary pl-3 py-1">
                           <p className="text-white font-medium text-sm">{ev.title}</p>
                           {ev.date && <p className="text-xs text-primary mt-0.5">{ev.date}</p>}
-                          {ev.description && <p className="text-xs text-gray-400 mt-1">{ev.description}</p>}
+                          {ev.description && <p className="text-xs text-gray-500 mt-1">{ev.description}</p>}
                         </div>
                       ))}
                     </div>
@@ -258,7 +258,7 @@ const CollegeProfileExtractor = ({ initialData }) => {
         {!isExtracting && !extractedData && (
           <div className="py-12 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-center bg-white/5">
             <Building className="w-12 h-12 text-gray-500 mb-4 opacity-50" />
-            <h3 className="text-lg font-medium text-gray-400">No profile data extracted yet</h3>
+            <h3 className="text-lg font-medium text-gray-500">No profile data extracted yet</h3>
             <p className="text-sm text-gray-500 mt-2 max-w-sm">
               Click the button above to let AI automatically generate a profile summary from your official website URL.
             </p>

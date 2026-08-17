@@ -211,7 +211,7 @@ const HelpCentrePage = () => {
 
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-slate-500">
-            <Search className="w-10 h-10 mx-auto mb-3 text-gray-400 dark:text-slate-700" />
+            <Search className="w-10 h-10 mx-auto mb-3 text-gray-500 dark:text-slate-700" />
             <p className="font-medium">No results for "{search}"</p>
             <p className="text-sm mt-1">Try a different keyword or browse categories above.</p>
           </div>
@@ -248,7 +248,7 @@ const HelpCentrePage = () => {
             className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white text-sm font-semibold rounded-xl transition-colors whitespace-nowrap"
           >
             <Mail className="w-4 h-4" /> Email Us
-            <ExternalLink className="w-3 h-3 text-gray-400 dark:text-slate-500" />
+            <ExternalLink className="w-3 h-3 text-gray-500 dark:text-slate-500" />
           </a>
         </div>
       </motion.div>

@@ -221,7 +221,7 @@ const Dashboard = () => {
                             {getStatusIcon(activity.status)}
                             <span className="ml-1 capitalize">{activity.status}</span>
                           </span>
-                          <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{activity.time}</span>
+                          <span className="text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{activity.time}</span>
                           {activity.status === 'pending' && (
                             <span className="ml-auto text-xs font-bold bg-cyan-600/10 text-cyan-600 hover:bg-cyan-600 hover:text-white px-3 py-1.5 rounded-full transition-colors border border-cyan-600/20">
                               Review
@@ -317,7 +317,7 @@ const Dashboard = () => {
                               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{action.description}</p>
                             </div>
                           </div>
-                          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors shrink-0" />
+                          <ArrowRight className="w-5 h-5 text-gray-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors shrink-0" />
                         </div>
                       </Link>
                     </motion.div>

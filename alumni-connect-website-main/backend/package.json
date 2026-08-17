@@ -24,6 +24,7 @@
     "express-validator": "^7.0.1",
     "google-auth-library": "^10.7.0",
     "helmet": "^7.0.0",
+    "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "mongod": "^2.0.0",
     "mongoose": "^7.5.0",

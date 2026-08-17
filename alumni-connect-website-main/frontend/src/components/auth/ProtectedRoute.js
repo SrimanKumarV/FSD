@@ -1,11 +1,13 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useProfile } from '../../contexts/ProfileContext';
 import MandatoryTasksOverlay from '../profile/MandatoryTasksOverlay';
 import CompleteProfileOnboarding from '../profile/CompleteProfileOnboarding';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, isAuthenticated, isLoading, isAdmin, updateUser } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { updateProfile: updateUser } = useProfile();
   const location = useLocation();
 
   // Show loading spinner while checking authentication

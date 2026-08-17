@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Moon, Trash2, ShieldAlert, Globe, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useProfile } from '../contexts/ProfileContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -9,7 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
 
 const Settings = () => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout } = useAuth();
+  const { updateProfile: updateUser } = useProfile();
   const { theme, changeTheme } = useTheme();
   const navigate = useNavigate();
 

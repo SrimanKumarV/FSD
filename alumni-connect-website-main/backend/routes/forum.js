@@ -13,13 +13,14 @@ const { callAIWithFallback } = require('../utils/aiHelper');
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const {
+    let {
       q, search, category, postType, author, tags, status, sort = 'latest',
       page = 1, limit = 10
     } = req.query;
 
+    limit = Math.min(parseInt(limit) || 10, 50);
     let query = { status: 'active' };
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (parseInt(page) - 1) * limit;
 
     // Search query
     const searchQuery = q || search;
@@ -73,7 +74,7 @@ router.get('/', async (req, res) => {
       .populate('comments.author', 'name photo role')
       .populate('comments.replies.author', 'name photo role')
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(limit)
       .sort(sortOption);
 
     const total = await ForumPost.countDocuments(query);
@@ -82,9 +83,9 @@ router.get('/', async (req, res) => {
       posts,
       pagination: {
         current: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit)),
+        pages: Math.ceil(total / limit),
         total,
-        hasNext: parseInt(page) * parseInt(limit) < total,
+        hasNext: parseInt(page) * limit < total,
         hasPrev: parseInt(page) > 1
       }
     });

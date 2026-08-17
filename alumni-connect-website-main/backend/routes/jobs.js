@@ -7,162 +7,29 @@ const JobApplication = require('../models/JobApplication');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 
+const { getExternalJobs, getInternalJobs } = require('../services/jobService');
+
 // @desc    Get all jobs with filters
 // @route   GET /api/jobs
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const {
-      q, category, location, jobType, isRemote, company, skills,
-      experience, salary, page = 1, limit = 10, sort = 'newest'
-    } = req.query;
-
-    let query = { status: 'active' };
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Search query
-    if (q) {
-      query.$or = [
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-        { company: { $regex: q, $options: 'i' } },
-        { skills: { $in: [new RegExp(q, 'i')] } }
-      ];
-    }
-
-    // Filters
-    if (category) query.category = category;
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (jobType) query.jobType = jobType;
-    if (isRemote !== undefined) query.isRemote = isRemote === 'true';
-    if (company) query.company = { $regex: company, $options: 'i' };
-    if (skills) {
-      const skillArray = skills.split(',').map(skill => skill.trim());
-      query.skills = { $in: skillArray };
-    }
-    if (experience) query.experience = experience;
-    if (salary) {
-      const [min, max] = salary.split('-').map(s => parseInt(s));
-      if (min && max) {
-        query.salary = { $gte: min, $lte: max };
-      } else if (min) {
-        query.salary = { $gte: min };
-      } else if (max) {
-        query.salary = { $lte: max };
-      }
-    }
-
-    // Sorting
-    let sortOption = {};
-    switch (sort) {
-      case 'newest':
-        sortOption = { createdAt: -1 };
-        break;
-      case 'oldest':
-        sortOption = { createdAt: 1 };
-        break;
-      case 'salary_high':
-        sortOption = { 'salary.max': -1 };
-        break;
-      case 'salary_low':
-        sortOption = { 'salary.min': 1 };
-        break;
-      case 'deadline':
-        sortOption = { applicationDeadline: 1 };
-        break;
-      default:
-        sortOption = { createdAt: -1 };
-    }
-
-    const jobs = await Job.find(query)
-      .populate('postedBy', 'name photo')
-      .skip(skip)
-      .limit(parseInt(limit))
-      .sort(sortOption);
-
-    const total = await Job.countDocuments(query);
-
-    res.json({
-      jobs,
-      pagination: {
-        current: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit)),
-        total,
-        hasNext: parseInt(page) * parseInt(limit) < total,
-        hasPrev: parseInt(page) > 1
-      }
-    });
+    const result = await getInternalJobs(req.query);
+    res.json(result);
   } catch (error) {
     console.error('Error fetching jobs:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-const cache = require('../utils/cache');
-const fetchWithTimeout = require('../utils/fetchWithTimeout');
+
 
 // @desc    Get external jobs from free Remotive API
 // @route   GET /api/jobs/external
 // @access  Public
 router.get('/external', async (req, res) => {
   try {
-    const { category = '', search = '', limit = 20, region = '' } = req.query;
-    
-    // Create a unique cache key based on query params
-    const cacheKey = `external_jobs_${category}_${search}_${limit}_${region}`;
-    const cachedJobs = await cache.get(cacheKey);
-
-    if (cachedJobs) {
-      return res.json(cachedJobs);
-    }
-
-    // Remotive API URL (No key required)
-    let apiUrl = `https://remotive.com/api/remote-jobs?limit=${limit}`;
-    
-    if (category) {
-      apiUrl += `&category=${category}`;
-    }
-    if (search) {
-      apiUrl += `&search=${search}`;
-    } else if (region === 'india') {
-      apiUrl += `&search=India`;
-    }
-
-    const response = await fetchWithTimeout(apiUrl);
-    const data = await response.json();
-    
-    // Map Remotive job format to match our internal Job schema closely
-    let mappedJobs = data.jobs ? data.jobs.map(job => ({
-      _id: `ext_${job.id}`,
-      isExternal: true,
-      title: job.title,
-      company: job.company_name,
-      companyLogo: job.company_logo,
-      location: job.candidate_required_location || 'Remote',
-      isRemote: true,
-      jobType: job.job_type === 'full_time' ? 'full-time' : job.job_type || 'full-time',
-      category: job.category || 'other',
-      description: job.description ? job.description.replace(/<[^>]*>?/gm, '') : '', // HTML content usually
-      applicationLink: job.url,
-      createdAt: job.publication_date,
-      tags: job.tags || [],
-      salary: job.salary ? { min: 0, max: 0, currency: job.salary } : undefined
-    })) : [];
-
-    if (region === 'india') {
-      mappedJobs = mappedJobs.filter(job => job.location.match(/india|worldwide|anywhere|apac/i));
-    } else if (region === 'international') {
-      mappedJobs = mappedJobs.filter(job => !job.location.toLowerCase().includes('india'));
-    }
-
-    const result = {
-      jobs: mappedJobs,
-      total: data['job-count'] || mappedJobs.length
-    };
-
-    // Cache the response for 30 minutes
-    await cache.set(cacheKey, result);
-
+    const result = await getExternalJobs(req.query);
     res.json(result);
   } catch (error) {
     console.error('Error fetching external jobs:', error);

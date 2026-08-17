@@ -26,8 +26,11 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import DefaultAvatar from '../components/DefaultAvatar';
 
+import { useProfile } from '../contexts/ProfileContext';
+
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
+  const { updateProfile: updateUser } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',

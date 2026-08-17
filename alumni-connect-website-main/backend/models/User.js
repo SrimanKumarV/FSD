@@ -360,4 +360,49 @@ userSchema.index({ role: 1, status: 1 });
 userSchema.index({ 'alumniInfo.industry': 1 });
 userSchema.index({ location: 1 });
 
+// Cascade delete related documents when user is deleted
+userSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+  try {
+    const userId = this._id;
+    
+    // Delete all forum posts authored by user
+    await mongoose.model('ForumPost').deleteMany({ author: userId });
+    
+    // Remove user from likes and comments in other posts
+    await mongoose.model('ForumPost').updateMany({}, { 
+      $pull: { 
+        likes: userId, 
+        dislikes: userId,
+        comments: { author: userId } 
+      } 
+    });
+    
+    // Delete messages
+    await mongoose.model('Message').deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+    
+    // Delete mentorships
+    await mongoose.model('Mentorship').deleteMany({ $or: [{ mentor: userId }, { student: userId }] });
+    
+    // Delete notifications
+    await mongoose.model('Notification').deleteMany({ $or: [{ sender: userId }, { recipient: userId }] });
+    
+    // Delete jobs posted by user
+    await mongoose.model('Job').deleteMany({ postedBy: userId });
+
+    // Remove user from all connections/followers arrays across all other users
+    await mongoose.model('User').updateMany({}, {
+      $pull: {
+        connections: userId,
+        followers: userId,
+        following: userId,
+        followRequests: userId
+      }
+    });
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = mongoose.model('User', userSchema);

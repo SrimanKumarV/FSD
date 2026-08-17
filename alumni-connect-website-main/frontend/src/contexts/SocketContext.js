@@ -41,9 +41,7 @@ export const SocketProvider = ({ children }) => {
     const defaultSocketUrl = apiUrl.replace(/\/api$/, '');
     const socketUrl = process.env.REACT_APP_SOCKET_URL || defaultSocketUrl;
     const newSocket = io(socketUrl, {
-      auth: {
-        token: localStorage.getItem('token')
-      },
+      withCredentials: true,
       transports: ['websocket', 'polling']
     });
 

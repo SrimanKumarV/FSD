@@ -7,6 +7,7 @@ const MentorshipSession = require('../models/MentorshipSession');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const MentorReward = require('../models/MentorReward');
+const { getMentors, autoAssignMentor } = require('../services/mentorshipService');
 
 // @desc    Get all mentorship requests for a user
 // @route   GET /api/mentorship
@@ -49,86 +50,16 @@ router.get('/mentors', protect, async (req, res) => {
     let query = { role: targetRole };
 
     const currentUser = await User.findById(req.user.id);
-
-
-
-    if (skills) {
-      const skillArray = skills.split(',').map(skill => skill.trim());
-      query.skills = { $in: skillArray };
-    }
-
-    if (industry && targetRole === 'alumni') {
-      query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
-    }
-
-    if (location) {
-      query.location = { $regex: location, $options: 'i' };
-    }
-
-    if (availability === 'available' && targetRole === 'alumni') {
-      query.status = 'available';
-    }
-
-    let selectFields = 'name email photo bio skills location status role department college interests';
-    if (targetRole === 'student') {
-      selectFields += ' studentInfo';
-    } else {
-      selectFields += ' alumniInfo';
-    }
-
-    const SEAT_LIMIT = 10;
-
-    const mentors = await User.find(query)
-      .select(selectFields)
-      .sort({ name: 1 });
-
-    // For each mentor (alumni), calculate remaining seat capacity
-    const mentorIds = mentors.map(m => m._id);
-    const activeCounts = await Mentorship.aggregate([
-      { $match: { mentor: { $in: mentorIds }, status: { $in: ['pending', 'accepted', 'active'] } } },
-      { $group: { _id: '$mentor', count: { $sum: 1 } } }
-    ]);
-    const countMap = {};
-    activeCounts.forEach(entry => { countMap[entry._id.toString()] = entry.count; });
-
-    let mentorsWithCapacity = mentors.map(mentor => {
-      const obj = mentor.toObject();
-      const usedSeats = countMap[mentor._id.toString()] || 0;
-      const maxSeats = SEAT_LIMIT;
-      obj.totalSeats = maxSeats;
-      obj.usedSeats = usedSeats;
-      obj.remainingCapacity = Math.max(0, maxSeats - usedSeats);
-      
-      // Calculate match score
-      let score = 0;
-      if (currentUser) {
-        if (currentUser.college && obj.college && currentUser.college.toLowerCase() === obj.college.toLowerCase()) score += 3;
-        if (currentUser.department && obj.department && currentUser.department.toLowerCase() === obj.department.toLowerCase()) score += 3;
-        
-        // Skill/Interest match
-        const userInterests = currentUser.interests || [];
-        const userSkills = currentUser.skills || [];
-        const mentorSkills = obj.skills || [];
-        const mentorInterests = obj.interests || [];
-        
-        const combinedUser = [...new Set([...userInterests, ...userSkills])].map(s => s.toLowerCase());
-        const combinedMentor = [...new Set([...mentorSkills, ...mentorInterests])].map(s => s.toLowerCase());
-        
-        const matches = combinedUser.filter(s => combinedMentor.includes(s));
-        score += matches.length; // +1 point for every matching skill/interest
-      }
-      obj.matchScore = score;
-      
-      return obj;
+    
+    const mentors = await getMentors(currentUser, {
+      skills,
+      industry,
+      location,
+      availability,
+      targetRole
     });
 
-    // Sort by match score descending, then by remaining capacity
-    mentorsWithCapacity.sort((a, b) => {
-      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
-      return b.remainingCapacity - a.remainingCapacity;
-    });
-
-    res.json({ mentors: mentorsWithCapacity });
+    res.json({ mentors });
   } catch (error) {
     console.error('Error fetching mentors:', error);
     res.status(500).json({ message: 'Server error' });
@@ -298,111 +229,11 @@ router.post('/auto-assign', protect, async (req, res) => {
       return res.status(400).json({ message: 'College information missing from your profile.' });
     }
 
-    const SEAT_LIMIT = 10;
-    const query = {
-      role: 'alumni',
-      college: college,
-      isApproved: true
-    };
-    if (studentUser.department) {
-      query.department = studentUser.department;
+    const mentorship = await autoAssignMentor(req.user.id, college);
+
+    if (!mentorship) {
+      return res.status(404).json({ message: 'All mentors from your college are currently at full capacity or you already have a mentor.' });
     }
-    const alumni = await User.find(query).select('_id name college department alumniInfo skills interests');
-
-    if (!alumni.length) {
-      return res.status(404).json({ message: 'No available mentors found from your college.' });
-    }
-
-    // Check if student already has a pending or active mentorship
-    const existingMentorship = await Mentorship.findOne({
-      student: req.user.id,
-      status: { $in: ['pending', 'active', 'accepted'] }
-    });
-    if (existingMentorship) {
-      return res.status(400).json({ message: 'You already have an active or pending mentorship request.' });
-    }
-
-    const mentorIds = alumni.map(a => a._id);
-    const counts = await Mentorship.aggregate([
-      { $match: { mentor: { $in: mentorIds }, status: { $in: ['pending', 'accepted', 'active'] } } },
-      { $group: { _id: '$mentor', count: { $sum: 1 } } }
-    ]);
-    const countMap = {};
-    counts.forEach(c => { countMap[c._id.toString()] = c.count; });
-
-    // Prepare student data for matching
-    const studentCourse = (studentUser.studentInfo?.course || '').toLowerCase();
-    const studentInterests = (studentUser.interests || []).map(i => i.toLowerCase());
-    const studentSkills = (studentUser.skills || []).map(s => s.toLowerCase());
-
-    let bestMentor = null;
-    let highestScore = -1;
-
-    for (const alum of alumni) {
-      const used = countMap[alum._id.toString()] || 0;
-      const remainingCapacity = SEAT_LIMIT - used;
-      
-      if (remainingCapacity <= 0) continue; // Skip if no capacity
-
-      let score = remainingCapacity; // Base score is remaining capacity (tie-breaker)
-
-      // 1. Domain Match (+20 points)
-      const alumIndustry = (alum.alumniInfo?.industry || '').toLowerCase();
-      const alumPosition = (alum.alumniInfo?.position || '').toLowerCase();
-      
-      if (studentCourse && (
-          (alumIndustry && (studentCourse.includes(alumIndustry) || alumIndustry.includes(studentCourse))) ||
-          (alumPosition && (studentCourse.includes(alumPosition) || alumPosition.includes(studentCourse)))
-      )) {
-        score += 20;
-      }
-
-      // 2. Area of Interest / Skills Match (+10 points per overlap)
-      const alumMentorshipAreas = (alum.alumniInfo?.mentorshipAreas || []).map(a => a.toLowerCase());
-      const alumSkills = (alum.skills || []).map(s => s.toLowerCase());
-      const alumInterests = (alum.interests || []).map(i => i.toLowerCase());
-
-      const allStudentKeywords = new Set([...studentInterests, ...studentSkills]);
-      const allAlumKeywords = new Set([...alumMentorshipAreas, ...alumSkills, ...alumInterests]);
-
-      for (const keyword of allStudentKeywords) {
-        if (keyword && Array.from(allAlumKeywords).some(k => k.includes(keyword) || keyword.includes(k))) {
-          score += 10;
-        }
-      }
-
-      if (score > highestScore) {
-        highestScore = score;
-        bestMentor = alum;
-      }
-    }
-
-    if (!bestMentor) {
-      return res.status(404).json({ message: 'All mentors from your college are currently at full capacity.' });
-    }
-
-    const mentorship = new Mentorship({
-      student: req.user.id,
-      mentor: bestMentor._id,
-      title: 'Auto-Assigned Mentorship',
-      description: 'This mentorship was automatically requested via Smart Allocation based on your college affiliation.',
-      focusAreas: ['General Guidance'],
-      goals: ['Academic & Career Support'],
-      expectedDuration: 12,
-      communicationMethod: ['chat'],
-      status: 'pending',
-      isAutoAssigned: true
-    });
-    await mentorship.save();
-
-    await Notification.createNotification({
-      recipient: bestMentor._id,
-      sender: req.user.id,
-      type: 'mentorship_request',
-      title: 'New Auto-Assigned Student',
-      content: `A new student from ${college} has been auto-assigned to you as a mentee.`,
-      relatedData: { mentorshipId: mentorship._id }
-    });
 
     res.json({ success: true, message: 'Mentor auto-assigned successfully!', mentorship });
   } catch (error) {

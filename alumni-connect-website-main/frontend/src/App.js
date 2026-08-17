@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
+import { ProfileProvider } from './contexts/ProfileContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -111,8 +112,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <SocketProvider>
-            <NotificationProvider>
+          <ProfileProvider>
+            <SocketProvider>
+              <NotificationProvider>
               <Router>
                 <CallProvider>
                   <div className="App min-h-screen relative">
@@ -376,6 +378,7 @@ function App() {
 
             </NotificationProvider>
           </SocketProvider>
+          </ProfileProvider>
       </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

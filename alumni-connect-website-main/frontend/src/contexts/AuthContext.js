@@ -98,13 +98,9 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Sync token to localStorage
+  // Sync token to localStorage - removed for security (using HTTP-only cookies)
   useEffect(() => {
-    if (state.token) {
-      localStorage.setItem('token', state.token);
-    } else {
-      localStorage.removeItem('token');
-    }
+    // No-op: cookies are handled by browser
   }, [state.token]);
 
   // Check if user is authenticated on mount
@@ -112,31 +108,28 @@ export const AuthProvider = ({ children }) => {
     const controller = new AbortController();
 
     const checkAuth = async () => {
-      if (state.token) {
-        try {
-          const response = await api.get('/auth/me', {
-            signal: controller.signal
+      try {
+        // Always try to fetch profile; cookie will be sent automatically
+        const response = await api.get('/auth/me', {
+          signal: controller.signal
+        });
+        if (!controller.signal.aborted) {
+          dispatch({
+            type: AUTH_ACTIONS.LOGIN_SUCCESS,
+            payload: { user: response.data.user, token: state.token || 'cookie_auth' }
           });
-          if (!controller.signal.aborted) {
-            dispatch({
-              type: AUTH_ACTIONS.LOGIN_SUCCESS,
-              payload: { user: response.data.user, token: state.token }
-            });
-          }
-        } catch (error) {
-          if (error.name === 'CanceledError' || error.name === 'AbortError') return;
-          console.error('Auth check failed:', error);
-          // Only log out if it's explicitly an auth error (401/403)
-          // Don't log out on 500s or Network Errors (like when Render backend is sleeping/restarting)
-          if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            dispatch({ type: AUTH_ACTIONS.LOGOUT });
-          } else {
-            // Keep the user logged in but stop the loading spinner
-            dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
-          }
         }
-      } else {
-        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+      } catch (error) {
+        if (error.name === 'CanceledError' || error.name === 'AbortError') return;
+        console.error('Auth check failed:', error);
+        
+        // If 401/403, clear state
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        } else {
+          // Other errors (network), just stop loading but don't log out explicitly
+          dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+        }
       }
     };
 
@@ -356,27 +349,12 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully');
   };
 
-  // Update user profile
-  const updateUser = async (userData, role = null) => {
-    try {
-      let response;
-      if (role) {
-        response = await api.put(`/users/profile/${role}`, userData);
-      } else {
-        response = await api.put('/users/profile', userData);
-      }
-      
-      dispatch({
-        type: AUTH_ACTIONS.UPDATE_USER,
-        payload: response.data.user
-      });
-      toast.success('Profile updated successfully!');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to update profile';
-      toast.error(message);
-      return { success: false, error: message };
-    }
+  // Set auth user directly (used by ProfileContext)
+  const setAuthUser = (user) => {
+    dispatch({
+      type: AUTH_ACTIONS.UPDATE_USER,
+      payload: user
+    });
   };
 
   // Clear error
@@ -573,7 +551,7 @@ export const AuthProvider = ({ children }) => {
     completeOAuthLogin,
     register,
     logout,
-    updateUser,
+    setAuthUser,
     clearError,
     changePassword,
     forgotPassword,

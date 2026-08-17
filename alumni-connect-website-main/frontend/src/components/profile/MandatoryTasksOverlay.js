@@ -6,13 +6,14 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import CompleteProfileOnboarding from './CompleteProfileOnboarding';
 import { useAuth } from '../../contexts/AuthContext';
+import { useProfile } from '../../contexts/ProfileContext';
 
 export default function MandatoryTasksOverlay({ user }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState(null);
   const navigate = useNavigate();
-  const { updateUser } = useAuth();
+  const { updateProfile: updateUser } = useProfile();
 
   useEffect(() => {
     if (!user) return;

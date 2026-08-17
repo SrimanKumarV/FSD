@@ -1,4 +1,4 @@
-const { admin, alumni, student, isResourceOwner } = require('../middleware/auth');
+const { admin, alumni, student, verified, approved, isResourceOwner } = require('../middleware/auth');
 
 describe('Auth Middleware - RBAC', () => {
   let mockReq;
@@ -29,6 +29,67 @@ describe('Auth Middleware - RBAC', () => {
       mockReq.user.role = 'student';
       admin(mockReq, mockRes, mockNext);
       expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Not authorized as admin' });
+    });
+  });
+
+  describe('alumni middleware', () => {
+    it('should call next if user is alumni', () => {
+      mockReq.user.role = 'alumni';
+      alumni(mockReq, mockRes, mockNext);
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 403 if user is not alumni', () => {
+      mockReq.user.role = 'student';
+      alumni(mockReq, mockRes, mockNext);
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Not authorized as alumni' });
+    });
+  });
+
+  describe('student middleware', () => {
+    it('should call next if user is student', () => {
+      mockReq.user.role = 'student';
+      student(mockReq, mockRes, mockNext);
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 403 if user is not student', () => {
+      mockReq.user.role = 'alumni';
+      student(mockReq, mockRes, mockNext);
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Not authorized as student' });
+    });
+  });
+
+  describe('verified middleware', () => {
+    it('should call next if user is verified', () => {
+      mockReq.user.isVerified = true;
+      verified(mockReq, mockRes, mockNext);
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 403 if user is not verified', () => {
+      mockReq.user.isVerified = false;
+      verified(mockReq, mockRes, mockNext);
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Account not verified' });
+    });
+  });
+
+  describe('approved middleware', () => {
+    it('should call next if user is approved', () => {
+      mockReq.user.isApproved = true;
+      approved(mockReq, mockRes, mockNext);
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 403 if user is not approved', () => {
+      mockReq.user.isApproved = false;
+      approved(mockReq, mockRes, mockNext);
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Account not approved' });
     });
   });
 

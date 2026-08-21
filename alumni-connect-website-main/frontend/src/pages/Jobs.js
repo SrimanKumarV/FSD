@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, MapPin, Building, Building2, Calendar, Clock, DollarSign, Filter, Search, ChevronDown, CheckCircle2, ChevronRight, Share2, BookOpen, Plus, Eye, Users, TrendingUp, BriefcaseIcon, UserPlus, Bookmark, ExternalLink } from 'lucide-react';
+import { Briefcase, MapPin, Building, Building2, Calendar, Clock, DollarSign, Filter, Search, ChevronDown, CheckCircle2, ChevronRight, Share2, BookOpen, Plus, Eye, Users, TrendingUp, BriefcaseIcon, UserPlus, Bookmark, ExternalLink, Edit3, Trash2 } from 'lucide-react';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
@@ -92,19 +92,19 @@ const MyPostedJobs = ({ onSelectJob }) => {
   );
 };
 
-const PostJobModal = ({ onClose, onSuccess }) => {
+const PostJobModal = ({ onClose, onSuccess, initialData }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    company: '',
-    location: '',
-    jobType: 'full-time',
-    category: 'technology',
-    isRemote: false,
-    requirements: [''],
-    skills: [''],
-    experience: 'entry',
-    applicationLink: '',
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    company: initialData?.company || '',
+    location: initialData?.location || '',
+    jobType: initialData?.jobType || 'full-time',
+    category: initialData?.category || 'technology',
+    isRemote: initialData?.isRemote || false,
+    requirements: initialData?.requirements?.length ? initialData.requirements : [''],
+    skills: initialData?.skills?.length ? initialData.skills : [''],
+    experience: initialData?.experience || 'entry',
+    applicationLink: initialData?.applicationLink || '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -117,8 +117,13 @@ const PostJobModal = ({ onClose, onSuccess }) => {
         requirements: formData.requirements.filter(r => r.trim() !== ''),
         skills: formData.skills.filter(s => s.trim() !== '')
       };
-      await api.post('/jobs', payload);
-      toast.success('Job posted successfully!');
+      if (initialData && initialData._id) {
+        await api.put(`/jobs/${initialData._id}`, payload);
+        toast.success('Job updated successfully!');
+      } else {
+        await api.post('/jobs', payload);
+        toast.success('Job posted successfully!');
+      }
       onSuccess();
     } catch (err) {
       console.error(err);
@@ -139,7 +144,7 @@ const PostJobModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title="Post a Job or Referral" className="!p-8">
+    <Modal isOpen={true} onClose={onClose} title={initialData ? "Edit Job or Referral" : "Post a Job or Referral"} className="!p-8">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -235,7 +240,7 @@ const PostJobModal = ({ onClose, onSuccess }) => {
           <div className="pt-4 flex justify-end">
             <button type="button" onClick={onClose} className="px-6 py-2 mr-4 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold">Cancel</button>
             <Button variant="primary" type="submit" disabled={loading} className="px-6 py-2">
-              {loading ? 'Posting...' : 'Post Job'}
+              {loading ? (initialData ? 'Updating...' : 'Posting...') : (initialData ? 'Update Job' : 'Post Job')}
             </Button>
           </div>
         </form>
@@ -305,6 +310,7 @@ const Jobs = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [jobToEdit, setJobToEdit] = useState(null);
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -448,6 +454,20 @@ const Jobs = () => {
     } catch (error) {
       console.error('Error saving job:', error);
       toast.error(error.response?.data?.message || 'Failed to save job');
+    }
+  };
+
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm('Are you sure you want to delete this job?')) return;
+    try {
+      await api.delete(`/jobs/${jobId}`);
+      toast.success('Job deleted successfully');
+      setJobs(jobs.filter(j => (j._id || j.id) !== jobId));
+      if (selectedJob && (selectedJob._id || selectedJob.id) === jobId) {
+        setSelectedJob(null);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete job');
     }
   };
 
@@ -779,17 +799,37 @@ const Jobs = () => {
                         <p className="text-lg font-medium text-gray-600 dark:text-gray-400">{selectedJob.company}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleSave(selectedJob._id || selectedJob.id)}
-                      disabled={savedJobs.includes(selectedJob._id || selectedJob.id)}
-                      className={`p-3 rounded-xl transition-all ${
-                        savedJobs.includes(selectedJob._id || selectedJob.id) 
-                          ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' 
-                          : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
-                      }`}
-                    >
-                      <Bookmark className={`w-6 h-6 ${savedJobs.includes(selectedJob._id || selectedJob.id) ? 'fill-current' : ''}`} />
-                    </button>
+                    <div className="flex gap-2">
+                      {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
+                        <>
+                          <button
+                            onClick={() => setJobToEdit(selectedJob)}
+                            className="p-3 rounded-xl transition-all text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            title="Edit Job"
+                          >
+                            <Edit3 className="w-6 h-6" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteJob(selectedJob._id || selectedJob.id)}
+                            className="p-3 rounded-xl transition-all text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            title="Delete Job"
+                          >
+                            <Trash2 className="w-6 h-6" />
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => handleSave(selectedJob._id || selectedJob.id)}
+                        disabled={savedJobs.includes(selectedJob._id || selectedJob.id)}
+                        className={`p-3 rounded-xl transition-all ${
+                          savedJobs.includes(selectedJob._id || selectedJob.id) 
+                            ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' 
+                            : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                        }`}
+                      >
+                        <Bookmark className={`w-6 h-6 ${savedJobs.includes(selectedJob._id || selectedJob.id) ? 'fill-current' : ''}`} />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
@@ -913,6 +953,21 @@ const Jobs = () => {
                           <p className="text-md font-medium text-gray-600 dark:text-gray-400">{selectedJob.company}</p>
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
+                          <>
+                            <button onClick={() => setJobToEdit(selectedJob)} className="p-2 text-gray-500 hover:text-blue-500">
+                              <Edit3 className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => handleDeleteJob(selectedJob._id || selectedJob.id)} className="p-2 text-gray-500 hover:text-red-500">
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
+                        <button onClick={() => handleSave(selectedJob._id || selectedJob.id)} className="p-2 text-gray-500 hover:text-yellow-500">
+                          <Bookmark className={`w-5 h-5 ${savedJobs.includes(selectedJob._id || selectedJob.id) ? 'fill-current text-yellow-500' : ''}`} />
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
@@ -998,6 +1053,17 @@ const Jobs = () => {
             setShowPostModal(false);
             fetchJobs();
           }} 
+        />
+      )}
+
+      {jobToEdit && (
+        <PostJobModal
+          initialData={jobToEdit}
+          onClose={() => setJobToEdit(null)}
+          onSuccess={() => {
+            setJobToEdit(null);
+            fetchJobs();
+          }}
         />
       )}
 

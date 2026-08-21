@@ -198,6 +198,9 @@ if (process.env.RENDER_EXTERNAL_URL) {
 }
 
 if (process.env.NODE_ENV !== 'test') {
+  // Initialize cron jobs
+  require('./jobs/engagementCron')();
+  
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

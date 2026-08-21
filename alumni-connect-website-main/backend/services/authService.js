@@ -2,7 +2,36 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
+const { getNewPeerEmailTemplate } = require('../utils/emailTemplates');
 const { autoAssignMentor } = require('./mentorshipService');
+
+const notifyPeersOfNewUser = async (newUser) => {
+  try {
+    if (!newUser.college || !newUser.department) return;
+    
+    // Find up to 50 active users in same college & department who want network updates
+    const peers = await User.find({
+      _id: { $ne: newUser._id },
+      college: newUser.college,
+      department: newUser.department,
+      isActive: true,
+      'emailPreferences.networkUpdates': true
+    }).limit(50);
+    
+    if (peers.length === 0) return;
+    
+    // Send email to peers
+    for (const peer of peers) {
+      await sendEmail({
+        email: peer.email,
+        subject: `New ${newUser.role} joined from your department!`,
+        message: getNewPeerEmailTemplate(newUser, peer)
+      }).catch(err => console.error('Peer notification email error:', err));
+    }
+  } catch (err) {
+    console.error('Error notifying peers of new user:', err);
+  }
+};
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -213,6 +242,9 @@ class AuthService {
     } catch (err) {
       console.error('Welcome email send error:', err);
     }
+
+    // Trigger peer notification asynchronously
+    notifyPeersOfNewUser(user);
 
     const token = generateToken(user._id);
     return {
@@ -464,6 +496,9 @@ class AuthService {
     } catch (err) {
       console.error('Welcome email send error:', err);
     }
+
+    // Trigger peer notification asynchronously
+    notifyPeersOfNewUser(user);
 
     const token = generateToken(user._id);
 

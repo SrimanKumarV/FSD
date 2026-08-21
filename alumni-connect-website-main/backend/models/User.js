@@ -226,6 +226,18 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+
+  // Email Preferences
+  emailPreferences: {
+    networkUpdates: {
+      type: Boolean,
+      default: true
+    },
+    devPulse: {
+      type: Boolean,
+      default: true
+    }
+  },
   
   // Account Status
   status: {

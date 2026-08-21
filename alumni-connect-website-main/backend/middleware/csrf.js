@@ -25,6 +25,12 @@ const csrfProtection = (req, res, next) => {
     return next();
   }
 
+  // Mobile apps (Capacitor) use Authorization: Bearer token instead of cookies
+  // They cannot read cross-origin cookies anyway, so CSRF is bypassed.
+  if (req.headers['x-mobile-app'] === 'capacitor') {
+    return next();
+  }
+
   // Validate CSRF token from header on state-changing requests
   const headerToken = req.headers['x-xsrf-token'];
   

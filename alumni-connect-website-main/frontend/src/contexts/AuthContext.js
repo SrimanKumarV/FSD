@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import api from '../utils/api';
+import api, { mobileTokenStore } from '../utils/api';
 import { useAuthUtils } from '../hooks/useAuthUtils';
 import { useAuthActions, AUTH_ACTIONS } from '../hooks/useAuthActions';
 
@@ -23,11 +23,13 @@ const authReducer = (state, action) => {
       return { ...state, isLoading: true, error: null };
     case AUTH_ACTIONS.LOGIN_SUCCESS:
     case AUTH_ACTIONS.REGISTER_SUCCESS:
+      mobileTokenStore.set(action.payload.token);
       return { ...state, user: action.payload.user, token: action.payload.token, isAuthenticated: true, isLoading: false, error: null };
     case AUTH_ACTIONS.LOGIN_FAILURE:
     case AUTH_ACTIONS.REGISTER_FAILURE:
       return { ...state, user: null, token: null, isAuthenticated: false, isLoading: false, error: action.payload };
     case AUTH_ACTIONS.LOGOUT:
+      mobileTokenStore.clear();
       return { ...state, user: null, token: null, isAuthenticated: false, isLoading: false, error: null };
     case AUTH_ACTIONS.UPDATE_USER:
       return { ...state, user: action.payload };
@@ -54,9 +56,11 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await api.get('/auth/me', { signal: controller.signal });
         if (!controller.signal.aborted) {
+          // If we loaded from cookie, state.token may be empty. If mobile, we already have it in localStorage.
+          const currentToken = state.token || mobileTokenStore.get() || 'cookie_auth';
           dispatch({
             type: AUTH_ACTIONS.LOGIN_SUCCESS,
-            payload: { user: response.data.user, token: state.token || 'cookie_auth' }
+            payload: { user: response.data.user, token: currentToken }
           });
         }
       } catch (error) {

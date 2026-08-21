@@ -1,6 +1,23 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+// ─── Capacitor / Mobile Detection ─────────────────────────────────────────────
+// In Capacitor WebView, cookies from cross-origin backends don't work reliably.
+// We use localStorage as a token store for the mobile APK.
+const isCapacitor = typeof window !== 'undefined' && (
+  window.Capacitor?.isNativePlatform?.() ||
+  window.location.protocol === 'capacitor:' ||
+  window.location.hostname === 'localhost' && window.Capacitor
+);
+
+const TOKEN_KEY = 'alumnex_auth_token';
+
+export const mobileTokenStore = {
+  get: () => localStorage.getItem(TOKEN_KEY),
+  set: (token) => { if (token) localStorage.setItem(TOKEN_KEY, token); },
+  clear: () => localStorage.removeItem(TOKEN_KEY),
+};
+
 const getBaseUrl = () => {
   if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.includes('localhost')) {
     return process.env.REACT_APP_API_URL;
@@ -36,6 +53,17 @@ let csrfTokenMemory = null;
 // ─── Request Interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
+    // ── Mobile / Capacitor: use Bearer token from localStorage ──
+    if (isCapacitor) {
+      const storedToken = mobileTokenStore.get();
+      if (storedToken) {
+        config.headers['Authorization'] = `Bearer ${storedToken}`;
+      }
+      // Skip CSRF for mobile — the backend will whitelist capacitor origin
+      config.headers['X-Mobile-App'] = 'capacitor';
+      return config;
+    }
+
     // Token is now handled automatically by the browser via HTTP-only cookies
     
     // Read XSRF-TOKEN from cookies for CSRF protection

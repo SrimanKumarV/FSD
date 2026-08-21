@@ -59,7 +59,7 @@ async function callGemini(messages, systemInstruction, jsonMode = false) {
   }
 
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
     payload,
     {
       headers: { 'Content-Type': 'application/json' }
@@ -72,7 +72,7 @@ async function callGemini(messages, systemInstruction, jsonMode = false) {
 // 3. Orchestrator
 async function callAIWithFallback(messages, systemInstruction, jsonMode = false) {
   try {
-    return await callGroq(messages, "llama-3.1-8b-instant", 0.7, jsonMode);
+    return await callGroq(messages, "mixtral-8x7b-32768", 0.7, jsonMode);
   } catch (error) {
     console.warn("Groq API failed or not configured, falling back to Gemini...", error.response?.data || error.message);
     try {

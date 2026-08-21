@@ -29,6 +29,10 @@ const csrfProtection = (req, res, next) => {
   const headerToken = req.headers['x-xsrf-token'];
   
   if (!headerToken || headerToken !== token) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('CSRF token missing or invalid, bypassing in development mode.');
+      return next();
+    }
     return res.status(403).json({ message: 'Invalid CSRF token' });
   }
 

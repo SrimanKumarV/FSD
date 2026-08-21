@@ -315,7 +315,26 @@ router.get('/mobile/github', (req, res) => {
 router.get('/mobile/github/callback', (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).send('No code received from GitHub');
-  res.redirect(`com.alumnex.connect://oauth/github?code=${code}`);
+  res.send(`
+    <html>
+      <head>
+        <title>Authenticating...</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: white; margin: 0; }
+          a { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h3>Authentication Successful!</h3>
+        <p>Returning to app...</p>
+        <a href="com.alumnex.connect://oauth/github?code=${code}">Click here if not redirected automatically</a>
+        <script>
+          window.location.href = 'com.alumnex.connect://oauth/github?code=${code}';
+        </script>
+      </body>
+    </html>
+  `);
 });
 
 router.get('/mobile/google', (req, res) => {
@@ -328,14 +347,26 @@ router.get('/mobile/google', (req, res) => {
 router.get('/mobile/google/callback', (req, res) => {
   res.send(`
     <html>
-      <head><title>Authenticating...</title></head>
+      <head>
+        <title>Authenticating...</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: white; margin: 0; }
+          a { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+        </style>
+      </head>
       <body>
+        <h3>Authentication Successful!</h3>
+        <p>Returning to app...</p>
+        <a id="return-link" href="#">Click here if not redirected automatically</a>
         <script>
           const hash = window.location.hash.substring(1);
           const params = new URLSearchParams(hash);
           const token = params.get('access_token');
           if (token) {
-            window.location.href = 'com.alumnex.connect://oauth/google?credential=' + token;
+            const redirectUrl = 'com.alumnex.connect://oauth/google?credential=' + token;
+            document.getElementById('return-link').href = redirectUrl;
+            window.location.href = redirectUrl;
           } else {
             document.body.innerHTML = 'Authentication failed. Please return to the app.';
           }

@@ -49,6 +49,9 @@ api.interceptors.request.use(
     if (finalToken) {
       config.headers['X-XSRF-TOKEN'] = finalToken;
     }
+    
+    // Bypass ngrok warning screen for local development
+    config.headers['ngrok-skip-browser-warning'] = 'true';
 
     return config;
   },

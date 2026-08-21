@@ -228,7 +228,7 @@ const deleteJob = async (user, jobId, io) => {
     throw err;
   }
 
-  await job.remove();
+  await Job.findByIdAndDelete(jobId);
   
   if (io) {
     io.emit('job:deleted', { jobId });

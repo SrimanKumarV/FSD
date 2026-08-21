@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // 1. Call Groq
-async function callGroq(messages, model = "llama-3.1-8b-instant", temperature = 0.7, jsonMode = false) {
+async function callGroq(messages, model = "groq/compound-mini", temperature = 0.7, jsonMode = false) {
   const apiKey = process.env.GROQ_API_KEY?.trim();
   if (!apiKey) throw new Error("Groq API Key not configured");
 
@@ -59,7 +59,7 @@ async function callGemini(messages, systemInstruction, jsonMode = false) {
   }
 
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     payload,
     {
       headers: { 'Content-Type': 'application/json' }
@@ -72,7 +72,7 @@ async function callGemini(messages, systemInstruction, jsonMode = false) {
 // 3. Orchestrator
 async function callAIWithFallback(messages, systemInstruction, jsonMode = false) {
   try {
-    return await callGroq(messages, "mixtral-8x7b-32768", 0.7, jsonMode);
+    return await callGroq(messages, "groq/compound-mini", 0.7, jsonMode);
   } catch (error) {
     console.warn("Groq API failed or not configured, falling back to Gemini...", error.response?.data || error.message);
     try {

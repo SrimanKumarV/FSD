@@ -77,7 +77,7 @@ const Events = () => {
   );
 
   const allItems = useMemo(() => {
-    const evts = (eventsData?.events || []).map(e => ({
+    const evts = (eventsData?.data?.events || []).map(e => ({
       ...e,
       isEvent: true,
       platform: 'Event',
@@ -85,7 +85,7 @@ const Events = () => {
       end: new Date(e.endDate || e.startDate)
     }));
 
-    const locContests = (contestsData?.contests || []).map(c => ({
+    const locContests = (contestsData?.data?.contests || []).map(c => ({
       ...c,
       isEvent: false,
       start: new Date(c.startDate),
@@ -393,13 +393,11 @@ const Events = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Type</label>
                     <select value={formData.eventType} onChange={e => setFormData({...formData, eventType: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white">
                       <option value="webinar">Webinar</option>
-                      <option value="exam">Exam</option>
                       <option value="workshop">Workshop</option>
-                      <option value="seminar">Seminar</option>
-                      <option value="networking">Networking</option>
                       <option value="conference">Conference</option>
-                      <option value="hackathon">Hackathon</option>
                       <option value="meetup">Meetup</option>
+                      <option value="hackathon">Hackathon</option>
+                      <option value="career_fair">Career Fair</option>
                       <option value="other">Other</option>
                     </select>
                   </div>

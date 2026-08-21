@@ -26,8 +26,8 @@ router.get('/', async (req, res) => {
     }
 
     const projects = await Project.find(query)
-      .populate('user', 'name role avatar')
-      .populate('teamMembers', 'name avatar')
+      .populate('user', 'name role photo')
+      .populate('teamMembers', 'name photo')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -61,8 +61,8 @@ router.get('/followers', protect, async (req, res) => {
 
     // Find projects where the owner is in the user's followers array
     const projects = await Project.find({ user: { $in: user.followers } })
-      .populate('user', 'name role avatar')
-      .populate('teamMembers', 'name avatar')
+      .populate('user', 'name role photo')
+      .populate('teamMembers', 'name photo')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -86,8 +86,8 @@ router.get('/followers', protect, async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const projects = await Project.find({ user: req.params.userId })
-      .populate('user', 'name role avatar')
-      .populate('teamMembers', 'name avatar')
+      .populate('user', 'name role photo')
+      .populate('teamMembers', 'name photo')
       .sort({ createdAt: -1 });
       
     res.json({ success: true, projects });
@@ -102,18 +102,18 @@ router.get('/user/:userId', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id)
-      .populate('user', 'name role avatar headline bio')
-      .populate('teamMembers', 'name avatar')
-      .populate('likes', 'name avatar');
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    )
+      .populate('user', 'name role photo headline bio')
+      .populate('teamMembers', 'name photo')
+      .populate('likes', 'name photo');
       
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
-    
-    // Increment view count
-    project.views += 1;
-    await project.save();
     
     res.json(project);
   } catch (error) {
@@ -132,10 +132,13 @@ router.post('/', protect, async (req, res) => {
   try {
     const { title, description, tags, githubLink, liveLink, thumbnail, teamMembers } = req.body;
     
+    // Ensure tags is always a non-empty array
+    const safeTags = Array.isArray(tags) && tags.length > 0 ? tags : ['General'];
+    
     const project = await Project.create({
       title,
       description,
-      tags: tags || [],
+      tags: safeTags,
       teamMembers: teamMembers || [],
       githubLink,
       liveLink,
@@ -143,6 +146,7 @@ router.post('/', protect, async (req, res) => {
       user: req.user.id
     });
     
+    await project.populate('user', 'name role photo');
     res.status(201).json(project);
   } catch (error) {
     console.error('Error creating project:', error);
@@ -194,7 +198,7 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(401).json({ message: 'Not authorized to delete this project' });
     }
     
-    await project.remove();
+    await project.deleteOne();
     
     res.json({ message: 'Project removed' });
   } catch (error) {

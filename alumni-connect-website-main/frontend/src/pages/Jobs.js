@@ -436,6 +436,11 @@ const Jobs = () => {
   };
 
   const handleSave = async (jobId) => {
+    // External jobs can't be saved (they have ext_ prefix IDs)
+    if (!jobId || String(jobId).startsWith('ext_')) {
+      toast.error('External jobs cannot be saved. Apply directly on the external site.');
+      return;
+    }
     try {
       await api.post(`/jobs/${jobId}/save`);
       toast.success('Job saved successfully!');

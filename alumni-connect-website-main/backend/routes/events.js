@@ -87,6 +87,84 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @desc    Get user's registered events
+// @route   GET /api/events/registered
+// @access  Private
+router.get('/registered', protect, async (req, res) => {
+  try {
+    const registeredEvents = await Event.find({
+      'registrations.user': req.user.id
+    }).populate('organizer', 'name photo role');
+
+    res.json({ registeredEvents });
+  } catch (error) {
+    console.error('Error fetching registered events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get events organized by user
+// @route   GET /api/events/organized
+// @access  Private
+router.get('/organized', protect, async (req, res) => {
+  try {
+    const organizedEvents = await Event.find({
+      organizer: req.user.id
+    }).sort({ startDate: -1 });
+
+    res.json({ organizedEvents });
+  } catch (error) {
+    console.error('Error fetching organized events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get upcoming events
+// @route   GET /api/events/upcoming
+// @access  Public
+router.get('/upcoming', async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    const upcomingEvents = await Event.findUpcoming(parseInt(limit));
+    res.json({ upcomingEvents });
+  } catch (error) {
+    console.error('Error fetching upcoming events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get virtual events
+// @route   GET /api/events/virtual
+// @access  Public
+router.get('/virtual', async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const virtualEvents = await Event.findVirtual()
+      .populate('organizer', 'name photo role')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ startDate: 1 });
+
+    const total = await Event.countDocuments({ isVirtual: true, status: 'published' });
+
+    res.json({
+      virtualEvents,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit)),
+        total,
+        hasNext: parseInt(page) * parseInt(limit) < total,
+        hasPrev: parseInt(page) > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching virtual events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @desc    Get event by ID
 // @route   GET /api/events/:id
 // @access  Public
@@ -282,7 +360,7 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    await event.remove();
+    await event.deleteOne();
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     console.error('Error deleting event:', error);
@@ -358,37 +436,7 @@ router.delete('/:id/register', protect, async (req, res) => {
   }
 });
 
-// @desc    Get user's registered events
-// @route   GET /api/events/registered
-// @access  Private
-router.get('/registered', protect, async (req, res) => {
-  try {
-    const registeredEvents = await Event.find({
-      'registrations.user': req.user.id
-    }).populate('organizer', 'name photo role');
 
-    res.json({ registeredEvents });
-  } catch (error) {
-    console.error('Error fetching registered events:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @desc    Get events organized by user
-// @route   GET /api/events/organized
-// @access  Private
-router.get('/organized', protect, async (req, res) => {
-  try {
-    const organizedEvents = await Event.find({
-      organizer: req.user.id
-    }).sort({ startDate: -1 });
-
-    res.json({ organizedEvents });
-  } catch (error) {
-    console.error('Error fetching organized events:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 // @desc    Publish event
 // @route   PUT /api/events/:id/publish
@@ -456,50 +504,6 @@ router.put('/:id/cancel', protect, [
   }
 });
 
-// @desc    Get upcoming events
-// @route   GET /api/events/upcoming
-// @access  Public
-router.get('/upcoming', async (req, res) => {
-  try {
-    const { limit = 5 } = req.query;
-    const upcomingEvents = await Event.findUpcoming(parseInt(limit));
-    res.json({ upcomingEvents });
-  } catch (error) {
-    console.error('Error fetching upcoming events:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
-// @desc    Get virtual events
-// @route   GET /api/events/virtual
-// @access  Public
-router.get('/virtual', async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const virtualEvents = await Event.findVirtual()
-      .populate('organizer', 'name photo role')
-      .skip(skip)
-      .limit(parseInt(limit))
-      .sort({ startDate: 1 });
-
-    const total = await Event.countDocuments({ isVirtual: true, status: 'published' });
-
-    res.json({
-      virtualEvents,
-      pagination: {
-        current: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit)),
-        total,
-        hasNext: parseInt(page) * parseInt(limit) < total,
-        hasPrev: parseInt(page) > 1
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching virtual events:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 module.exports = router;

@@ -104,12 +104,16 @@ const Mentorship = () => {
       toast.error('Please enter a message');
       return;
     }
+    // Backend requires description to be at least 20 characters
+    const desc = requestMessage.trim().length < 20 
+      ? requestMessage.trim() + ' (mentorship request)'
+      : requestMessage.trim();
     setLoading(true);
     try {
       const submitData = {
         targetUserId: requestTargetMentor._id || requestTargetMentor.id,
         title: `Mentorship Request from ${user.name}`,
-        description: requestMessage,
+        description: desc,
         focusAreas: ['General Mentorship'],
         goals: ['Career Guidance'],
         expectedDuration: 12, // in weeks
@@ -122,7 +126,10 @@ const Mentorship = () => {
       setShowRequestForm(false);
     } catch (error) {
       console.error('Error submitting request:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit request');
+      const errMsg = error.response?.data?.errors?.[0]?.msg 
+        || error.response?.data?.message 
+        || 'Failed to submit request';
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }

@@ -36,7 +36,7 @@ jobs:
         run: npm run build
         env:
           CI: "false"
-          REACT_APP_API_URL: "https://alumnex-backend-9y5t.onrender.com/api"
+          REACT_APP_API_URL: "https://feed-unmanned-awoke.ngrok-free.dev/api"
           REACT_APP_BACKUP_API_URL: "https://alumnex-backend-backup.onrender.com/api"
           REACT_APP_GITHUB_CLIENT_ID: "Ov23liziKGoBWdUOVmxJ"
 

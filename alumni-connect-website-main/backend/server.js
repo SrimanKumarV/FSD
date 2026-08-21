@@ -50,6 +50,10 @@ const io = socketIo(server, {
 if (process.env.NODE_ENV !== 'test') {
   const pubClient = cache.client.duplicate();
   const subClient = cache.client.duplicate();
+  
+  pubClient.on('error', (err) => console.log('PubClient Error', err));
+  subClient.on('error', (err) => console.log('SubClient Error', err));
+
   Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
     io.adapter(createAdapter(pubClient, subClient));
     console.log('Socket.io Redis adapter connected');

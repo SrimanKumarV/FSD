@@ -632,6 +632,59 @@ const Profile = () => {
           </motion.form>
         )}
 
+        {/* About Tab */}
+        {!isEditing && activeTab === 'about' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {user.skills?.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Skills</h3>
+                <div className="flex flex-wrap gap-2">
+                  {user.skills.map(s => (
+                    <span key={s} className="px-3 py-1 rounded-full text-sm bg-primary/10 text-primary border border-primary/20">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {user.role === 'alumni' && (user.alumniInfo?.company || user.alumniInfo?.position) && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Work</h3>
+                <p className="text-gray-900 dark:text-white font-semibold text-lg">{user.alumniInfo?.position}</p>
+                <p className="text-gray-500 dark:text-gray-400">{user.alumniInfo?.company} {user.alumniInfo?.industry && `· ${user.alumniInfo?.industry}`}</p>
+              </div>
+            )}
+            
+            {user.socialLinks && Object.values(user.socialLinks).some(Boolean) && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Links</h3>
+                <div className="flex flex-wrap gap-4">
+                  {user.socialLinks.github && <a href={user.socialLinks.github} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><Github className="w-5 h-5"/> GitHub</a>}
+                  {user.socialLinks.linkedin && <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><Linkedin className="w-5 h-5"/> LinkedIn</a>}
+                  {user.socialLinks.twitter && <a href={user.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><Twitter className="w-5 h-5"/> Twitter</a>}
+                  {user.socialLinks.website && <a href={user.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><Globe className="w-5 h-5"/> Website</a>}
+                  {user.socialLinks.portfolio && <a href={user.socialLinks.portfolio} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><FileText className="w-5 h-5"/> Portfolio</a>}
+                </div>
+              </div>
+            )}
+
+            {(!user.skills?.length && !(user.role === 'alumni' && (user.alumniInfo?.company || user.alumniInfo?.position)) && !(user.socialLinks && Object.values(user.socialLinks).some(Boolean))) && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 border border-gray-100 dark:border-gray-700 text-center">
+                <p className="text-gray-500 dark:text-gray-400 mb-4">You haven't added any details to your about section yet.</p>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"
+                >
+                  Complete Your Profile
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Network Tab */}
         {!isEditing && activeTab === 'network' && (
           <motion.div

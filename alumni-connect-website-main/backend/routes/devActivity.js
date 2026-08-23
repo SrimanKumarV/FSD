@@ -151,6 +151,7 @@ router.get('/:email', protect, async (req, res) => {
       stats: profile.stats,
       lastUpdated: profile.lastUpdated,
       alumnexScore: profile.alumnexScore,
+      verificationCode: profile.verificationCode,
       fromCache: false
     });
 
@@ -311,6 +312,18 @@ router.post('/verify-platform', protect, async (req, res) => {
       return res.status(400).json({ message: `No username provided for ${platform}` });
     }
 
+    const cleanUsername = (input) => {
+      if (!input) return '';
+      let str = input.trim();
+      if (str.startsWith('@')) str = str.substring(1);
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        str = parts[parts.length - 1] || parts[parts.length - 2];
+      }
+      return str;
+    };
+    const finalUsername = cleanUsername(username);
+
     let isVerified = false;
     const code = profile.verificationCode;
 
@@ -322,28 +335,28 @@ router.post('/verify-platform', protect, async (req, res) => {
 
     try {
       if (platform === 'github') {
-        const res = await axios.get(`https://github.com/${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        const res = await axios.get(`https://github.com/${finalUsername}`, { headers: { 'User-Agent': BROWSER_UA }});
         isVerified = res.data.includes(code);
       } else if (platform === 'leetcode') {
         const query = `query getUserProfile($username: String!) { matchedUser(username: $username) { profile { aboutMe } } }`;
-        const res = await axios.post('https://leetcode.com/graphql', { query, variables: { username } }, { headers: { 'Content-Type': 'application/json' }});
+        const res = await axios.post('https://leetcode.com/graphql', { query, variables: { username: finalUsername } }, { headers: { 'Content-Type': 'application/json' }});
         const aboutMe = res.data?.data?.matchedUser?.profile?.aboutMe || '';
         isVerified = aboutMe.includes(code);
       } else if (platform === 'hackerrank') {
-        const res = await axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${username}/profile`, { headers: { 'User-Agent': BROWSER_UA }});
+        const res = await axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${finalUsername}/profile`, { headers: { 'User-Agent': BROWSER_UA }});
         const bio = res.data?.model?.short_bio || res.data?.model?.about || '';
         isVerified = bio.includes(code);
       } else if (platform === 'gfg') {
-        const res = await axios.get(`https://www.geeksforgeeks.org/user/${username}/`, { headers: { 'User-Agent': BROWSER_UA }});
+        const res = await axios.get(`https://www.geeksforgeeks.org/user/${finalUsername}/`, { headers: { 'User-Agent': BROWSER_UA }});
         isVerified = res.data.includes(code);
       } else if (platform === 'codechef') {
-        const res = await axios.get(`https://www.codechef.com/users/${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        const res = await axios.get(`https://www.codechef.com/users/${finalUsername}`, { headers: { 'User-Agent': BROWSER_UA }});
         isVerified = res.data.includes(code);
       } else if (platform === 'codeforces') {
-        const res = await axios.get(`https://codeforces.com/profile/${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        const res = await axios.get(`https://codeforces.com/profile/${finalUsername}`, { headers: { 'User-Agent': BROWSER_UA }});
         isVerified = res.data.includes(code);
       } else if (platform === 'duolingo') {
-        const res = await axios.get(`https://www.duolingo.com/2017-06-30/users?username=${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        const res = await axios.get(`https://www.duolingo.com/2017-06-30/users?username=${finalUsername}`, { headers: { 'User-Agent': BROWSER_UA }});
         const bio = res.data?.users?.[0]?.bio || '';
         isVerified = bio.includes(code);
       }
@@ -353,7 +366,7 @@ router.post('/verify-platform', protect, async (req, res) => {
 
     if (isVerified) {
       if (!profile.usernames) profile.usernames = {};
-      profile.usernames[platform] = { username, isVerified: true };
+      profile.usernames[platform] = { username: finalUsername, isVerified: true };
       profile.markModified(`usernames.${platform}`);
       profile.lastUpdated = null; // force refresh
       await profile.save();

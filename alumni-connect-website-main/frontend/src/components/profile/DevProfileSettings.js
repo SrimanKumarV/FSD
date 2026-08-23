@@ -40,6 +40,9 @@ const DevProfileSettings = () => {
             duolingo: res.data.usernames.duolingo || { username: '', isVerified: false }
           });
         }
+        if (res.data?.verificationCode) {
+          setVerificationCode(res.data.verificationCode);
+        }
       },
       onError: (err) => {
         if (err.response?.status !== 404) {
@@ -200,6 +203,40 @@ const DevProfileSettings = () => {
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Link your coding profiles to track your Alumnex Score. Save your usernames below to automatically fetch your stats.
       </p>
+
+      {/* Verification Instructions Panel */}
+      <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 flex items-center mb-2">
+          <AlertCircle className="w-4 h-4 mr-2" /> How to Verify Your Accounts
+        </h4>
+        <p className="text-xs text-blue-800 dark:text-blue-200 mb-3 leading-relaxed">
+          To prove ownership, you must temporarily add your unique verification code to the <b>bio or about section</b> of your public profiles. Once added, click <b>Verify</b> below. You can remove the code after successful verification.
+        </p>
+        <div className="flex items-center gap-3">
+          {verificationCode ? (
+            <div className="flex-1 max-w-sm flex items-center gap-2">
+              <code className="flex-1 p-2 bg-white dark:bg-gray-900 rounded-lg text-center font-mono font-bold text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 shadow-sm">
+                {verificationCode}
+              </code>
+              <button 
+                onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(verificationCode); toast.success('Copied to clipboard'); }}
+                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors whitespace-nowrap"
+              >
+                Copy Code
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={(e) => { e.preventDefault(); generateCodeMutation.mutate(); }}
+              disabled={generateCodeMutation.isLoading}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center"
+            >
+              {generateCodeMutation.isLoading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Generate My Verification Code
+            </button>
+          )}
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

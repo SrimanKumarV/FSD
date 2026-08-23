@@ -3,7 +3,19 @@ const cheerio = require('cheerio');
 
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-const fetchGitHubStats = async (username) => {
+const cleanUsername = (input) => {
+  if (!input) return '';
+  let str = input.trim();
+  if (str.startsWith('@')) str = str.substring(1);
+  if (str.includes('/')) {
+    const parts = str.split('/');
+    str = parts[parts.length - 1] || parts[parts.length - 2];
+  }
+  return str;
+};
+
+const fetchGitHubStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const headers = { 'User-Agent': BROWSER_UA };
@@ -150,7 +162,8 @@ const fetchGitHubStats = async (username) => {
   }
 };
 
-const fetchLeetCodeStats = async (username) => {
+const fetchLeetCodeStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const query = `
@@ -214,7 +227,8 @@ const fetchLeetCodeStats = async (username) => {
   }
 };
 
-const fetchHackerRankStats = async (username) => {
+const fetchHackerRankStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const headers = { 'User-Agent': BROWSER_UA };
@@ -291,7 +305,8 @@ const fetchHackerRankStats = async (username) => {
   }
 };
 
-const fetchGFGStats = async (username) => {
+const fetchGFGStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const htmlRes = await axios.get(`https://www.geeksforgeeks.org/user/${username}/`, { headers: { 'User-Agent': BROWSER_UA } });
@@ -334,7 +349,8 @@ const fetchGFGStats = async (username) => {
   }
 };
 
-const fetchCodechefStats = async (username) => {
+const fetchCodechefStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const response = await axios.get(`https://www.codechef.com/users/${username}`, { headers: { 'User-Agent': BROWSER_UA } });
@@ -374,7 +390,8 @@ const fetchCodechefStats = async (username) => {
   }
 };
 
-const fetchCodeforcesStats = async (username) => {
+const fetchCodeforcesStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const [infoRes, ratingRes, statusRes] = await Promise.allSettled([
@@ -430,7 +447,8 @@ const fetchCodeforcesStats = async (username) => {
   }
 };
 
-const fetchDuolingoStats = async (username) => {
+const fetchDuolingoStats = async (rawUsername) => {
+  const username = cleanUsername(rawUsername);
   if (!username) return null;
   try {
     const userAgentHeader = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };

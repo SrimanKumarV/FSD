@@ -7,6 +7,7 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const sendEmail = require('../utils/sendEmail');
 const { callAIWithFallback } = require('../utils/aiHelper');
+const { containsProfanity } = require('../utils/moderation');
 
 // @desc    Get all forum posts with filters
 // @route   GET /api/forum
@@ -225,6 +226,10 @@ router.post('/', [protect], [
       poll,
       successStory
     });
+
+    if (await containsProfanity(`${title} ${content}`)) {
+      post.isFlagged = true;
+    }
 
     await post.save();
 
@@ -447,6 +452,10 @@ router.post('/:id/comments', [protect], [
     }
 
     const { content, parentCommentId } = req.body;
+
+    if (await containsProfanity(content)) {
+      return res.status(400).json({ message: 'Comment blocked due to inappropriate content' });
+    }
 
     if (parentCommentId) {
       // Adding reply to existing comment

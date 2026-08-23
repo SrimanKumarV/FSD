@@ -617,6 +617,18 @@ const DevPulse = () => {
               </div>
             </div>
 
+            {/* GitHub ReadMe Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-6">
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col items-center justify-center">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 self-start">📈 GitHub Stats</h3>
+                <img src={`https://github-readme-stats.vercel.app/api?username=${uname}&show_icons=true&theme=transparent&hide_border=true&title_color=6366f1&text_color=94a3b8`} alt="GitHub Stats" className="max-w-full" />
+              </div>
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col items-center justify-center">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 self-start">🏆 Top Languages</h3>
+                <img src={`https://github-readme-stats.vercel.app/api/top-langs/?username=${uname}&layout=compact&theme=transparent&hide_border=true&title_color=6366f1&text_color=94a3b8`} alt="Top Languages" className="max-w-full" />
+              </div>
+            </div>
+
             {/* Real GitHub Achievement Badges */}
             {g.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">

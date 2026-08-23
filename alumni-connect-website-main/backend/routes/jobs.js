@@ -6,6 +6,9 @@ const Job = require('../models/Job');
 const JobApplication = require('../models/JobApplication');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { callAIWithFallback } = require('../utils/aiHelper');
 
 const { getExternalJobs, getInternalJobs, createJob, updateJob, deleteJob, applyForJob } = require('../services/jobService');
 
@@ -34,6 +37,45 @@ router.get('/external', async (req, res) => {
   } catch (error) {
     console.error('Error fetching external jobs:', error);
     res.status(500).json({ message: 'Failed to fetch external jobs' });
+  }
+});
+
+// Configure multer for memory storage
+const memUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+// @desc    Parse resume via Groq AI
+// @route   POST /api/jobs/parse-resume
+// @access  Private
+router.post('/parse-resume', protect, memUpload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No resume file uploaded' });
+    }
+
+    const pdfData = await pdfParse(req.file.buffer);
+    const resumeText = pdfData.text;
+
+    if (!resumeText || resumeText.trim() === '') {
+      return res.status(400).json({ message: 'Could not extract text from the PDF' });
+    }
+
+    const systemPrompt = "You are a resume parsing AI. Extract the following from the provided text into a strict JSON object: { \"name\": \"string\", \"skills\": [\"string\"], \"experience\": \"string summary\", \"education\": \"string degree\" }. Respond ONLY with JSON.";
+    const userPrompt = `Resume text:\n\n${resumeText.substring(0, 4000)}`;
+
+    let aiResponse = await callAIWithFallback([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ], systemPrompt, true);
+
+    aiResponse = aiResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+    if (jsonMatch) aiResponse = jsonMatch[0];
+
+    const parsedData = JSON.parse(aiResponse);
+    res.json(parsedData);
+  } catch (error) {
+    console.error('Error parsing resume:', error);
+    res.status(500).json({ message: 'Failed to parse resume' });
   }
 });
 

@@ -45,6 +45,10 @@ const forumPostSchema = new mongoose.Schema({
     enum: ['active', 'closed', 'pinned', 'archived'],
     default: 'active'
   },
+  isFlagged: {
+    type: Boolean,
+    default: false
+  },
   
   // Engagement Metrics
   views: {

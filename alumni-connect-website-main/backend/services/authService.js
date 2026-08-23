@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const { getNewPeerEmailTemplate } = require('../utils/emailTemplates');
 const { autoAssignMentor } = require('./mentorshipService');
-
 const notifyPeersOfNewUser = async (newUser) => {
   try {
     if (!newUser.college || !newUser.department) return;
@@ -273,6 +273,17 @@ class AuthService {
     } else if (role === 'college') {
       userFields.collegeInfo = collegeInfo || {};
       userFields.isApproved = false; 
+    }
+
+    // Validate email deliverability using Disify
+    try {
+      const emailCheck = await axios.get(`https://www.disify.com/api/email/${email}`);
+      if (emailCheck.data && (emailCheck.data.format === false || emailCheck.data.disposable === true)) {
+        throw { status: 400, message: 'Invalid or disposable email address not allowed' };
+      }
+    } catch (err) {
+      if (err.status === 400) throw err;
+      console.error('Email validation error:', err.message);
     }
 
     const otp = generateOTP();

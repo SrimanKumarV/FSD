@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
+const { containsProfanity } = require('../utils/moderation');
 
 const cache = require('../utils/cache');
 
@@ -113,6 +114,8 @@ module.exports = (io) => {
           return;
         }
 
+        const isFlagged = await containsProfanity(content);
+
         if (receiverId === 'global') {
           const message = new Message({
             sender: userId,
@@ -121,7 +124,8 @@ module.exports = (io) => {
             attachments,
             replyTo: data.replyTo || null,
             conversationId: 'global',
-            isGlobal: true
+            isGlobal: true,
+            isFlagged
           });
 
           await message.save();
@@ -161,7 +165,8 @@ module.exports = (io) => {
             messageType,
             attachments,
             replyTo: data.replyTo || null,
-            conversationId: receiverId
+            conversationId: receiverId,
+            isFlagged
           });
 
           await message.save();
@@ -210,7 +215,8 @@ module.exports = (io) => {
           messageType,
           attachments,
           replyTo: data.replyTo || null,
-          conversationId: Message.generateConversationId(userId, receiverId)
+          conversationId: Message.generateConversationId(userId, receiverId),
+          isFlagged
         });
 
         await message.save();

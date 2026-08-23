@@ -135,6 +135,19 @@ const Profile = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (isEditing && !formData.location) {
+      fetch('https://ipapi.co/json/')
+        .then(res => res.json())
+        .then(data => {
+          if (data.city && data.country_name) {
+            setFormData(prev => ({ ...prev, location: `${data.city}, ${data.country_name}` }));
+          }
+        })
+        .catch(err => console.error('Error fetching location:', err));
+    }
+  }, [isEditing, formData.location]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name.includes('.')) {
@@ -667,6 +680,16 @@ const Profile = () => {
                   {user.socialLinks.twitter && <a href={user.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><Twitter className="w-5 h-5"/> Twitter</a>}
                   {user.socialLinks.website && <a href={user.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><Globe className="w-5 h-5"/> Website</a>}
                   {user.socialLinks.portfolio && <a href={user.socialLinks.portfolio} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"><FileText className="w-5 h-5"/> Portfolio</a>}
+                </div>
+              </div>
+            )}
+
+            {user.socialLinks?.github && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 mt-6">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">GitHub Overview</h3>
+                <div className="flex flex-col lg:flex-row gap-4 items-center">
+                  <img src={`https://github-readme-stats.vercel.app/api?username=${user.socialLinks.github.split('/').filter(Boolean).pop()}&show_icons=true&theme=transparent&hide_border=true&title_color=6366f1&text_color=94a3b8`} alt="GitHub Stats" className="max-w-full lg:max-w-1/2" />
+                  <img src={`https://github-readme-stats.vercel.app/api/top-langs/?username=${user.socialLinks.github.split('/').filter(Boolean).pop()}&layout=compact&theme=transparent&hide_border=true&title_color=6366f1&text_color=94a3b8`} alt="Top Languages" className="max-w-full lg:max-w-1/2" />
                 </div>
               </div>
             )}

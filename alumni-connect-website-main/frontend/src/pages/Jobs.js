@@ -270,11 +270,40 @@ const ApplyJobModal = ({ job, onClose, onSuccess }) => {
     }
   };
 
+  const handleParseResume = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setLoading(true);
+    const form = new FormData();
+    form.append('resume', file);
+    try {
+      const res = await api.post('/jobs/parse-resume', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const data = res.data;
+      setFormData(prev => ({
+        ...prev,
+        coverLetter: `Hi, I am ${data.name || 'a professional'}.\n\nSkills: ${data.skills ? data.skills.join(', ') : 'N/A'}\n\nExperience: ${data.experience || 'N/A'}\n\nEducation: ${data.education || 'N/A'}\n\nBased on my background, I believe I am a strong fit for this position at ${job.company}.`
+      }));
+      toast.success('Resume parsed and cover letter auto-filled!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to parse resume');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal isOpen={true} onClose={onClose} title={`Apply for ${job.title}`} className="max-w-lg !p-8">
       <p className="text-gray-500 dark:text-gray-400 mb-6">{job.company}</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Autofill Cover Letter from Resume</label>
+            <input type="file" accept="application/pdf" onChange={handleParseResume} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-gray-800 dark:file:text-gray-300" />
+            <p className="text-xs text-gray-500 mt-1">Upload a PDF resume to generate a draft cover letter using AI.</p>
+          </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Resume Link (Optional)</label>
             <input type="url" placeholder="https://link-to-resume.com" className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black dark:text-white" value={formData.resumeLink} onChange={e => setFormData(prev => ({...prev, resumeLink: e.target.value}))} />

@@ -7,6 +7,7 @@ const MentorshipSession = require('../models/MentorshipSession');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const MentorReward = require('../models/MentorReward');
+const { isHoliday } = require('../utils/holidays');
 const { getMentors, autoAssignMentor, createMentorshipRequest, updateMentorshipStatus } = require('../services/mentorshipService');
 // @desc    Get all mentorship requests for a user
 // @route   GET /api/mentorship
@@ -512,6 +513,12 @@ router.post('/sessions', protect, [
     const mentor = await User.findById(mentorId);
     if (!mentor || mentor.role !== 'alumni') {
       return res.status(400).json({ message: 'Valid mentor not found' });
+    }
+
+    // Check if date is a public holiday
+    const isPublicHoliday = await isHoliday(date, mentor.country || 'IN');
+    if (isPublicHoliday) {
+      return res.status(400).json({ message: 'Mentorship sessions cannot be scheduled on public holidays in the mentor\'s country.' });
     }
 
     const session = new MentorshipSession({

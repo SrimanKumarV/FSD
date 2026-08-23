@@ -85,6 +85,10 @@ const messageSchema = new mongoose.Schema({
     enum: ['sent', 'delivered', 'read'],
     default: 'sent'
   },
+  isFlagged: {
+    type: Boolean,
+    default: false
+  },
   
   // Read Status
   readBy: [{

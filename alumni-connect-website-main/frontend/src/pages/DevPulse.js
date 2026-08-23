@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 import {
   Activity, Code, GitCommit, Trophy, TrendingUp, AlertCircle, Settings,
   ExternalLink, Star, Zap, Target, ArrowLeft, CheckCircle2, XCircle,
-  Loader2, RefreshCw, GitFork, Users, BookOpen, Globe
+  Loader2, RefreshCw, GitFork, Users, BookOpen, Globe, Heart
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +15,7 @@ import UserAvatar from '../components/UserAvatar';
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, LineChart, Line
 } from 'recharts';
 import PlatformIcon from '../components/PlatformIcon';
 
@@ -608,14 +608,59 @@ const DevPulse = () => {
               {/* Stats */}
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-6">Stats</h3>
-                <div className="flex-1 space-y-4">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <StatPill icon={Star} label="Stars" value={g.stars || 0} color="#fbbf24" />
                   <StatPill icon={(props) => <PlatformIcon platform="github" {...props} />} label="Contributions" value={g.totalContributions || 0} color="#f97316" />
                   <StatPill icon={GitFork} label="PRs" value={g.pullRequests || 0} color="#22c55e" />
                   <StatPill icon={AlertCircle} label="Issues" value={g.issues || 0} color="#ef4444" />
+                  <StatPill icon={Code} label="Gists" value={g.gists || 0} color="#8b5cf6" />
+                  <StatPill icon={Heart} label="Sponsorships" value={g.sponsorships || 0} color="#ec4899" />
                 </div>
               </div>
             </div>
+
+            {/* GitHub Organizations & Pinned Repos */}
+            {(g.pinnedRepos?.length > 0 || g.organizations?.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-6">
+                {/* Pinned Repos */}
+                {g.pinnedRepos?.length > 0 && (
+                  <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-4 self-start">📌 Pinned Repositories</h3>
+                    <div className="flex flex-col gap-4">
+                      {g.pinnedRepos.map(repo => (
+                        <a key={repo.name} href={repo.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/50 hover:border-primary dark:hover:border-primary transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-bold text-primary truncate mr-2">{repo.name}</h4>
+                            <span className="flex items-center text-xs text-slate-500 font-semibold"><Star className="w-3 h-3 mr-1" />{repo.stargazerCount}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{repo.description || 'No description'}</p>
+                          {repo.primaryLanguage && (
+                            <div className="flex items-center text-xs font-semibold text-slate-500">
+                              <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: repo.primaryLanguage.color }} />
+                              {repo.primaryLanguage.name}
+                            </div>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Organizations */}
+                {g.organizations?.length > 0 && (
+                  <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 h-fit">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-4 self-start">🏢 Organizations</h3>
+                    <div className="flex flex-wrap gap-4">
+                      {g.organizations.map(org => (
+                        <a key={org.login} href={`https://github.com/${org.login}`} target="_blank" rel="noopener noreferrer" className="block group">
+                          <img src={org.avatarUrl} alt={org.login} className="w-14 h-14 rounded-xl border border-slate-200 dark:border-slate-700 group-hover:border-primary transition-colors shadow-sm" title={org.login} />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* GitHub ReadMe Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-6">
@@ -770,6 +815,27 @@ const DevPulse = () => {
               )}
             </div>
 
+            {/* LeetCode Rating History Chart */}
+            {lc.ratingHistory && lc.ratingHistory.length > 0 && (
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-5">📈 Contest Rating History</h3>
+                <div className="flex-1 w-full" style={{ minHeight: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={lc.ratingHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                      <XAxis dataKey="contest.title" hide />
+                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                      <RechartsTooltip 
+                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} 
+                        labelFormatter={(label, payload) => payload?.[0]?.payload?.contest?.title || label}
+                      />
+                      <Line type="monotone" dataKey="rating" stroke="#f59e0b" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#f59e0b' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
             {/* LeetCode real badges */}
             {lc.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
@@ -833,6 +899,32 @@ const DevPulse = () => {
             ) : (
               <div className="bg-white dark:bg-slate-800/40 rounded-2xl p-8 border border-gray-200 dark:border-slate-700/50 text-center text-gray-500 dark:text-slate-500 text-sm">
                 No domain badges yet. Solve problems in specific domains to earn them!
+              </div>
+            )}
+
+            {/* Certificates */}
+            {hr.certificates?.length > 0 && (
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">📜 Verified Certificates</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {hr.certificates.map(cert => (
+                    <a key={cert.id} href={cert.url} target="_blank" rel="noopener noreferrer" className="flex flex-col p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:border-primary transition-colors">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">{cert.name}</h4>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wider">{cert.kind || 'Skill'}</p>
+                        </div>
+                      </div>
+                      <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-200 dark:border-slate-700/50 text-xs text-gray-500 dark:text-slate-400 font-semibold">
+                        <span>Issued: {new Date(cert.date).toLocaleDateString()}</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -950,6 +1042,23 @@ const DevPulse = () => {
                 <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">Current Division</p>
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex items-center justify-between">
+                <div>
+                  <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{cc.globalRank ? `#${cc.globalRank}` : '—'}</h3>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Global Rank</p>
+                </div>
+                <Globe className="w-8 h-8 text-blue-500 opacity-80" />
+              </div>
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex items-center justify-between">
+                <div>
+                  <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1">{cc.countryRank ? `#${cc.countryRank}` : '—'}</h3>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Country Rank</p>
+                </div>
+                <Target className="w-8 h-8 text-emerald-500 opacity-80" />
+              </div>
+            </div>
             {cc.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">CodeChef Badges</h3>
@@ -1001,8 +1110,32 @@ const DevPulse = () => {
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col justify-center space-y-4">
                  <StatPill icon={Star} label="Current Rank" value={cf.rank || 'Newbie'} color="#ef4444" />
                  <StatPill icon={TrendingUp} label="Peak Rank" value={cf.maxRank || '—'} color="#f97316" />
+                 <StatPill icon={CheckCircle2} label="Problems Solved" value={cf.problemsSolved || 0} color="#22c55e" />
+                 <StatPill icon={Users} label="Friends" value={cf.friendOfCount || 0} color="#3b82f6" />
+                 <StatPill icon={Activity} label="Contribution" value={cf.contribution || 0} color="#a855f7" />
               </div>
             </div>
+
+            {/* Codeforces Rating History Chart */}
+            {cf.ratingHistory && cf.ratingHistory.length > 0 && (
+              <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50 flex flex-col mt-6">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-5">📈 Contest Rating History</h3>
+                <div className="flex-1 w-full" style={{ minHeight: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={cf.ratingHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                      <XAxis dataKey="contestName" hide />
+                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                      <RechartsTooltip 
+                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} 
+                        labelFormatter={(label, payload) => payload?.[0]?.payload?.contestName || label}
+                      />
+                      <Line type="monotone" dataKey="newRating" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#ef4444' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
             {cf.badges?.length > 0 && (
               <div className="bg-white dark:bg-slate-800/40 rounded-3xl p-6 border border-gray-200 dark:border-slate-700/50">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">Codeforces Rank Badges</h3>

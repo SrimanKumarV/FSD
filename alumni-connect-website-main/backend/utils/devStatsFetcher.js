@@ -30,6 +30,22 @@ const fetchGitHubStats = async (username) => {
               }
             }
           }
+          pinnedItems(first: 6, types: REPOSITORY) {
+            nodes {
+              ... on Repository {
+                name
+                description
+                url
+                stargazerCount
+                primaryLanguage { name color }
+              }
+            }
+          }
+          organizations(first: 10) {
+            nodes { login avatarUrl }
+          }
+          gists { totalCount }
+          sponsorshipsAsMaintainer(first: 1) { totalCount }
           pullRequests(first: 1) { totalCount }
           issues(first: 1) { totalCount }
           contributionsCollection {
@@ -122,7 +138,11 @@ const fetchGitHubStats = async (username) => {
       heatmap: { points: heatmapPoints, maxStreak, currentStreak },
       createdAt: data.createdAt,
       url: data.url,
-      badges: realBadges
+      badges: realBadges,
+      pinnedRepos: data.pinnedItems?.nodes || [],
+      organizations: data.organizations?.nodes || [],
+      gists: data.gists?.totalCount || 0,
+      sponsorships: data.sponsorshipsAsMaintainer?.totalCount || 0
     };
   } catch (error) {
     console.error(`GitHub fetch failed for ${username}:`, error.message);
@@ -148,6 +168,7 @@ const fetchLeetCodeStats = async (username) => {
           }
         }
         userContestRanking(username: $username) { rating globalRanking attendedContestsCount }
+        userContestRankingHistory(username: $username) { rating contest { title startTime } }
       }
     `;
     const response = await axios.post('https://leetcode.com/graphql', { query, variables: { username } }, {
@@ -179,9 +200,14 @@ const fetchLeetCodeStats = async (username) => {
         .sort((a, b) => b.solved - a.solved); // highest solved first
     }
 
+    let ratingHistory = [];
+    if (response.data.data.userContestRankingHistory) {
+      ratingHistory = response.data.data.userContestRankingHistory.filter(c => c.rating);
+    }
+
     return { totalSolved, easySolved, mediumSolved, hardSolved, ranking: user.profile.ranking, reputation: user.profile.reputation,
       calendar: user.userCalendar?.submissionCalendar ? JSON.parse(user.userCalendar.submissionCalendar) : null,
-      url: `https://leetcode.com/${username}`, badges, activeBadge: user.activeBadge, contestRating: ci?.rating, topics };
+      url: `https://leetcode.com/${username}`, badges, activeBadge: user.activeBadge, contestRating: ci?.rating, ratingHistory, topics };
   } catch (error) {
     console.error(`LeetCode fetch failed for ${username}:`, error.message);
     return null;
@@ -194,9 +220,10 @@ const fetchHackerRankStats = async (username) => {
     const headers = { 'User-Agent': BROWSER_UA };
     
     // Fetch profile and badges concurrently
-    const [profileRes, badgesRes] = await Promise.allSettled([
+    const [profileRes, badgesRes, certsRes] = await Promise.allSettled([
       axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${username}/profile`, { headers }),
-      axios.get(`https://www.hackerrank.com/rest/hackers/${username}/badges`, { headers })
+      axios.get(`https://www.hackerrank.com/rest/hackers/${username}/badges`, { headers }),
+      axios.get(`https://www.hackerrank.com/rest/hackers/${username}/certificates`, { headers })
     ]);
     
     if (profileRes.status !== 'fulfilled') return null;
@@ -233,13 +260,30 @@ const fetchHackerRankStats = async (username) => {
       });
     }
 
+    // 3. Certificates
+    const certificates = [];
+    if (certsRes.status === 'fulfilled' && certsRes.value.data?.data) {
+      certsRes.value.data.data.forEach(c => {
+        if (c.status === 'passed' && c.attributes) {
+          certificates.push({
+            id: c.id,
+            name: c.attributes.certificate?.name || 'HackerRank Certificate',
+            kind: c.attributes.certificate?.kind,
+            url: `https://www.hackerrank.com/certificates/${c.attributes.certificate_id}`,
+            date: c.attributes.completed_at
+          });
+        }
+      });
+    }
+
     return { 
       name: model.name, 
       level: model.level, 
       followers: model.followers_count || 0, 
       badgesCount: badges.length, 
       url: `https://www.hackerrank.com/profile/${username}`, 
-      badges 
+      badges,
+      certificates
     };
   } catch (error) {
     console.warn(`HackerRank fetch failed for ${username}: ${error.message}`);
@@ -253,15 +297,37 @@ const fetchGFGStats = async (username) => {
     const htmlRes = await axios.get(`https://www.geeksforgeeks.org/user/${username}/`, { headers: { 'User-Agent': BROWSER_UA } });
     const html = htmlRes.data;
     
-    const scoreMatch = html.match(/score\\":(\d+)/i) || html.match(/overall_coding_score.*?(\d+)/i);
-    const solvedMatch = html.match(/total_problems_solved\\":(\d+)/i) || html.match(/solved_problems.*?(\d+)/i);
-    const codingScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
-    const problemsSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
+    let codingScore = 0, problemsSolved = 0, currentStreak = 0, instituteRank = null, potdStreak = 0;
+    
+    try {
+      const $ = cheerio.load(html);
+      const nextDataJson = $('#__NEXT_DATA__').html();
+      if (nextDataJson) {
+        const nextData = JSON.parse(nextDataJson);
+        const userInfo = nextData?.props?.pageProps?.userInfo || {};
+        
+        codingScore = userInfo.score || parseInt(userInfo.overall_coding_score || '0', 10);
+        problemsSolved = userInfo.total_problems_solved || parseInt(userInfo.solved_problems || '0', 10);
+        currentStreak = userInfo.pod_active_days || userInfo.current_streak || 0;
+        potdStreak = userInfo.pod_active_days || 0;
+        instituteRank = userInfo.institute_rank || null;
+      }
+    } catch (err) {
+      console.warn(`GFG JSON parse failed, falling back to regex: ${err.message}`);
+    }
+
+    if (!codingScore && !problemsSolved) {
+      // Fallback to regex
+      const scoreMatch = html.match(/score\\":(\d+)/i) || html.match(/overall_coding_score.*?(\d+)/i);
+      const solvedMatch = html.match(/total_problems_solved\\":(\d+)/i) || html.match(/solved_problems.*?(\d+)/i);
+      codingScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+      problemsSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
+    }
 
     const badges = [];
 
     if (!codingScore && !problemsSolved) throw new Error('Stats not found');
-    return { codingScore, problemsSolved, currentStreak: 0, instituteRank: null, url: `https://www.geeksforgeeks.org/user/${username}/`, badges };
+    return { codingScore, problemsSolved, currentStreak, potdStreak, instituteRank, url: `https://www.geeksforgeeks.org/user/${username}/`, badges };
   } catch (error) {
     console.warn(`GFG fetch failed for ${username}: ${error.message}`);
     return null;
@@ -289,7 +355,19 @@ const fetchCodechefStats = async (username) => {
       imageUrl: `https://cdn.codechef.com/sites/all/themes/abessive/images/user/${stars}star.svg`,
       color: starBadgeColors[stars - 1] || '#f59e0b', type: 'real' });
     badges.push({ id: `cc-div${division}`, name: `Division ${division}`, icon: '🏅', color: divColors[division] });
-    return { rating, stars, division, problemsSolved, url: `https://www.codechef.com/users/${username}`, badges };
+
+    let globalRank = null;
+    let countryRank = null;
+    $('.rating-ranks-container ul.inline-list li').each((_, el) => {
+      const text = $(el).text().toLowerCase();
+      const rankVal = parseInt($(el).find('a strong').text().replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(rankVal)) {
+        if (text.includes('global')) globalRank = rankVal;
+        if (text.includes('country')) countryRank = rankVal;
+      }
+    });
+
+    return { rating, stars, division, problemsSolved, globalRank, countryRank, url: `https://www.codechef.com/users/${username}`, badges };
   } catch (error) {
     console.warn(`CodeChef scrape failed for ${username}: ${error.message}`);
     return null;
@@ -299,9 +377,10 @@ const fetchCodechefStats = async (username) => {
 const fetchCodeforcesStats = async (username) => {
   if (!username) return null;
   try {
-    const [infoRes, ratingRes] = await Promise.allSettled([
+    const [infoRes, ratingRes, statusRes] = await Promise.allSettled([
       axios.get(`https://codeforces.com/api/user.info?handles=${username}`),
       axios.get(`https://codeforces.com/api/user.rating?handle=${username}`),
+      axios.get(`https://codeforces.com/api/user.status?handle=${username}`)
     ]);
     if (infoRes.status !== 'fulfilled' || infoRes.value.data.status !== 'OK') return null;
     const user = infoRes.value.data.result[0];
@@ -309,6 +388,9 @@ const fetchCodeforcesStats = async (username) => {
     const maxRating = user.maxRating || 0;
     const rank = user.rank || 'newbie';
     const maxRank = user.maxRank || rank;
+    const contribution = user.contribution || 0;
+    const friendOfCount = user.friendOfCount || 0;
+
     const rankColors = { newbie:'#808080',pupil:'#008000',specialist:'#03a89e',expert:'#0000ff','candidate master':'#aa00aa',master:'#ff8c00','international master':'#ff8c00',grandmaster:'#ff0000','international grandmaster':'#ff0000','legendary grandmaster':'#ff0000' };
     const rankIcons  = { newbie:'🔰',pupil:'🌱',specialist:'💻',expert:'🧠','candidate master':'👑',master:'🔱','international master':'🏆',grandmaster:'⚡','international grandmaster':'🌟','legendary grandmaster':'💫' };
     const toTitle = s => s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -318,8 +400,30 @@ const fetchCodeforcesStats = async (username) => {
     ];
     if (maxRank && maxRank !== rank)
       badges.push({ id: `cf-peak-${maxRank.replace(/\s+/g,'-')}`, name: `Peak: ${toTitle(maxRank)}`, icon: rankIcons[maxRank.toLowerCase()]||'📈', color: rankColors[maxRank.toLowerCase()]||'#f59e0b', type: 'peak' });
-    const contestCount = ratingRes.status==='fulfilled' && Array.isArray(ratingRes.value?.data?.result) ? ratingRes.value.data.result.length : 0;
-    return { rating, maxRating, rank, maxRank, contestCount, url: `https://codeforces.com/profile/${username}`, badges };
+    
+    let ratingHistory = [];
+    let contestCount = 0;
+    if (ratingRes.status === 'fulfilled' && Array.isArray(ratingRes.value?.data?.result)) {
+      ratingHistory = ratingRes.value.data.result;
+      contestCount = ratingHistory.length;
+    }
+
+    let problemsSolved = 0;
+    if (statusRes.status === 'fulfilled' && Array.isArray(statusRes.value?.data?.result)) {
+      const solvedProblems = new Set();
+      statusRes.value.data.result.forEach(submission => {
+        if (submission.verdict === 'OK' && submission.problem && submission.problem.name) {
+          solvedProblems.add(submission.problem.name);
+        }
+      });
+      problemsSolved = solvedProblems.size;
+    }
+
+    return { 
+      rating, maxRating, rank, maxRank, contestCount, 
+      contribution, friendOfCount, problemsSolved, ratingHistory,
+      url: `https://codeforces.com/profile/${username}`, badges 
+    };
   } catch (error) {
     console.warn(`Codeforces fetch failed for ${username}: ${error.message}`);
     return null;

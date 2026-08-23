@@ -312,10 +312,44 @@ router.post('/verify-platform', protect, async (req, res) => {
     }
 
     let isVerified = false;
+    const code = profile.verificationCode;
 
-    // Scrape public profiles to look for the code
-    // MOCK VERIFICATION FOR ALL PLATFORMS FOR DEMO
-    isVerified = true;
+    if (!code) {
+      return res.status(400).json({ message: 'No verification code generated. Please generate one first.' });
+    }
+
+    const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+    try {
+      if (platform === 'github') {
+        const res = await axios.get(`https://github.com/${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        isVerified = res.data.includes(code);
+      } else if (platform === 'leetcode') {
+        const query = `query getUserProfile($username: String!) { matchedUser(username: $username) { profile { aboutMe } } }`;
+        const res = await axios.post('https://leetcode.com/graphql', { query, variables: { username } }, { headers: { 'Content-Type': 'application/json' }});
+        const aboutMe = res.data?.data?.matchedUser?.profile?.aboutMe || '';
+        isVerified = aboutMe.includes(code);
+      } else if (platform === 'hackerrank') {
+        const res = await axios.get(`https://www.hackerrank.com/rest/contests/master/hackers/${username}/profile`, { headers: { 'User-Agent': BROWSER_UA }});
+        const bio = res.data?.model?.short_bio || res.data?.model?.about || '';
+        isVerified = bio.includes(code);
+      } else if (platform === 'gfg') {
+        const res = await axios.get(`https://www.geeksforgeeks.org/user/${username}/`, { headers: { 'User-Agent': BROWSER_UA }});
+        isVerified = res.data.includes(code);
+      } else if (platform === 'codechef') {
+        const res = await axios.get(`https://www.codechef.com/users/${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        isVerified = res.data.includes(code);
+      } else if (platform === 'codeforces') {
+        const res = await axios.get(`https://codeforces.com/profile/${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        isVerified = res.data.includes(code);
+      } else if (platform === 'duolingo') {
+        const res = await axios.get(`https://www.duolingo.com/2017-06-30/users?username=${username}`, { headers: { 'User-Agent': BROWSER_UA }});
+        const bio = res.data?.users?.[0]?.bio || '';
+        isVerified = bio.includes(code);
+      }
+    } catch (e) {
+      console.warn(`Verification scrape failed for ${platform}: ${e.message}`);
+    }
 
     if (isVerified) {
       if (!profile.usernames) profile.usernames = {};

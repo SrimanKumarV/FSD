@@ -130,15 +130,6 @@ const DevProfileSettings = () => {
           <span className="flex items-center">
             {icon} {label}
           </span>
-          {isVerified ? (
-            <span className="flex items-center text-xs font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
-              <CheckCircle className="w-3 h-3 mr-1" /> Verified
-            </span>
-          ) : (
-            <span className="flex items-center text-xs font-medium text-gray-500">
-              Unverified
-            </span>
-          )}
         </label>
         
         <div className="flex gap-2">
@@ -148,33 +139,8 @@ const DevProfileSettings = () => {
             value={usernames[platformKey]?.username || ''}
             onChange={handleChange}
             placeholder={placeholder}
-            disabled={isVerified}
-            className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 disabled:opacity-50 transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors"
           />
-          {isVerified && (
-            <button
-              type="button"
-              onClick={() => {
-                setUsernames({
-                  ...usernames,
-                  [platformKey]: { ...usernames[platformKey], isVerified: false }
-                });
-              }}
-              className="px-4 py-2 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 dark:text-amber-400 rounded-lg text-sm font-medium transition-colors"
-            >
-              Edit
-            </button>
-          )}
-          {!isVerified && usernames[platformKey]?.username && (
-            <button
-              type="button"
-              onClick={() => verifyPlatformMutation.mutate(platformKey)}
-              disabled={verifyPlatformMutation.isLoading}
-              className="px-4 py-2 bg-secondary-600 hover:bg-secondary-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors flex items-center"
-            >
-              {verifyPlatformMutation.isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Verify'}
-            </button>
-          )}
           {usernames[platformKey]?.username && (
             <button
               type="button"
@@ -204,39 +170,7 @@ const DevProfileSettings = () => {
         Link your coding profiles to track your Alumnex Score. Save your usernames below to automatically fetch your stats.
       </p>
 
-      {/* Verification Instructions Panel */}
-      <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-        <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 flex items-center mb-2">
-          <AlertCircle className="w-4 h-4 mr-2" /> How to Verify Your Accounts
-        </h4>
-        <p className="text-xs text-blue-800 dark:text-blue-200 mb-3 leading-relaxed">
-          To prove ownership, you must temporarily add your unique verification code to the <b>bio or about section</b> of your public profiles. Once added, click <b>Verify</b> below. You can remove the code after successful verification.
-        </p>
-        <div className="flex items-center gap-3">
-          {verificationCode ? (
-            <div className="flex-1 max-w-sm flex items-center gap-2">
-              <code className="flex-1 p-2 bg-white dark:bg-gray-900 rounded-lg text-center font-mono font-bold text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 shadow-sm">
-                {verificationCode}
-              </code>
-              <button 
-                onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(verificationCode); toast.success('Copied to clipboard'); }}
-                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors whitespace-nowrap"
-              >
-                Copy Code
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={(e) => { e.preventDefault(); generateCodeMutation.mutate(); }}
-              disabled={generateCodeMutation.isLoading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center"
-            >
-              {generateCodeMutation.isLoading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-              Generate My Verification Code
-            </button>
-          )}
-        </div>
-      </div>
+
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

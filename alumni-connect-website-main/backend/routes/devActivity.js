@@ -221,19 +221,19 @@ router.post('/usernames', protect, async (req, res) => {
 
     if (newGithub !== profile.usernames.github.username) {
       profile.usernames.github.username = newGithub;
-      profile.usernames.github.isVerified = false;
+      profile.usernames.github.isVerified = true; // Auto-verify (verification disabled)
     }
     if (newLeetcode !== profile.usernames.leetcode.username) {
       profile.usernames.leetcode.username = newLeetcode;
-      profile.usernames.leetcode.isVerified = false;
+      profile.usernames.leetcode.isVerified = true; // Auto-verify (verification disabled)
     }
     if (newHackerrank !== profile.usernames.hackerrank.username) {
       profile.usernames.hackerrank.username = newHackerrank;
-      profile.usernames.hackerrank.isVerified = false;
+      profile.usernames.hackerrank.isVerified = true; // Auto-verify (verification disabled)
     }
     if (newGfg !== profile.usernames.gfg.username) {
       profile.usernames.gfg.username = newGfg;
-      profile.usernames.gfg.isVerified = false;
+      profile.usernames.gfg.isVerified = true; // Auto-verify (verification disabled)
     }
     
     if (!profile.usernames.codechef) profile.usernames.codechef = { username: '', isVerified: false };
@@ -241,15 +241,15 @@ router.post('/usernames', protect, async (req, res) => {
     
     if (newCodechef !== profile.usernames.codechef.username) {
       profile.usernames.codechef.username = newCodechef;
-      profile.usernames.codechef.isVerified = false;
+      profile.usernames.codechef.isVerified = true; // Auto-verify (verification disabled)
     }
     if (newCodeforces !== profile.usernames.codeforces.username) {
       profile.usernames.codeforces.username = newCodeforces;
-      profile.usernames.codeforces.isVerified = false;
+      profile.usernames.codeforces.isVerified = true; // Auto-verify (verification disabled)
     }
     if (newDuolingo !== profile.usernames.duolingo.username) {
       profile.usernames.duolingo.username = newDuolingo;
-      profile.usernames.duolingo.isVerified = false;
+      profile.usernames.duolingo.isVerified = true; // Auto-verify (verification disabled)
     }
 
     // Force refresh next time by clearing lastUpdated

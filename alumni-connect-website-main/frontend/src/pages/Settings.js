@@ -8,7 +8,11 @@ import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
-
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Card, { CardHeader, CardTitle, CardBody } from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import Tooltip from '../components/ui/Tooltip';
 const Settings = () => {
   const { user, logout } = useAuth();
   const { updateProfile: updateUser } = useProfile();
@@ -199,16 +203,10 @@ const Settings = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 w-full">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl overflow-hidden"
-      >
-        <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            Settings & Preferences
-          </h2>
-        </div>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Settings & Preferences</CardTitle>
+        </CardHeader>
 
         <div className="p-6 space-y-8">
           {/* Theme Settings */}
@@ -297,7 +295,28 @@ const Settings = () => {
                 </button>
               </div>
 
+              {/* Theme Component Preview */}
+              <div className="mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+                <p className="font-medium text-gray-900 dark:text-white mb-4">Component Preview</p>
+                <Card className="bg-transparent shadow-none border-dashed">
+                  <CardBody className="space-y-6">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Button variant="primary">Primary Action</Button>
+                      <Button variant="secondary">Secondary</Button>
+                      <Button variant="ghost">Ghost Button</Button>
+                      <Tooltip content="Tooltip example!">
+                        <Badge variant="success">Hover me</Badge>
+                      </Tooltip>
+                      <Badge variant="warning">Warning</Badge>
+                      <Badge variant="primary">Primary</Badge>
+                    </div>
+                    <div className="max-w-md">
+                      <Input label="Sample Input" placeholder="Type something..." />
+                    </div>
+                  </CardBody>
+                </Card>
               </div>
+
             </div>
 
             {/* Language Switcher */}
@@ -309,10 +328,11 @@ const Settings = () => {
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Instantly translate the entire platform.</p>
               </div>
-              <select
+              <Input
+                type="select"
                 value={currentLang}
                 onChange={handleLanguageChange}
-                className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white font-medium outline-none transition-all shadow-sm cursor-pointer min-w-[200px]"
+                className="min-w-[200px]"
               >
                 <optgroup label="Global Languages">
                   <option value="en">English (Default)</option>
@@ -350,7 +370,7 @@ const Settings = () => {
                   <option value="ks">کأشُر (Kashmiri)</option>
                   <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
                 </optgroup>
-              </select>
+              </Input>
             </div>
           </div>
 
@@ -376,33 +396,36 @@ const Settings = () => {
                       Add a mobile number to receive important notifications via SMS.
                     </p>
                     <div className="flex max-w-md gap-2">
-                      <select
+                      <Input
+                        type="select"
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                      >
-                        <option value="+91">🇮🇳 +91</option>
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+44">🇬🇧 +44</option>
-                        <option value="+61">🇦🇺 +61</option>
-                        <option value="+81">🇯🇵 +81</option>
-                        <option value="+971">🇦🇪 +971</option>
-                      </select>
-                      <input 
+                        className="w-24"
+                        options={[
+                          { value: '+91', label: '🇮🇳 +91' },
+                          { value: '+1', label: '🇺🇸 +1' },
+                          { value: '+44', label: '🇬🇧 +44' },
+                          { value: '+61', label: '🇦🇺 +61' },
+                          { value: '+81', label: '🇯🇵 +81' },
+                          { value: '+971', label: '🇦🇪 +971' }
+                        ]}
+                      />
+                      <Input 
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
                         placeholder="10-digit number"
                         maxLength="15"
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                        wrapperClassName="flex-1"
                       />
-                      <button 
+                      <Button 
                         onClick={handleUpdatePhone}
-                        disabled={isUpdatingPhone || !phoneNumber || (user?.phoneNumber === `${countryCode} ${phoneNumber}` && user?.phoneVerified)}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                        disabled={!phoneNumber || (user?.phoneNumber === `${countryCode} ${phoneNumber}` && user?.phoneVerified)}
+                        isLoading={isUpdatingPhone}
+                        variant="primary"
                       >
                         {user?.phoneVerified && user?.phoneNumber === `${countryCode} ${phoneNumber}` ? 'Verified' : 'Verify'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   
@@ -430,14 +453,15 @@ const Settings = () => {
                     Securely update your password. We will send a confirmation code to <strong>{user?.email}</strong>.
                   </p>
                 </div>
-                <button
-                  type="button"
+                <Button
                   onClick={requestPasswordOtp}
-                  disabled={isRequestingOtp}
-                  className="mt-4 md:mt-0 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center shadow-sm"
+                  isLoading={isRequestingOtp}
+                  disabled={showPasswordModal}
+                  variant="primary"
+                  className="mt-4 md:mt-0"
                 >
-                  {isRequestingOtp && !showPasswordModal ? 'Sending Code...' : 'Change Password'}
-                </button>
+                  Change Password
+                </Button>
               </div>
             </div>
           </div>
@@ -454,19 +478,19 @@ const Settings = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">
                 Once you delete your account, there is no going back. All your posts, messages, connections, and personal data will be permanently erased.
               </p>
-              <button
-                type="button"
+              <Button
                 onClick={requestDeleteAccount}
-                disabled={deletingAccount}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
+                isLoading={deletingAccount}
+                disabled={showDeleteModal}
+                variant="danger"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                {deletingAccount && !showDeleteModal ? 'Sending OTP...' : 'Delete Account'}
-              </button>
+                Delete Account
+              </Button>
             </div>
           </div>
 
-      </motion.div>
+      </Card>
 
       {/* Delete Account Modal */}
       {showDeleteModal && (
@@ -480,34 +504,33 @@ const Settings = () => {
             <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm">
               We've sent an OTP to your email. Please enter it below to permanently delete your account. This action cannot be undone.
             </p>
-            <input
+            <Input
               type="text"
               value={deleteOtp}
               onChange={(e) => setDeleteOtp(e.target.value)}
               placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent mb-6 text-center text-2xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
+              className="mb-6 text-center text-2xl tracking-widest font-mono"
               maxLength={6}
             />
             <div className="flex justify-end space-x-3">
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setDeleteOtp('');
                 }}
                 disabled={deletingAccount}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                variant="ghost"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 onClick={confirmDeleteAccount}
-                disabled={deletingAccount || !deleteOtp || deleteOtp.length !== 6}
-                className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
+                disabled={!deleteOtp || deleteOtp.length !== 6}
+                isLoading={deletingAccount}
+                variant="danger"
               >
-                {deletingAccount ? 'Deleting...' : 'Confirm Deletion'}
-              </button>
+                Confirm Deletion
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -527,51 +550,45 @@ const Settings = () => {
             </p>
             
             <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Security Code (OTP)</label>
-                <input
-                  type="text"
-                  value={passwordOtp}
-                  onChange={(e) => setPasswordOtp(e.target.value)}
-                  placeholder="Enter 6-digit code"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
-                  maxLength={6}
-                />
-              </div>
+              <Input
+                label="Security Code (OTP)"
+                type="text"
+                value={passwordOtp}
+                onChange={(e) => setPasswordOtp(e.target.value)}
+                placeholder="Enter 6-digit code"
+                className="text-center text-xl tracking-widest font-mono"
+                maxLength={6}
+              />
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
-                />
-              </div>
+              <Input
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+              />
             </div>
 
             <div className="flex justify-end space-x-3">
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setShowPasswordModal(false);
                   setPasswordOtp('');
                   setNewPassword('');
                 }}
                 disabled={isChangingPassword}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                variant="ghost"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 onClick={confirmPasswordChange}
-                disabled={isChangingPassword || passwordOtp.length !== 6 || newPassword.length < 6}
-                className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
+                disabled={passwordOtp.length !== 6 || newPassword.length < 6}
+                isLoading={isChangingPassword}
+                variant="primary"
               >
-                {isChangingPassword ? 'Updating...' : 'Change Password'}
-              </button>
+                Change Password
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -591,38 +608,35 @@ const Settings = () => {
             </p>
             
             <div className="space-y-4 mb-6">
-              <div>
-                <input
-                  type="text"
-                  value={phoneOtp}
-                  onChange={(e) => setPhoneOtp(e.target.value)}
-                  placeholder="Enter 6-digit OTP"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
-                  maxLength={6}
-                />
-              </div>
+              <Input
+                type="text"
+                value={phoneOtp}
+                onChange={(e) => setPhoneOtp(e.target.value)}
+                placeholder="Enter 6-digit OTP"
+                className="text-center text-xl tracking-widest font-mono"
+                maxLength={6}
+              />
             </div>
 
             <div className="flex justify-end space-x-3">
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setShowPhoneModal(false);
                   setPhoneOtp('');
                 }}
                 disabled={isVerifyingPhone}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                variant="ghost"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 onClick={handleVerifyPhone}
-                disabled={isVerifyingPhone || phoneOtp.length !== 6}
-                className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
+                disabled={phoneOtp.length !== 6}
+                isLoading={isVerifyingPhone}
+                variant="primary"
               >
-                {isVerifyingPhone ? 'Verifying...' : 'Verify Phone'}
-              </button>
+                Verify Phone
+              </Button>
             </div>
           </motion.div>
         </div>

@@ -59,7 +59,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "cypress:open": "cypress open",
@@ -100,6 +100,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
+    "cross-env": "^10.1.0",
     "cypress": "^15.20.1",
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "postcss": "^8.4.24",

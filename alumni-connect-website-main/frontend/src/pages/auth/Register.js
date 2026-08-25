@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
+import CreatableSelect from 'react-select/creatable';
 import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../utils/api';
 
@@ -225,11 +226,7 @@ const Register = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (formData.role === 'student' || formData.role === 'alumni') {
-      if (!formData.country) newErrors.country = 'Country is required';
-      if (!formData.college) newErrors.college = 'College/University is required';
-      if (!formData.department) newErrors.department = 'Department is required';
-    }
+    // Removed mandatory validation for country, college, and department
 
     if (formData.role === 'student' && !formData.graduationYear) {
       newErrors.graduationYear = 'Graduation year is required for students';
@@ -531,20 +528,21 @@ const Register = () => {
                       Department
                     </label>
                     <div className="mt-2 relative">
-                      <Select
+                      <CreatableSelect
                         name="department"
                         options={departments}
-                        isDisabled={!formData.college || departments.length === 0}
+                        isDisabled={!formData.college}
                         className="basic-single z-10"
                         classNamePrefix="select"
                         onChange={(selected) => {
                           setFormData(prev => ({ ...prev, department: selected?.value || '' }));
                           if (errors.department) setErrors(prev => ({ ...prev, department: '' }));
                         }}
-                        placeholder={formData.college ? (departments.length > 0 ? "Select Department..." : "Loading departments...") : "Select College First"}
+                        placeholder={formData.college ? (departments.length > 0 ? "Select Department..." : "Type/Select Department...") : "Select College First"}
                         styles={selectStyles}
                         menuPortalTarget={document.body}
                         value={formData.department ? { value: formData.department, label: formData.department } : null}
+                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                       />
                     </div>
                     {errors.department && (

@@ -193,7 +193,7 @@ class AuthService {
     };
   }
 
-  async completeOAuth(tempToken, role) {
+  async completeOAuth(tempToken, role, additionalData = {}) {
     let decoded;
     try {
       decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
@@ -219,7 +219,10 @@ class AuthService {
       isVerified: true,
       studentInfo: role === 'student' ? {} : undefined,
       alumniInfo: role === 'alumni' ? {} : undefined,
-      isApproved: role === 'student' ? true : false
+      isApproved: role === 'student' ? true : false,
+      country: additionalData.country || '',
+      college: additionalData.college || '',
+      department: additionalData.department || ''
     });
     
     await user.save();

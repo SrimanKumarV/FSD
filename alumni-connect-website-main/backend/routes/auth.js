@@ -53,14 +53,17 @@ router.post('/github', async (req, res) => {
 
 router.post('/oauth-complete', [
   body('tempToken', 'Token is required').exists(),
-  body('role', 'Role must be student or alumni').isIn(['student', 'alumni'])
+  body('role', 'Role must be student or alumni').isIn(['student', 'alumni']),
+  body('country').optional().trim(),
+  body('college').optional().trim(),
+  body('department').optional().trim()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { tempToken, role } = req.body;
-    const result = await authService.completeOAuth(tempToken, role);
+    const { tempToken, role, country, college, department } = req.body;
+    const result = await authService.completeOAuth(tempToken, role, { country, college, department });
     
     setTokenCookie(res, result.token);
     res.json({ success: true, ...result });
@@ -92,12 +95,7 @@ router.post('/register', [
   body('collegeInfo.officialUrl').optional().isURL(),
   body('college').optional().trim(),
   body('country').optional().trim(),
-  body('department').custom((value, { req }) => {
-    if ((req.body.role === 'student' || req.body.role === 'alumni') && !value) {
-      throw new Error('Department is required');
-    }
-    return true;
-  }).trim()
+  body('department').optional().trim()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

@@ -9,15 +9,122 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import Select from 'react-select';
+import AsyncSelect from 'react-select/async';
+import CreatableSelect from 'react-select/creatable';
+import api from '../../utils/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
+const COUNTRIES = [
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+  { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'MY', name: 'Malaysia', flag: '🇲🇾' },
+  { code: 'LK', name: 'Sri Lanka', flag: '🇱🇰' },
+  { code: 'BD', name: 'Bangladesh', flag: '🇧🇩' },
+  { code: 'PK', name: 'Pakistan', flag: '🇵🇰' },
+  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
+];
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [oauthTempToken, setOauthTempToken] = useState(null);
+  const [oauthRole, setOauthRole] = useState(null);
+  const [oauthData, setOauthData] = useState({
+    country: '',
+    college: '',
+    department: ''
+  });
+  const [departments, setDepartments] = useState([]);
   const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      borderRadius: '0.75rem',
+      padding: '0.25rem',
+      backgroundColor: isDark ? '#1f2937' : 'rgba(255, 255, 255, 0.5)',
+      borderColor: isDark ? '#4b5563' : 'rgba(229, 231, 235, 0.5)',
+      color: isDark ? '#fff' : '#111'
+    }),
+    menu: (base) => ({
+      ...base,
+      backgroundColor: isDark ? '#1f2937' : '#fff',
+      color: isDark ? '#e5e7eb' : '#111',
+      zIndex: 999
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused
+        ? isDark ? '#374151' : '#f3f4f6'
+        : isDark ? '#1f2937' : '#fff',
+      color: isDark ? '#e5e7eb' : '#111'
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: isDark ? '#fff' : '#111'
+    }),
+    input: (base) => ({
+      ...base,
+      color: isDark ? '#fff' : '#111'
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: isDark ? '#9ca3af' : '#6b7280'
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999
+    })
+  };
+
+  useEffect(() => {
+    if (oauthData.college) {
+      api.get(`/institutions/departments?college=${encodeURIComponent(oauthData.college)}`)
+        .then(res => {
+          setDepartments(res.data.map(d => ({ value: d, label: d })));
+        })
+        .catch(err => {
+          console.error("Failed to fetch departments:", err);
+          setDepartments([]);
+        });
+    } else {
+      setDepartments([]);
+    }
+  }, [oauthData.college]);
+
+  const loadUniversities = async (inputValue) => {
+    if (!oauthData.country) return [];
+    
+    try {
+      const countryObj = COUNTRIES.find(c => c.name === oauthData.country);
+      const searchName = countryObj ? countryObj.name : oauthData.country;
+      const { data } = await api.get('/institutions/search', {
+        params: { country: searchName, name: inputValue }
+      });
+      return data.map(name => ({ value: name, label: name }));
+    } catch (error) {
+      console.error("Failed to fetch universities:", error);
+      return [];
+    }
+  };
 
   const handleGoogleLoginSuccess = async (tokenResponse) => {
     try {
@@ -168,10 +275,14 @@ const Login = () => {
   };
 
   const handleRoleSelection = async (role) => {
+    setOauthRole(role);
+  };
+
+  const handleFinalSubmit = async () => {
     setIsLoading(true);
     setShowRoleModal(false);
     try {
-      const result = await completeOAuthLogin(oauthTempToken, role);
+      const result = await completeOAuthLogin(oauthTempToken, oauthRole, oauthData);
       if (result.success) {
         navigate(from, { replace: true });
       } else {
@@ -183,6 +294,8 @@ const Login = () => {
     } finally {
       setIsLoading(false);
       setOauthTempToken(null);
+      setOauthRole(null);
+      setOauthData({ country: '', college: '', department: '' });
     }
   };
 
@@ -448,63 +561,157 @@ const Login = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-visible"
           >
             <div className="p-6 relative">
               <button
                 onClick={() => {
                   setShowRoleModal(false);
                   setOauthTempToken(null);
+                  setOauthRole(null);
+                  setOauthData({ country: '', college: '', department: '' });
                 }}
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
               
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
-                Select Your Role
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-6 text-sm">
-                Please let us know if you are joining as a student or an alumni.
-              </p>
+              {!oauthRole ? (
+                <>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                    Select Your Role
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-center mb-6 text-sm">
+                    Please let us know if you are joining as a student or an alumni.
+                  </p>
 
-              <div className="space-y-4">
-                <button
-                  onClick={() => handleRoleSelection('student')}
-                  disabled={isLoading}
-                  className="w-full group flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-800/50 hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                >
-                  <div className="flex-shrink-0 w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-                  </div>
-                  <div className="ml-4 text-left">
-                    <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      Student
-                    </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      I am currently studying.
-                    </p>
-                  </div>
-                </button>
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => handleRoleSelection('student')}
+                      disabled={isLoading}
+                      className="w-full group flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-800/50 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                      </div>
+                      <div className="ml-4 text-left">
+                        <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                          Student
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          I am currently studying.
+                        </p>
+                      </div>
+                    </button>
 
-                <button
-                  onClick={() => handleRoleSelection('alumni')}
-                  disabled={isLoading}
-                  className="w-full group flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-alumni-500 dark:hover:border-alumni-500 transition-colors bg-gray-50 dark:bg-gray-800/50 hover:bg-alumni-50 dark:hover:bg-alumni-900/20"
-                >
-                  <div className="flex-shrink-0 w-12 h-12 bg-alumni-100 dark:bg-alumni-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <GraduationCap className="w-6 h-6 text-alumni-600 dark:text-alumni-400" />
+                    <button
+                      onClick={() => handleRoleSelection('alumni')}
+                      disabled={isLoading}
+                      className="w-full group flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-alumni-500 dark:hover:border-alumni-500 transition-colors bg-gray-50 dark:bg-gray-800/50 hover:bg-alumni-50 dark:hover:bg-alumni-900/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 bg-alumni-100 dark:bg-alumni-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <GraduationCap className="w-6 h-6 text-alumni-600 dark:text-alumni-400" />
+                      </div>
+                      <div className="ml-4 text-left">
+                        <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-alumni-600 dark:group-hover:text-alumni-400 transition-colors">
+                          Alumni
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          I have already graduated.
+                        </p>
+                      </div>
+                    </button>
                   </div>
-                  <div className="ml-4 text-left">
-                    <h4 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-alumni-600 dark:group-hover:text-alumni-400 transition-colors">
-                      Alumni
-                    </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      I have already graduated.
-                    </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                    Additional Information
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-center mb-6 text-sm">
+                    Complete your profile setup.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Country
+                      </label>
+                      <Select
+                        options={COUNTRIES.map(c => ({ value: c.name, label: `${c.flag} ${c.name}` }))}
+                        className="basic-single"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setOauthData(prev => ({ ...prev, country: selected?.value || '', college: '', department: '' }));
+                        }}
+                        placeholder="Select Country..."
+                        styles={selectStyles}
+                        menuPortalTarget={document.body}
+                        value={oauthData.country ? { value: oauthData.country, label: oauthData.country } : null}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        College / University
+                      </label>
+                      <AsyncSelect
+                        loadOptions={loadUniversities}
+                        defaultOptions
+                        cacheOptions
+                        isDisabled={!oauthData.country}
+                        className="basic-single"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setOauthData(prev => ({ ...prev, college: selected?.value || '', department: '' }));
+                        }}
+                        placeholder={oauthData.country ? "Search College..." : "Select Country First"}
+                        styles={selectStyles}
+                        menuPortalTarget={document.body}
+                        value={oauthData.college ? { value: oauthData.college, label: oauthData.college } : null}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Department
+                      </label>
+                      <CreatableSelect
+                        options={departments}
+                        isDisabled={!oauthData.college}
+                        className="basic-single"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setOauthData(prev => ({ ...prev, department: selected?.value || '' }));
+                        }}
+                        placeholder={oauthData.college ? (departments.length > 0 ? "Select Department..." : "Type/Select Department...") : "Select College First"}
+                        styles={selectStyles}
+                        menuPortalTarget={document.body}
+                        value={oauthData.department ? { value: oauthData.department, label: oauthData.department } : null}
+                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                      />
+                    </div>
+                    
+                    <button
+                      onClick={handleFinalSubmit}
+                      disabled={isLoading}
+                      className={`w-full flex justify-center py-3 px-4 mt-6 rounded-xl text-sm font-bold text-white shadow-lg transition-all duration-300 ${
+                        isLoading
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-primary-600 to-alumni-600 hover:from-primary-500 hover:to-alumni-500'
+                      }`}
+                    >
+                      {isLoading ? 'Completing Setup...' : 'Complete Registration'}
+                    </button>
+                    <button
+                      onClick={() => setOauthRole(null)}
+                      className="w-full text-center text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mt-2"
+                    >
+                      Back
+                    </button>
                   </div>
-                </button>
-              </div>
+                </>
+              )}
             </div>
           </motion.div>
         </div>

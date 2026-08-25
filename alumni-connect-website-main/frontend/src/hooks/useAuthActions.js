@@ -95,10 +95,10 @@ export const useAuthActions = (dispatch) => {
     }
   };
 
-  const completeOAuthLogin = async (tempToken, role) => {
+  const completeOAuthLogin = async (tempToken, role, additionalData = {}) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-      const response = await api.post('/auth/oauth-complete', { tempToken, role });
+      const response = await api.post('/auth/oauth-complete', { tempToken, role, ...additionalData });
       const { user, token, message } = response.data;
       
       dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { user, token } });

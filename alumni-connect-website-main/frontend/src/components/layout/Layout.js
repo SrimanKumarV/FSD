@@ -46,7 +46,11 @@ import UserAvatar from '../UserAvatar';
 import CommandPalette from './CommandPalette';
 import PageWrapper from './PageWrapper';
 
+import StitchLayout from './stitch/StitchLayout';
+
 const Layout = ({ children }) => {
+  const { theme, toggleTheme } = useTheme();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -70,7 +74,6 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { 
     notifications, 
     unreadCount, 
@@ -193,6 +196,10 @@ const Layout = ({ children }) => {
     }
   };
 
+
+  if (theme === 'stitch') {
+    return <StitchLayout>{children}</StitchLayout>;
+  }
 
   return (
     <div className={location.pathname === '/chat' ? 'h-dvh overflow-hidden flex flex-col min-w-0' : 'min-h-screen flex flex-col w-full'}>

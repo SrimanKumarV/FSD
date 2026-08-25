@@ -22,6 +22,10 @@ const getBaseUrl = () => {
   if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.includes('localhost')) {
     return process.env.REACT_APP_API_URL;
   }
+  // Use relative path in development to route through the Webpack proxy, avoiding CORS entirely
+  if (process.env.NODE_ENV === 'development') {
+    return '/api';
+  }
   return `http://${window.location.hostname}:5000/api`;
 };
 

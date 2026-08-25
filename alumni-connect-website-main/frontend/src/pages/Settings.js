@@ -15,6 +15,9 @@ const Settings = () => {
   const { theme, changeTheme } = useTheme();
   const navigate = useNavigate();
 
+  // Stitch under-development modal
+  const [stitchModalOpen, setStitchModalOpen] = useState(false);
+
   // Phone settings
   const [countryCode, setCountryCode] = useState('+91');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -198,7 +201,8 @@ const Settings = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 w-full">
+    <>
+      <div className="max-w-6xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 w-full">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -285,13 +289,14 @@ const Settings = () => {
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">DC Dark</span>
                 </button>
                 <button
-                  onClick={() => changeTheme('stitch')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'stitch' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                   onClick={() => setStitchModalOpen(true)}
+                  className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex flex-col items-center justify-center space-y-2 transition-all relative group"
                 >
                    <div className="w-6 h-6 rounded-full shadow-sm flex items-center justify-center" style={{background: 'linear-gradient(135deg, #F59E0B, #EC4899, #8B5CF6)'}}>
                       <Sparkles className="w-3.5 h-3.5 text-white" />
                    </div>
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Stitch</span>
+                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white" style={{background:'linear-gradient(135deg,#f59e0b,#ec4899)'}}>SOON</span>
                 </button>
               </div>
 
@@ -626,6 +631,75 @@ const Settings = () => {
         </div>
       )}
     </div>
+
+      {/* ── Stitch "Under Development" Modal ─────────────────────────────── */}
+      {stitchModalOpen && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
+          onClick={() => setStitchModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-md rounded-3xl p-8 text-center overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1035 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Glow blobs */}
+            <div className="absolute top-0 left-0 w-48 h-48 rounded-full opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle, #2563eb, transparent)', transform: 'translate(-40%, -40%)' }} />
+            <div className="absolute bottom-0 right-0 w-48 h-48 rounded-full opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, #7c3aed, transparent)', transform: 'translate(40%, 40%)' }} />
+
+            {/* Icon */}
+            <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-5 mx-auto" style={{ background: 'linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6)', boxShadow: '0 8px 30px rgba(245,158,11,0.4)' }}>
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl font-bold mb-1" style={{ color: '#f1f5f9' }}>
+              Stitch Theme
+            </h2>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.30)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+              <span className="text-xs font-semibold" style={{ color: '#fbbf24' }}>Under Development</span>
+            </div>
+
+            {/* Message */}
+            <p className="text-sm mb-6 leading-relaxed" style={{ color: 'rgba(241,245,249,0.65)' }}>
+              We're crafting something special ✨<br />
+              The <strong style={{ color: '#f1f5f9' }}>Stitch</strong> theme is currently being built with a premium dark-glass experience. It'll be ready soon!
+            </p>
+
+            {/* Feature bullets */}
+            <div className="text-left mb-6 space-y-2">
+              {[
+                { icon: '🌑', label: 'Dark navy glassmorphism UI' },
+                { icon: '⚡', label: 'Blue-to-purple gradient accents' },
+                { icon: '📊', label: 'Live data across all pages' },
+                { icon: '🎨', label: 'Premium animations & transitions' },
+              ].map(({ icon, label }) => (
+                <div key={label} className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <span className="text-base">{icon}</span>
+                  <span className="text-sm" style={{ color: 'rgba(241,245,249,0.75)' }}>{label}</span>
+                  <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399' }}>Coming</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Dismiss */}
+            <button
+              onClick={() => setStitchModalOpen(false)}
+              className="w-full py-3 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)', boxShadow: '0 4px 20px rgba(37,99,235,0.40)' }}
+            >
+              Got it, I'll wait! 🚀
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

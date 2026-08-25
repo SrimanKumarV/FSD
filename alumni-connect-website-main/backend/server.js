@@ -22,6 +22,7 @@ const server = http.createServer(app);
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://127.0.0.1:3000",
   "http://localhost",
   "https://localhost",
   "capacitor://localhost",
@@ -76,17 +77,19 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined'));
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
+      console.warn('CORS Rejected Origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   exposedHeaders: ['X-CSRF-Token']
-}));
+};
+app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -163,7 +166,8 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  require('fs').appendFileSync('error.log', err.stack + '\n');
+  res.status(500).json({ message: err.message || 'Something went wrong!', error: err.message, stack: err.stack });
 });
 
 // Prevent unhandled promise rejections from crashing the server

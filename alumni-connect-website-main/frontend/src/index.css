@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -531,68 +531,104 @@ html.theme-designcode-dark ::selection {
   color: #E8DEFF !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════ */
-/* 7. Stitch Premium UI Theme (Alumnex Connect)                                 */
-/* ═══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════ */
+/* 7. Stitch Premium UI — Dark Navy Glass Theme (Alumnex Connect)             */
+/* ══════════════════════════════════════════════════════════════════════════ */
 html.theme-stitch body {
-  background-color: #faf8ff !important;
-  background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%) !important;
+  background-color: #0b0d18 !important;
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(37,99,235,0.28) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(124,58,237,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.08) 0%, transparent 60%) !important;
   background-attachment: fixed !important;
-  color: #191b23 !important;
+  color: #f1f5f9 !important;
   font-family: 'Outfit', 'Inter', sans-serif !important;
 }
-html.theme-stitch .animated-bg {
-  display: none !important;
-}
-html.theme-stitch .glass-card,
-html.theme-stitch .glass-nav {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+html.theme-stitch .animated-bg { display: none !important; }
+html.theme-stitch .glass-card {
+  background: rgba(255,255,255,0.055) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+  color: #f1f5f9 !important;
+  transition: all 0.25s ease !important;
 }
 html.theme-stitch .glass-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 74, 198, 0.1), 0 8px 10px -6px rgba(0, 74, 198, 0.1) !important;
+  background: rgba(255,255,255,0.09) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+html.theme-stitch .glass-nav {
+  background: rgba(9,11,20,0.92) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-right: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: 4px 0 30px rgba(0,0,0,0.5) !important;
+  color: #f1f5f9 !important;
 }
 html.theme-stitch .glass-input {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid #c3c6d7 !important;
-  border-radius: 8px !important;
-  color: #191b23 !important;
-  transition: all 0.3s ease !important;
+  background: rgba(255,255,255,0.07) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 10px !important;
+  color: #f1f5f9 !important;
+  transition: all 0.25s ease !important;
 }
+html.theme-stitch .glass-input::placeholder { color: rgba(241,245,249,0.38) !important; }
 html.theme-stitch .glass-input:focus {
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
-  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.22) !important;
+  background: rgba(255,255,255,0.11) !important;
+  outline: none !important;
 }
-html.theme-stitch button.bg-primary-600 {
-  background-color: #004ac6 !important;
-  color: #ffffff !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 14px 0 rgba(0, 74, 198, 0.3) !important;
-  transition: all 0.3s ease !important;
+html.theme-stitch input, html.theme-stitch select, html.theme-stitch textarea { color: #f1f5f9 !important; }
+html.theme-stitch button.bg-primary-600, html.theme-stitch .stitch-btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+  color: #ffffff !important; border-radius: 10px !important; font-weight: 600 !important;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.35) !important; transition: all 0.25s ease !important; border: none !important;
 }
-html.theme-stitch button.bg-primary-600:hover {
-  background-color: #003ea8 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(0, 74, 198, 0.4) !important;
+html.theme-stitch button.bg-primary-600:hover, html.theme-stitch .stitch-btn-primary:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 10px 30px rgba(37,99,235,0.5) !important;
 }
-html.theme-stitch .text-primary-600,
-html.theme-stitch .text-primary-500,
-html.theme-stitch .text-primary-700 {
-  color: #2563eb !important;
+html.theme-stitch .text-primary-600, html.theme-stitch .text-primary-500, html.theme-stitch .text-primary-700 { color: #60a5fa !important; }
+html.theme-stitch .bg-primary-600 { background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%) !important; }
+html.theme-stitch ::selection { background: rgba(59,130,246,0.38) !important; color: #fff !important; }
+html.theme-stitch .text-on-surface            { color: #f1f5f9 !important; }
+html.theme-stitch .text-on-surface-variant    { color: rgba(241,245,249,0.60) !important; }
+html.theme-stitch .text-outline               { color: rgba(241,245,249,0.42) !important; }
+html.theme-stitch .border-outline-variant     { border-color: rgba(255,255,255,0.09) !important; }
+html.theme-stitch .border-surface-variant     { border-color: rgba(255,255,255,0.09) !important; }
+html.theme-stitch .bg-surface-container-high  { background: rgba(255,255,255,0.06) !important; color: #f1f5f9 !important; }
+html.theme-stitch .bg-surface-container       { background: rgba(255,255,255,0.04) !important; color: #f1f5f9 !important; }
+html.theme-stitch .bg-surface-container-lowest { background: rgba(255,255,255,0.03) !important; }
+html.theme-stitch .bg-alumni-magenta\/10      { background: rgba(236,72,153,0.12) !important; }
+html.theme-stitch .text-alumni-magenta        { color: #f472b6 !important; }
+html.theme-stitch .border-alumni-magenta\/20  { border-color: rgba(236,72,153,0.20) !important; }
+html.theme-stitch .bg-student-cyan\/10        { background: rgba(6,182,212,0.12) !important; }
+html.theme-stitch .text-student-cyan          { color: #22d3ee !important; }
+html.theme-stitch .bg-secondary-container     { background: rgba(124,58,237,0.15) !important; }
+html.theme-stitch .text-on-secondary-container { color: #c4b5fd !important; }
+html.theme-stitch .text-stitch-primary        { color: #60a5fa !important; }
+html.theme-stitch .text-stitch-success        { color: #34d399 !important; }
+html.theme-stitch .text-stitch-warning        { color: #fbbf24 !important; }
+html.theme-stitch .text-stitch-error          { color: #f87171 !important; }
+html.theme-stitch .text-on-primary            { color: #ffffff !important; }
+html.theme-stitch .bg-primary-container       { background: rgba(59,130,246,0.12) !important; }
+html.theme-stitch .text-on-primary-container  { color: #bfdbfe !important; }
+html.theme-stitch .bg-primary-fixed           { background: rgba(59,130,246,0.18) !important; }
+html.theme-stitch .text-on-primary-fixed      { color: #bfdbfe !important; }
+html.theme-stitch .bg-stitch-primary          { background: linear-gradient(135deg,#2563eb,#7c3aed) !important; }
+html.theme-stitch .shadow-stitch-primary\/30  { box-shadow: 0 4px 20px rgba(37,99,235,0.30) !important; }
+html.theme-stitch h1, html.theme-stitch h2, html.theme-stitch h3,
+html.theme-stitch h4, html.theme-stitch h5, html.theme-stitch h6 { color: #f1f5f9 !important; }
+html.theme-stitch .dashboard-grid {
+  display: grid !important; grid-template-columns: repeat(12,1fr) !important; gap: 1.5rem !important;
 }
-html.theme-stitch .bg-primary-600 {
-  background-color: #004ac6 !important;
-}
-html.theme-stitch ::selection {
-  background: #2563eb !important;
-  color: #ffffff !important;
-}
+html.theme-stitch code { background: rgba(255,255,255,0.08) !important; color: #93c5fd !important; }
+html.theme-stitch ::-webkit-scrollbar { width: 5px; }
+html.theme-stitch ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+html.theme-stitch ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+html.theme-stitch ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }

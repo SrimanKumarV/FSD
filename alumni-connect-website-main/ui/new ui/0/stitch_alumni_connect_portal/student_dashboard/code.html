@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#2563eb",
+                        "on-surface-variant": "#434655",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "surface-tint": "#0053db",
+                        "on-secondary-container": "#54647a",
+                        "on-tertiary-container": "#ffede6",
+                        "on-surface": "#191b23",
+                        "background": "#faf8ff",
+                        "outline-variant": "#c3c6d7",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "inverse-on-surface": "#f0f0fb",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary-container": "#bc4800",
+                        "secondary": "#505f76",
+                        "surface-container-high": "#e7e7f3",
+                        "student-cyan": "#0ea5e9",
+                        "error": "#dc2626",
+                        "tertiary": "#943700",
+                        "surface-bright": "#faf8ff",
+                        "primary": "#004ac6",
+                        "surface-variant": "#e1e2ed",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#191b23",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container-low": "#f3f3fe",
+                        "inverse-surface": "#2e3039",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-container-highest": "#e1e2ed",
+                        "surface": "#faf8ff",
+                        "surface-container": "#ededf9",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737686",
+                        "secondary-container": "#d0e1fb",
+                        "on-primary-fixed": "#00174b",
+                        "success": "#16a34a",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "primary-fixed": "#dbe1ff",
+                        "warning": "#d97706",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "error-container": "#ffdad6",
+                        "alumni-magenta": "#c026d3",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "0.25rem",
+                        "margin-desktop": "2rem",
+                        "unit": "4px",
+                        "xl": "2rem",
+                        "sm": "0.5rem",
+                        "lg": "1.5rem",
+                        "margin-mobile": "1rem",
+                        "md": "1rem",
+                        "gutter": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-bold": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-md": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "body-sm": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #faf8ff;
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 74, 198, 0.1), 0 8px 10px -6px rgba(0, 74, 198, 0.1);
+        }
+        /* Dashboard specific layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-base overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar (Mobile only conceptually, but implemented for full responsive test) -->
+<header class="md:hidden bg-glass-light backdrop-blur-md text-primary font-body-base fixed top-0 w-full z-50 border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile h-16 max-w-7xl mx-auto">
+<div class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-primary-container/10 transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary-container/10 transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+</div>
+</header>
+<div class="flex h-screen pt-16 md:pt-0">
+<!-- SideNavBar (Desktop) -->
+<nav class="bg-glass-light backdrop-blur-lg text-primary font-body-sm fixed left-0 top-0 h-full w-64 z-40 border-r border-white/50 shadow-primary-500/10 hidden lg:flex flex-col p-md gap-sm">
+<div class="mb-8 mt-4 px-4">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</h1>
+<div class="flex items-center gap-2 mt-2">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="A small, professional headshot photo of a university student against a bright, modern light-mode background, used as an avatar in a clean SaaS interface. Soft lighting, high clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzVwI9SMk3KR-GjtxdOZIgmIn6S0ya2iv6Y6jiBA-ULO4XHo0iqctJS1uqDraJs4rgi2FwWQsWIKksLj2dvmzZYx977UvjLgyC7KzFSLNkm6cJChRDyWmivsTzJlhe4VIdKN-glpNwAxwBFcTV8WFo412WOWr_KeNmTyc2vSjj3fkny0uplUyrEWOgHrkx9koFCXMxrxo1PiBNmTRm5NN-nKepwzFpRFiHAT0EWnn7o-bns1wI0GTV"/>
+<div class="flex flex-col">
+<span class="font-body-bold text-on-surface text-sm">Alex Chen</span>
+<span class="text-caption-xs text-on-surface-variant">Student</span>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 -translate-y-0.5 hover:shadow-md px-4 py-3 rounded-xl" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Network</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 -translate-y-0.5 hover:shadow-md px-4 py-3 rounded-xl" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>Mentorship</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-body-bold">DevPulse</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 -translate-y-0.5 hover:shadow-md px-4 py-3 rounded-xl" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span>Events</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-2">
+<button class="w-full bg-primary text-on-primary rounded-xl py-3 font-body-bold hover:bg-surface-tint shadow-primary-500/30 hover:shadow-lg transition-all mb-4">
+                    Find a Mentor
+                </button>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 px-4 py-2 rounded-xl" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 px-4 py-2 rounded-xl" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Log out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-1 lg:ml-64 p-margin-mobile md:p-margin-desktop overflow-y-auto w-full max-w-7xl mx-auto">
+<header class="mb-8 hidden md:flex justify-between items-center">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Dashboard</h2>
+<p class="text-on-surface-variant mt-1">Welcome back, Alex. Here's your pulse.</p>
+</div>
+<div class="flex gap-4 items-center">
+<div class="glass-card rounded-full px-4 py-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-48 text-on-surface placeholder:text-outline-variant" placeholder="Search network..." type="text"/>
+</div>
+<button class="glass-card p-2 rounded-full relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+</header>
+<div class="dashboard-grid">
+<!-- DevPulse Widget (Bento large span) -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-lg flex flex-col transition-all duration-300">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">insights</span>
+                                DevPulse Overview
+                            </h3>
+<p class="text-caption-xs text-on-surface-variant mt-1">Your coding telemetry aggregated.</p>
+</div>
+<button class="text-primary text-body-sm font-body-bold hover:underline">View Details</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<!-- Stat Box -->
+<div class="bg-surface-container-low border border-white/40 rounded-lg p-4 flex flex-col justify-between">
+<div class="flex items-center gap-2 mb-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">code</span>
+<span class="font-body-sm text-sm">LeetCode</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">342</span>
+<span class="text-success text-body-sm flex items-center"><span class="material-symbols-outlined text-sm">arrow_upward</span>12 this week</span>
+</div>
+</div>
+<!-- Stat Box -->
+<div class="bg-surface-container-low border border-white/40 rounded-lg p-4 flex flex-col justify-between">
+<div class="flex items-center gap-2 mb-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">terminal</span>
+<span class="font-body-sm text-sm">Codeforces</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">1450</span>
+<span class="text-caption-xs text-outline-variant ml-1">Specialist</span>
+</div>
+</div>
+<!-- Stat Box -->
+<div class="bg-surface-container-low border border-white/40 rounded-lg p-4 flex flex-col justify-between">
+<div class="flex items-center gap-2 mb-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">commit</span>
+<span class="font-body-sm text-sm">GitHub</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">1.2k</span>
+<span class="text-caption-xs text-outline-variant ml-1">Commits (YTD)</span>
+</div>
+</div>
+</div>
+<!-- Placeholder for Chart -->
+<div class="flex-1 bg-surface-container-low/50 rounded-lg border border-white/30 flex items-center justify-center min-h-[150px]">
+<p class="text-outline-variant font-code-mono text-sm">[ Activity Graph Area ]</p>
+</div>
+</div>
+<!-- Upcoming Contest Timer -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-xl p-lg bg-gradient-to-br from-primary/10 to-transparent flex flex-col items-center justify-center text-center transition-all duration-300">
+<span class="material-symbols-outlined text-4xl text-primary mb-2">timer</span>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-1">Weekly Contest 389</h3>
+<p class="text-body-sm text-on-surface-variant mb-6">LeetCode • Algorithm focus</p>
+<div class="flex gap-4 justify-center w-full mb-8">
+<div class="flex flex-col items-center">
+<div class="bg-surface-bright border border-white/50 w-16 h-16 rounded-lg flex items-center justify-center font-display-2xl text-2xl text-primary shadow-sm">
+                                02
+                            </div>
+<span class="text-caption-xs text-on-surface-variant mt-2 uppercase tracking-wider">Days</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="bg-surface-bright border border-white/50 w-16 h-16 rounded-lg flex items-center justify-center font-display-2xl text-2xl text-primary shadow-sm">
+                                14
+                            </div>
+<span class="text-caption-xs text-on-surface-variant mt-2 uppercase tracking-wider">Hrs</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="bg-surface-bright border border-white/50 w-16 h-16 rounded-lg flex items-center justify-center font-display-2xl text-2xl text-primary shadow-sm">
+                                30
+                            </div>
+<span class="text-caption-xs text-on-surface-variant mt-2 uppercase tracking-wider">Mins</span>
+</div>
+</div>
+<button class="w-full bg-surface-bright border border-primary/20 text-primary rounded-xl py-2 font-body-bold hover:bg-primary-container/10 transition-colors">
+                        Set Reminder
+                    </button>
+</div>
+<!-- Mentorship Requests -->
+<div class="col-span-12 lg:col-span-6 glass-card rounded-xl p-lg transition-all duration-300">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container">psychology</span>
+                            Mentorship Activity
+                        </h3>
+<span class="bg-tertiary-container/10 text-tertiary-container text-xs px-2 py-1 rounded-full font-body-bold">2 Updates</span>
+</div>
+<div class="space-y-4">
+<!-- Request Card -->
+<div class="bg-surface-container-lowest border border-white/50 rounded-lg p-4 flex gap-4 items-start hover:shadow-sm transition-shadow">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A professional headshot of a senior software engineer in a bright tech office environment. The photo is styled for a modern light-mode UI, clear and friendly." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwKzt1cEod-RGyNCEmPmaoj5m18jKYQfQIbwT95rxXwJs30uk0zTxMxuzjtySbbX68pvcDIpcpxAt0er7PBW77JFMWvUcTuBM8bAd6TfQIZsIvEgf69jmDac9zfvJGenyQmPJ5RlUUfpPjt2Qas6bg157bJpxJOh6otXb7WdDT3bqETh1Xf8XcjYaE212BEllc39B8a01RV3MaLhhwp5EoDfc5YhvQZxGLYZyuwND4eo_vLvabywfR"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-bright rounded-full p-0.5" title="Verified Alumni">
+<span class="material-symbols-outlined text-[14px] text-alumni-magenta" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h4 class="font-body-bold text-on-surface">Dr. Sarah Jenkins</h4>
+<span class="text-caption-xs text-outline-variant">2h ago</span>
+</div>
+<p class="text-body-sm text-secondary mb-1">Senior SWE @ TechCorp</p>
+<p class="text-body-sm text-on-surface-variant mb-3">Accepted your mock interview request for next Tuesday.</p>
+<div class="flex gap-2">
+<button class="text-xs bg-primary text-on-primary px-3 py-1.5 rounded-lg hover:bg-surface-tint transition-colors">Message</button>
+</div>
+</div>
+</div>
+<!-- Request Card -->
+<div class="bg-surface-container-lowest border border-white/50 rounded-lg p-4 flex gap-4 items-start hover:shadow-sm transition-shadow">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A casual but professional portrait of a tech mentor in a clean, brightly lit setting. Optimized for light-mode dashboard UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvUWW_qYtbyr5jL7Lvv3GRBNcir2KTWbG3OWsW8E-5a5isYLA_VergY7qdrfBW0DhMnxN5y9G0BXjNQ5bPG8neh0ZrjQd2E9Bj-YgO2yII7cr8dIxLGI7ZTi0RhMUwDJpM8PFwdkoIL_enm56y_0biemBkmCMfR6RwCv1sZqjtCuumNecQUOxaWxV6ONIDJ1eagPdXxbyv3VahVeO_kXhz63mW3HkxOtNjupzHUVpTUWvyeIi3YPrp"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-bright rounded-full p-0.5" title="Verified Alumni">
+<span class="material-symbols-outlined text-[14px] text-alumni-magenta" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<h4 class="font-body-bold text-on-surface">David Kim</h4>
+<span class="text-caption-xs text-outline-variant">1d ago</span>
+</div>
+<p class="text-body-sm text-secondary mb-1">Data Scientist @ DataFlow</p>
+<p class="text-body-sm text-on-surface-variant mb-3">Suggested a new resume review time.</p>
+<div class="flex gap-2">
+<button class="text-xs border border-outline text-on-surface px-3 py-1.5 rounded-lg hover:bg-surface-container-high transition-colors">Review Time</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- My Feed Forum Preview -->
+<div class="col-span-12 lg:col-span-6 glass-card rounded-xl p-lg transition-all duration-300">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-student-cyan">forum</span>
+                            Network Feed
+                        </h3>
+<button class="text-primary text-body-sm font-body-bold hover:underline">View All</button>
+</div>
+<div class="space-y-4">
+<!-- Post -->
+<div class="border-b border-white/30 pb-4 last:border-0 last:pb-0">
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-secondary-container text-on-secondary-container text-xs px-2 py-0.5 rounded-md font-code-mono">System Design</span>
+<span class="text-caption-xs text-outline-variant">Asked by anonymous • 4h ago</span>
+</div>
+<h4 class="font-body-bold text-on-surface mb-1">Best resources for learning distributed caching?</h4>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-2">I have an upcoming interview and need to solidify my understanding of Redis vs Memcached in a microservices architecture...</p>
+<div class="flex items-center gap-4 text-secondary text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">thumb_up</span> 24</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">chat_bubble</span> 8 replies</span>
+</div>
+</div>
+<!-- Post -->
+<div class="border-b border-white/30 pb-4 last:border-0 last:pb-0">
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-tertiary-container/20 text-tertiary-container text-xs px-2 py-0.5 rounded-md font-code-mono">Career Advice</span>
+<span class="text-caption-xs text-outline-variant">Shared by Alumni • 1d ago</span>
+</div>
+<h4 class="font-body-bold text-on-surface mb-1">Navigating the transition from Junior to Mid-level</h4>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-2">A lot of mentees ask me what the defining characteristics are of a mid-level engineer. Here are my top 3 observations from reviewing promos...</p>
+<div class="flex items-center gap-4 text-secondary text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">thumb_up</span> 112</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">chat_bubble</span> 34 replies</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

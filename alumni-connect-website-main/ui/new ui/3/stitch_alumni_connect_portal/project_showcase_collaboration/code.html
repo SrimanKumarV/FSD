@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPulse - Project Showcase &amp; Collaboration Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#ededf9",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-tertiary": "#ffffff",
+                      "on-surface-variant": "#434655",
+                      "outline": "#737686",
+                      "surface-container-highest": "#e1e2ed",
+                      "success": "#16a34a",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "tertiary-container": "#bc4800",
+                      "error": "#dc2626",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#faf8ff",
+                      "on-tertiary-fixed": "#360f00",
+                      "surface-dim": "#d9d9e5",
+                      "tertiary-fixed": "#ffdbcd",
+                      "on-background": "#191b23",
+                      "surface-container-low": "#f3f3fe",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#b4c5ff",
+                      "on-error": "#ffffff",
+                      "background": "#faf8ff",
+                      "secondary": "#505f76",
+                      "inverse-on-surface": "#f0f0fb",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#54647a",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "warning": "#d97706",
+                      "on-tertiary-container": "#ffede6",
+                      "on-primary-fixed": "#00174b",
+                      "primary-fixed": "#dbe1ff",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-tint": "#0053db",
+                      "primary-container": "#2563eb",
+                      "alumni-magenta": "#c026d3",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "surface-container-high": "#e7e7f3",
+                      "secondary-container": "#d0e1fb",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "surface-variant": "#e1e2ed",
+                      "on-error-container": "#93000a",
+                      "on-primary-container": "#eeefff",
+                      "surface-bright": "#faf8ff",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-secondary-fixed": "#0b1c30",
+                      "primary": "#004ac6",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "outline-variant": "#c3c6d7",
+                      "tertiary": "#943700",
+                      "inverse-surface": "#2e3039",
+                      "on-surface": "#191b23",
+                      "student-cyan": "#0ea5e9"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-desktop": "2rem",
+                      "xs": "0.25rem",
+                      "sm": "0.5rem",
+                      "xl": "2rem",
+                      "gutter": "1rem",
+                      "md": "1rem",
+                      "margin-mobile": "1rem",
+                      "lg": "1.5rem"
+              },
+              "fontFamily": {
+                      "body-bold": [
+                              "Outfit"
+                      ],
+                      "title-lg": [
+                              "Outfit"
+                      ],
+                      "headline-lg": [
+                              "Outfit"
+                      ],
+                      "body-base": [
+                              "Outfit"
+                      ],
+                      "code-mono": [
+                              "JetBrains Mono"
+                      ],
+                      "caption-xs": [
+                              "Outfit"
+                      ],
+                      "headline-lg-mobile": [
+                              "Outfit"
+                      ],
+                      "display-2xl": [
+                              "Outfit"
+                      ],
+                      "headline-md": [
+                              "Outfit"
+                      ],
+                      "body-sm": [
+                              "Outfit"
+                      ]
+              },
+              "fontSize": {
+                      "body-bold": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "title-lg": [
+                              "1.25rem",
+                              {
+                                      "lineHeight": "1.75rem",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "2.25rem",
+                              {
+                                      "lineHeight": "2.5rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-base": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "code-mono": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "caption-xs": [
+                              "0.75rem",
+                              {
+                                      "lineHeight": "1rem",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "1.875rem",
+                              {
+                                      "lineHeight": "2.25rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-2xl": [
+                              "4.5rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.03em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "headline-md": [
+                              "1.5rem",
+                              {
+                                      "lineHeight": "2rem",
+                                      "letterSpacing": "-0.015em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 74, 198, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+        .glass-input:focus {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-color: #004ac6;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 74, 198, 0.2);
+        }
+        
+        /* Subtle radial gradient background */
+        body {
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(219, 225, 255, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(192, 38, 211, 0.1) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+      </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased min-h-screen flex flex-col md:flex-row">
+<!-- TopNavBar (Mobile Only) -->
+<header class="md:hidden bg-glass-light backdrop-blur-md fixed top-0 w-full z-50 border-b border-white/50 shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="hub">hub</span>
+<span class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</span>
+</div>
+<div class="flex gap-4 items-center">
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<div class="flex gap-2">
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span></button>
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined" data-icon="account_circle">account_circle</span></button>
+</div>
+</div>
+</div>
+<!-- Mobile Nav Tabs -->
+<div class="flex overflow-x-auto hide-scrollbar px-margin-mobile py-2 gap-4 border-t border-white/30">
+<a class="text-on-surface-variant whitespace-nowrap text-body-sm font-body-sm py-1" href="#">Network</a>
+<a class="text-on-surface-variant whitespace-nowrap text-body-sm font-body-sm py-1" href="#">Mentorship</a>
+<a class="text-primary font-body-bold border-b-2 border-primary whitespace-nowrap py-1" href="#">DevPulse</a>
+<a class="text-on-surface-variant whitespace-nowrap text-body-sm font-body-sm py-1" href="#">Events</a>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<nav class="hidden md:flex flex-col p-md gap-sm bg-glass-light backdrop-blur-lg fixed left-0 top-0 h-full w-64 z-40 border-r border-white/50 shadow-primary-500/10">
+<div class="flex items-center gap-3 mb-xl px-4 py-2 mt-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="hub">hub</span>
+<div>
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</h1>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Verified Alumnus</p>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Network
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+                DevPulse
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+                Events
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-4">
+<button class="bg-primary text-on-primary rounded-xl py-3 px-4 font-body-bold shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-0.5 transition-all w-full flex justify-center items-center gap-2">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Post Project
+            </button>
+<div class="flex flex-col gap-1 border-t border-white/50 pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                    Log out
+                </a>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full pt-28 pb-20 md:pt-10 md:pb-10 md:pl-72 px-margin-mobile md:pr-margin-desktop max-w-7xl mx-auto flex flex-col gap-lg">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div>
+<h2 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-primary-fixed mb-1">DevPulse Hub</h2>
+<p class="text-body-base font-body-base text-on-surface-variant max-w-2xl">Discover innovative projects built by the Alumnex community. Find collaborators, review tech stacks, and join forces on the next big thing.</p>
+</div>
+<div class="w-full md:w-auto flex gap-3">
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="glass-input w-full pl-10 pr-4 py-2 rounded-full font-body-sm text-body-sm text-on-surface" placeholder="Search projects, tech..." type="text"/>
+</div>
+<button aria-label="Filter" class="glass-card p-2 rounded-full text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center h-10 w-10 shrink-0">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+</div>
+</section>
+<!-- Project Grid (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Project Card 1: Featured -->
+<article class="glass-card rounded-xl p-5 flex flex-col gap-4 lg:col-span-2 group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A modern, abstract 3D geometric logo representing a data analytics platform, using primarily blue and cyan gradients against a light clean background, crisp and highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt1QiEhzS_eIAmnpRUyX043xSszyPLkWQlz4REw0m7NRdjBMzRx7M3r9w86x17pz0fWhogcxfj66jOYGMMQx1PEN3V3Mtru0IrJNASRt8wEa1PMM2xZlE8zW-x0ZKA3UtgBoEcgn8t_7T1lxiB2b6vPacZ5BU_dtlF4NZJkRgek6JyQ0aW2bGZm3NqSbi19bi3Kg_BnCr8zB1HEGgWqZc8cN628G8fbIv8G6WwEnawysdSLc2h7QhZ"/>
+</div>
+<div>
+<h3 class="text-title-lg font-title-lg text-on-surface group-hover:text-primary transition-colors">Nexus Analytics</h3>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">By Sarah J. (Alumni '21) &amp; Team</p>
+</div>
+</div>
+<span class="bg-primary-container/20 text-primary-fixed font-caption-xs text-caption-xs px-2 py-1 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="group_add">group_add</span> Looking for 2
+                    </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mt-2">
+                    A real-time telemetry dashboard for edge computing nodes. Nexus provides predictive failure analysis using lightweight ML models deployed directly to IoT devices.
+                </p>
+<div class="flex flex-wrap gap-2 mt-auto pt-4">
+<span class="px-2 py-1 rounded bg-surface-container text-on-surface-variant font-code-mono text-code-mono text-[11px]">Rust</span>
+<span class="px-2 py-1 rounded bg-surface-container text-on-surface-variant font-code-mono text-code-mono text-[11px]">React</span>
+<span class="px-2 py-1 rounded bg-surface-container text-on-surface-variant font-code-mono text-code-mono text-[11px]">TensorFlow Lite</span>
+</div>
+</article>
+<!-- Project Card 2 -->
+<article class="glass-card rounded-xl p-5 flex flex-col gap-4 group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-student-cyan" data-icon="eco">eco</span>
+</div>
+<div>
+<h3 class="text-body-bold font-body-bold text-on-surface group-hover:text-primary transition-colors">GreenSync</h3>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Student Project</p>
+</div>
+</div>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-3 mt-2">
+                    Smart grid optimization algorithms tailored for residential solar arrays, maximizing return to grid during peak hours.
+                </p>
+<div class="flex justify-between items-center mt-auto pt-4 border-t border-surface-variant">
+<div class="flex -space-x-2">
+<img class="w-6 h-6 rounded-full border-2 border-surface object-cover" data-alt="A small, circular headshot portrait of a smiling young professional woman with short dark hair, wearing a casual light sweater, against a neutral bright background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMXWBqw27V0SEM5j_l-emytMUpzcnizGzezGx0t7K7kUOy_bTIH7l0ohXudK0__MTaIO0Kj5QOq4_8iUhewloJWzu_YdFMDhKYvbUIOY43v5SrN0P0RO3VZj66PNHXi5jVVGm-uQl49PVKteJNnePblopcrTM4SeTeC7C8Se-KHCZlkmEl53E60xZg8YE-qZ9O0eJwgtal9y8UDVXnKDUwQp-8Ff3c-Yh-6wNY50Nkp5u4LB8Z38EK"/>
+<img class="w-6 h-6 rounded-full border-2 border-surface object-cover" data-alt="A small, circular headshot portrait of a young man with glasses and a beard, wearing a plain t-shirt, against a light grey background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDShZBN0RZMfj_MVK-MYRsH3KTYSdLHYrFHcjVUal3SnWnaGXl4Ww5snz34ht527-Au17q1bcaG17JZOnYy4rdOPCXvAEvRjiXrm3bA-lF07Hu9ZikYhDrVoURfE-dWvtvuzk7RIg9AdQ3jvzQIOeAxWMvrXVUQNiQOCPZaM7jpKSbK0TgqRQ2pmGHyVSR_hbUgeYvCmuZDKWwcabj2RJioeRxQy7ay_L8xYMVmF6zt8UWOMMVnWsB"/>
+</div>
+<span class="text-caption-xs font-caption-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="code">code</span> Python
+                    </span>
+</div>
+</article>
+<!-- Project Card 3 -->
+<article class="glass-card rounded-xl p-5 flex flex-col gap-4 group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-alumni-magenta" data-icon="design_services">design_services</span>
+</div>
+<div>
+<h3 class="text-body-bold font-body-bold text-on-surface group-hover:text-primary transition-colors">Aura Design System</h3>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Open Source</p>
+</div>
+</div>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-3 mt-2">
+                    A comprehensive, accessible component library built for rapid prototyping of FinTech applications. Focus on a11y and contrast.
+                </p>
+<div class="flex justify-between items-center mt-auto pt-4 border-t border-surface-variant">
+<div class="flex -space-x-2">
+<img class="w-6 h-6 rounded-full border-2 border-surface object-cover" data-alt="A small, circular headshot portrait of a professional woman with long curly hair, wearing a blazer, set against a bright minimal background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo7JsP6biGW_VJSF43lLq2me66ZxVZkib1Nq0EdmxY2Py2JnJwnwptQsE9tCgP2My94RPVDi5MMT1BSm6zzJQoXS2QucYWPGknWmmS-yRlcb_5NC8MDO4DwDPlEFVBRrxJFgbH2FkmMnk8Od5yGXOJe1r3mnpJfsvPYziFad_VbmWdVftT9vAUDCzb8fXF5N2p8bixvX1cgxSPsTIP5W3s2JES99QKoGakSIT70Y9c8nwB1-nm-TsF"/>
+</div>
+<span class="text-caption-xs font-caption-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="code">code</span> Vue.js
+                    </span>
+</div>
+</article>
+<!-- Project Card 4 -->
+<article class="glass-card rounded-xl p-5 flex flex-col gap-4 lg:col-span-2 group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer border-l-4 border-l-warning">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A sleek, futuristic icon showing interconnected nodes forming a brain shape, utilizing warm orange and dark grey colors on a clean minimal background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJOcAuODwjxmk7U5uJlS7AtZD5f6Y5V_hBdlAv-pIhGTrQKWaF2AlwUxjg6KePbakphM8XrvIkpzGlVCQPad-XNPIEQeFf-vl8DzmEVGfPx0II8V1B5JI2OSdn7A3qe2FCscntnItOAf3-0_KOjCdG1Chn2mcbV0biCuU-kBapFuo2dIzC0eXp4fYdPw3ZLg4Q3am7r7-mLPRlKzy8AgED5a6gckKypkVGNyEnIDtRVXLaCr8gmIi8"/>
+</div>
+<div>
+<h3 class="text-title-lg font-title-lg text-on-surface group-hover:text-primary transition-colors">Cognitive Mesh</h3>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Research Initiative</p>
+</div>
+</div>
+<span class="bg-warning/20 text-warning font-caption-xs text-caption-xs px-2 py-1 rounded flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="local_fire_department">local_fire_department</span> High Priority
+                    </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mt-2">
+                    Developing distributed neural network architectures across decentralized student nodes to train large language models sustainably.
+                </p>
+<div class="flex items-center justify-between mt-auto pt-4">
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 rounded bg-surface-container text-on-surface-variant font-code-mono text-code-mono text-[11px]">C++</span>
+<span class="px-2 py-1 rounded bg-surface-container text-on-surface-variant font-code-mono text-code-mono text-[11px]">CUDA</span>
+</div>
+<button class="text-primary font-body-sm text-body-sm font-medium hover:underline flex items-center gap-1">
+                        View Details <span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</article>
+</section>
+</main>
+</body></html>

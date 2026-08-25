@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Messaging</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "inverse-surface": "#2e3039",
+                        "primary-container": "#2563eb",
+                        "surface-tint": "#0053db",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "tertiary-fixed": "#ffdbcd",
+                        "success": "#16a34a",
+                        "on-secondary": "#ffffff",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "student-cyan": "#0ea5e9",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-background": "#191b23",
+                        "inverse-primary": "#b4c5ff",
+                        "primary-fixed": "#dbe1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191b23",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-error-container": "#93000a",
+                        "error": "#dc2626",
+                        "surface-bright": "#faf8ff",
+                        "on-primary-container": "#eeefff",
+                        "surface-variant": "#e1e2ed",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-container-highest": "#e1e2ed",
+                        "tertiary-container": "#bc4800",
+                        "warning": "#d97706",
+                        "on-secondary-container": "#54647a",
+                        "on-error": "#ffffff",
+                        "outline": "#737686",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-high": "#e7e7f3",
+                        "secondary": "#505f76",
+                        "primary": "#004ac6",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "alumni-magenta": "#c026d3",
+                        "on-surface-variant": "#434655",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface": "#faf8ff",
+                        "tertiary": "#943700",
+                        "surface-container": "#ededf9",
+                        "on-tertiary-fixed": "#360f00",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-tertiary-container": "#ffede6",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-low": "#f3f3fe",
+                        "background": "#faf8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1rem",
+                        "sm": "0.5rem",
+                        "margin-mobile": "1rem",
+                        "xl": "2rem",
+                        "md": "1rem",
+                        "unit": "4px",
+                        "lg": "1.5rem",
+                        "xs": "0.25rem",
+                        "margin-desktop": "2rem"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "caption-xs": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-md": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.60);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.2s ease;
+        }
+        .glass-input:focus {
+            background-color: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 2px #004ac6;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased h-screen overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 dark:border-gray-700/50 shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Alumnex Connect</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Navigation Tabs - Hiding on small screens for this layout as it's an app view -->
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant dark:text-outline-variant hover:bg-primary-container/10 transition-colors duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="#">Network</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:bg-primary-container/10 transition-colors duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="#">Mentorship</a>
+<a class="text-primary dark:text-primary-fixed-dim font-body-bold border-b-2 border-primary px-3 py-2 scale-95 active:scale-90 transition-transform" href="#">Messages</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:bg-primary-container/10 transition-colors duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="#">Events</a>
+</div>
+<div class="flex items-center gap-2">
+<button aria-label="notifications" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors scale-95 active:scale-90">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button aria-label="chat_bubble" class="p-2 text-primary hover:bg-primary-container/10 rounded-full transition-colors scale-95 active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</button>
+<button aria-label="account_circle" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors scale-95 active:scale-90">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Layout -->
+<main class="flex-1 flex mt-16 max-w-7xl mx-auto w-full overflow-hidden h-[calc(100vh-4rem)]">
+<!-- Sidebar (Conversations List) -->
+<aside class="w-full md:w-80 lg:w-96 glass-card border-r border-white/50 dark:border-gray-700/50 flex flex-col h-full flex-shrink-0 z-10 transition-transform duration-300 transform translate-x-0 md:translate-x-0 absolute md:relative shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+<div class="p-md border-b border-surface-dim/50">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-title-lg text-title-lg font-bold text-on-surface">Messages</h2>
+<button aria-label="New Message" class="p-1.5 bg-primary-container/10 text-primary rounded-lg hover:bg-primary-container/20 transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit_square</span>
+</button>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="glass-input w-full pl-10 pr-4 py-2 rounded-xl text-body-sm text-on-surface placeholder-outline font-body-sm" placeholder="Search messages..." type="text"/>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto hide-scrollbar p-sm">
+<!-- Conversation Item (Active) -->
+<div class="flex items-center gap-3 p-3 rounded-xl bg-primary-container/10 border border-primary/20 cursor-pointer mb-1 hover:-translate-y-0.5 transition-transform">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover border-2 border-surface" data-alt="A professional headshot of a young female software engineer smiling warmly in a well-lit modern office space, shallow depth of field, corporate SaaS style, clean bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlmBeWcDBBchW2oENtftBXNIM7XvVLL0lVSpA6lEvXP0j4MvmzjJZ9tE-ssYFl7dnA7Yi4_ISpO2aCkw0VfX5Z27G-iQkW6j7mEpzhLWuYFvIOAEPJZgCu39zuqeHuasqeiWxtRn-wLIu88maZjyEcgHtKYfpVeK3M4N8cJSlmWKrt3fmIa_7n7JKjEUKKh8fCqoMfElWrwlMhfMIEBTRnP96O8zA5bBkWSQ10_iTgi_-mnsFKw1PJ"/>
+<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-surface"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-body-bold text-body-base text-on-surface truncate">Sarah Jenkins</span>
+<span class="font-caption-xs text-caption-xs text-primary">Just now</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">I pushed the latest changes to the main branch. Let me know what you think!</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="w-5 h-5 bg-primary text-on-primary rounded-full flex items-center justify-center font-caption-xs text-caption-xs font-bold shadow-sm">2</span>
+</div>
+</div>
+<!-- Conversation Item -->
+<div class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container-high/50 cursor-pointer mb-1 hover:-translate-y-0.5 transition-transform">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover border-2 border-surface" data-alt="A professional headshot of a middle-aged male mentor with glasses, wearing a casual button-down shirt, sitting in a sunny cafe, warm tones, high quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkLb8Kxu1bqnbSeQraWGW85K8vHMKrSqtvoTAa0wam-brupOEKD8pX09orHU04bbHpCDqM1ptuCdtImm-SqJdkZBSEBrlP5mFGnD_m3AOR0d1_o9MzbrwvVovvh3beUA4F9zyrUBqbpUVRwZTKPC-16XQsapvllOhE_InDwl4IV7Sdl08Qc90YUgoAI_pDA6OCEM3rjbJuDntCGwgQpclkH-VIcmdJxevo8C0JODzkzOpkEXH48DxG"/>
+<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-outline rounded-full border-2 border-surface"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-body-bold text-body-base text-on-surface truncate">Dr. Marcus Vance</span>
+<span class="font-caption-xs text-caption-xs text-outline">10:42 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline truncate">Are we still on for our mentorship session tomorrow?</p>
+</div>
+</div>
+<!-- Conversation Item -->
+<div class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container-high/50 cursor-pointer mb-1 hover:-translate-y-0.5 transition-transform">
+<div class="relative">
+<div class="w-12 h-12 rounded-full bg-alumni-magenta/20 flex items-center justify-center text-alumni-magenta font-bold text-lg border-2 border-surface">
+                            AT
+                        </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-body-bold text-body-base text-on-surface truncate">Alumni Tech Group</span>
+<span class="font-caption-xs text-caption-xs text-outline">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline truncate">David: Has anyone tried the new Next.js features?</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Chat Area -->
+<section class="flex-1 flex flex-col bg-surface-bright relative z-0 h-full">
+<!-- Chat Header -->
+<header class="h-20 glass-card border-b border-surface-dim/50 flex items-center justify-between px-md md:px-lg z-10 flex-shrink-0">
+<div class="flex items-center gap-4">
+<button aria-label="Back to conversations" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full mr-2">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="relative">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of a young female software engineer smiling warmly in a well-lit modern office space, shallow depth of field, corporate SaaS style, clean bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaEvzGVjxwfcBM98ZcwPD89971g20JDJcHEJN0cXCPpht5qMLvEp21KbVJh95olutPYqVuF_ZDRhtjJ8YsN2rFnMKHtZxb7Y4hWx75pQa3FXnIgftscN9UqgqWj4JNmYYKW9ddmdiKTuQruOt6gTvhp9dLA7V9L607KECpTrVsSZ-_3wzTwOIyV1fbL_BEfRxRY2s7Syh8axUXnlibynvPzwvVEAMO_kl66twoGTxK6k80nSQk4k52"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-surface"></div>
+</div>
+<div>
+<h1 class="font-title-lg text-title-lg font-bold text-on-surface flex items-center gap-2">
+                            Sarah Jenkins
+                            <span class="bg-primary-container/10 text-primary px-2 py-0.5 rounded text-xs font-semibold">Alumna</span>
+</h1>
+<p class="font-caption-xs text-caption-xs text-success flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-success inline-block animate-pulse"></span> Online
+                        </p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button aria-label="Search in conversation" class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button aria-label="Conversation info" class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+</header>
+<!-- Message History (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-md md:p-lg space-y-6 bg-gradient-to-b from-surface-bright to-surface-container-lowest">
+<!-- Date Divider -->
+<div class="flex items-center justify-center">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-caption-xs font-caption-xs text-on-surface-variant">Today</span>
+</div>
+<!-- Received Message -->
+<div class="flex gap-3 max-w-[85%] md:max-w-[70%]">
+<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-auto hidden sm:block" data-alt="A professional headshot of a young female software engineer smiling warmly in a well-lit modern office space, shallow depth of field, corporate SaaS style, clean bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAISbFCqmx8UKjeV-oqXv6fUilZFZStUORbhvX4-IOjhQtDUqFDrvAH83PDRjTEAEgt2MmEjCP889Ms8p23gKpobqdmKCwBfi_ZdQ949P88nPZ4Z94R2rd-aPT20JD8kJ2SwgnKbvIoM47R45W3u3HvoAKbjwp3nLRFA7GLg7gW6K4UTyPIE5QrItrSU5VBRRwD17el59NNPQ9lnDrtwyn3kwWwhBZIeV6lmAgoXcvNF04ILl1oxZKT"/>
+<div class="flex flex-col gap-1">
+<div class="flex items-baseline gap-2 ml-1">
+<span class="font-caption-xs text-caption-xs text-on-surface-variant font-medium">Sarah Jenkins</span>
+<span class="font-caption-xs text-[10px] text-outline">10:14 AM</span>
+</div>
+<div class="bg-surface-container rounded-2xl rounded-bl-sm p-3 shadow-sm border border-surface-dim/30">
+<p class="font-body-base text-body-base text-on-surface">Hey! I'm reviewing the pull request for the new authentication flow.</p>
+</div>
+<div class="bg-surface-container rounded-2xl p-3 shadow-sm border border-surface-dim/30">
+<p class="font-body-base text-body-base text-on-surface">Looks solid, but I left a few comments on the token refresh logic. Could you take a look when you have a minute?</p>
+</div>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex gap-3 max-w-[85%] md:max-w-[70%] ml-auto justify-end">
+<div class="flex flex-col gap-1 items-end">
+<div class="flex items-baseline gap-2 mr-1">
+<span class="font-caption-xs text-[10px] text-outline">10:18 AM</span>
+<span class="font-caption-xs text-caption-xs text-primary font-medium">You</span>
+</div>
+<div class="bg-primary text-on-primary rounded-2xl rounded-br-sm p-3 shadow-[0_4px_14px_rgba(0,74,198,0.2)]">
+<p class="font-body-base text-body-base">Thanks for taking a look! Checking the comments now.</p>
+</div>
+</div>
+</div>
+<!-- Received Message with Code Snippet -->
+<div class="flex gap-3 max-w-[85%] md:max-w-[70%]">
+<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-auto hidden sm:block" data-alt="A professional headshot of a young female software engineer smiling warmly in a well-lit modern office space, shallow depth of field, corporate SaaS style, clean bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGoxUdcKJ7ohkOOnjwcPXo4VZdvjKF3CJ9ms9nK5tco2j9P3ZksjWi1jv4OYRrEPE4RbncgkeXC96OskqhWwZqcaT93z2UUnsT9x4_cisVCaEfuT5ha7WoWDB_jDcEfzOK6f4php3ypOUT4dwbRf2gPEhDAi1pENrsilU3ntHiC0p29pKXCA-WMIKp31q8DwrRzcZkEu6eS3kXwEA6YQkc9Wk1_i1Na10C179bATdkIwMEmE76gKLc"/>
+<div class="flex flex-col gap-1">
+<div class="flex items-baseline gap-2 ml-1">
+<span class="font-caption-xs text-caption-xs text-on-surface-variant font-medium">Sarah Jenkins</span>
+<span class="font-caption-xs text-[10px] text-outline">10:25 AM</span>
+</div>
+<div class="bg-surface-container rounded-2xl rounded-bl-sm p-3 shadow-sm border border-surface-dim/30">
+<p class="font-body-base text-body-base text-on-surface mb-2">Specifically around this block:</p>
+<div class="bg-inverse-surface rounded-lg p-3 overflow-x-auto">
+<code class="font-code-mono text-code-mono text-primary-fixed-dim">
+                                    if (token.isExpired) {<br/>
+                                      await refreshToken();<br/>
+                                    }
+                                </code>
+</div>
+</div>
+</div>
+</div>
+<!-- Sent Message (Typing indicator) -->
+<div class="flex gap-3 max-w-[85%] md:max-w-[70%] ml-auto justify-end">
+<div class="flex flex-col gap-1 items-end">
+<div class="bg-primary-container/10 border border-primary/20 text-on-surface rounded-2xl rounded-br-sm p-3 px-4 shadow-sm flex items-center gap-1 h-[42px]">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-md md:p-lg glass-card border-t border-surface-dim/50 z-10">
+<div class="flex items-end gap-2 bg-surface-container-low rounded-2xl border border-surface-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary p-2 transition-all">
+<div class="flex items-center gap-1 mb-1">
+<button aria-label="Add attachment" class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-xl transition-colors">
+<span class="material-symbols-outlined text-[22px]">attach_file</span>
+</button>
+</div>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 resize-none max-h-32 min-h-[44px] py-2.5 px-2 font-body-base text-body-base text-on-surface placeholder-outline hide-scrollbar" placeholder="Type a message..." rows="1"></textarea>
+<div class="flex items-center gap-1 mb-1">
+<button aria-label="Insert emoji" class="p-2 text-on-surface-variant hover:text-warning hover:bg-surface-container rounded-xl transition-colors">
+<span class="material-symbols-outlined text-[22px]">sentiment_satisfied</span>
+</button>
+<button aria-label="Send message" class="p-2 ml-1 bg-primary text-on-primary hover:bg-surface-tint rounded-xl transition-colors shadow-md shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<div class="mt-2 text-center">
+<span class="font-caption-xs text-caption-xs text-outline">Press Enter to send, Shift+Enter for new line</span>
+</div>
+</div>
+</section>
+</main>
+</body></html>

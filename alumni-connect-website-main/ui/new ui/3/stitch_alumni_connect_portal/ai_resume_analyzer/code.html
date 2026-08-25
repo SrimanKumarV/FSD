@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Resume Analyzer - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#ededf9",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e1e2ed",
+                        "success": "#16a34a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "tertiary-container": "#bc4800",
+                        "error": "#dc2626",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#faf8ff",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-dim": "#d9d9e5",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-background": "#191b23",
+                        "surface-container-low": "#f3f3fe",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-error": "#ffffff",
+                        "background": "#faf8ff",
+                        "secondary": "#505f76",
+                        "inverse-on-surface": "#f0f0fb",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#54647a",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "warning": "#d97706",
+                        "on-tertiary-container": "#ffede6",
+                        "on-primary-fixed": "#00174b",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-tint": "#0053db",
+                        "primary-container": "#2563eb",
+                        "alumni-magenta": "#c026d3",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-container-high": "#e7e7f3",
+                        "secondary-container": "#d0e1fb",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "surface-variant": "#e1e2ed",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#eeefff",
+                        "surface-bright": "#faf8ff",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary": "#004ac6",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "outline-variant": "#c3c6d7",
+                        "tertiary": "#943700",
+                        "inverse-surface": "#2e3039",
+                        "on-surface": "#191b23",
+                        "student-cyan": "#0ea5e9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-desktop": "2rem",
+                        "xs": "0.25rem",
+                        "sm": "0.5rem",
+                        "xl": "2rem",
+                        "gutter": "1rem",
+                        "md": "1rem",
+                        "margin-mobile": "1rem",
+                        "lg": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "body-bold": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "caption-xs": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-sm": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .drag-active {
+            border-color: #004ac6 !important;
+            background-color: #eeefff !important;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-base overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Ambient Background Elements -->
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-primary-container/10 blur-[100px]"></div>
+<div class="absolute bottom-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-student-cyan/5 blur-[120px]"></div>
+</div>
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden lg:flex flex-col p-md gap-sm bg-glass-light dark:bg-glass-dark backdrop-blur-lg fixed left-0 top-0 h-full w-64 z-40 border-r border-white/50 dark:border-gray-700/50 shadow-primary-500/10">
+<div class="flex flex-col items-start mb-xl px-4">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim tracking-tight">Alumnex Connect</h1>
+<span class="font-caption-xs text-caption-xs text-alumni-magenta bg-alumni-magenta/10 px-2 py-1 rounded-full mt-2 border border-alumni-magenta/20">Verified Alumnus</span>
+</div>
+<div class="flex-1 space-y-2">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-sm text-body-sm">Network</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 hover:shadow-md transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-body-bold text-body-bold">Mentorship</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-body-sm text-body-sm">DevPulse</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-body-sm text-body-sm">Events</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-sm text-body-sm">Settings</span>
+</a>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant/30 space-y-2">
+<button class="w-full bg-primary text-on-primary font-body-bold text-body-bold rounded-xl py-3 shadow-sm hover:shadow-primary-500/30 hover:bg-primary/90 transition-all active:scale-95">
+                Find a Mentor
+            </button>
+<div class="flex justify-between px-2 pt-2">
+<button aria-label="Support" class="text-outline hover:text-on-surface p-2 rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button aria-label="Log out" class="text-outline hover:text-error p-2 rounded-lg hover:bg-error-container transition-colors">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- TopNavBar (Mobile) -->
+<nav class="lg:hidden bg-glass-light dark:bg-glass-dark backdrop-blur-md fixed top-0 w-full z-50 border-b border-white/50 dark:border-gray-700/50 shadow-sm flex justify-between items-center px-margin-mobile h-16">
+<h1 class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Alumnex Connect</h1>
+<div class="flex gap-2">
+<button aria-label="Notifications" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="Account" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="relative z-10 pt-20 lg:pt-8 pb-24 lg:pl-64 lg:pr-8 px-margin-mobile max-w-7xl mx-auto flex flex-col gap-lg min-h-screen">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-4">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-alumni-magenta" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-code-mono text-code-mono text-secondary tracking-widest uppercase">Groq-Powered Mentorship</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">AI Resume Analyzer</h2>
+<p class="font-body-base text-body-base text-on-surface-variant max-w-2xl">Upload your resume to receive instantaneous, data-driven feedback on ATS compatibility, skill gaps, and strategic improvements tailored to your target roles.</p>
+</div>
+<div class="flex items-center gap-3 glass-card px-4 py-2 rounded-xl">
+<span class="material-symbols-outlined text-success">bolt</span>
+<span class="font-body-sm text-body-sm font-medium">Processing Time: ~1.2s</span>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+<!-- Left Column: Upload & Preview -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<!-- Upload Zone -->
+<div class="glass-card rounded-2xl p-8 border-2 border-dashed border-outline-variant hover:border-primary transition-colors duration-300 flex flex-col items-center justify-center text-center group cursor-pointer h-64" id="drop-zone">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center mb-4 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors duration-300">
+<span class="material-symbols-outlined text-3xl" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<h3 class="font-title-lg text-title-lg mb-2">Drag &amp; Drop Resume</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">Supports PDF, DOCX (Max 5MB)</p>
+<button class="bg-surface text-primary border border-primary/20 px-6 py-2 rounded-xl font-body-bold text-body-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">Browse Files</button>
+<input accept=".pdf,.doc,.docx" class="hidden" id="file-upload" type="file"/>
+</div>
+<!-- Target Role Selection -->
+<div class="glass-card rounded-2xl p-6">
+<h3 class="font-title-lg text-title-lg mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">target</span>
+                        Target Role Analysis
+                    </h3>
+<div class="space-y-4">
+<div>
+<label class="block font-caption-xs text-caption-xs text-on-surface-variant mb-1 uppercase tracking-wider">Primary Role</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 appearance-none focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-shadow font-body-base text-body-base text-on-surface">
+<option>Senior Frontend Engineer</option>
+<option>Full Stack Developer</option>
+<option>Product Manager</option>
+<option>UX/UI Designer</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary font-body-bold text-body-bold rounded-xl py-3 shadow-primary-500/30 shadow-sm hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="troubleshoot">troubleshoot</span>
+                            Run AI Analysis
+                        </button>
+</div>
+</div>
+</div>
+<!-- Right Column: Results Dashboard (Pre-populated for design preview) -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<!-- Top Row: Score & Quick Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<!-- ATS Score Card -->
+<div class="glass-card rounded-2xl p-6 flex items-center gap-6 relative overflow-hidden">
+<!-- Decorative background element -->
+<div class="absolute -right-10 -bottom-10 text-9xl text-success/5 pointer-events-none">
+<span class="material-symbols-outlined" style="font-size: inherit;">speed</span>
+</div>
+<div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-variant" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="100, 100" stroke-width="3"></path>
+<path class="text-success" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="82, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">82</span>
+</div>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">ATS Match Score</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Strong match for "Senior Frontend Engineer". Good keyword density.</p>
+</div>
+</div>
+<!-- Impact Metrics -->
+<div class="glass-card rounded-2xl p-6 flex flex-col justify-center">
+<div class="space-y-4">
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">spellcheck</span> Readability
+                                </span>
+<span class="font-code-mono text-code-mono text-success">High</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant/30 pb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">format_list_numbered</span> Action Verbs
+                                </span>
+<span class="font-code-mono text-code-mono text-warning">Medium (14)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">data_usage</span> Quantified Impact
+                                </span>
+<span class="font-code-mono text-code-mono text-error">Low (12%)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Recommendations -->
+<div class="glass-card rounded-2xl p-6 flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-title-lg text-title-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-alumni-magenta" data-weight="fill" style="font-variation-settings: 'FILL' 1;">tips_and_updates</span>
+                            Groq AI Recommendations
+                        </h3>
+<div class="flex gap-2">
+<button aria-label="Filter improvements" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+</button>
+</div>
+</div>
+<div class="space-y-4 overflow-y-auto pr-2" style="max-height: 400px;">
+<!-- Recommendation Item 1 -->
+<div class="bg-surface-container-lowest/50 border border-outline-variant/50 rounded-xl p-4 hover:-translate-y-0.5 transition-transform duration-200">
+<div class="flex items-start gap-3">
+<div class="mt-1 bg-error-container text-on-error-container p-1 rounded-md flex-shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="trending_down">trending_down</span>
+</div>
+<div>
+<h4 class="font-body-bold text-body-bold text-on-surface mb-1">Quantify Experience Outcomes</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">Your bullet point "Improved application performance" is vague. The ATS and hiring managers look for measurable impact.</p>
+<div class="bg-surface-container rounded-lg p-3 border border-outline-variant/30">
+<p class="font-code-mono text-caption-xs text-on-surface mb-1 text-outline">Instead of:</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-through opacity-70 mb-2">Improved application performance by refactoring code.</p>
+<p class="font-code-mono text-caption-xs text-success mb-1">Try this:</p>
+<p class="font-body-sm text-body-sm text-on-surface font-medium">Reduced initial load time by 40% and improved Lighthouse score to 95+ by refactoring legacy React components.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recommendation Item 2 -->
+<div class="bg-surface-container-lowest/50 border border-outline-variant/50 rounded-xl p-4 hover:-translate-y-0.5 transition-transform duration-200">
+<div class="flex items-start gap-3">
+<div class="mt-1 bg-warning/20 text-warning p-1 rounded-md flex-shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="key">key</span>
+</div>
+<div>
+<h4 class="font-body-bold text-body-bold text-on-surface mb-1">Missing Key Technologies</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">Based on current "Senior Frontend Engineer" job descriptions, you are missing several trending keywords.</p>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-md font-code-mono text-caption-xs border border-outline-variant/50 flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">add</span> TypeScript
+                                        </span>
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-md font-code-mono text-caption-xs border border-outline-variant/50 flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">add</span> Next.js
+                                        </span>
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-md font-code-mono text-caption-xs border border-outline-variant/50 flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">add</span> CI/CD
+                                        </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 w-full bg-glass-light dark:bg-glass-dark backdrop-blur-md z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] border-t border-white/50 dark:border-gray-700/50 pb-safe">
+<div class="flex justify-around items-center h-16">
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-caption-xs text-caption-xs mt-1">Network</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-primary font-medium active:scale-95 transition-transform" href="#">
+<div class="bg-primary-container/20 p-1 rounded-full px-4 flex flex-col items-center">
+<span class="material-symbols-outlined" data-icon="psychology" data-weight="fill" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="font-caption-xs text-caption-xs mt-1">Mentorship</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-caption-xs text-caption-xs mt-1">DevPulse</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-caption-xs text-caption-xs mt-1">Events</span>
+</a>
+</div>
+</nav>
+<script>
+        // Simple Drag and Drop Interaction Logic
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-upload');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('drag-active');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('drag-active');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            // Handle file visualization here
+            console.log('File dropped:', files);
+        }
+    </script>
+</body></html>

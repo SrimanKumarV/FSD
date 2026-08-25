@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Career Mentor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191b23",
+                        "background": "#faf8ff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#2563eb",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-surface-variant": "#434655",
+                        "primary": "#004ac6",
+                        "surface": "#faf8ff",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#ededf9",
+                        "on-surface": "#191b23",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "secondary-container": "#d0e1fb",
+                        "outline": "#737686",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-bright": "#faf8ff",
+                        "alumni-magenta": "#c026d3",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary": "#ffffff",
+                        "error": "#dc2626",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-highest": "#e1e2ed",
+                        "surface-variant": "#e1e2ed",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#ffede6",
+                        "secondary": "#505f76",
+                        "inverse-surface": "#2e3039",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#bc4800",
+                        "warning": "#d97706",
+                        "success": "#16a34a",
+                        "surface-dim": "#d9d9e5",
+                        "surface-container-high": "#e7e7f3",
+                        "on-primary-container": "#eeefff",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed": "#00174b",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "student-cyan": "#0ea5e9",
+                        "on-secondary-container": "#54647a",
+                        "secondary-fixed": "#d3e4fe",
+                        "tertiary": "#943700",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f3f3fe",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-tint": "#0053db"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "0.5rem",
+                        "margin-desktop": "2rem",
+                        "md": "1rem",
+                        "lg": "1.5rem",
+                        "unit": "4px",
+                        "xl": "2rem",
+                        "margin-mobile": "1rem",
+                        "gutter": "1rem",
+                        "xs": "0.25rem"
+                    },
+                    "fontFamily": {
+                        "caption-xs": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "display-2xl": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-card {
+                @apply bg-glass-light backdrop-blur-md border border-white/50 shadow-sm;
+            }
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .hide-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base h-full flex flex-col md:hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-margin-mobile py-md glass-card sticky top-0 z-10 rounded-b-2xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+</div>
+<div>
+<h1 class="font-title-lg text-title-lg text-on-background">Alumnex AI</h1>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant flex items-center gap-1">
+                    Powered by Groq <span class="material-symbols-outlined text-[12px]" data-icon="bolt">bolt</span>
+</p>
+</div>
+</div>
+<button aria-label="Settings" class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</header>
+<!-- Chat Area -->
+<main class="flex-1 overflow-y-auto px-margin-mobile py-md flex flex-col gap-lg hide-scrollbar">
+<!-- Welcome Message -->
+<div class="text-center py-xl">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-display-2xl text-primary" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-background mb-2">Your Career Mentor</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-[250px] mx-auto">Ask me anything about resumes, interviews, or career planning.</p>
+</div>
+<!-- Quick Actions Scroll -->
+<div class="flex gap-sm overflow-x-auto hide-scrollbar pb-2 -mx-margin-mobile px-margin-mobile">
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-xl font-body-sm text-body-sm text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="description">description</span> Resume Review
+            </button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-xl font-body-sm text-body-sm text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-[16px] text-student-cyan" data-icon="mic">mic</span> Mock Interview
+            </button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-xl font-body-sm text-body-sm text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-[16px] text-alumni-magenta" data-icon="explore">explore</span> Career Path
+            </button>
+</div>
+<!-- Messages -->
+<div class="flex flex-col gap-6 mt-4">
+<!-- User Message -->
+<div class="flex justify-end">
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%] shadow-sm">
+<p class="font-body-base text-body-base">Can you help me prepare for a frontend developer interview? What topics should I focus on?</p>
+</div>
+</div>
+<!-- AI Message -->
+<div class="flex justify-start gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 flex-shrink-0 flex items-center justify-center text-primary mt-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="glass-card rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+<p class="font-body-base text-body-base text-on-background mb-3">Absolutely! For a frontend role, you should focus on these core areas:</p>
+<ul class="list-disc pl-4 space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+<li><strong>Core JavaScript:</strong> Closures, event loop, promises, and DOM manipulation.</li>
+<li><strong>Frameworks (React/Vue):</strong> Component lifecycle, state management, and hooks.</li>
+<li><strong>CSS/Styling:</strong> Flexbox, Grid, responsive design, and CSS variables.</li>
+<li><strong>Performance:</strong> Critical rendering path, lazy loading, and asset optimization.</li>
+</ul>
+<div class="mt-4 flex gap-2">
+<button class="px-3 py-1.5 bg-surface-container rounded-lg font-caption-xs text-caption-xs text-primary hover:bg-surface-container-high transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="play_arrow">play_arrow</span> Start Mock Interview
+                        </button>
+</div>
+</div>
+</div>
+<!-- User Message 2 -->
+<div class="flex justify-end">
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%] shadow-sm">
+<p class="font-body-base text-body-base">How about state management in React? Any specific questions they might ask?</p>
+</div>
+</div>
+<!-- AI Message Typing Indicator -->
+<div class="flex justify-start gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 flex-shrink-0 flex items-center justify-center text-primary mt-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="glass-card rounded-2xl rounded-tl-sm px-4 py-4 max-w-[85%] flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse" style="animation-delay: 0.2s"></div>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse" style="animation-delay: 0.4s"></div>
+</div>
+</div>
+</div>
+<!-- Spacer for sticky input -->
+<div class="h-20"></div>
+</main>
+<!-- Sticky Input -->
+<div class="sticky bottom-0 p-margin-mobile glass-card rounded-t-2xl border-t border-white/50">
+<div class="flex items-center gap-2 bg-surface-container-lowest rounded-full border border-outline-variant/30 p-1 shadow-sm focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<button aria-label="Attach file" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 font-body-base text-body-base text-on-background placeholder-on-surface-variant/70 py-2" placeholder="Ask a career question..." type="text"/>
+<button aria-label="Send message" class="w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-primary-500/30 shadow-md hover:bg-primary-container hover:-translate-y-0.5 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="arrow_upward">arrow_upward</span>
+</button>
+</div>
+<p class="text-center font-caption-xs text-caption-xs text-on-surface-variant/60 mt-3">AI responses may not always be accurate.</p>
+</div>
+</body></html>

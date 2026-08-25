@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Jobs &amp; Opportunities</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174b",
+                        "tertiary-container": "#bc4800",
+                        "secondary-fixed": "#d3e4fe",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "outline": "#737686",
+                        "surface": "#faf8ff",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container-low": "#f3f3fe",
+                        "alumni-magenta": "#c026d3",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-tint": "#0053db",
+                        "surface-container-highest": "#e1e2ed",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary": "#004ac6",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-high": "#e7e7f3",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-variant": "#e1e2ed",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#54647a",
+                        "secondary": "#505f76",
+                        "outline-variant": "#c3c6d7",
+                        "inverse-surface": "#2e3039",
+                        "surface-container-lowest": "#ffffff",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-surface-variant": "#434655",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary": "#943700",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#dc2626",
+                        "on-surface": "#191b23",
+                        "on-tertiary-container": "#ffede6",
+                        "success": "#16a34a",
+                        "on-error": "#ffffff",
+                        "on-background": "#191b23",
+                        "surface-container": "#ededf9",
+                        "student-cyan": "#0ea5e9",
+                        "background": "#faf8ff",
+                        "primary-container": "#2563eb",
+                        "on-tertiary-fixed": "#360f00",
+                        "warning": "#d97706",
+                        "secondary-fixed-dim": "#b7c8e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2rem",
+                        "md": "1rem",
+                        "gutter": "1rem",
+                        "unit": "4px",
+                        "lg": "1.5rem",
+                        "margin-mobile": "1rem",
+                        "xl": "2rem",
+                        "xs": "0.25rem",
+                        "sm": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "body-bold": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                        "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                        "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                        "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                        "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}],
+                        "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-card {
+                @apply bg-glass-light backdrop-blur-md border border-white/50 shadow-sm rounded-xl transition-all duration-300;
+            }
+            .glass-input {
+                @apply bg-surface-container-highest/50 border border-outline-variant rounded-lg px-4 py-2 text-on-surface focus:bg-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base min-h-screen relative overflow-x-hidden md:hidden">
+<!-- Top Nav Bar (Mobile View) -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm h-16 flex justify-between items-center px-margin-mobile">
+<div class="flex items-center gap-2">
+<span aria-hidden="true" class="material-symbols-outlined text-primary text-2xl">work</span>
+<span class="font-headline-md font-bold text-primary">Jobs</span>
+</div>
+<div class="flex gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-32 px-margin-mobile flex flex-col gap-lg">
+<!-- Search & Filter Section -->
+<section class="flex flex-col gap-sm sticky top-16 z-40 bg-background/90 backdrop-blur-sm py-2 -mx-margin-mobile px-margin-mobile">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input aria-label="Search jobs" class="w-full pl-10 pr-4 py-3 bg-surface-container-high rounded-xl border-none outline-none focus:ring-2 focus:ring-primary text-body-sm font-body-sm transition-all" placeholder="Search jobs, skills, or companies" type="text"/>
+</div>
+<!-- Filter Chips (Horizontal Scroll) -->
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
+<button class="snap-start shrink-0 px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-body-sm text-body-sm whitespace-nowrap transition-transform active:scale-95 shadow-sm">
+                    All Jobs
+                </button>
+<button class="snap-start shrink-0 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body-sm text-body-sm whitespace-nowrap transition-all active:scale-95 hover:bg-surface-container-highest">
+                    Remote
+                </button>
+<button class="snap-start shrink-0 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body-sm text-body-sm whitespace-nowrap transition-all active:scale-95 hover:bg-surface-container-highest">
+                    Internship
+                </button>
+<button class="snap-start shrink-0 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body-sm text-body-sm whitespace-nowrap transition-all active:scale-95 hover:bg-surface-container-highest">
+                    Full-time
+                </button>
+<button class="snap-start shrink-0 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body-sm text-body-sm whitespace-nowrap transition-all active:scale-95 hover:bg-surface-container-highest flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">tune</span> Filters
+                </button>
+</div>
+</section>
+<!-- Alumni Referrals Section -->
+<section class="flex flex-col gap-md mt-4">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-title-lg text-title-lg text-on-surface">Alumni Referrals</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">High-priority openings from the network.</p>
+</div>
+</div>
+<!-- Job Card 1 -->
+<div class="glass-card p-md flex flex-col gap-sm active:scale-[0.98] cursor-pointer group">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container flex items-center justify-center">
+<img alt="Company Logo" class="w-full h-full object-cover" data-alt="A stylized logo for a modern tech startup, featuring geometric shapes in deep blue and vibrant cyan, set against a pristine white background. The logo is clean, flat, and follows a minimalist corporate identity style typical of high-end SaaS companies. Soft, diffuse lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW_eOxmi7hFohYKHWSoe-JXaUjyHI7dTRbwWFwMjoLTgBMahh9RJp9zZqWe6DEnTWElUbj5B4kJGPCv_2vFMRbDtWCyKfy3P0ngrCLHLNr8soj7nKIDrLAkjCzRcEjy46HvOOVeyIJbogXu3qUZA_jFr7NtbOQq-An-2taGg4nm-_43k-I6Ca-VH7rxnyiwgCB1aCc3sHu6Os6Ve7cfUMfjzsmhI5iHphoE9Bj9ni0dI6w7QJKalpU"/>
+</div>
+<div class="flex flex-col">
+<h3 class="font-body-bold text-body-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">Senior Frontend Engineer</h3>
+<span class="font-body-sm text-body-sm text-secondary line-clamp-1">Vercel Inc. • San Francisco, CA</span>
+</div>
+</div>
+<button aria-label="Save Job" class="text-outline-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">React</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">TypeScript</span>
+<span class="px-2 py-0.5 rounded-md bg-tertiary-container/10 text-tertiary font-caption-xs text-caption-xs border border-tertiary/20">Remote</span>
+</div>
+<div class="mt-2 pt-3 border-t border-outline-variant/30 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-alumni-magenta/20 flex items-center justify-center shrink-0 border border-alumni-magenta/30">
+<span class="material-symbols-outlined text-[14px] text-alumni-magenta">verified</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Referred by Sarah J. ('19)</span>
+</div>
+</div>
+<!-- Job Card 2 -->
+<div class="glass-card p-md flex flex-col gap-sm active:scale-[0.98] cursor-pointer group">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container flex items-center justify-center">
+<img alt="Company Logo" class="w-full h-full object-cover" data-alt="A minimalist logo design for a fintech company. The design features a stylized 'S' composed of interwoven lines in a soft emerald green and deep navy blue. It sits on a stark white background with very subtle drop shadow to indicate depth. The style is modern, professional, and trustworthy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYl9NHzW-7ELIoewR5vQ5kPSbyaTkCvTfETtOzefgsKlJ-NU3StwMyqtd3nclQ69KpsgE04cPfvoGTGXWthImyXbu-TEpxSnDlUho9d3ftv6FHrTItmX2FvF3pPtsHjJc1vjCi59zhRyIgXreAzZNG1gdIRPGfMEnq8TUYSLtMkNyBJQczA7HahN0F_gQuEz6HnuwqECfi_HGa6N9PM_F0syeAPunLETCsEfKGm_RiZxiCoKsWXiMj"/>
+</div>
+<div class="flex flex-col">
+<h3 class="font-body-bold text-body-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">Product Designer</h3>
+<span class="font-body-sm text-body-sm text-secondary line-clamp-1">Stripe • New York, NY</span>
+</div>
+</div>
+<button aria-label="Save Job" class="text-outline-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">Figma</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">UI/UX</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">Hybrid</span>
+</div>
+<div class="mt-2 pt-3 border-t border-outline-variant/30 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-alumni-magenta/20 flex items-center justify-center shrink-0 border border-alumni-magenta/30">
+<span class="material-symbols-outlined text-[14px] text-alumni-magenta">verified</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Referred by Mark D. ('15)</span>
+</div>
+</div>
+</section>
+<!-- Global Opportunities Section -->
+<section class="flex flex-col gap-md mt-4">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-title-lg text-title-lg text-on-surface">Global Opportunities</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Explore roles across the tech landscape.</p>
+</div>
+</div>
+<!-- Job Card 3 -->
+<div class="glass-card p-md flex flex-col gap-sm active:scale-[0.98] cursor-pointer group">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant text-2xl">apartment</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-body-bold text-body-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">Backend Developer</h3>
+<span class="font-body-sm text-body-sm text-secondary line-clamp-1">DataFlow Systems • London, UK</span>
+</div>
+</div>
+<button aria-label="Save Job" class="text-outline-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">Node.js</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">PostgreSQL</span>
+<span class="px-2 py-0.5 rounded-md bg-tertiary-container/10 text-tertiary font-caption-xs text-caption-xs border border-tertiary/20">Remote</span>
+</div>
+<div class="mt-2 pt-2 flex items-center justify-between">
+<span class="font-caption-xs text-caption-xs text-outline">Posted 2 days ago</span>
+</div>
+</div>
+<!-- Job Card 4 -->
+<div class="glass-card p-md flex flex-col gap-sm active:scale-[0.98] cursor-pointer group">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant text-2xl">cloud</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-body-bold text-body-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">Cloud Solutions Intern</h3>
+<span class="font-body-sm text-body-sm text-secondary line-clamp-1">SkyNet Global • Austin, TX</span>
+</div>
+</div>
+<button aria-label="Save Job" class="text-outline-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">AWS</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-caption-xs text-caption-xs">Python</span>
+<span class="px-2 py-0.5 rounded-md bg-student-cyan/10 text-student-cyan font-caption-xs text-caption-xs border border-student-cyan/20">Internship</span>
+</div>
+<div class="mt-2 pt-2 flex items-center justify-between">
+<span class="font-caption-xs text-caption-xs text-outline">Posted 5 hours ago</span>
+</div>
+</div>
+<!-- Load More -->
+<div class="mt-4 flex justify-center">
+<button class="px-6 py-3 rounded-xl border border-primary/30 text-primary font-body-bold text-body-bold hover:bg-primary/5 active:scale-95 transition-all flex items-center gap-2 w-full justify-center shadow-sm">
+                    Load More Jobs <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Application Status FAB (Floating Action Button) -->
+<button aria-label="View Application Status" class="fixed bottom-24 right-4 z-40 bg-primary text-on-primary rounded-xl px-4 py-3 shadow-primary-500/30 shadow-lg flex items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-body-bold text-body-sm">Applications</span>
+<span class="bg-error text-on-error font-caption-xs text-caption-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">2</span>
+</button>
+<!-- Bottom Nav Bar (Mobile View) -->
+<nav class="fixed bottom-0 w-full z-50 bg-glass-light backdrop-blur-md shadow-sm h-16 flex justify-around items-center pb-safe border-t border-white/50">
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-caption-xs text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-caption-xs text-[10px]">Network</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-primary font-body-bold border-t-2 border-primary -mt-0.5" href="#">
+<span class="material-symbols-outlined" data-icon="work" data-weight="fill">work</span>
+<span class="font-caption-xs text-[10px] font-bold">Jobs</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-caption-xs text-[10px]">Chat</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-caption-xs text-[10px]">Profile</span>
+</a>
+</nav>
+<style>
+        /* Hide scrollbar for filter chips while keeping functionality */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Safe area padding for iOS devices with home indicator */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    </style>
+</body></html>

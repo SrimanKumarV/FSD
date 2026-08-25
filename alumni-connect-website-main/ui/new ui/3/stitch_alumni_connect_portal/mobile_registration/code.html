@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Registration</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Outfit:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#d3e4fe",
+                      "on-tertiary-fixed": "#360f00",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "surface": "#faf8ff",
+                      "surface-bright": "#faf8ff",
+                      "primary-fixed": "#dbe1ff",
+                      "tertiary-container": "#bc4800",
+                      "student-cyan": "#0ea5e9",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "background": "#faf8ff",
+                      "surface-container-high": "#e7e7f3",
+                      "inverse-on-surface": "#f0f0fb",
+                      "on-surface": "#191b23",
+                      "on-tertiary-container": "#ffede6",
+                      "primary": "#004ac6",
+                      "surface-container-highest": "#e1e2ed",
+                      "success": "#16a34a",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "alumni-magenta": "#c026d3",
+                      "inverse-surface": "#2e3039",
+                      "primary-container": "#2563eb",
+                      "outline-variant": "#c3c6d7",
+                      "on-error-container": "#93000a",
+                      "surface-container-low": "#f3f3fe",
+                      "surface-variant": "#e1e2ed",
+                      "secondary": "#505f76",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed": "#0b1c30",
+                      "on-background": "#191b23",
+                      "on-surface-variant": "#434655",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "inverse-primary": "#b4c5ff",
+                      "surface-container": "#ededf9",
+                      "outline": "#737686",
+                      "warning": "#d97706",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#943700",
+                      "on-primary-container": "#eeefff",
+                      "surface-tint": "#0053db",
+                      "error": "#dc2626",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#ffdbcd",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "on-primary-fixed": "#00174b",
+                      "on-secondary": "#ffffff",
+                      "secondary-container": "#d0e1fb",
+                      "on-secondary-container": "#54647a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "surface-dim": "#d9d9e5",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "error-container": "#ffdad6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "1rem",
+                      "sm": "0.5rem",
+                      "xs": "0.25rem",
+                      "lg": "1.5rem",
+                      "margin-desktop": "2rem",
+                      "gutter": "1rem",
+                      "unit": "4px",
+                      "md": "1rem",
+                      "xl": "2rem"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": [
+                              "Outfit"
+                      ],
+                      "caption-xs": [
+                              "Outfit"
+                      ],
+                      "body-base": [
+                              "Outfit"
+                      ],
+                      "body-bold": [
+                              "Outfit"
+                      ],
+                      "headline-lg": [
+                              "Outfit"
+                      ],
+                      "body-sm": [
+                              "Outfit"
+                      ],
+                      "code-mono": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Outfit"
+                      ],
+                      "title-lg": [
+                              "Outfit"
+                      ],
+                      "display-2xl": [
+                              "Outfit"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": [
+                              "1.875rem",
+                              {
+                                      "lineHeight": "2.25rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "caption-xs": [
+                              "0.75rem",
+                              {
+                                      "lineHeight": "1rem",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-base": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-bold": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "2.25rem",
+                              {
+                                      "lineHeight": "2.5rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "code-mono": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "1.5rem",
+                              {
+                                      "lineHeight": "2rem",
+                                      "letterSpacing": "-0.015em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "title-lg": [
+                              "1.25rem",
+                              {
+                                      "lineHeight": "1.75rem",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-2xl": [
+                              "4.5rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.03em",
+                                      "fontWeight": "800"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen text-on-background font-body-base antialiased md:hidden relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container flex flex-col">
+<!-- Ambient Background Elements -->
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary-fixed opacity-30 blur-[80px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-secondary-fixed opacity-40 blur-[100px]"></div>
+</div>
+<!-- Top App Bar - Simplified for Registration Context (Task-focused) -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 sticky top-0">
+<button aria-label="Go Back" class="text-on-surface-variant p-sm rounded-full hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<span class="font-headline-md text-headline-md font-bold text-primary">Alumnex Connect</span>
+<div class="w-10"></div> <!-- Placeholder for balance -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col px-margin-mobile pt-lg pb-32">
+<!-- Header Section -->
+<div class="mb-lg text-center">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-xs">Create Account</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">Join the global network of alumni and students.</p>
+</div>
+<!-- Progress Indicator -->
+<div class="flex items-center justify-center gap-sm mb-xl">
+<div class="h-2 flex-1 rounded-full bg-primary"></div>
+<div class="h-2 flex-1 rounded-full bg-surface-variant"></div>
+<div class="h-2 flex-1 rounded-full bg-surface-variant"></div>
+</div>
+<!-- Form Card (Glassmorphic) -->
+<div class="bg-glass-light backdrop-blur-lg border border-white/50 rounded-xl p-md shadow-sm mb-lg">
+<!-- Role Selection Toggle -->
+<div class="flex p-1 bg-surface-container-high rounded-lg mb-lg">
+<button aria-pressed="true" class="flex-1 py-sm rounded-md bg-surface shadow-sm font-body-bold text-body-bold text-primary transition-all">Student</button>
+<button aria-pressed="false" class="flex-1 py-sm rounded-md font-body-base text-body-base text-on-surface-variant hover:text-on-surface transition-all">Alumni</button>
+</div>
+<form class="flex flex-col gap-md">
+<!-- Full Name Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider" for="fullName">Full Name</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">person</span>
+<input class="w-full bg-white/50 backdrop-blur-sm border border-outline-variant rounded-lg py-sm pl-10 pr-3 focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-surface transition-all font-body-base text-body-base text-on-surface" id="fullName" placeholder="John Doe" required="" type="text"/>
+</div>
+</div>
+<!-- Email Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider" for="email">Institutional Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">mail</span>
+<input class="w-full bg-white/50 backdrop-blur-sm border border-outline-variant rounded-lg py-sm pl-10 pr-3 focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-surface transition-all font-body-base text-body-base text-on-surface" id="email" placeholder="student@university.edu" required="" type="email"/>
+</div>
+<p class="font-caption-xs text-caption-xs text-outline mt-1">Use your .edu email for automatic verification.</p>
+</div>
+<!-- Password Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider" for="password">Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">lock</span>
+<input class="w-full bg-white/50 backdrop-blur-sm border border-outline-variant rounded-lg py-sm pl-10 pr-10 focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-surface transition-all font-body-base text-body-base text-on-surface" id="password" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Confirm Password Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider" for="confirmPassword">Confirm Password</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">lock_reset</span>
+<input class="w-full bg-white/50 backdrop-blur-sm border border-outline-variant rounded-lg py-sm pl-10 pr-10 focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-surface transition-all font-body-base text-body-base text-on-surface" id="confirmPassword" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+</form>
+</div>
+<!-- T&C Text -->
+<p class="font-caption-xs text-caption-xs text-center text-on-surface-variant px-md mt-sm">
+            By continuing, you agree to Alumnex Connect's <a class="text-primary hover:underline font-body-bold" href="#">Terms of Service</a> and <a class="text-primary hover:underline font-body-bold" href="#">Privacy Policy</a>.
+        </p>
+</main>
+<!-- Bottom Anchored CTA -->
+<div class="fixed bottom-0 left-0 w-full p-margin-mobile bg-gradient-to-t from-background via-background to-transparent pt-xl z-50">
+<button class="w-full bg-primary text-on-primary font-body-bold text-title-lg py-3 rounded-xl shadow-primary-500/30 hover:shadow-primary-500/50 hover:bg-surface-tint active:scale-95 transition-all flex items-center justify-center gap-sm">
+<span>Continue</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant mt-sm">
+            Already have an account? <a class="text-primary font-body-bold hover:underline" href="#">Log in</a>
+</p>
+</div>
+</body></html>

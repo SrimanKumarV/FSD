@@ -32,7 +32,7 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('theme', theme);
     
     // Remove previous theme classes
-    document.documentElement.classList.remove('dark', 'theme-minimalist-light', 'theme-minimalist-dark', 'theme-cyber-neon', 'theme-heroui-light', 'theme-heroui-dark', 'theme-designcode-light', 'theme-designcode-dark');
+    document.documentElement.classList.remove('dark', 'theme-minimalist-light', 'theme-minimalist-dark', 'theme-cyber-neon', 'theme-heroui-light', 'theme-heroui-dark', 'theme-designcode-light', 'theme-designcode-dark', 'theme-stitch');
     
     // Apply appropriate classes based on the theme
     if (theme === 'dark') {

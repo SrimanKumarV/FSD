@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - DevPulse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#0053db",
+                        "primary": "#004ac6",
+                        "error": "#dc2626",
+                        "outline-variant": "#c3c6d7",
+                        "primary-fixed": "#dbe1ff",
+                        "background": "#faf8ff",
+                        "surface-container-low": "#f3f3fe",
+                        "warning": "#d97706",
+                        "on-secondary-fixed": "#0b1c30",
+                        "secondary-container": "#d0e1fb",
+                        "on-background": "#191b23",
+                        "surface": "#faf8ff",
+                        "tertiary-container": "#bc4800",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-container": "#ededf9",
+                        "on-tertiary-container": "#ffede6",
+                        "surface-variant": "#e1e2ed",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-surface": "#2e3039",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191b23",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "alumni-magenta": "#c026d3",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#54647a",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-highest": "#e1e2ed",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "student-cyan": "#0ea5e9",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-dim": "#d9d9e5",
+                        "tertiary": "#943700",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "on-surface-variant": "#434655",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-error": "#ffffff",
+                        "secondary": "#505f76",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#00174b",
+                        "surface-container-high": "#e7e7f3",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "success": "#16a34a",
+                        "inverse-primary": "#b4c5ff",
+                        "primary-container": "#2563eb",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#ffdbcd",
+                        "outline": "#737686",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#eeefff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "1.5rem",
+                        "xl": "2rem",
+                        "margin-desktop": "2rem",
+                        "sm": "0.5rem",
+                        "md": "1rem",
+                        "unit": "4px",
+                        "margin-mobile": "1rem",
+                        "xs": "0.25rem",
+                        "gutter": "1rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "body-base": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "body-bold": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-image: radial-gradient(circle at top right, #f3f3fe 0%, #faf8ff 50%, #ededf9 100%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .glass-card:hover {
+            transform: translateY(-0.125rem);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+<!-- Top Navigation (Mobile/Hidden Desktop) -->
+<nav class="md:hidden fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile h-16 max-w-7xl mx-auto">
+<div class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary scale-95 active:scale-90 transition-transform">notifications</span>
+<span class="material-symbols-outlined text-primary scale-95 active:scale-90 transition-transform">chat_bubble</span>
+<span class="material-symbols-outlined text-primary scale-95 active:scale-90 transition-transform">account_circle</span>
+</div>
+</nav>
+<!-- Side Navigation (Desktop) -->
+<aside class="hidden md:flex flex-col p-md gap-sm fixed left-0 top-0 h-full w-64 z-40 bg-glass-light backdrop-blur-lg border-r border-white/50 shadow-primary-500/10">
+<div class="mb-lg px-4 pt-4">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1 mt-1">
+<span class="w-2 h-2 rounded-full bg-alumni-magenta inline-block"></span>
+                Verified Alumnus
+            </p>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-weight="fill">group</span>
+                Network
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-weight="fill">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-weight="fill">insights</span>
+                DevPulse
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-weight="fill">calendar_month</span>
+                Events
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-weight="fill">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto flex flex-col gap-2">
+<button class="w-full bg-primary text-on-primary py-2 rounded-xl font-body-bold shadow-sm hover:shadow-primary-500/30 transition-shadow">Find a Mentor</button>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">help</span> Support
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">logout</span> Log out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-20 md:pt-8 px-margin-mobile md:px-margin-desktop pb-24 max-w-7xl mx-auto">
+<!-- Header Section -->
+<header class="mb-xl">
+<h2 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">DevPulse</h2>
+<p class="text-title-lg font-title-lg text-on-surface-variant max-w-2xl">Curated technical insights, trending frameworks, and engineering telemetry from the Alumnex network.</p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Featured Article (Spans 8 columns on large screens) -->
+<article class="lg:col-span-8 glass-card rounded-xl overflow-hidden relative min-h-[400px] flex flex-col justify-end p-lg">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-80" data-alt="A sophisticated abstract visualization of cloud computing architecture. The scene features glowing, interconnected blue and cyan nodes floating in a bright, clean, light-mode environment. Subtle geometric grid lines suggest data flow and connectivity. High key lighting, modern, professional SaaS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9De5mKy70I4pd6zLnk-tRZ1N7V8_Mgl5Au_tsccI9RhwgY_IO36FdHRdvKwngF5NrAh5hKg9JXKtKReT9RqD1MIIraoGx3i9TFYArQESbByvQ_3ZAJCnO6ppIZmLA7fzK8VilO9bowIonNW9eoAwDquGvFlLrJlqMwhocdpPMMWdO1U2gmleAk6ao2BVQHIzeptcWMF8AojZvDp_uEdRRYBiu0Aekd4lAloh52oE1kZmVTKq-18Q7"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent"></div>
+</div>
+<div class="relative z-10">
+<span class="inline-block bg-primary text-on-primary text-caption-xs font-caption-xs px-2 py-1 rounded-full mb-3 uppercase tracking-wider">Cloud Native</span>
+<h3 class="text-headline-md font-headline-md text-on-surface mb-3">Architecting for Scale: Microservices in 2024</h3>
+<p class="text-body-base font-body-base text-on-surface-variant mb-4 max-w-xl">Deep dive into how modern engineering teams are evolving their microservices architectures using service meshes and event-driven patterns to handle unprecedented scale.</p>
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full border-2 border-white/50" data-alt="A professional headshot of a female software engineer smiling confidently. Bright, well-lit studio environment, light mode styling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOvzvc9OQsSCsLpWJIDSUv9nsBfHZ0NSFPN9sBfXSAvLI4fn2Dpenw6Q7GzfN7UFF3VWnZD9Md5IMoZg6Vo8fIxg6z1NNlD9gNzHIuYY-0P2PRujZpCNsnym4DBWDYqWsNvOjmcVFyH49M_RHA8mPcH5VPNbQC-Mrtamt6Znrnrd07Ce7cbCRzjS1nWMDaglQghx1YDng6Zb9tyehbwTW6N3_GXhr4VQBtTEy4-ENyOOOzzrEPBEKd"/>
+<div>
+<p class="text-body-sm font-body-bold text-on-surface">Sarah Jenkins</p>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Principal Engineer @ TechCorp • 5 min read</p>
+</div>
+</div>
+</div>
+</article>
+<!-- Trending Technologies (Spans 4 columns) -->
+<section class="lg:col-span-4 flex flex-col gap-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-title-lg font-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">trending_up</span> Trending Tech
+                    </h3>
+<a class="text-body-sm font-body-bold text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="glass-card rounded-xl p-md flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary font-code-mono text-title-lg">Re</div>
+<div class="flex-1">
+<h4 class="text-body-bold font-body-bold text-on-surface">React</h4>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Frontend Framework</p>
+</div>
+<div class="text-right">
+<div class="text-body-sm font-body-bold text-success flex items-center"><span class="material-symbols-outlined text-[16px]">arrow_upward</span> 12%</div>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">adoption</p>
+</div>
+</div>
+<div class="glass-card rounded-xl p-md flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-success font-code-mono text-title-lg">No</div>
+<div class="flex-1">
+<h4 class="text-body-bold font-body-bold text-on-surface">Node.js</h4>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Runtime Environment</p>
+</div>
+<div class="text-right">
+<div class="text-body-sm font-body-bold text-success flex items-center"><span class="material-symbols-outlined text-[16px]">arrow_upward</span> 8%</div>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">adoption</p>
+</div>
+</div>
+<div class="glass-card rounded-xl p-md flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-student-cyan font-code-mono text-title-lg">Go</div>
+<div class="flex-1">
+<h4 class="text-body-bold font-body-bold text-on-surface">Go</h4>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">Systems Language</p>
+</div>
+<div class="text-right">
+<div class="text-body-sm font-body-bold text-success flex items-center"><span class="material-symbols-outlined text-[16px]">arrow_upward</span> 15%</div>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant">adoption</p>
+</div>
+</div>
+</section>
+<!-- Latest Articles Feed (Spans full width, masonry/grid) -->
+<section class="lg:col-span-12 mt-8">
+<div class="flex items-center justify-between mb-6 border-b border-white/50 pb-4">
+<h3 class="text-title-lg font-title-lg text-on-surface">Latest in the Hub</h3>
+<div class="flex gap-2 hidden sm:flex">
+<button class="px-4 py-1 rounded-full bg-primary-container text-on-primary-container text-body-sm font-body-sm border border-primary/20">All</button>
+<button class="px-4 py-1 rounded-full bg-glass-light text-on-surface-variant text-body-sm font-body-sm border border-white/50 hover:bg-white/90">AI / ML</button>
+<button class="px-4 py-1 rounded-full bg-glass-light text-on-surface-variant text-body-sm font-body-sm border border-white/50 hover:bg-white/90">DevOps</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Article Card 1 -->
+<article class="glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="h-48 bg-surface-container-high relative">
+<img class="w-full h-full object-cover" data-alt="A clean, abstract visual representation of artificial intelligence. Glowing neural network nodes interconnected with glowing lines in a bright, modern, light-mode setting. Soft blues and purples on a pristine white background. Professional SaaS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxXJmXnoLPI6lRE5jf168HnZW_1tV5t4V_Eo9XdpApGzx41bO3bv4MVXTp_y_D7GzEK5ohp4RF6Y8zBnevkjGj1pHAyvXqOHwmxZmSla41pdrGmEtwvDL5l92jig_Pd0dHbt5m0lWB9DKjSzFLzS1AfY8hZtR_1hkRfM9XI8L7MwghJnvWyxh92mXvboiNFixWemxvErb36MTuDQ2s4F1uw9kQX2zeLvmBIB8CQYda93BNVm0Go8-9"/>
+<span class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm text-on-surface text-caption-xs font-caption-xs px-2 py-1 rounded-full uppercase tracking-wider">AI / ML</span>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="text-body-bold font-body-bold text-on-surface mb-2 line-clamp-2">Implementing RAG Pipelines with Open Source LLMs</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-4 line-clamp-3">A practical guide to building Retrieval-Augmented Generation systems using entirely open-source tools to ensure data privacy and reduce inference costs.</p>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-dim overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Small headshot of a male data scientist, smiling, bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBd934xYd8dfiSaF7WUC4PjsiLTH1eDEs2pNDnGQBLKSx_6o90NM0xZYmamtd2pkONbGO6U2RK0OhQ9KjjvUKbmVVTeTiFCFW8UhEbyZk-7k0sGlriSKLgee1ambqPWHq-awXcqorAPLm9pj5P4sgeGzHlScANbCfHGI6v72bCI83UveISFTqCOSc4VVCbQlOGvPqlyOWBYYZB3wQSF_7iExtnEmpHCSIb7B2srYxM9GlhUomm1RWOM"/>
+</div>
+<span class="text-caption-xs font-caption-xs text-on-surface-variant">David Chen</span>
+</div>
+<span class="text-caption-xs font-caption-xs text-on-surface-variant">Feb 12</span>
+</div>
+</div>
+</article>
+<!-- Article Card 2 -->
+<article class="glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="h-48 bg-surface-container-high relative">
+<img class="w-full h-full object-cover" data-alt="Abstract representation of continuous integration and deployment (CI/CD). Clean, geometric pipeline visuals, moving blocks of code, bright light-mode aesthetic, corporate SaaS style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKheS4kH_XEtZG0WnbyAqYQm-rRw9okp44CAZ62W0rI809CNXzjfo4MtU7WtqdbHqKSFs7EdwLBRbuy7RzpJKSZheflN6vLw-CEy_nMPssa1FxR7423fHt8k2GU3bM4smea71MI8c4quKxg6d0W0m6HLTp2r84PFB1CHdlTLTLW0pxH6RZ5l5vQ2W3VXn-0EeE8dyFezXAGIK-QFMG3axK_2KS2-kRrgnFxEP0eK_ILDG_u-RjjiaS"/>
+<span class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm text-on-surface text-caption-xs font-caption-xs px-2 py-1 rounded-full uppercase tracking-wider">DevOps</span>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="text-body-bold font-body-bold text-on-surface mb-2 line-clamp-2">Optimizing CI/CD with Ephemeral Environments</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-4 line-clamp-3">How we reduced our staging bottleneck by 80% using Kubernetes and ephemeral, per-pull-request environments.</p>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-dim overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Small headshot of a female devops engineer, bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQpgAZK05Qq6ho8VT6nf1VOnDKXwG4wiGhqDzi_AOk8IYpM1aIA_M_tNg7yUvXqHGxMlxYI94GU7ehd6dxYVZIhi5MN0m4IuPrQRCDOzYicyX-aIUqkVh8We9_ySu6lRKbbB2Y__77CB0ItQ8mEX9v1bjCc-m0yN-e0CPw4sbkkI2Mxk66EpRZuTX81QlaKaiwQ8Uqf9zAWZqsRKl3eQvXUzud1OwUF6-sFkrol3ei29Wp4NcOsFkl"/>
+</div>
+<span class="text-caption-xs font-caption-xs text-on-surface-variant">Elena Rodriguez</span>
+</div>
+<span class="text-caption-xs font-caption-xs text-on-surface-variant">Feb 10</span>
+</div>
+</div>
+</article>
+<!-- Article Card 3 -->
+<article class="glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="h-48 bg-surface-container-high relative flex items-center justify-center">
+<!-- Using a code snippet visual instead of an image for variety -->
+<div class="font-code-mono text-caption-xs text-on-surface-variant p-4 w-full h-full overflow-hidden bg-white/50">
+<pre><code>func handleRequest(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+    span := trace.FromContext(ctx)
+    defer span.End()
+    
+    // Process request
+    result, err := process(ctx, r.Body)
+    if err != nil {
+        http.Error(w, err.Error(), 500)
+        return
+    }
+}</code></pre>
+</div>
+<span class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm text-on-surface text-caption-xs font-caption-xs px-2 py-1 rounded-full uppercase tracking-wider">Backend</span>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="text-body-bold font-body-bold text-on-surface mb-2 line-clamp-2">Advanced Distributed Tracing in Go Services</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-4 line-clamp-3">Uncovering performance bottlenecks across microservices using OpenTelemetry and sophisticated context propagation techniques.</p>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-dim overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Small headshot of a male software developer, bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAan-IzTrrMIbYpjWjhmB_OW3u7nUpE9fRf13jlKbYevX86lQg2c-84-bXs07uh7IHlqklOymVQEUL-pMvs3XZS7QZMGb6-wY-GOy5HMb73gjsLaz0vFhFoP-RNDcGbIaAhpAxWYgUssbVfMPX8xeRQIybvgerRe8sJdfEdTjddM9geEEltc4MqRk4gLRk5yYrOSNEHW_37aeOnPkLMc6CWYs_naaik52qXvFNWV9G_Fm_SNjs_jgdW"/>
+</div>
+<span class="text-caption-xs font-caption-xs text-on-surface-variant">Marcus Johnson</span>
+</div>
+<span class="text-caption-xs font-caption-xs text-on-surface-variant">Feb 08</span>
+</div>
+</div>
+</article>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-glass-light backdrop-blur-lg border-t border-white/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe">
+<div class="flex justify-around items-center h-16">
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-caption-xs font-caption-xs">Network</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="text-caption-xs font-caption-xs">Mentor</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-primary" href="#">
+<span class="material-symbols-outlined" data-weight="fill">insights</span>
+<span class="text-caption-xs font-caption-xs font-bold">DevPulse</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-caption-xs font-caption-xs">Events</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-caption-xs font-caption-xs">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

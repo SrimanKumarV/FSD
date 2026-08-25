@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Public Profile - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "inverse-surface": "#2e3039",
+                        "primary-container": "#2563eb",
+                        "surface-tint": "#0053db",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "tertiary-fixed": "#ffdbcd",
+                        "success": "#16a34a",
+                        "on-secondary": "#ffffff",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "student-cyan": "#0ea5e9",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-background": "#191b23",
+                        "inverse-primary": "#b4c5ff",
+                        "primary-fixed": "#dbe1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191b23",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-error-container": "#93000a",
+                        "error": "#dc2626",
+                        "surface-bright": "#faf8ff",
+                        "on-primary-container": "#eeefff",
+                        "surface-variant": "#e1e2ed",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-container-highest": "#e1e2ed",
+                        "tertiary-container": "#bc4800",
+                        "warning": "#d97706",
+                        "on-secondary-container": "#54647a",
+                        "on-error": "#ffffff",
+                        "outline": "#737686",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-high": "#e7e7f3",
+                        "secondary": "#505f76",
+                        "primary": "#004ac6",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "alumni-magenta": "#c026d3",
+                        "on-surface-variant": "#434655",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface": "#faf8ff",
+                        "tertiary": "#943700",
+                        "surface-container": "#ededf9",
+                        "on-tertiary-fixed": "#360f00",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-tertiary-container": "#ffede6",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-low": "#f3f3fe",
+                        "background": "#faf8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1rem",
+                        "sm": "0.5rem",
+                        "margin-mobile": "1rem",
+                        "xl": "2rem",
+                        "md": "1rem",
+                        "unit": "4px",
+                        "lg": "1.5rem",
+                        "xs": "0.25rem",
+                        "margin-desktop": "2rem"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "caption-xs": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-md": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen font-body-base antialiased">
+<!-- Top Navigation -->
+<nav class="bg-glass-light backdrop-blur-md fixed top-0 w-full z-50 border-b border-white/50 shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</div>
+<!-- Hidden on mobile, flex on md -->
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 px-3 py-2 rounded-lg font-body-base" href="#">Network</a>
+<a class="text-primary font-body-bold border-b-2 border-primary hover:bg-primary-container/10 transition-colors duration-200 px-3 py-2" href="#">Profile</a>
+<a class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 px-3 py-2 rounded-lg font-body-base" href="#">Mentorship</a>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="scale-95 active:scale-90 transition-transform text-primary hover:bg-primary-container/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="Chat" class="scale-95 active:scale-90 transition-transform text-primary hover:bg-primary-container/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<button aria-label="Account" class="scale-95 active:scale-90 transition-transform text-primary hover:bg-primary-container/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="pt-16 pb-20 w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop">
+<!-- Hero Section -->
+<section class="mt-lg relative">
+<!-- Banner Image -->
+<div class="w-full h-48 md:h-64 rounded-xl overflow-hidden relative">
+<div class="w-full h-full bg-cover bg-center" data-alt="A sweeping, abstract digital landscape representing interconnected networks and professional growth. The scene features glowing, semi-transparent geometric nodes connected by fine, luminous threads against a soft, bright, light-mode background with subtle hints of primary blue and alumni magenta. The overall mood is modern, professional, and forward-looking, perfectly matching a premium SaaS aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBdcyTJSfL_LZlJw2i7e-xZV6yaQs62MwlTK4Zoq3wXbzwbZr1f4R_gPU87vabGVA-Y0Mf4FMrjSR3ypws143TIVowrt2nlzB17aMZtxqbRK7ZSinbPVKlSclN-rIKHJN6JT_UJKIIhdmNv8BvRsnGZ_9hzg6EQDg7vIk-m4j6ugMoeZLxC5_HheBHX7Hp9AtNtl2jjdYK6E1Vh43v_suK0pcqqLsNYiRdarwHCrB6fXrE9SNOeUnLY')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent"></div>
+</div>
+<!-- Profile Info Overlay -->
+<div class="relative -mt-16 md:-mt-24 px-md md:px-xl flex flex-col md:flex-row gap-6 md:items-end">
+<!-- Avatar -->
+<div class="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-surface overflow-hidden bg-surface-container-low shadow-sm shrink-0">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a confident, smiling woman in her late 30s. She is wearing a modern, tailored navy blue blazer over a crisp white blouse. The background is a brightly lit, modern office space with soft focus and a glassmorphic aesthetic. The lighting is flattering and high-key, conveying approachability and expertise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDIHDxjtpDIOHLqpMYp-w5qMwBW4iTpLeMmuwc2vH7wUnuXZ7BuBomUTrC8Mxwu81KsI-wN9bXpOC1SeppBAX8-qXyLhRATI7qMeXIOzHeyUFZgUlZsSmso1PekrMyUS-rJP6ptx0B6hNf3FpZ-1UCRZQNPwKcCKEakn4wPbZZ53v3lAZdB4o1bSh14Wj_oNS5f5vIY9DWyRPvR7MwwSzhr7P_rFRbyf8mbADq0krnT8wjscmBh4dm"/>
+</div>
+<!-- Text Details -->
+<div class="flex-1 pb-4">
+<div class="flex items-center gap-3 mb-1">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Dr. Sarah Jenkins</h1>
+<span class="inline-flex items-center gap-1 bg-alumni-magenta/10 text-alumni-magenta px-2.5 py-1 rounded-full font-caption-xs text-caption-xs border border-alumni-magenta/20">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            Verified Alumnus
+                        </span>
+</div>
+<p class="font-title-lg text-title-lg text-on-surface-variant mb-2">Senior Staff Engineer at TechGlobal</p>
+<p class="font-body-base text-body-base text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]" data-icon="location_on">location_on</span> San Francisco, CA
+                        <span class="mx-2">•</span>
+                        Class of 2012
+                    </p>
+</div>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row gap-3 pb-4">
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-bold px-6 py-2.5 rounded-xl transition-all duration-200 shadow-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="mail">mail</span>
+                        Message
+                    </button>
+<button class="bg-primary hover:bg-surface-tint text-on-primary font-body-bold px-6 py-2.5 rounded-xl transition-all duration-200 shadow-primary-500/30 shadow-lg flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="calendar_month">calendar_month</span>
+                        Book Mentorship
+                    </button>
+</div>
+</div>
+</section>
+<!-- Content Grid -->
+<div class="mt-lg grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Main Column (Left) -->
+<div class="lg:col-span-2 space-y-6">
+<!-- About -->
+<div class="glass-card rounded-xl p-6 transition-transform duration-300 hover:-translate-y-0.5">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+                        About
+                    </h2>
+<p class="font-body-base text-body-base text-on-surface-variant leading-relaxed">
+                        I'm a passionate software engineer with over 10 years of experience building scalable distributed systems. After graduating, I spent time at several high-growth startups before joining TechGlobal. I'm deeply committed to giving back to the community and helping the next generation of engineers navigate their careers. Specializing in cloud architecture and microservices.
+                    </p>
+</div>
+<!-- Experience -->
+<div class="glass-card rounded-xl p-6 transition-transform duration-300 hover:-translate-y-0.5">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="work">work</span>
+                        Experience
+                    </h2>
+<div class="space-y-6">
+<div class="relative pl-6 border-l-2 border-surface-variant">
+<div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-glass-light"></div>
+<h3 class="font-body-bold text-body-bold text-on-surface">Senior Staff Engineer</h3>
+<p class="font-body-sm text-body-sm text-primary mb-2">TechGlobal • 2020 - Present</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Leading the core infrastructure team, focusing on global scalability and reliability of core microservices.</p>
+</div>
+<div class="relative pl-6 border-l-2 border-surface-variant">
+<div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-surface-variant"></div>
+<h3 class="font-body-bold text-body-bold text-on-surface">Lead Developer</h3>
+<p class="font-body-sm text-body-sm text-secondary mb-2">DataStream Inc • 2016 - 2020</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Architected real-time data processing pipelines processing terabytes of data daily.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Column (Right) -->
+<div class="space-y-6">
+<!-- Mentorship Stats -->
+<div class="glass-card rounded-xl p-6 transition-transform duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-primary-container/20 to-transparent">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-alumni-magenta" data-icon="psychology">psychology</span>
+                        Mentorship Impact
+                    </h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low rounded-lg p-3 border border-white/50">
+<div class="font-display-2xl text-[2rem] text-primary font-bold mb-1">50+</div>
+<div class="font-caption-xs text-caption-xs text-secondary">Hours Mentored</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3 border border-white/50">
+<div class="font-display-2xl text-[2rem] text-primary font-bold mb-1">12</div>
+<div class="font-caption-xs text-caption-xs text-secondary">Active Mentees</div>
+</div>
+</div>
+</div>
+<!-- Skills -->
+<div class="glass-card rounded-xl p-6 transition-transform duration-300 hover:-translate-y-0.5">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="code">code</span>
+                        Skills &amp; Expertise
+                    </h2>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-md font-body-sm text-body-sm border border-surface-variant">System Architecture</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-md font-body-sm text-body-sm border border-surface-variant">Go</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-md font-body-sm text-body-sm border border-surface-variant">Kubernetes</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-md font-body-sm text-body-sm border border-surface-variant">Career Coaching</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-md font-body-sm text-body-sm border border-surface-variant">Interview Prep</span>
+</div>
+</div>
+<!-- Education -->
+<div class="glass-card rounded-xl p-6 transition-transform duration-300 hover:-translate-y-0.5">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="school">school</span>
+                        Education
+                    </h2>
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary-container/20 flex items-center justify-center shrink-0 text-primary">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div>
+<h3 class="font-body-bold text-body-bold text-on-surface">M.S. Computer Science</h3>
+<p class="font-body-sm text-body-sm text-secondary">University Name</p>
+<p class="font-caption-xs text-caption-xs text-outline mt-1">Class of 2012</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

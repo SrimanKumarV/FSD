@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Community Forum - My Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#00174b",
+                      "tertiary-container": "#bc4800",
+                      "secondary-fixed": "#d3e4fe",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "outline": "#737686",
+                      "surface": "#faf8ff",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "surface-container-low": "#f3f3fe",
+                      "alumni-magenta": "#c026d3",
+                      "tertiary-fixed": "#ffdbcd",
+                      "surface-tint": "#0053db",
+                      "surface-container-highest": "#e1e2ed",
+                      "on-primary-container": "#eeefff",
+                      "on-secondary-fixed": "#0b1c30",
+                      "primary": "#004ac6",
+                      "inverse-on-surface": "#f0f0fb",
+                      "surface-container-high": "#e7e7f3",
+                      "surface-bright": "#faf8ff",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "surface-variant": "#e1e2ed",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#54647a",
+                      "secondary": "#505f76",
+                      "outline-variant": "#c3c6d7",
+                      "inverse-surface": "#2e3039",
+                      "surface-container-lowest": "#ffffff",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "on-surface-variant": "#434655",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "inverse-primary": "#b4c5ff",
+                      "tertiary": "#943700",
+                      "surface-dim": "#d9d9e5",
+                      "secondary-container": "#d0e1fb",
+                      "primary-fixed": "#dbe1ff",
+                      "error": "#dc2626",
+                      "on-surface": "#191b23",
+                      "on-tertiary-container": "#ffede6",
+                      "success": "#16a34a",
+                      "on-error": "#ffffff",
+                      "on-background": "#191b23",
+                      "surface-container": "#ededf9",
+                      "student-cyan": "#0ea5e9",
+                      "background": "#faf8ff",
+                      "primary-container": "#2563eb",
+                      "on-tertiary-fixed": "#360f00",
+                      "warning": "#d97706",
+                      "secondary-fixed-dim": "#b7c8e1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "2rem",
+                      "md": "1rem",
+                      "gutter": "1rem",
+                      "unit": "4px",
+                      "lg": "1.5rem",
+                      "margin-mobile": "1rem",
+                      "xl": "2rem",
+                      "xs": "0.25rem",
+                      "sm": "0.5rem"
+              },
+              "fontFamily": {
+                      "body-bold": [
+                              "Outfit"
+                      ],
+                      "caption-xs": [
+                              "Outfit"
+                      ],
+                      "body-base": [
+                              "Outfit"
+                      ],
+                      "headline-md": [
+                              "Outfit"
+                      ],
+                      "code-mono": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg-mobile": [
+                              "Outfit"
+                      ],
+                      "display-2xl": [
+                              "Outfit"
+                      ],
+                      "body-sm": [
+                              "Outfit"
+                      ],
+                      "title-lg": [
+                              "Outfit"
+                      ],
+                      "headline-lg": [
+                              "Outfit"
+                      ]
+              },
+              "fontSize": {
+                      "body-bold": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "caption-xs": [
+                              "0.75rem",
+                              {
+                                      "lineHeight": "1rem",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-base": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "1.5rem",
+                              {
+                                      "lineHeight": "2rem",
+                                      "letterSpacing": "-0.015em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "code-mono": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "1.875rem",
+                              {
+                                      "lineHeight": "2.25rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-2xl": [
+                              "4.5rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.03em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-sm": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-lg": [
+                              "1.25rem",
+                              {
+                                      "lineHeight": "1.75rem",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "2.25rem",
+                              {
+                                      "lineHeight": "2.5rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-image: radial-gradient(circle at top left, theme('colors.primary-fixed'), transparent 40%),
+                              radial-gradient(circle at bottom right, theme('colors.secondary-container'), transparent 40%);
+            background-color: theme('colors.background');
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-card {
+            background-color: theme('colors.glass-dark');
+            border-color: rgba(55, 65, 81, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background font-body-base min-h-screen pb-24 md:pb-8">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 dark:border-gray-700/50 shadow-sm transition-transform duration-300" id="top-nav">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+                Alumnex Connect
+            </div>
+<div class="flex items-center gap-sm md:hidden">
+<!-- Mobile Actions (simplified Top Nav for mobile) -->
+<button aria-label="Notifications" class="p-2 text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 rounded-full scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-20 px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<!-- Side Navigation Shell (Hidden on Mobile) -->
+<aside class="hidden lg:flex flex-col p-md gap-sm col-span-3 bg-glass-light dark:bg-glass-dark backdrop-blur-lg border-r border-white/50 dark:border-gray-700/50 shadow-primary-500/10 rounded-xl h-fit sticky top-24">
+<nav class="flex flex-col gap-unit">
+<a aria-current="page" class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group" data-weight="fill">group</span>
+<span class="font-body-bold">Network</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-body-base">Mentorship</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-body-base">DevPulse</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-body-base">Events</span>
+</a>
+</nav>
+</aside>
+<!-- Feed Canvas -->
+<div class="col-span-1 md:col-span-9 lg:col-span-6 flex flex-col gap-gutter">
+<!-- Feed Header -->
+<header class="mb-4">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">My Feed</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Stay updated with your network.</p>
+</header>
+<!-- Post 1 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-md shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-primary-500/10">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<img alt="Sarah Jenks avatar" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20" data-alt="Professional headshot of a smiling woman with glasses, soft natural lighting, modern office background, high resolution, soft focus backdrop, corporate yet approachable aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNtgIrf4tKluZ-DuiTXNnSx41FkGef-w58XjrTDK7_X-S6ucbuwtfRO1nOnGTL5ERCM337ySkdHMLdyQuQWJt_N26e8QxGssgLZfg5TD1XcNFkHV_YR5L5bk7-fsVsVgk50WJwllFGqNPhtFK5rJCroXJfLZGXEPPYhJ1QQPKSqIBbhFe9Vlo_H2XQTTa5kQv8I8N4RVgylj7td4krT-tRfT85bN4FkGbVp3BiClfGtjLZzaf4MWDr"/>
+<div>
+<h3 class="font-body-bold text-body-bold text-on-surface">Sarah Jenks</h3>
+<div class="flex items-center gap-2">
+<span class="font-caption-xs text-caption-xs text-on-surface-variant">Senior Frontend Engineer</span>
+<span class="w-1 h-1 bg-outline rounded-full"></span>
+<span class="font-caption-xs text-caption-xs text-on-surface-variant">2h ago</span>
+</div>
+</div>
+</div>
+<button aria-label="More options" class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="font-body-base text-body-base text-on-surface">
+<p class="mb-2">Just published a new article on optimizing React performance using concurrent features. It's been a deep dive but incredibly rewarding!</p>
+<p>Check out the snippet below for a quick example of how we're handling complex state updates.</p>
+</div>
+<div class="bg-surface-container rounded-lg p-3 overflow-x-auto border border-outline-variant/30">
+<pre><code class="font-code-mono text-code-mono text-on-surface-variant">
+import { useTransition, useState } from 'react';
+
+function SearchResults() {
+  const [isPending, startTransition] = useTransition();
+  const [query, setQuery] = useState('');
+
+  // ...
+}
+                        </code></pre>
+</div>
+<div class="flex items-center justify-between border-t border-outline-variant/30 pt-3 mt-1">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="thumb_up">thumb_up</span>
+<span class="font-body-sm text-body-sm">124</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-body-sm text-body-sm">18</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="share">share</span>
+<span class="font-body-sm text-body-sm">Share</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Right Sidebar (Empty for Mobile, could hold suggestions on Desktop) -->
+<aside class="hidden lg:block col-span-3">
+<!-- Additional desktop content would go here -->
+</aside>
+</div>
+</main>
+<!-- Floating Action Button (Mobile Only) -->
+<button aria-label="New Post" class="md:hidden fixed bottom-24 right-margin-mobile bg-primary text-on-primary w-14 h-14 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30 hover:scale-105 active:scale-95 transition-transform z-40">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</body></html>

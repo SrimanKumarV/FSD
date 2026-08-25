@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Business Directory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d3e4fe",
+                        "on-tertiary-fixed": "#360f00",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface": "#faf8ff",
+                        "surface-bright": "#faf8ff",
+                        "primary-fixed": "#dbe1ff",
+                        "tertiary-container": "#bc4800",
+                        "student-cyan": "#0ea5e9",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "background": "#faf8ff",
+                        "surface-container-high": "#e7e7f3",
+                        "inverse-on-surface": "#f0f0fb",
+                        "on-surface": "#191b23",
+                        "on-tertiary-container": "#ffede6",
+                        "primary": "#004ac6",
+                        "surface-container-highest": "#e1e2ed",
+                        "success": "#16a34a",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "alumni-magenta": "#c026d3",
+                        "inverse-surface": "#2e3039",
+                        "primary-container": "#2563eb",
+                        "outline-variant": "#c3c6d7",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f3f3fe",
+                        "surface-variant": "#e1e2ed",
+                        "secondary": "#505f76",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-background": "#191b23",
+                        "on-surface-variant": "#434655",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container": "#ededf9",
+                        "outline": "#737686",
+                        "warning": "#d97706",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#943700",
+                        "on-primary-container": "#eeefff",
+                        "surface-tint": "#0053db",
+                        "error": "#dc2626",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#d0e1fb",
+                        "on-secondary-container": "#54647a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-dim": "#d9d9e5",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "sm": "0.5rem",
+                        "xs": "0.25rem",
+                        "lg": "1.5rem",
+                        "margin-desktop": "2rem",
+                        "gutter": "1rem",
+                        "unit": "4px",
+                        "md": "1rem",
+                        "xl": "2rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-md": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "display-2xl": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 74, 198, 0.05), 0 2px 4px -1px rgba(0, 74, 198, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 74, 198, 0.1), 0 4px 6px -2px rgba(0, 74, 198, 0.05);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid theme('colors.outline-variant');
+            transition: all 0.2s ease;
+        }
+        .glass-input:focus {
+            background: white;
+            border-color: theme('colors.primary');
+            box-shadow: 0 0 0 2px theme('colors.primary-fixed');
+            outline: none;
+        }
+        
+        /* Subtle mesh gradient background */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(219, 225, 255, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(211, 228, 254, 0.4) 0%, transparent 50%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-body-base text-body-base relative">
+<div class="ambient-bg"></div>
+<!-- TopNavBar (Rendered on both mobile and desktop per instructions, but SideNav takes over on desktop if we were doing a full shell. Given the prompt implies a standard layout, we'll keep TopNavBar for top-level navigation) -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 max-w-7xl mx-auto left-0 right-0">
+<div class="flex items-center gap-md">
+<span class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Alumnex Connect</span>
+<!-- Desktop Nav Links -->
+<div class="hidden md:flex items-center gap-lg ml-xl">
+<a class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 px-sm py-xs rounded-lg scale-95 active:scale-90" href="#">Network</a>
+<a class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 px-sm py-xs rounded-lg scale-95 active:scale-90" href="#">Mentorship</a>
+<a class="text-primary font-body-bold border-b-2 border-primary px-sm py-xs hover:bg-primary-container/10 transition-colors duration-200" href="#">Directory</a>
+<a class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 px-sm py-xs rounded-lg scale-95 active:scale-90" href="#">Events</a>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button aria-label="notifications" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button aria-label="chat_bubble" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined text-on-surface-variant">chat_bubble</span>
+</button>
+<button aria-label="account_circle" class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 pb-16 px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto">
+<!-- Header Section -->
+<header class="mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-background mb-sm">Alumni Business Directory</h1>
+<p class="font-body-base text-body-base text-on-surface-variant max-w-3xl">Discover and support businesses founded by our university alumni. Filter by industry, location, or connect directly with founders to foster collaboration.</p>
+</header>
+<!-- Search and Filter Bar (Glassmorphic) -->
+<section class="glass-card rounded-xl p-md mb-xl flex flex-col lg:flex-row gap-md items-center">
+<div class="relative flex-1 w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="glass-input w-full pl-10 pr-4 py-3 rounded-lg font-body-base text-body-base text-on-background placeholder-outline w-full" placeholder="Search businesses, founders, or keywords..." type="text"/>
+</div>
+<div class="flex flex-wrap lg:flex-nowrap gap-sm w-full lg:w-auto">
+<div class="relative w-full sm:w-auto">
+<select class="glass-input appearance-none w-full sm:w-40 pl-4 pr-10 py-3 rounded-lg font-body-sm text-body-sm text-on-surface-variant cursor-pointer">
+<option value="">Industry</option>
+<option value="tech">Technology</option>
+<option value="healthcare">Healthcare</option>
+<option value="finance">Finance</option>
+<option value="retail">Retail</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<div class="relative w-full sm:w-auto">
+<select class="glass-input appearance-none w-full sm:w-40 pl-4 pr-10 py-3 rounded-lg font-body-sm text-body-sm text-on-surface-variant cursor-pointer">
+<option value="">Location</option>
+<option value="ny">New York</option>
+<option value="sf">San Francisco</option>
+<option value="ldn">London</option>
+<option value="remote">Remote</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<div class="relative w-full sm:w-auto">
+<select class="glass-input appearance-none w-full sm:w-40 pl-4 pr-10 py-3 rounded-lg font-body-sm text-body-sm text-on-surface-variant cursor-pointer">
+<option value="">Seniority</option>
+<option value="junior">0-3 Years</option>
+<option value="mid">3-7 Years</option>
+<option value="senior">7+ Years</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<button class="bg-primary text-on-primary font-body-bold text-body-base px-6 py-3 rounded-lg shadow-primary-500/30 hover:bg-primary/90 transition-colors w-full sm:w-auto flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                    Filter
+                </button>
+</div>
+</section>
+<!-- Business Directory Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+<!-- Card 1 -->
+<article class="glass-card rounded-xl p-lg flex flex-col h-full">
+<div class="flex items-start justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="Nexus Systems Logo" class="w-full h-full object-cover" data-alt="A modern, minimalist tech startup logo featuring a sleek, glowing blue geometric 'N' icon against a clean white background, reflecting a professional SaaS aesthetic in a light-mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwfp3v_9VY33PHISh0u9xIRBpijvwG4AkMtNSL4b6xRYgNARtmQalLWabs6NPOF3-591YX8Qnt0fskwZRrpKlvHTO-kzKfbXyeE78_7xYVHB5AbXhdlUY_qqMTQjGAYhna7kYNNYtZnY0RecAJjKt2N2JshACLD1j_CjPsdaLlaV6klrhUoEt8H8sC90KQ5DieQEnm68lv2c8GwhN45LuoKSS4BNMj5xsDZ-riUsUgwU2DhwOCXo3S"/>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-background">Nexus Systems</h3>
+<span class="inline-block bg-primary-container/20 text-primary font-caption-xs text-caption-xs px-2 py-1 rounded-md mt-1">Technology</span>
+</div>
+</div>
+<a aria-label="Visit Website" class="text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">open_in_new</span>
+</a>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">
+                    Enterprise cloud infrastructure solutions focusing on high-availability and zero-trust security architectures for modern fintechs.
+                </p>
+<div class="border-t border-outline-variant/30 pt-sm mb-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="Sarah Jenkins" class="w-full h-full object-cover" data-alt="Professional headshot of a confident tech founder in a well-lit modern office setting, wearing a smart-casual blazer, soft natural lighting, high-quality portrait for a corporate directory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBemw5U_NanY62GH9HHmieR5uHpSTVv3AVHzI7fyzSRI-cnz4vMWzCluxOOwFNaqyS-hTFnlgaV1Kfixsr0pijqKF3Xs9HKFX5fA4mVhieZST6WRc-zdyYtTx1svmWyc-DQTYMFp_2KKqZAb4H7I3QhAiYv9Ecy4qbZqbCsp8LeNpz5yByaj17L9sZIQzr3emswfN1NGlPTrqMJ8h3nCbUtVF0HXbbyYyW72cm9a6NUswMfgc6xnqMA"/>
+</div>
+<div>
+<p class="font-body-bold text-body-sm text-on-background">Sarah Jenkins</p>
+<p class="font-caption-xs text-caption-xs text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-alumni-magenta">verified</span>
+                            Class of '14 • CEO &amp; Founder
+                        </p>
+</div>
+</div>
+<button class="w-full bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-primary font-body-bold text-body-sm py-2.5 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mt-auto border border-primary/20">
+<span class="material-symbols-outlined text-[18px]">handshake</span>
+                    Connect with Founder
+                </button>
+</article>
+<!-- Card 2 -->
+<article class="glass-card rounded-xl p-lg flex flex-col h-full">
+<div class="flex items-start justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="VeraHealth Logo" class="w-full h-full object-cover" data-alt="A clean, clinical healthcare startup logo showing a stylized green leaf transforming into a medical cross, set against a pristine white background, suitable for a professional healthtech directory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoJc1V18RVlR6awB-1SUh1hVmzX4ShUVCfCg5Jr556kKrwt4p7lbRwSP_ysRH803Am5VudK2gJO-kyzaFKmgA31JEsQP9pjNCdjBBXW8LojjgOuzLq0RFMWs3c_kIfhYehmJB6K8jJkhg-vL63xhYv2IhRcTXsmtAXQEj0uXqcSl9yh_pkW6HxrND8peZB9fCvoMCusLUE4ZW5dn-Db8-BjtiNYVfgqKBHd23FlvgdVzRyDWm2LcFv"/>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-background">VeraHealth</h3>
+<span class="inline-block bg-success/10 text-success font-caption-xs text-caption-xs px-2 py-1 rounded-md mt-1">Healthcare</span>
+</div>
+</div>
+<a aria-label="Visit Website" class="text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">open_in_new</span>
+</a>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">
+                    AI-driven diagnostic tools designed to assist primary care physicians in early detection of neurodegenerative diseases.
+                </p>
+<div class="border-t border-outline-variant/30 pt-sm mb-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="Dr. Marcus Chen" class="w-full h-full object-cover" data-alt="Professional portrait of a male healthcare startup founder in a bright, modern lab or clinical office, wearing a crisp light blue shirt, warm and approachable expression, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4I6sQHDMOfpYTO3TewZ9Lz5G2RkcfuBgw9XjWS5ybfqFFqBtkXvdS2ODQN44w2_3At7nYWmC88xCfH3INe7oQixVtOmKfLSukCmlSvLK2cjZ-DOODFLOEKU6eVynAf2FcdjcetDnZQILEVlv6G7n3kYTBckJtCTWh2ZB3HZGLyJx7FIeLr0C_Z_dexK0J3mI3tXsRLQjFBtKL9S43ctKY5NUQitr9eamLmyVaTn9HAt7pSnStBcAu"/>
+</div>
+<div>
+<p class="font-body-bold text-body-sm text-on-background">Dr. Marcus Chen</p>
+<p class="font-caption-xs text-caption-xs text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-alumni-magenta">verified</span>
+                            Class of '09 • Chief Medical Officer
+                        </p>
+</div>
+</div>
+<button class="w-full bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-primary font-body-bold text-body-sm py-2.5 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mt-auto border border-primary/20">
+<span class="material-symbols-outlined text-[18px]">handshake</span>
+                    Connect with Founder
+                </button>
+</article>
+<!-- Card 3 -->
+<article class="glass-card rounded-xl p-lg flex flex-col h-full">
+<div class="flex items-start justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="Aurelius Capital Logo" class="w-full h-full object-cover" data-alt="A sophisticated finance startup logo featuring a sleek, minimalist golden line graph ascending, set against a dark navy or crisp white background, projecting trust and wealth management in a light-mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd7W8a1FyhIocoerz0xQLPj2EhRWtcibqcbg7R5uLNpCAmzRKfhovDy_VVEh8nv7zRSQ-4Hz0fyX-4QtRJPu4w8VvZ30T00CwrPxOiaQOOdWkH-VUmDN5-qD3S2HrBwTYfpZEZqCQlFZEdMLNM2uUS3ABj9BAbTM38uXytJO9qZnyTyBrP9sNJGgOWmJ_ZcT1jg9F2gjLdH79LlFkhEAa_bXMPRoZXxVIoLn5JGbH_Ws8pSpi8DBDS"/>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-background">Aurelius Cap</h3>
+<span class="inline-block bg-warning/10 text-warning font-caption-xs text-caption-xs px-2 py-1 rounded-md mt-1">Finance</span>
+</div>
+</div>
+<a aria-label="Visit Website" class="text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">open_in_new</span>
+</a>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">
+                    Boutique quantitative trading firm leveraging machine learning algorithms to optimize ESG-compliant investment portfolios.
+                </p>
+<div class="border-t border-outline-variant/30 pt-sm mb-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="Elena Rostova" class="w-full h-full object-cover" data-alt="Professional headshot of a female finance executive in a high-rise office with subtle city skyline in the blurred background, wearing professional corporate attire, sharp focus, bright daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByNlHfQiGD78dHuPaK-HRmPDLlAhw0KNctP_4Z_vmV8VeLWOqHlqgbU8i1h8lgGxTqosD2MiFaq3X9EehfPN1h5lI6OJdnG5P-RrjWF_x3yui6EhwZQXD80tclgcnW_aBA76qVK5OftqSHcGLSDsKO3aBKEcAtZI-5B9srYkxJ_W598LbQ_cSOU-0PUBLgoxDUutMEXTSMioADBoKb42IfrctkPlitKMQ2Rf5x_eUZFWlKDG8HFUgG"/>
+</div>
+<div>
+<p class="font-body-bold text-body-sm text-on-background">Elena Rostova</p>
+<p class="font-caption-xs text-caption-xs text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-alumni-magenta">verified</span>
+                            Class of '18 • Managing Partner
+                        </p>
+</div>
+</div>
+<button class="w-full bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-primary font-body-bold text-body-sm py-2.5 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 mt-auto border border-primary/20">
+<span class="material-symbols-outlined text-[18px]">handshake</span>
+                    Connect with Founder
+                </button>
+</article>
+</section>
+<!-- Pagination (Simple implementation for design) -->
+<div class="flex justify-center items-center gap-sm mt-xl">
+<button class="w-10 h-10 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center bg-primary text-on-primary font-body-bold shadow-md">1</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors font-body-bold">2</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors font-body-bold">3</button>
+<span class="text-outline">...</span>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors font-body-bold">8</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</main>
+</body></html>

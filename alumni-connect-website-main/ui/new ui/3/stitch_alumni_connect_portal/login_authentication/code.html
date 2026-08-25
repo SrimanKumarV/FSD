@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Authentication</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#ededf9",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e1e2ed",
+                        "success": "#16a34a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "tertiary-container": "#bc4800",
+                        "error": "#dc2626",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#faf8ff",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-dim": "#d9d9e5",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-background": "#191b23",
+                        "surface-container-low": "#f3f3fe",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-error": "#ffffff",
+                        "background": "#faf8ff",
+                        "secondary": "#505f76",
+                        "inverse-on-surface": "#f0f0fb",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#54647a",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "warning": "#d97706",
+                        "on-tertiary-container": "#ffede6",
+                        "on-primary-fixed": "#00174b",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-tint": "#0053db",
+                        "primary-container": "#2563eb",
+                        "alumni-magenta": "#c026d3",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-container-high": "#e7e7f3",
+                        "secondary-container": "#d0e1fb",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "surface-variant": "#e1e2ed",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#eeefff",
+                        "surface-bright": "#faf8ff",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary": "#004ac6",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "outline-variant": "#c3c6d7",
+                        "tertiary": "#943700",
+                        "inverse-surface": "#2e3039",
+                        "on-surface": "#191b23",
+                        "student-cyan": "#0ea5e9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-desktop": "2rem",
+                        "xs": "0.25rem",
+                        "sm": "0.5rem",
+                        "xl": "2rem",
+                        "gutter": "1rem",
+                        "md": "1rem",
+                        "margin-mobile": "1rem",
+                        "lg": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "body-bold": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "caption-xs": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-sm": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(115, 118, 134, 0.2);
+            transition: all 0.2s ease;
+        }
+        .glass-input:focus {
+            background-color: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+            outline: none;
+        }
+        .mesh-gradient {
+            background-color: #faf8ff;
+            background-image: 
+                radial-gradient(at 80% 0%, hsla(220,100%,70%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(280,100%,70%,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 100%, hsla(190,100%,70%,0.15) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased min-h-screen mesh-gradient flex items-center justify-center p-4">
+<!-- Auth Container -->
+<main class="w-full max-w-6xl mx-auto glass-card rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30 flex flex-col md:flex-row min-h-[700px]">
+<!-- Left Side: Brand Storytelling & Metrics (Hidden on Mobile) -->
+<section class="hidden md:flex md:w-1/2 relative bg-surface-container-low p-10 flex-col justify-between overflow-hidden group">
+<div class="absolute inset-0 z-0">
+<div class="bg-cover bg-center w-full h-full opacity-40" data-alt="A vibrant, modern university campus scene with students and professionals interacting in a sleek, light-filled glass atrium. Soft, high-key lighting creates a bright, optimistic light-mode aesthetic. The color palette features whites, light grays, and subtle accents of primary blue and magenta, conveying a sense of academic networking and forward-looking professionalism." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAT7Eu0WtjPp5zd4Lp0TYp8a1IyH7yeYIs7EZJK_nVbmbagSHwdVv0omveyAeLDQMpCKH8L6EGFddEuLyEkm_3YGcgxwW4lw9O7eLkAD5Y5vpCqI7-dcIIaV5VPG_YzjPZBLMEipw9SeGpKQOVpHBmt5cs_xWlWyZ6QvBfHffaqO1OpMqw2BeQgk9gnfwqfUQbpGHdg4FOqKQ-Tx1Gze5F-Gg9uslM-wi1ckzHMyihSv01H5jlCTR6X')"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-surface-container/90 via-surface-container/80 to-transparent"></div>
+</div>
+<!-- Brand Header -->
+<div class="relative z-10">
+<h1 class="font-headline-lg text-headline-lg text-primary-fixed-variant tracking-tight mb-2">Alumnex Connect</h1>
+<p class="font-body-base text-body-base text-on-surface-variant max-w-md">Bridging the gap between academic theory and professional reality. Your exclusive network of verified alumni and industry mentors.</p>
+</div>
+<!-- Metrics Bento Grid -->
+<div class="relative z-10 grid grid-cols-2 gap-4 mt-8">
+<div class="glass-card p-6 rounded-xl border border-white/50 transform transition-transform duration-300 group-hover:-translate-y-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-alumni-magenta" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider">Network</span>
+</div>
+<div class="font-headline-md text-headline-md text-primary font-bold">50,000+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Active Verified Alumni</div>
+</div>
+<div class="glass-card p-6 rounded-xl border border-white/50 transform transition-transform duration-300 group-hover:-translate-y-1 delay-75">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-student-cyan" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider">Mentorship</span>
+</div>
+<div class="font-headline-md text-headline-md text-primary font-bold">12,400</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Successful Matches</div>
+</div>
+<div class="glass-card p-6 rounded-xl border border-white/50 col-span-2 transform transition-transform duration-300 group-hover:-translate-y-1 delay-150">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Top 5% Talent Pool</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Exclusive access to premier career opportunities and exclusive events.</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quote/Testimonial -->
+<div class="relative z-10 mt-8 pt-8 border-t border-outline-variant/30">
+<p class="font-body-base text-body-base text-on-surface-variant italic mb-4">"Alumnex Connect turned my theoretical degree into a tangible career path within weeks of graduation."</p>
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A small, circular headshot portrait of a smiling young professional woman with short dark hair, wearing a casual blazer, set against a bright, out-of-focus modern office background. High-key lighting, light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM40oPWti5CKYYGGaGVDVMqiFzEP-XIq53ASKkPjB9_V2Cfxh9uq9f6fG7jbbCshsx3fggcnzatRXgk9yzgVG49eQR3wQuTRt1knQhRFG_CTgavgLBIP64Ry-8T7HkJyaDbU8T2uI43NCVG-XP_e-g9ljGmk90RsPZ_G3w0M_gnYkx1WbG82vUO5-8ktTVSvoTP2QztLdTHzcW1nnCTjjaxE6MGa3VNq1M70otvNqTj-b6WNJq-DEB"/>
+<div>
+<div class="font-body-bold text-body-sm text-on-surface">Sarah Jenkins</div>
+<div class="font-body-sm text-caption-xs text-on-surface-variant">Class of '22, Software Engineer at TechCorp</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Side: Login Form -->
+<section class="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-surface relative">
+<!-- Mobile Header (Visible only on small screens) -->
+<div class="md:hidden text-center mb-8">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary font-bold">Alumnex Connect</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">Welcome back to your professional network.</p>
+</div>
+<!-- Form Header -->
+<div class="mb-8">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Sign In</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mt-1">Access your dashboard, mentorships, and network.</p>
+</div>
+<form class="space-y-6" id="loginForm">
+<!-- Email Field -->
+<div>
+<label class="block font-body-sm text-body-sm text-on-surface font-medium mb-1.5" for="email">Institutional or Preferred Email</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant text-sm">mail</span>
+</div>
+<input aria-describedby="email-error" class="glass-input block w-full pl-10 pr-3 py-2.5 rounded-xl font-body-base text-body-base text-on-surface placeholder:text-outline focus:ring-primary focus:border-primary sm:text-sm" id="email" name="email" placeholder="you@alumni.edu" required="" type="email"/>
+</div>
+<!-- Error State (Hidden by default) -->
+<p class="hidden font-caption-xs text-caption-xs text-error mt-1" id="email-error">Please enter a valid email address.</p>
+</div>
+<!-- Password Field -->
+<div>
+<label class="block font-body-sm text-body-sm text-on-surface font-medium mb-1.5" for="password">Password</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant text-sm">lock</span>
+</div>
+<input class="glass-input block w-full pl-10 pr-10 py-2.5 rounded-xl font-body-base text-body-base text-on-surface placeholder:text-outline focus:ring-primary focus:border-primary sm:text-sm" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-sm">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Utilities Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary bg-surface-container" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant" for="remember-me">Remember me</label>
+</div>
+<div class="text-sm">
+<a class="font-body-sm text-body-sm font-medium text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm font-body-bold text-body-bold text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 hover:shadow-primary-500/30 group" type="submit">
+<span class="flex items-center gap-2">
+                        Sign In
+                        <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+</span>
+<!-- Loading Spinner (Hidden by default) -->
+<span class="hidden material-symbols-outlined animate-spin" id="submit-spinner">progress_activity</span>
+</button>
+</form>
+<!-- Divider -->
+<div class="mt-8 relative">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/30"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-2 bg-surface font-caption-xs text-caption-xs text-outline tracking-widest uppercase">Or continue with</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="mt-6 grid grid-cols-2 gap-3">
+<button class="w-full inline-flex justify-center py-2.5 px-4 border border-outline-variant/50 rounded-xl bg-surface-container-lowest font-body-sm text-body-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors items-center gap-2">
+<span class="material-symbols-outlined text-sm">school</span>
+                    University SSO
+                </button>
+<button class="w-full inline-flex justify-center py-2.5 px-4 border border-outline-variant/50 rounded-xl bg-surface-container-lowest font-body-sm text-body-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors items-center gap-2">
+<span class="material-symbols-outlined text-sm">work</span>
+                    LinkedIn
+                </button>
+</div>
+<!-- Registration Link -->
+<p class="mt-8 text-center font-body-sm text-body-sm text-on-surface-variant">
+                Not a member yet?
+                <a class="font-body-bold text-body-sm text-primary hover:text-primary-container transition-colors ml-1" href="#">Request Access</a>
+</p>
+<!-- 2FA / Verification State Placeholder (Hidden by default) -->
+<div class="hidden absolute inset-0 bg-surface/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-8 text-center rounded-2xl" id="mfa-state">
+<div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-3xl">verified_user</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold mb-2">Two-Factor Authentication</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Enter the 6-digit code sent to your authenticator app.</p>
+<div class="flex gap-2 mb-6">
+<!-- OTP Inputs -->
+<input class="w-12 h-14 text-center glass-input rounded-xl font-title-lg text-title-lg text-on-surface focus:ring-primary focus:border-primary" maxlength="1" type="text"/>
+<input class="w-12 h-14 text-center glass-input rounded-xl font-title-lg text-title-lg text-on-surface focus:ring-primary focus:border-primary" maxlength="1" type="text"/>
+<input class="w-12 h-14 text-center glass-input rounded-xl font-title-lg text-title-lg text-on-surface focus:ring-primary focus:border-primary" maxlength="1" type="text"/>
+<span class="flex items-center text-outline-variant">-</span>
+<input class="w-12 h-14 text-center glass-input rounded-xl font-title-lg text-title-lg text-on-surface focus:ring-primary focus:border-primary" maxlength="1" type="text"/>
+<input class="w-12 h-14 text-center glass-input rounded-xl font-title-lg text-title-lg text-on-surface focus:ring-primary focus:border-primary" maxlength="1" type="text"/>
+<input class="w-12 h-14 text-center glass-input rounded-xl font-title-lg text-title-lg text-on-surface focus:ring-primary focus:border-primary" maxlength="1" type="text"/>
+</div>
+<button class="w-full py-3 px-4 rounded-xl font-body-bold text-body-bold text-on-primary bg-primary hover:bg-primary-container transition-colors mb-4" type="button">Verify Code</button>
+<button class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" onclick="document.getElementById('mfa-state').classList.add('hidden')" type="button">Back to login</button>
+</div>
+</section>
+</main>
+<script>
+        // Simple demo interaction for the login form to show MFA state
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            const txt = btn.querySelector('span.flex');
+            const spinner = document.getElementById('submit-spinner');
+            
+            // Simulate loading
+            txt.classList.add('hidden');
+            spinner.classList.remove('hidden');
+            
+            setTimeout(() => {
+                txt.classList.remove('hidden');
+                spinner.classList.add('hidden');
+                document.getElementById('mfa-state').classList.remove('hidden');
+            }, 1000);
+        });
+
+        // OTP input auto-advance
+        const otpInputs = document.querySelectorAll('#mfa-state input');
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', function() {
+                if(this.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', function(e) {
+                if(e.key === 'Backspace' && !this.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+    </script>
+</body></html>

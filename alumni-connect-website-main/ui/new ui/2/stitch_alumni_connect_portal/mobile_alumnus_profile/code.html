@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnus Profile - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174b",
+                        "tertiary-container": "#bc4800",
+                        "secondary-fixed": "#d3e4fe",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "outline": "#737686",
+                        "surface": "#faf8ff",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container-low": "#f3f3fe",
+                        "alumni-magenta": "#c026d3",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-tint": "#0053db",
+                        "surface-container-highest": "#e1e2ed",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary": "#004ac6",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-high": "#e7e7f3",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-variant": "#e1e2ed",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#54647a",
+                        "secondary": "#505f76",
+                        "outline-variant": "#c3c6d7",
+                        "inverse-surface": "#2e3039",
+                        "surface-container-lowest": "#ffffff",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-surface-variant": "#434655",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary": "#943700",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#dc2626",
+                        "on-surface": "#191b23",
+                        "on-tertiary-container": "#ffede6",
+                        "success": "#16a34a",
+                        "on-error": "#ffffff",
+                        "on-background": "#191b23",
+                        "surface-container": "#ededf9",
+                        "student-cyan": "#0ea5e9",
+                        "background": "#faf8ff",
+                        "primary-container": "#2563eb",
+                        "on-tertiary-fixed": "#360f00",
+                        "warning": "#d97706",
+                        "secondary-fixed-dim": "#b7c8e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2rem",
+                        "md": "1rem",
+                        "gutter": "1rem",
+                        "unit": "4px",
+                        "lg": "1.5rem",
+                        "margin-mobile": "1rem",
+                        "xl": "2rem",
+                        "xs": "0.25rem",
+                        "sm": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "body-bold": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background: radial-gradient(circle at top left, #f3f3fe 0%, #faf8ff 100%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased pb-24 md:hidden">
+<!-- Top App Bar - Fixed -->
+<header class="fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile h-16 max-w-7xl mx-auto transition-transform duration-300" id="topNav">
+<div class="flex items-center gap-2">
+<button aria-label="Go back" class="p-2 -ml-2 rounded-full hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<span class="font-headline-md text-title-lg font-bold text-primary">Alumnex Connect</span>
+</div>
+<div class="flex items-center gap-1">
+<button aria-label="Share profile" class="p-2 rounded-full hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">share</span>
+</button>
+<button aria-label="More options" class="p-2 rounded-full hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-16 w-full max-w-md mx-auto">
+<!-- Cover & Profile Header -->
+<section class="relative">
+<!-- Cover Image -->
+<div class="h-48 w-full bg-surface-container-high relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="A modern, abstract architectural background featuring soft, overlapping glass planes and subtle gradients of blue and magenta in a bright, light-filled environment. The style is clean, corporate, and optimistic, perfect for a professional profile cover photo." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuByD49FRCUCEqY2LRnp1biS4ARTJctedjipBC1nG9DnWUiH1Dp1HMqY2w5JEvKVUuHa_M797Gz7en0a0FJjEaieJeYM33V9YbihDB1NXoPhqqx5bx4MYJbuExD_IgevlazvbUmYp-AOW-xuw6bPRMTG_OXuG5KeMV9vatWYUzJ5EMSeOd58SvE-9Jaa8cSJJ80Y-72BRW6HYhUpJJW7S53cdo-A5aU5-SIAxSWpCeLKkp4Ay073eEkG')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<!-- Profile Info Container -->
+<div class="px-margin-mobile relative -mt-16 z-10">
+<!-- Avatar -->
+<div class="relative inline-block">
+<div class="w-32 h-32 rounded-full border-4 border-surface bg-surface-container overflow-hidden shadow-lg">
+<img alt="Profile Picture" class="w-full h-full object-cover" data-alt="A high-quality, professional headshot of an individual in business casual attire, smiling warmly. The lighting is bright and flattering, set against a blurred, modern office background. The overall tone is approachable and successful." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrYhrnVMHS6wu4A9k27zivMp9-Xznh8Ardqwfa8jPkMQzhokgyefWUK8rLEmT0VK3WIyolZxTzoJZR8Mb9o_N7ThvuxAJVlHTKBS97W2CN4jbTjYZr8Wr40u5klNlYmuWg-J2DlTGpKslx1LUkNdq0gHdW7TJD6W5bvdknjQqy_VtbZ1I2MP_C3z2JQ2V5xx6Tinphu1OPe2zdKTGac8SI_tj6IvVF8GZNQWFDcc3mR8MlAf4mf798"/>
+</div>
+<!-- Verified Badge -->
+<div class="absolute bottom-1 right-1 bg-surface rounded-full p-1 shadow-md" title="Verified Alumnus">
+<div class="bg-alumni-magenta text-white rounded-full w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 1.25rem;">verified</span>
+</div>
+</div>
+</div>
+<!-- Name & Title -->
+<div class="mt-4">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Elena Rodriguez</h1>
+<p class="font-body-base text-body-base text-on-surface-variant mt-1">Senior Staff Engineer at TechNova</p>
+<p class="font-body-sm text-body-sm text-secondary mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined" style="font-size: 1rem;">location_on</span>
+                        San Francisco Bay Area
+                    </p>
+</div>
+<!-- Quick Stats -->
+<div class="flex gap-4 mt-6 py-4 border-y border-outline-variant/30">
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">500+</div>
+<div class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider">Connections</div>
+</div>
+<div class="w-px bg-outline-variant/30"></div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">42</div>
+<div class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider">Mentees</div>
+</div>
+<div class="w-px bg-outline-variant/30"></div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Stanford</div>
+<div class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider">Class of '18</div>
+</div>
+</div>
+</div>
+</section>
+<!-- About Section -->
+<section class="px-margin-mobile mt-8">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">person</span>
+                About
+            </h2>
+<div class="glass-card rounded-xl p-4">
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-4 relative" id="aboutText">
+                    Passionate software architect with a focus on scalable distributed systems and cloud infrastructure. Dedicated to mentoring the next generation of engineers. Experienced in leading cross-functional teams to deliver high-impact enterprise solutions in high-growth environments. Always eager to discuss emerging tech and startup ecosystems.
+                </p>
+<button class="font-body-sm text-body-sm text-primary font-semibold mt-2 hover:underline focus:outline-none" onclick="document.getElementById('aboutText').classList.toggle('line-clamp-4')">
+                    Read more
+                </button>
+</div>
+</section>
+<!-- Experience Section (Vertical Timeline) -->
+<section class="px-margin-mobile mt-8">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">work</span>
+                Experience
+            </h2>
+<div class="glass-card rounded-xl p-5 relative">
+<!-- Timeline Line -->
+<div class="absolute left-9 top-6 bottom-6 w-0.5 bg-outline-variant/40"></div>
+<div class="space-y-6">
+<!-- Job 1 -->
+<div class="relative flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border-2 border-surface flex items-center justify-center z-10 shrink-0 overflow-hidden shadow-sm">
+<span class="material-symbols-outlined text-primary" style="font-size: 1.25rem;">apartment</span>
+</div>
+<div>
+<h3 class="font-body-bold text-body-bold text-on-surface">Senior Staff Engineer</h3>
+<p class="font-body-sm text-body-sm text-primary font-medium">TechNova Inc.</p>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant mt-1">Jan 2021 - Present · 3 yrs 5 mos</p>
+</div>
+</div>
+<!-- Job 2 -->
+<div class="relative flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border-2 border-surface flex items-center justify-center z-10 shrink-0 overflow-hidden shadow-sm">
+<span class="material-symbols-outlined text-secondary" style="font-size: 1.25rem;">apartment</span>
+</div>
+<div>
+<h3 class="font-body-bold text-body-bold text-on-surface">Software Engineer</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">DataFlow Systems</p>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant mt-1">Jun 2018 - Dec 2020 · 2 yrs 7 mos</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Skills Section (Chips) -->
+<section class="px-margin-mobile mt-8">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology</span>
+                Skills &amp; Expertise
+            </h2>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-sm text-body-sm rounded-lg border border-outline-variant/30 shadow-sm">System Architecture</span>
+<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-sm text-body-sm rounded-lg border border-outline-variant/30 shadow-sm">Go</span>
+<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-sm text-body-sm rounded-lg border border-outline-variant/30 shadow-sm">Kubernetes</span>
+<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-sm text-body-sm rounded-lg border border-outline-variant/30 shadow-sm">Distributed Systems</span>
+<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-sm text-body-sm rounded-lg border border-outline-variant/30 shadow-sm">Mentorship</span>
+</div>
+</section>
+<!-- Spacer for fixed bottom bar -->
+<div class="h-8"></div>
+</main>
+<!-- Fixed Bottom Actions -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-glass-light backdrop-blur-lg border-t border-white/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 rounded-t-2xl">
+<div class="max-w-md mx-auto flex gap-3">
+<button aria-label="Message Elena" class="flex-1 bg-surface-container-high text-on-surface font-body-bold text-body-bold py-3 px-4 rounded-xl shadow-sm border border-outline-variant/20 hover:bg-surface-variant transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 1.25rem;">chat_bubble</span>
+                Message
+            </button>
+<button aria-label="Book Mentorship" class="flex-1 bg-primary text-on-primary font-body-bold text-body-bold py-3 px-4 rounded-xl shadow-primary-500/30 shadow-lg hover:bg-on-primary-fixed-variant transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 1.25rem;">event_available</span>
+                Book Mentor
+            </button>
+</div>
+</div>
+<script>
+        // Simple script to hide top nav on scroll down, show on scroll up for mobile space optimization
+        let lastScrollTop = 0;
+        const topNav = document.getElementById('topNav');
+
+        window.addEventListener('scroll', function() {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop && scrollTop > 60) {
+                // Scroll down
+                topNav.style.transform = 'translateY(-100%)';
+            } else {
+                // Scroll up
+                topNav.style.transform = 'translateY(0)';
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; 
+        }, false);
+    </script>
+</body></html>

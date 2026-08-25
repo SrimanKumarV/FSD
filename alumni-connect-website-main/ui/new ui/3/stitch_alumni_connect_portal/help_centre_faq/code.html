@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Help Centre &amp; FAQ - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d3e4fe",
+                        "on-tertiary-fixed": "#360f00",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface": "#faf8ff",
+                        "surface-bright": "#faf8ff",
+                        "primary-fixed": "#dbe1ff",
+                        "tertiary-container": "#bc4800",
+                        "student-cyan": "#0ea5e9",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "background": "#faf8ff",
+                        "surface-container-high": "#e7e7f3",
+                        "inverse-on-surface": "#f0f0fb",
+                        "on-surface": "#191b23",
+                        "on-tertiary-container": "#ffede6",
+                        "primary": "#004ac6",
+                        "surface-container-highest": "#e1e2ed",
+                        "success": "#16a34a",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "alumni-magenta": "#c026d3",
+                        "inverse-surface": "#2e3039",
+                        "primary-container": "#2563eb",
+                        "outline-variant": "#c3c6d7",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f3f3fe",
+                        "surface-variant": "#e1e2ed",
+                        "secondary": "#505f76",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-background": "#191b23",
+                        "on-surface-variant": "#434655",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container": "#ededf9",
+                        "outline": "#737686",
+                        "warning": "#d97706",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#943700",
+                        "on-primary-container": "#eeefff",
+                        "surface-tint": "#0053db",
+                        "error": "#dc2626",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#d0e1fb",
+                        "on-secondary-container": "#54647a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-dim": "#d9d9e5",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "sm": "0.5rem",
+                        "xs": "0.25rem",
+                        "lg": "1.5rem",
+                        "margin-desktop": "2rem",
+                        "gutter": "1rem",
+                        "unit": "4px",
+                        "md": "1rem",
+                        "xl": "2rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-md": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "display-2xl": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); }
+        .glass-card {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            border: 1px solid theme('colors.white/50');
+            box-shadow: 0 4px 6px -1px rgba(0, 74, 198, 0.05), 0 2px 4px -1px rgba(0, 74, 198, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 74, 198, 0.1), 0 4px 6px -2px rgba(0, 74, 198, 0.05);
+        }
+        .glass-input {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(8px);
+            border: 1px solid theme('colors.outline-variant');
+            transition: all 0.2s ease;
+        }
+        .glass-input:focus {
+            background-color: theme('colors.surface-container-lowest');
+            border-color: theme('colors.primary');
+            box-shadow: 0 0 0 2px theme('colors.primary-fixed-dim');
+            outline: none;
+        }
+        
+        /* Accordion specific styles */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] summary ~ * {
+            animation: sweep .3s ease-in-out;
+        }
+        @keyframes sweep {
+            0%    {opacity: 0; transform: translateY(-10px)}
+            100%  {opacity: 1; transform: translateY(0)}
+        }
+    </style>
+</head>
+<body class="text-on-background antialiased min-h-screen flex flex-col pt-16 lg:pl-64">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 max-w-7xl mx-auto lg:hidden">
+<div class="flex items-center gap-4">
+<span class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</nav>
+<!-- SideNavBar (Desktop) -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-glass-light backdrop-blur-lg border-r border-white/50 shadow-primary-500/10 hidden lg:flex flex-col p-md gap-sm">
+<div class="mb-8 px-4 py-2">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</h1>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Verified Alumnus</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-sm text-body-sm">Network</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-body-sm text-body-sm">Mentorship</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-body-sm text-body-sm">DevPulse</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-body-sm text-body-sm">Events</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-sm text-body-sm">Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-2 pt-4 border-t border-white/50">
+<button class="w-full bg-primary text-on-primary rounded-xl py-3 font-body-bold text-body-base hover:shadow-primary-500/30 shadow-sm transition-all duration-300 mb-4">Find a Mentor</button>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 transition-transform" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-sm text-body-sm font-body-bold">Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-sm text-body-sm">Log out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-7xl mx-auto p-margin-mobile md:p-margin-desktop space-y-12 pb-24">
+<!-- Hero Search Section -->
+<section class="text-center space-y-8 py-12 md:py-20 relative rounded-3xl overflow-hidden glass-card">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed/30 to-secondary-fixed/30 z-0"></div>
+<div class="relative z-10 max-w-2xl mx-auto px-4">
+<h1 class="text-display-2xl font-display-2xl text-on-background mb-4">How can we help?</h1>
+<p class="text-title-lg font-title-lg text-on-surface-variant mb-8">Search for guides, policies, or troubleshooting steps.</p>
+<div class="relative w-full max-w-xl mx-auto">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input aria-label="Search help center" class="w-full pl-12 pr-4 py-4 rounded-xl glass-input text-body-base font-body-base w-full shadow-sm" placeholder="Search knowledge base..." type="text"/>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Content Area (Categories & FAQ) -->
+<div class="lg:col-span-8 space-y-12">
+<!-- Categories Bento Grid -->
+<section>
+<h2 class="text-headline-md font-headline-md text-on-background mb-6">Browse by Topic</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<a class="glass-card p-6 rounded-2xl flex items-start gap-4 group" href="#">
+<div class="p-3 bg-secondary-fixed text-on-secondary-fixed rounded-xl group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<div>
+<h3 class="text-title-lg font-title-lg text-on-background mb-2">Getting Started</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Account setup, profile optimization, and platform navigation basics.</p>
+</div>
+</a>
+<a class="glass-card p-6 rounded-2xl flex items-start gap-4 group" href="#">
+<div class="p-3 bg-secondary-fixed text-on-secondary-fixed rounded-xl group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h3 class="text-title-lg font-title-lg text-on-background mb-2">Mentorship</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Matching algorithms, scheduling sessions, and feedback loops.</p>
+</div>
+</a>
+<a class="glass-card p-6 rounded-2xl flex items-start gap-4 group" href="#">
+<div class="p-3 bg-secondary-fixed text-on-secondary-fixed rounded-xl group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">work</span>
+</div>
+<div>
+<h3 class="text-title-lg font-title-lg text-on-background mb-2">Career Support</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Job board access, resume reviews, and interview prep resources.</p>
+</div>
+</a>
+<a class="glass-card p-6 rounded-2xl flex items-start gap-4 group" href="#">
+<div class="p-3 bg-error-container text-on-error-container rounded-xl group-hover:bg-error group-hover:text-on-error transition-colors duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">build</span>
+</div>
+<div>
+<h3 class="text-title-lg font-title-lg text-on-background mb-2">Technical Issues</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Bug reports, integration errors, and system status updates.</p>
+</div>
+</a>
+</div>
+</section>
+</div>
+<!-- Right Sidebar Area (Contact) -->
+<div class="lg:col-span-4">
+<div class="glass-card p-6 rounded-2xl sticky top-24">
+<h3 class="text-title-lg font-title-lg text-on-background mb-4">Still need help?</h3>
+<p class="text-body-base font-body-base text-on-surface-variant mb-6">Our support team is available Monday through Friday, 9am - 5pm EST.</p>
+<div class="space-y-4 mb-8">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">mail</span>
+<span class="text-body-sm font-body-sm text-on-background">support@alumnex.edu</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<span class="text-body-sm font-body-sm text-on-background">Usually responds in 2 hours</span>
+</div>
+</div>
+<a class="block w-full bg-primary text-on-primary text-center rounded-xl py-3 font-body-bold text-body-base hover:shadow-primary-500/30 shadow-sm transition-all duration-300 hover:-translate-y-0.5" href="#">
+                        Contact Support Form
+                    </a>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple accordion logic for toggling icons if needed
+        document.querySelectorAll('details').forEach((detail) => {
+            detail.addEventListener('toggle', (e) => {
+                const icon = detail.querySelector('.material-symbols-outlined');
+                if (detail.open) {
+                    icon.textContent = 'remove';
+                } else {
+                    icon.textContent = 'add';
+                }
+            });
+        });
+    </script>
+</body></html>

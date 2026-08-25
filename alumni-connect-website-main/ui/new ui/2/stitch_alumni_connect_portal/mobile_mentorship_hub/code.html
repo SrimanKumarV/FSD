@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mentorship Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191b23",
+                        "background": "#faf8ff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#2563eb",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-surface-variant": "#434655",
+                        "primary": "#004ac6",
+                        "surface": "#faf8ff",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#ededf9",
+                        "on-surface": "#191b23",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "secondary-container": "#d0e1fb",
+                        "outline": "#737686",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-bright": "#faf8ff",
+                        "alumni-magenta": "#c026d3",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary": "#ffffff",
+                        "error": "#dc2626",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-highest": "#e1e2ed",
+                        "surface-variant": "#e1e2ed",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#ffede6",
+                        "secondary": "#505f76",
+                        "inverse-surface": "#2e3039",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#bc4800",
+                        "warning": "#d97706",
+                        "success": "#16a34a",
+                        "surface-dim": "#d9d9e5",
+                        "surface-container-high": "#e7e7f3",
+                        "on-primary-container": "#eeefff",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed": "#00174b",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "student-cyan": "#0ea5e9",
+                        "on-secondary-container": "#54647a",
+                        "secondary-fixed": "#d3e4fe",
+                        "tertiary": "#943700",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f3f3fe",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-tint": "#0053db"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "0.5rem",
+                        "margin-desktop": "2rem",
+                        "md": "1rem",
+                        "lg": "1.5rem",
+                        "unit": "4px",
+                        "xl": "2rem",
+                        "margin-mobile": "1rem",
+                        "gutter": "1rem",
+                        "xs": "0.25rem"
+                    },
+                    "fontFamily": {
+                        "caption-xs": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "display-2xl": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Subtle mesh gradient background for visual interest without overwhelming data */
+        .bg-mesh {
+            background-color: theme('colors.background');
+            background-image: 
+                radial-gradient(at 0% 0%, theme('colors.surface-container') 0, transparent 50%), 
+                radial-gradient(at 100% 0%, theme('colors.primary-fixed') 0, transparent 50%),
+                radial-gradient(at 100% 100%, theme('colors.secondary-container') 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            border: 1px solid theme('colors.surface-variant');
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid theme('colors.outline-variant');
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .glass-input:focus {
+            background-color: #ffffff;
+            border-color: theme('colors.primary');
+            box-shadow: 0 0 0 2px theme('colors.primary-container') inset;
+            outline: none;
+        }
+
+        /* Hide scrollbar for horizontal chips */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-mesh font-body-base pb-24 min-h-screen">
+<!-- Top Navigation / Search Header (Mobile optimized) -->
+<header class="sticky top-0 z-50 w-full bg-glass-light backdrop-blur-md border-b border-white/50 px-margin-mobile py-md shadow-sm flex flex-col gap-sm">
+<div class="flex items-center justify-between">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Discover</h1>
+<button aria-label="Notifications" class="p-2 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</div>
+<div class="flex gap-sm w-full items-center">
+<div class="relative flex-grow">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" style="font-variation-settings: 'FILL' 0;">search</span>
+<input aria-label="Search mentors" class="glass-input w-full pl-10 pr-4 py-2 rounded-full font-body-sm text-body-sm text-on-background placeholder:text-outline" placeholder="Search mentors, skills, or companies" type="text"/>
+</div>
+<button aria-label="Filter" class="p-2 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant flex-shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">tune</span>
+</button>
+</div>
+<!-- Horizontal Skill Chips -->
+<div class="flex gap-2 overflow-x-auto no-scrollbar py-1">
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-caption-xs text-caption-xs transition-colors">All</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-caption-xs text-caption-xs transition-colors border border-outline-variant">React</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-caption-xs text-caption-xs transition-colors border border-outline-variant">Python</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-caption-xs text-caption-xs transition-colors border border-outline-variant">UX Design</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-caption-xs text-caption-xs transition-colors border border-outline-variant">Product Management</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-caption-xs text-caption-xs transition-colors border border-outline-variant">Data Science</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="px-margin-mobile py-md flex flex-col gap-md">
+<!-- Mentor Card 1 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-sm hover:-translate-y-0.5 transition-transform duration-300">
+<div class="flex items-start gap-md">
+<div class="relative w-16 h-16 flex-shrink-0">
+<img alt="Profile photo of Sarah Jenkins" class="w-full h-full object-cover rounded-full border-2 border-surface" data-alt="A professional headshot of a confident young woman with warm lighting against a soft, blurred studio background. She is wearing a modern blazer, smiling gently. The image should have a clean, light-mode aesthetic fitting a premium professional networking platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN1Mo-jakDbMT-zrF7tzeIiaQYe8NaPAwZiqE3a7CQ2nniEjKkxO7SQdnaJZHZedNQroTl_XwC_Nn4i7ZjT385ponQaTb9M1-y9F3XxMCtQJnJDuae_cphB_iT07JsMmYDMdiVfoUo-tbM7lOudtWvyNAY94Ce6dsDvht1Z69PMzlkI-IyKtxKTy0PtcnGG1N2w3TJNPfHuik2rwhGJmftxQOl9CCBJLC8NcDmR2bq3ybf1XliSmZU"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-1">
+<h2 class="font-body-bold text-body-bold text-on-background">Sarah Jenkins</h2>
+<span class="material-symbols-outlined text-alumni-magenta text-[18px]" style="font-variation-settings: 'FILL' 1;" title="Verified Alumnus">verified</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Senior Frontend Engineer at TechFlow</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-warning text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-caption-xs text-caption-xs text-on-background">4.9</span>
+<span class="font-caption-xs text-caption-xs text-outline">(24 reviews)</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">React</span>
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">TypeScript</span>
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">Career Growth</span>
+</div>
+<button class="w-full mt-2 py-2.5 rounded-xl bg-primary text-on-primary font-body-bold text-body-sm hover:shadow-primary-500/30 hover:bg-on-primary-fixed-variant transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">event_available</span>
+                Book 1:1
+            </button>
+</article>
+<!-- Mentor Card 2 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-sm hover:-translate-y-0.5 transition-transform duration-300">
+<div class="flex items-start gap-md">
+<div class="relative w-16 h-16 flex-shrink-0">
+<img alt="Profile photo of David Chen" class="w-full h-full object-cover rounded-full border-2 border-surface" data-alt="A professional headshot of a middle-aged man with glasses, looking approachable and experienced. Soft natural window light illuminates his face, highlighting a clean, light-mode aesthetic suitable for a professional mentorship platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8rnHU9OFQpRHe4xo0jDdp0rbjUz2ovpOimvBtJyGhXcXvwjVW1Qt4ZpKGyi17PFOUQM8RK60w_oGQ9WZGm5dJXWrL__VpzTUTQ6CZz7hBheNFdmgtNYfGqv0lVkP9wMhr0QHrAv3Bk_nAasPZ5dffEHl6_XbO92YsU9kcQ1eL5HXiFzZ_14Cnn2PdvvHND32sLm5RmHINQCHXvzm6ytIif2A5HgYIKGekgWu420IRQkC1JNFZFmF9"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-1">
+<h2 class="font-body-bold text-body-bold text-on-background">David Chen</h2>
+<span class="material-symbols-outlined text-alumni-magenta text-[18px]" style="font-variation-settings: 'FILL' 1;" title="Verified Alumnus">verified</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Lead Data Scientist at Quantia</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-warning text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-caption-xs text-caption-xs text-on-background">5.0</span>
+<span class="font-caption-xs text-caption-xs text-outline">(41 reviews)</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">Python</span>
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">Machine Learning</span>
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">Interview Prep</span>
+</div>
+<button class="w-full mt-2 py-2.5 rounded-xl bg-primary text-on-primary font-body-bold text-body-sm hover:shadow-primary-500/30 hover:bg-on-primary-fixed-variant transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">event_available</span>
+                Book 1:1
+            </button>
+</article>
+<!-- Mentor Card 3 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-sm hover:-translate-y-0.5 transition-transform duration-300">
+<div class="flex items-start gap-md">
+<div class="relative w-16 h-16 flex-shrink-0">
+<img alt="Profile photo of Elena Rodriguez" class="w-full h-full object-cover rounded-full border-2 border-surface" data-alt="A portrait of a creative professional woman in a modern architectural office environment. Bright, airy light-mode aesthetics. She wears stylish minimalist clothing, conveying expertise in design and user experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCggzTFuwke6Pq-OvI415zFRwT5YWrwSYTZVoNa1D4yMoneKjG1WU4wuDXxMJ784g85G7wEsE6-RCVj39V6_MErDbXFcXCFoujAwJTup9Bjr8crevSYByVYlSAWTgi-9kHpkZ2Sd7peR0Sxj6ibvZQYlKO2sqjm_ZEMTLiRPtMHhx6Bpn6X4PayIsZ8OpqVGxNmj7OFHTuGIiXx-S57XrjUYl4jvvVEL-rkSDUG7IolidOGkHDDJXXZ"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-1">
+<h2 class="font-body-bold text-body-bold text-on-background">Elena Rodriguez</h2>
+<span class="material-symbols-outlined text-alumni-magenta text-[18px]" style="font-variation-settings: 'FILL' 1;" title="Verified Alumnus">verified</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Director of UX at CreativStudio</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-warning text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-caption-xs text-caption-xs text-on-background">4.8</span>
+<span class="font-caption-xs text-caption-xs text-outline">(18 reviews)</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">UX Design</span>
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">Portfolio Review</span>
+<span class="px-2 py-1 rounded-md bg-surface-container-lowest border border-outline-variant font-caption-xs text-caption-xs text-secondary">Figma</span>
+</div>
+<button class="w-full mt-2 py-2.5 rounded-xl bg-primary text-on-primary font-body-bold text-body-sm hover:shadow-primary-500/30 hover:bg-on-primary-fixed-variant transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">event_available</span>
+                Book 1:1
+            </button>
+</article>
+</main>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="fixed bottom-0 w-full z-50 bg-glass-light backdrop-blur-md border-t border-white/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:hidden">
+<ul class="flex justify-around items-center h-16 px-2">
+<!-- Inactive Tab -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center h-full w-full gap-1 text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 rounded-lg p-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">group</span>
+<span class="font-caption-xs text-[10px]">Network</span>
+</a>
+</li>
+<!-- Active Tab (Mentorship Discovery) -->
+<li class="flex-1">
+<a aria-current="page" class="flex flex-col items-center justify-center h-full w-full gap-1 text-primary font-body-bold hover:bg-primary-container/10 transition-colors duration-200 rounded-lg p-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-caption-xs text-[10px]">Mentors</span>
+</a>
+</li>
+<!-- Inactive Tab -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center h-full w-full gap-1 text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 rounded-lg p-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">insights</span>
+<span class="font-caption-xs text-[10px]">DevPulse</span>
+</a>
+</li>
+<!-- Inactive Tab -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center h-full w-full gap-1 text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 rounded-lg p-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">calendar_month</span>
+<span class="font-caption-xs text-[10px]">Events</span>
+</a>
+</li>
+<!-- Inactive Tab -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center h-full w-full gap-1 text-on-surface-variant hover:bg-primary-container/10 transition-colors duration-200 rounded-lg p-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-caption-xs text-[10px]">Settings</span>
+</a>
+</li>
+</ul>
+</nav>
+</body></html>

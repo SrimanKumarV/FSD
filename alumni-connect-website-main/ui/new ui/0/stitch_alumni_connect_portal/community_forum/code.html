@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Community Forum</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#2563eb",
+                      "on-surface-variant": "#434655",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "surface-tint": "#0053db",
+                      "on-secondary-container": "#54647a",
+                      "on-tertiary-container": "#ffede6",
+                      "on-surface": "#191b23",
+                      "background": "#faf8ff",
+                      "outline-variant": "#c3c6d7",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "inverse-on-surface": "#f0f0fb",
+                      "tertiary-fixed": "#ffdbcd",
+                      "tertiary-container": "#bc4800",
+                      "secondary": "#505f76",
+                      "surface-container-high": "#e7e7f3",
+                      "student-cyan": "#0ea5e9",
+                      "error": "#dc2626",
+                      "tertiary": "#943700",
+                      "surface-bright": "#faf8ff",
+                      "primary": "#004ac6",
+                      "surface-variant": "#e1e2ed",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#191b23",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#b4c5ff",
+                      "surface-container-low": "#f3f3fe",
+                      "inverse-surface": "#2e3039",
+                      "surface-dim": "#d9d9e5",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-tertiary-fixed": "#360f00",
+                      "surface-container-highest": "#e1e2ed",
+                      "surface": "#faf8ff",
+                      "surface-container": "#ededf9",
+                      "on-tertiary": "#ffffff",
+                      "outline": "#737686",
+                      "secondary-container": "#d0e1fb",
+                      "on-primary-fixed": "#00174b",
+                      "success": "#16a34a",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "primary-fixed": "#dbe1ff",
+                      "warning": "#d97706",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "error-container": "#ffdad6",
+                      "alumni-magenta": "#c026d3",
+                      "on-primary-container": "#eeefff",
+                      "on-secondary-fixed": "#0b1c30",
+                      "on-secondary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "0.25rem",
+                      "margin-desktop": "2rem",
+                      "unit": "4px",
+                      "xl": "2rem",
+                      "sm": "0.5rem",
+                      "lg": "1.5rem",
+                      "margin-mobile": "1rem",
+                      "md": "1rem",
+                      "gutter": "1rem"
+              },
+              "fontFamily": {
+                      "body-bold": ["Outfit"],
+                      "code-mono": ["JetBrains Mono"],
+                      "headline-md": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "caption-xs": ["Outfit"],
+                      "display-2xl": ["Outfit"],
+                      "body-base": ["Outfit"],
+                      "title-lg": ["Outfit"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "body-sm": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                      "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                      "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                      "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                      "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                      "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 74, 198, 0.05), 0 2px 4px -1px rgba(0, 74, 198, 0.03);
+        }
+        
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid theme('colors.outline-variant');
+        }
+        
+        .glass-input:focus {
+            background-color: white;
+            outline: none;
+            box-shadow: 0 0 0 2px theme('colors.primary');
+            border-color: transparent;
+        }
+
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Subtle mesh gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(192, 38, 211, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(37, 99, 235, 0.05) 0px, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-base antialiased min-h-screen flex flex-col">
+<!-- TopNavBar (Mobile Only) -->
+<header class="fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm md:hidden flex justify-between items-center px-margin-mobile h-16">
+<div class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</div>
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 pt-16 md:pt-0 max-w-7xl w-full mx-auto">
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden lg:flex flex-col p-md gap-sm bg-glass-light backdrop-blur-lg fixed left-0 top-0 h-full w-64 z-40 border-r border-white/50 shadow-primary-500/10">
+<div class="mb-8 px-4 py-2 mt-4">
+<div class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</div>
+<div class="flex items-center gap-3 mt-6">
+<img alt="User Profile Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A small circular profile picture of a young professional wearing a light blue blazer against a bright, modern office background in a high-key light mode style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4Bp-HXDSLEMPFugjU-AnoEV6IpBq3LFnwIT17RxFvu6oKwvI8l8XU1F1po6EQLB2KSJE-OLdAOE0sVvXkwU22Fb3L6MJB1yNOR-IzZ0eKc5QTKmsH-Zm2C-YxV37ArXn2t_1p-IRbP0uQjMIJXw1mL9HNJRTxlmGh-1gu44tHedDKAjXrX_vWRqJVfHLZEsaLkcfLOZT2jiNEGZj1inqz4M9XqM2aNESYZ7m2ZpibjIYt5EHckvHp"/>
+<div>
+<div class="font-body-bold text-on-surface">Alex Mercer</div>
+<div class="font-caption-xs text-secondary flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-alumni-magenta"></span> Verified Alumnus
+                        </div>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 font-body-sm -translate-y-0.5 hover:shadow-md transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+                    Network
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-xl transition-all duration-300 font-body-sm" href="#">
+<span class="material-symbols-outlined">psychology</span>
+                    Mentorship
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-xl transition-all duration-300 font-body-sm" href="#">
+<span class="material-symbols-outlined">insights</span>
+                    DevPulse
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-xl transition-all duration-300 font-body-sm" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+                    Events
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-xl transition-all duration-300 font-body-sm mt-auto" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</div>
+<button class="mt-4 bg-primary text-on-primary rounded-xl px-4 py-3 font-body-bold hover:shadow-primary-500/30 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2">
+                Find a Mentor
+            </button>
+<div class="mt-4 pt-4 border-t border-outline-variant/30 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high rounded-xl transition-all duration-300 font-body-sm" href="#">
+<span class="material-symbols-outlined">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high rounded-xl transition-all duration-300 font-body-sm" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Log out
+                </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 w-full lg:ml-64 p-margin-mobile md:p-margin-desktop grid grid-cols-1 xl:grid-cols-12 gap-lg max-w-7xl mx-auto">
+<!-- Feed Column (8 cols on large screens) -->
+<div class="xl:col-span-8 flex flex-col gap-6">
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">My Feed</h1>
+<!-- Create Post Card -->
+<div class="glass-card rounded-xl p-6 stagger-item" style="animation-delay: 0.1s;">
+<div class="flex gap-4 mb-4">
+<img alt="Current User Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-white" data-alt="A small circular profile picture of a young professional wearing a light blue blazer against a bright, modern office background in a high-key light mode style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqr9EdV1Fe7VZw_1GYlXIDhOWuLpp3gdV1fpm0alqiWbcSJ4qrMznQ3mvlRBmk2izJGyVDG4sN-IA3vsLcAtiKE2DKWuBGlVq6OnWciqTsnnZvWxnINcmtaMMol_Rm4whTSIqrTZDdQMKsI4ClXjAj0TtVdypLZhqC6V99y9sBXbEqrg7G3femruRp67rwdHMQ1-0jQDU0p86flYzAaIEZ8MSDhS9ATtLCR-sYjAa_IQ-eyVH7ROTV"/>
+<textarea class="glass-input w-full rounded-xl p-3 resize-none font-body-base text-on-surface placeholder:text-outline h-24" placeholder="Share your latest project, ask for advice, or start a discussion..."></textarea>
+</div>
+<div class="flex justify-between items-center pl-14">
+<div class="flex gap-2">
+<button aria-label="Add Image" class="p-2 text-primary hover:bg-primary-container/10 rounded-lg transition-colors flex items-center gap-1 font-body-sm">
+<span class="material-symbols-outlined text-xl">image</span>
+</button>
+<button aria-label="Add Link" class="p-2 text-primary hover:bg-primary-container/10 rounded-lg transition-colors flex items-center gap-1 font-body-sm">
+<span class="material-symbols-outlined text-xl">link</span>
+</button>
+<button aria-label="Add Code Snippet" class="p-2 text-primary hover:bg-primary-container/10 rounded-lg transition-colors flex items-center gap-1 font-body-sm">
+<span class="material-symbols-outlined text-xl">code</span>
+</button>
+</div>
+<button class="bg-primary text-on-primary font-body-bold px-6 py-2 rounded-xl hover:shadow-primary-500/30 hover:shadow-md transition-all">Post</button>
+</div>
+</div>
+<!-- Feed Items -->
+<div class="flex flex-col gap-6">
+<!-- Post 1: Alumnus sharing insight -->
+<article class="glass-card rounded-xl p-6 -translate-y-0 hover:-translate-y-0.5 transition-transform duration-300 stagger-item" style="animation-delay: 0.2s;">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-3">
+<img alt="Sarah Chen Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A professional headshot of an Asian woman in her 30s with glasses, smiling softly, bright studio lighting, light mode aesthetic, soft focus background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFRJyaew9u_ERx2wx7LMM_24ZJkeUlnwIurvcXMPp0IZxDbh6UXXQMK_3tcHPDiAcdZ8sk-SVU6nybkVaowAtcFfzWVNM8NXDHlVjX055gVQ5E9AFHUnm9I1C2rWbM8AbaNJE-7xKvpma5GcYXjHEn0JrLg_McjAiT9T6JP1C_REvx1cCRUemUQlN2QOurW3qzYRkFeS944rTD0bzZo7y8aT-HDCy5-Aj6sB46sYxWCJ-dyeHKAer9"/>
+<div>
+<h3 class="font-body-bold text-title-lg text-on-surface">Sarah Chen</h3>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-alumni-magenta/10 text-alumni-magenta font-caption-xs font-bold border border-alumni-magenta/20">
+<span class="w-1.5 h-1.5 rounded-full bg-alumni-magenta"></span> Verified Alumnus
+                                        </span>
+<span class="font-caption-xs text-outline">· Sr. Engineer @ TechFlow</span>
+<span class="font-caption-xs text-outline">· 2h ago</span>
+</div>
+</div>
+</div>
+<button aria-label="Post options" class="text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-4 text-body-base text-on-surface">
+<p class="mb-2">Just wrapped up evaluating different state management libraries for our new React Native architecture. The shift towards atomic state (Jotai/Recoil) vs global stores (Redux) is fascinating, especially when dealing with complex, deeply nested UI components.</p>
+<p>For any students currently learning React: don't sleep on understanding the underlying context API first before jumping into external libraries!</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-4 mb-4 font-code-mono text-code-mono text-on-surface-variant overflow-x-auto">
+<code>const atom = atomWithStorage('darkMode', false)</code>
+</div>
+<div class="flex items-center gap-6 pt-4 border-t border-outline-variant/30">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:fill-current group-hover:scale-110 transition-transform">thumb_up</span>
+<span class="font-body-sm font-semibold">124</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">chat_bubble_outline</span>
+<span class="font-body-sm font-semibold">18 comments</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group ml-auto">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">share</span>
+</button>
+</div>
+</article>
+<!-- Post 2: Student asking question -->
+<article class="glass-card rounded-xl p-6 -translate-y-0 hover:-translate-y-0.5 transition-transform duration-300 stagger-item" style="animation-delay: 0.3s;">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-3">
+<img alt="Marcus Johnson Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A portrait of a male university student in a casual hoodie, working on a laptop in a bright modern library setting, natural sunlight, light mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBixItIW0l9OVKAZ-w_ESJ2dleTlZ0o3ZbF09ostVDVaiVDn0QdZdmUpZzug6IlH7Cf8Ut9V3hi119i88_gbwzhrm5bo2A9vkyUR88noH2qVNADzXC6oJTEEb2emYvVw1wHwdIO6UjLWqW1NGY49-yrfmEeBOtY5A4BONgHSYJj4X0dkP3v0WVP-lFJQ82Y42XMStDEEwqBS112QQPtV_d2T1qeclb1fgFXR8AHLm1sRwZKHQoPJLT"/>
+<div>
+<h3 class="font-body-bold text-title-lg text-on-surface">Marcus Johnson</h3>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-student-cyan/10 text-student-cyan font-caption-xs font-bold border border-student-cyan/20">
+<span class="w-1.5 h-1.5 rounded-full bg-student-cyan"></span> Student
+                                        </span>
+<span class="font-caption-xs text-outline">· CS Class of '25</span>
+<span class="font-caption-xs text-outline">· 4h ago</span>
+</div>
+</div>
+</div>
+<button aria-label="Post options" class="text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-4 text-body-base text-on-surface">
+<p>Hey alumni network! 👋 I'm currently preparing for summer internship interviews focusing on backend roles (specifically Go and PostgreSQL). </p>
+<p class="mt-2">Besides LeetCode, what specific system design concepts should I focus on for entry-level positions? Any recommended resources that helped you land your first junior dev role?</p>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-surface-container text-on-surface-variant px-3 py-1 rounded-full font-caption-xs border border-outline-variant/30">#systemdesign</span>
+<span class="bg-surface-container text-on-surface-variant px-3 py-1 rounded-full font-caption-xs border border-outline-variant/30">#golang</span>
+<span class="bg-surface-container text-on-surface-variant px-3 py-1 rounded-full font-caption-xs border border-outline-variant/30">#internships</span>
+</div>
+<div class="flex items-center gap-6 pt-4 border-t border-outline-variant/30">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:fill-current group-hover:scale-110 transition-transform">thumb_up</span>
+<span class="font-body-sm font-semibold">45</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">chat_bubble_outline</span>
+<span class="font-body-sm font-semibold">8 comments</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group ml-auto">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">share</span>
+</button>
+</div>
+</article>
+</div>
+</div>
+<!-- Sidebar Column (4 cols on large screens) -->
+<aside class="xl:col-span-4 hidden xl:flex flex-col gap-6">
+<!-- Trending Card -->
+<div class="glass-card rounded-xl p-6 stagger-item" style="animation-delay: 0.4s;">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+<h2 class="font-title-lg text-title-lg text-on-surface font-semibold">Trending Topics</h2>
+</div>
+<ul class="flex flex-col gap-4">
+<li class="group cursor-pointer">
+<div class="font-body-bold text-on-surface group-hover:text-primary transition-colors">#AIIntegration</div>
+<div class="font-caption-xs text-outline">342 posts this week</div>
+</li>
+<li class="group cursor-pointer">
+<div class="font-body-bold text-on-surface group-hover:text-primary transition-colors">#TechLayoffs2024</div>
+<div class="font-caption-xs text-outline">156 posts this week</div>
+</li>
+<li class="group cursor-pointer">
+<div class="font-body-bold text-on-surface group-hover:text-primary transition-colors">#NextJS14</div>
+<div class="font-caption-xs text-outline">89 posts this week</div>
+</li>
+<li class="group cursor-pointer">
+<div class="font-body-bold text-on-surface group-hover:text-primary transition-colors">#ResumeReview</div>
+<div class="font-caption-xs text-outline">215 posts this week</div>
+</li>
+</ul>
+</div>
+<!-- Active Mentors Widget -->
+<div class="glass-card rounded-xl p-6 stagger-item" style="animation-delay: 0.5s;">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-alumni-magenta">psychology</span>
+<h2 class="font-title-lg text-title-lg text-on-surface font-semibold">Available Mentors</h2>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between p-2 hover:bg-surface-container/50 rounded-lg transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<img alt="David M." class="w-8 h-8 rounded-full object-cover" data-alt="A small headshot of a Black male software engineer with a short beard, wearing a neat polo shirt, against a bright minimalist office backdrop in a light mode style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAx8lwTosw2RZha-c4AmYhe8YhCKX-Sh6yfEvpCsGx7IenKxR5cXKNTsYcUnKbGyHNq4frnrNSN5vzDU0h2zWsY4UB7T6LP356DmR2jH4U1KtXdfauBI7sD28ilgSVovJgYZqnXKGuvkr-AadLIlvuvVi-7F8YqqfVG9KJGoYgY0JX5kQViZzMSYztHA26HXaCHYQxlAKMg1wWJMutE87iyaP-wbLF-zErIjz8QsSZq5iqkSRoJBT4j"/>
+<div>
+<div class="font-body-sm font-semibold text-on-surface">David M.</div>
+<div class="font-caption-xs text-outline">Staff Engineer</div>
+</div>
+</div>
+<button class="text-primary font-caption-xs font-semibold bg-primary-container/10 px-2 py-1 rounded-md hover:bg-primary-container/20 transition-colors">Connect</button>
+</div>
+<div class="flex items-center justify-between p-2 hover:bg-surface-container/50 rounded-lg transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<img alt="Elena R." class="w-8 h-8 rounded-full object-cover" data-alt="A small headshot of a Latina woman product manager in a stylish modern blouse, smiling, well-lit studio lighting suitable for a professional light mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjbCjn5PLBYGzDdplsUW0rlO5YWsBTt1PhlgxJ23fC0cEtaVtlKHNuRRXJ2X9l5ZOgkmn3BOXYSX6X6cvqjpBBkq98z358qMnZ_hEGe7zl4ak9ZVCkibtpsA_LjO2emPE5pLYjt05568TwAqbSeNgjyc1iPnQ2uNcGMX4oaLoSBt6tXUahhHahQxVI_mbtOK_HQNVvepEzYwNOqXcqmKVCQWYCe_f3OZI3BHoWGuLa9sz6bclpVuUl"/>
+<div>
+<div class="font-body-sm font-semibold text-on-surface">Elena R.</div>
+<div class="font-caption-xs text-outline">Product Lead</div>
+</div>
+</div>
+<button class="text-primary font-caption-xs font-semibold bg-primary-container/10 px-2 py-1 rounded-md hover:bg-primary-container/20 transition-colors">Connect</button>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</div>
+<script>
+        // Simple intersection observer to trigger stagger animations when elements scroll into view
+        document.addEventListener("DOMContentLoaded", () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.stagger-item').forEach((item) => {
+                item.style.animationPlayState = 'paused';
+                observer.observe(item);
+            });
+        });
+    </script>
+</body></html>

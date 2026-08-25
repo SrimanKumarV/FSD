@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Career Mentor - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#2563eb",
+                      "on-surface-variant": "#434655",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "surface-tint": "#0053db",
+                      "on-secondary-container": "#54647a",
+                      "on-tertiary-container": "#ffede6",
+                      "on-surface": "#191b23",
+                      "background": "#faf8ff",
+                      "outline-variant": "#c3c6d7",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "inverse-on-surface": "#f0f0fb",
+                      "tertiary-fixed": "#ffdbcd",
+                      "tertiary-container": "#bc4800",
+                      "secondary": "#505f76",
+                      "surface-container-high": "#e7e7f3",
+                      "student-cyan": "#0ea5e9",
+                      "error": "#dc2626",
+                      "tertiary": "#943700",
+                      "surface-bright": "#faf8ff",
+                      "primary": "#004ac6",
+                      "surface-variant": "#e1e2ed",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#191b23",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#b4c5ff",
+                      "surface-container-low": "#f3f3fe",
+                      "inverse-surface": "#2e3039",
+                      "surface-dim": "#d9d9e5",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-tertiary-fixed": "#360f00",
+                      "surface-container-highest": "#e1e2ed",
+                      "surface": "#faf8ff",
+                      "surface-container": "#ededf9",
+                      "on-tertiary": "#ffffff",
+                      "outline": "#737686",
+                      "secondary-container": "#d0e1fb",
+                      "on-primary-fixed": "#00174b",
+                      "success": "#16a34a",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "primary-fixed": "#dbe1ff",
+                      "warning": "#d97706",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "error-container": "#ffdad6",
+                      "alumni-magenta": "#c026d3",
+                      "on-primary-container": "#eeefff",
+                      "on-secondary-fixed": "#0b1c30",
+                      "on-secondary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "0.25rem",
+                      "margin-desktop": "2rem",
+                      "unit": "4px",
+                      "xl": "2rem",
+                      "sm": "0.5rem",
+                      "lg": "1.5rem",
+                      "margin-mobile": "1rem",
+                      "md": "1rem",
+                      "gutter": "1rem"
+              },
+              "fontFamily": {
+                      "body-bold": ["Outfit"],
+                      "code-mono": ["JetBrains Mono"],
+                      "headline-md": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "caption-xs": ["Outfit"],
+                      "display-2xl": ["Outfit"],
+                      "body-base": ["Outfit"],
+                      "title-lg": ["Outfit"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "body-sm": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                      "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                      "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                      "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                      "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                      "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .bg-mesh-pattern {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(192, 38, 211, 0.05) 0px, transparent 50%);
+        }
+        
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Custom scrollbar for chat area */
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background-color: theme('colors.outline-variant');
+            border-radius: theme('borderRadius.full');
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen flex overflow-hidden font-body-base text-body-base bg-mesh-pattern">
+<!-- TopNavBar (Mobile) -->
+<nav class="lg:hidden fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 dark:border-gray-700/50 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="menu">menu</span>
+<span class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Alumnex Connect</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant scale-95 active:scale-90 transition-transform cursor-pointer" data-icon="search">search</span>
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant scale-95 active:scale-90 transition-transform cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant scale-95 active:scale-90 transition-transform cursor-pointer" data-icon="chat_bubble">chat_bubble</span>
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant scale-95 active:scale-90 transition-transform cursor-pointer" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<!-- SideNavBar (Desktop) -->
+<aside class="hidden lg:flex flex-col p-md gap-sm bg-glass-light dark:bg-glass-dark backdrop-blur-lg border-r border-white/50 dark:border-gray-700/50 shadow-primary-500/10 fixed left-0 top-0 h-full w-64 z-40">
+<div class="flex items-center gap-3 px-4 py-4 mb-xl">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center shrink-0">
+<img alt="User Profile Avatar" class="w-full h-full object-cover rounded-full" data-alt="A polished, modern portrait of a professional software engineer or verified university alumnus, well-lit with soft natural light, smiling confidently against a minimal studio background, adhering to the platform's professional high-quality aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANOcKrfCHTaZqp7zLKnH8FJgP4WjeXUzZgiBr1NPNegeOAk2dWYYo0mQRgY967gmElfCzw10E5Q_RDsUqQAOp2QTV8kYb14dR9j8vrWSG2OyCX2RiPlF32qT01k5t6o8dXBnBj49E82g0D-HqsxYH0e9EUYOx12p2ZCDtwTuqGzL-23usb_RBw4wS4Sif1hMDhnRr36pa2GF50Wx5q65CnCdCRjS4JMUhCePzF7pcnLtGhelivdQug"/>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim truncate">Alumnex Connect</span>
+<span class="font-body-sm text-body-sm text-secondary truncate">Verified Alumnus</span>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-1 font-body-sm text-body-sm text-primary dark:text-primary-fixed-dim">
+<!-- Inactive -->
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Network
+            </a>
+<!-- Active: Mentorship maps to AI Career Mentor -->
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+                DevPulse
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+                Events
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto mb-lg">
+<button class="w-full bg-primary text-on-primary font-body-bold py-3 px-4 rounded-xl shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-0.5 transition-all duration-200">
+                Find a Mentor
+            </button>
+</div>
+<div class="flex flex-col gap-xs border-t border-outline-variant/30 pt-4 font-body-sm text-body-sm">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Log out
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 lg:ml-64 h-full flex flex-col pt-16 lg:pt-0 relative">
+<!-- Header -->
+<header class="glass-panel shrink-0 px-lg py-md flex items-center justify-between border-b-0 shadow-sm z-10">
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="smart_toy">smart_toy</span>
+                    AI Career Mentor
+                </h1>
+<p class="font-body-sm text-body-sm text-secondary">Powered by Llama 3 / Groq • Real-time Guidance</p>
+</div>
+<div class="flex gap-2">
+<button aria-label="Clear Chat" class="w-10 h-10 rounded-xl bg-surface-container hover:bg-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="delete_sweep">delete_sweep</span>
+</button>
+<button aria-label="Session History" class="w-10 h-10 rounded-xl bg-surface-container hover:bg-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="history">history</span>
+</button>
+</div>
+</header>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto chat-scroll p-lg flex flex-col gap-lg pb-32">
+<!-- AI Welcome Message -->
+<div class="flex gap-md max-w-3xl">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+</div>
+<div class="glass-panel rounded-2xl rounded-tl-sm p-md text-on-surface">
+<p class="mb-2">Hello! I'm your Alumnex AI Career Mentor. I'm here to help you accelerate your tech career. I can assist with:</p>
+<ul class="list-disc list-inside font-body-sm text-secondary flex flex-col gap-1 mb-4 pl-2">
+<li>Automated, line-by-line Resume Reviews</li>
+<li>Technical &amp; Behavioral Mock Interviews</li>
+<li>Personalized Tech Stack &amp; Upskilling Advice</li>
+</ul>
+<p class="font-body-sm">How can we level up your career today?</p>
+</div>
+</div>
+<!-- Quick Prompts (Bento style grid) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md max-w-3xl ml-[56px]">
+<button class="glass-panel p-md rounded-xl text-left hover:-translate-y-0.5 hover:shadow-md transition-all group">
+<div class="w-8 h-8 rounded-full bg-student-cyan/10 flex items-center justify-center mb-sm group-hover:bg-student-cyan/20 transition-colors">
+<span class="material-symbols-outlined text-student-cyan text-sm" data-icon="description">description</span>
+</div>
+<span class="font-body-bold block mb-1">Review my Resume</span>
+<span class="font-caption-xs text-secondary">Upload or paste text for instant ATS optimization.</span>
+</button>
+<button class="glass-panel p-md rounded-xl text-left hover:-translate-y-0.5 hover:shadow-md transition-all group">
+<div class="w-8 h-8 rounded-full bg-alumni-magenta/10 flex items-center justify-center mb-sm group-hover:bg-alumni-magenta/20 transition-colors">
+<span class="material-symbols-outlined text-alumni-magenta text-sm" data-icon="mic">mic</span>
+</div>
+<span class="font-body-bold block mb-1">Mock Interview</span>
+<span class="font-caption-xs text-secondary">Practice frontend system design or algorithms.</span>
+</button>
+<button class="glass-panel p-md rounded-xl text-left hover:-translate-y-0.5 hover:shadow-md transition-all group">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mb-sm group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="terminal">terminal</span>
+</div>
+<span class="font-body-bold block mb-1">Tech Stack Advice</span>
+<span class="font-caption-xs text-secondary">What should I learn next for full-stack roles?</span>
+</button>
+</div>
+<!-- User Message -->
+<div class="flex gap-md max-w-3xl self-end flex-row-reverse">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="person">person</span>
+</div>
+<div class="bg-primary-container text-on-primary-container rounded-2xl rounded-tr-sm p-md shadow-sm">
+<p>I'd like to do a mock interview for a Senior React Developer position. Can we start with some React architecture questions?</p>
+</div>
+</div>
+<!-- AI Streaming Response -->
+<div class="flex gap-md max-w-3xl">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 relative">
+<!-- Subtle pulsing glow behind AI avatar while streaming -->
+<div class="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-75"></div>
+<span class="material-symbols-outlined text-primary relative z-10" data-icon="psychology">psychology</span>
+</div>
+<div class="glass-panel rounded-2xl rounded-tl-sm p-md text-on-surface min-w-[200px]">
+<p class="mb-3">Excellent choice. A Senior React role requires a deep understanding of state management, performance optimization, and scalable architecture.</p>
+<p class="mb-3">Let's start with a scenario: <strong class="font-body-bold text-primary">You are tasked with migrating a large legacy React application to a more modern architecture. The app currently suffers from massive prop drilling and frequent unnecessary re-renders.</strong></p>
+<div class="flex items-center gap-1 text-primary mt-2">
+<span class="w-2 h-2 rounded-full bg-primary typing-dot"></span>
+<span class="w-2 h-2 rounded-full bg-primary typing-dot"></span>
+<span class="w-2 h-2 rounded-full bg-primary typing-dot"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area (Fixed at bottom of main content) -->
+<div class="absolute bottom-0 left-0 w-full p-md lg:p-lg bg-gradient-to-t from-background via-background/90 to-transparent">
+<div class="max-w-4xl mx-auto glass-panel rounded-2xl p-2 flex items-end gap-2 shadow-lg border-white/80">
+<button aria-label="Attach Document" class="w-10 h-10 shrink-0 rounded-xl hover:bg-surface-container text-secondary flex items-center justify-center transition-colors mb-1">
+<span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+</button>
+<div class="flex-1 relative">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 resize-none max-h-32 min-h-[44px] py-3 px-2 font-body-base text-on-surface placeholder:text-outline" placeholder="Type your answer, paste your resume, or ask a question..." rows="1"></textarea>
+</div>
+<button aria-label="Send Message" class="w-12 h-12 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-0.5 transition-all mb-0.5 group">
+<span class="material-symbols-outlined group-hover:translate-x-0.5 group-active:scale-90 transition-transform" data-icon="send">send</span>
+</button>
+</div>
+<div class="text-center mt-2">
+<span class="font-caption-xs text-outline text-[10px]">AI can make mistakes. Verify important career advice.</span>
+</div>
+</div>
+</main>
+</body></html>

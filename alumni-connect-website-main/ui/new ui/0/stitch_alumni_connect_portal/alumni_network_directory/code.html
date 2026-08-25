@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Network</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#dbe1ff",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-tint": "#0053db",
+                        "error-container": "#ffdad6",
+                        "on-background": "#191b23",
+                        "tertiary-fixed": "#ffdbcd",
+                        "primary": "#004ac6",
+                        "on-surface-variant": "#434655",
+                        "on-secondary-container": "#54647a",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface": "#faf8ff",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "warning": "#d97706",
+                        "on-error-container": "#93000a",
+                        "alumni-magenta": "#c026d3",
+                        "surface-dim": "#d9d9e5",
+                        "surface-container": "#ededf9",
+                        "secondary-container": "#d0e1fb",
+                        "primary-container": "#2563eb",
+                        "surface-container-low": "#f3f3fe",
+                        "surface-variant": "#e1e2ed",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#ffede6",
+                        "on-secondary-fixed": "#0b1c30",
+                        "inverse-on-surface": "#f0f0fb",
+                        "student-cyan": "#0ea5e9",
+                        "inverse-surface": "#2e3039",
+                        "on-primary-fixed": "#00174b",
+                        "tertiary": "#943700",
+                        "secondary-fixed": "#d3e4fe",
+                        "outline": "#737686",
+                        "on-surface": "#191b23",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "success": "#16a34a",
+                        "on-secondary": "#ffffff",
+                        "error": "#dc2626",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-high": "#e7e7f3",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container-highest": "#e1e2ed",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-primary-container": "#eeefff",
+                        "tertiary-container": "#bc4800",
+                        "secondary": "#505f76",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary": "#ffffff",
+                        "background": "#faf8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "md": "1rem",
+                        "unit": "4px",
+                        "margin-desktop": "2rem",
+                        "sm": "0.5rem",
+                        "xs": "0.25rem",
+                        "gutter": "1rem",
+                        "lg": "1.5rem",
+                        "xl": "2rem"
+                    },
+                    "fontFamily": {
+                        "code-mono": ["JetBrains Mono"],
+                        "body-bold": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "headline-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(195, 198, 215, 0.5);
+            transition: all 0.2s ease-in-out;
+        }
+        .glass-input:focus {
+            background-color: #ffffff;
+            border-color: #004ac6;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 74, 198, 0.2);
+        }
+        body {
+            background: radial-gradient(circle at 15% 50%, rgba(219, 225, 255, 0.4), transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(208, 225, 251, 0.4), transparent 50%);
+            background-color: #faf8ff;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="text-on-background min-h-screen flex flex-col md:flex-row antialiased">
+<!-- Mobile TopNavBar -->
+<header class="md:hidden flex justify-between items-center px-margin-mobile h-16 w-full fixed top-0 z-50 bg-glass-light backdrop-blur-md shadow-sm border-b border-white/50">
+<div class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary scale-95 active:scale-90 transition-transform">notifications</span>
+<span class="material-symbols-outlined text-primary scale-95 active:scale-90 transition-transform">chat_bubble</span>
+<span class="material-symbols-outlined text-primary scale-95 active:scale-90 transition-transform">account_circle</span>
+</div>
+</header>
+<!-- Desktop SideNavBar -->
+<nav class="hidden lg:flex flex-col p-md gap-sm bg-glass-light backdrop-blur-lg border-r border-white/50 shadow-primary-500/10 fixed left-0 top-0 h-full w-64 z-40">
+<div class="px-4 py-6 mb-4">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</h1>
+<p class="font-body-sm text-body-sm text-secondary mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-alumni-magenta" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Verified Alumnus
+            </p>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 hover:shadow-md transition-transform font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">group</span>
+                Network
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">insights</span>
+                DevPulse
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+                Events
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-2 pt-4 border-t border-surface-variant">
+<button class="bg-primary text-on-primary rounded-xl px-4 py-3 font-body-bold flex justify-center items-center gap-2 hover:bg-primary/90 transition-colors shadow-primary-500/30 hover:shadow-primary-500/50">
+                Find a Mentor
+            </button>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Log out
+            </a>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-7xl mx-auto pt-20 pb-24 md:pt-8 md:pb-8 lg:ml-64 px-margin-mobile md:px-margin-desktop">
+<!-- Header -->
+<div class="mb-lg">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Alumni Network</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mt-2 max-w-2xl">Connect with thousands of graduates. Filter by industry, graduation year, or location to find the right connections for your career journey.</p>
+</div>
+<!-- Search & Filters Container -->
+<div class="glass-card rounded-xl p-md mb-xl">
+<div class="flex flex-col md:flex-row gap-4 mb-4">
+<!-- Search Bar -->
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="glass-input w-full pl-10 pr-4 py-3 rounded-lg font-body-base text-body-base text-on-surface placeholder:text-outline-variant" placeholder="Search by name, headline, or keywords..." type="text"/>
+</div>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-lg font-body-bold text-body-bold hover:shadow-primary-500/30 shadow-sm transition-all whitespace-nowrap">
+                    Search
+                </button>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap gap-sm">
+<select class="glass-input rounded-lg px-4 py-2 font-body-sm text-body-sm text-on-surface appearance-none pr-10 cursor-pointer relative" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23737686%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5em 1.5em;">
+<option value="">Graduation Year</option>
+<option value="2023">2023</option>
+<option value="2022">2022</option>
+<option value="2021">2021</option>
+</select>
+<select class="glass-input rounded-lg px-4 py-2 font-body-sm text-body-sm text-on-surface appearance-none pr-10 cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23737686%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5em 1.5em;">
+<option value="">Industry</option>
+<option value="tech">Technology</option>
+<option value="finance">Finance</option>
+<option value="health">Healthcare</option>
+</select>
+<select class="glass-input rounded-lg px-4 py-2 font-body-sm text-body-sm text-on-surface appearance-none pr-10 cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23737686%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5em 1.5em;">
+<option value="">Location</option>
+<option value="sf">San Francisco, CA</option>
+<option value="ny">New York, NY</option>
+<option value="lon">London, UK</option>
+</select>
+<button class="flex items-center gap-2 text-primary font-body-sm text-body-sm font-medium px-2 py-2 hover:bg-primary-container/10 rounded-lg transition-colors ml-auto">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+                    Advanced Filters
+                </button>
+</div>
+</div>
+<!-- Results Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Profile Card 1 -->
+<div class="glass-card rounded-xl p-6 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+<div class="flex items-start justify-between mb-4">
+<img class="w-16 h-16 rounded-full object-cover border-2 border-surface" data-alt="Professional headshot of a confident female software engineer with short dark hair, wearing a navy blazer over a light blue shirt. She is in a modern office environment with subtle, bright lighting. High-key light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDB4VWq-POEvcChAM3OfkcGp--jz5G1uTsts7lQBtOTc0Ug5a5GPI5F-ekzHAW-5T74vgadeNkHlvV7UtHl6B05O4JoeCIfV2XBRaF1H8cYhPX7VXy2Xdo6Ru-DG29fHHm2nikMTF5pkpFcT90o4hNJfnm6EzOFmrDbmcMYr0xy1kMd6Gu3sc5gftgavIz3qebSREVMHASSxwr6eLQNPJtxMAQSseuxyIO-495QtBO9XtaWa8rG8TIQ"/>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-alumni-magenta bg-alumni-magenta/10 rounded-full p-1 text-[20px]" style="font-variation-settings: 'FILL' 1;" title="Verified Alumnus">verified</span>
+<span class="material-symbols-outlined text-warning bg-warning/10 rounded-full p-1 text-[20px]" style="font-variation-settings: 'FILL' 1;" title="Top Mentor">star</span>
+</div>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-1">Sarah Jenkins</h3>
+<p class="font-body-sm text-body-sm text-primary font-medium mb-3">Senior Frontend Engineer @ Vercel</p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px]">school</span> '18
+                    </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px]">location_on</span> SF Bay Area
+                    </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Passionate about web performance, accessibility, and mentoring the next generation of frontend developers.</p>
+<div class="mt-auto flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-body-sm text-body-sm font-medium py-2 rounded-lg hover:bg-primary/90 transition-colors">Connect</button>
+<button class="flex-1 border border-outline text-on-surface font-body-sm text-body-sm font-medium py-2 rounded-lg hover:bg-surface-container transition-colors">View Profile</button>
+</div>
+</div>
+<!-- Profile Card 2 -->
+<div class="glass-card rounded-xl p-6 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+<div class="flex items-start justify-between mb-4">
+<img class="w-16 h-16 rounded-full object-cover border-2 border-surface" data-alt="Professional portrait of a male product manager in his late 20s, wearing a casual grey sweater. He has a warm smile, set against a blurred clean, bright indoor architectural background. High-key modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBdig6259VX-J8BkQUj-mYvd37actQXqMRw2IxkNx6Tsn8qfyE4rwTu_870c-Q42Xn4emGjaLMPvLlRCXEfYv3WW9KfkCvK-iEsaOJ16ZRBe6CJPpfJtAyFNGDQVW3oytRYkNKO2yGR5tpBA7z6Ao7wp8yGRENxkJqqq9W1zjcM9WI1keZr8CtJj7S42hvxdqbumUA-xE3sJ6vP4Pp0_iBeF82QoTiULNCem0F2BCidzDLehXxtCkW"/>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-alumni-magenta bg-alumni-magenta/10 rounded-full p-1 text-[20px]" style="font-variation-settings: 'FILL' 1;" title="Verified Alumnus">verified</span>
+</div>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-1">David Chen</h3>
+<p class="font-body-sm text-body-sm text-primary font-medium mb-3">Product Manager @ Stripe</p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px]">school</span> '20
+                    </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px]">location_on</span> New York
+                    </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Building payment infrastructure. Always happy to chat about transitioning from engineering to product management.</p>
+<div class="mt-auto flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-body-sm text-body-sm font-medium py-2 rounded-lg hover:bg-primary/90 transition-colors">Connect</button>
+<button class="flex-1 border border-outline text-on-surface font-body-sm text-body-sm font-medium py-2 rounded-lg hover:bg-surface-container transition-colors">View Profile</button>
+</div>
+</div>
+<!-- Profile Card 3 -->
+<div class="glass-card rounded-xl p-6 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+<div class="flex items-start justify-between mb-4">
+<img class="w-16 h-16 rounded-full object-cover border-2 border-surface" data-alt="Corporate headshot of an experienced female UX director, wearing glasses and a dark green top. She is positioned in a well-lit design studio environment. Modern, crisp light-mode lighting style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9G1scIrWAJyARMXSb7pW0X4NHo7vRrm-jKBenx3oLLOksGJ5F4BRtEE6YvNoUqijs_IeGqWR0ojG0cbOoYk7lRA0qM1arZe5m_vb4bhwWrR0SwymnhryimVubkIxses8GCy4e2jA41qwc5BlQ7CyXw5DN5rUjKRZBUnzDlVIffulc2SXvhhyas2ZNun48wUTLHaNNq3b89q1ZdkjkWfutkdYaV-zgZ_cigG-r5ahnfDCkmdQBTdLB"/>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-alumni-magenta bg-alumni-magenta/10 rounded-full p-1 text-[20px]" style="font-variation-settings: 'FILL' 1;" title="Verified Alumnus">verified</span>
+<span class="material-symbols-outlined text-warning bg-warning/10 rounded-full p-1 text-[20px]" style="font-variation-settings: 'FILL' 1;" title="Top Mentor">star</span>
+</div>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-1">Elena Rodriguez</h3>
+<p class="font-body-sm text-body-sm text-primary font-medium mb-3">UX Director @ Linear</p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px]">school</span> '15
+                    </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px]">location_on</span> Remote
+                    </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Crafting intuitive tools for high-performing teams. Focus on design systems and organizational scaling.</p>
+<div class="mt-auto flex gap-3">
+<button class="flex-1 bg-primary text-on-primary font-body-sm text-body-sm font-medium py-2 rounded-lg hover:bg-primary/90 transition-colors">Connect</button>
+<button class="flex-1 border border-outline text-on-surface font-body-sm text-body-sm font-medium py-2 rounded-lg hover:bg-surface-container transition-colors">View Profile</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 w-full bg-glass-light backdrop-blur-md border-t border-white/50 shadow-sm z-50 flex justify-around items-center h-16 px-2">
+<a class="flex flex-col items-center gap-1 text-primary w-16" href="#">
+<span class="material-symbols-outlined text-primary bg-primary-container/20 rounded-full px-4 py-1" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-caption-xs text-caption-xs font-bold text-primary">Network</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant w-16 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-caption-xs text-caption-xs">Mentors</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant w-16 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-caption-xs text-caption-xs">DevPulse</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant w-16 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-caption-xs text-caption-xs">Events</span>
+</a>
+</nav>
+</body></html>

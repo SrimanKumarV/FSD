@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174b",
+                        "tertiary-container": "#bc4800",
+                        "secondary-fixed": "#d3e4fe",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "outline": "#737686",
+                        "surface": "#faf8ff",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container-low": "#f3f3fe",
+                        "alumni-magenta": "#c026d3",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-tint": "#0053db",
+                        "surface-container-highest": "#e1e2ed",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary": "#004ac6",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-high": "#e7e7f3",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-variant": "#e1e2ed",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#54647a",
+                        "secondary": "#505f76",
+                        "outline-variant": "#c3c6d7",
+                        "inverse-surface": "#2e3039",
+                        "surface-container-lowest": "#ffffff",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "on-surface-variant": "#434655",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary": "#943700",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#dc2626",
+                        "on-surface": "#191b23",
+                        "on-tertiary-container": "#ffede6",
+                        "success": "#16a34a",
+                        "on-error": "#ffffff",
+                        "on-background": "#191b23",
+                        "surface-container": "#ededf9",
+                        "student-cyan": "#0ea5e9",
+                        "background": "#faf8ff",
+                        "primary-container": "#2563eb",
+                        "on-tertiary-fixed": "#360f00",
+                        "warning": "#d97706",
+                        "secondary-fixed-dim": "#b7c8e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2rem",
+                        "md": "1rem",
+                        "gutter": "1rem",
+                        "unit": "4px",
+                        "lg": "1.5rem",
+                        "margin-mobile": "1rem",
+                        "xl": "2rem",
+                        "xs": "0.25rem",
+                        "sm": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "body-bold": ["Outfit"],
+                        "caption-xs": ["Outfit"],
+                        "body-base": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-card {
+            background-color: rgba(31, 41, 55, 0.60);
+            border-color: rgba(55, 65, 81, 0.5);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(195, 198, 215, 0.5);
+        }
+        .glass-input:focus {
+            background-color: #ffffff;
+            --tw-ring-color: #004ac6;
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        }
+        
+        /* Hide scrollbar for clean look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen flex flex-col font-body-base overflow-hidden md:hidden">
+<!-- Top Navigation (Transactional intent, simplified chat header) -->
+<header class="fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm flex items-center justify-between px-margin-mobile h-16">
+<div class="flex items-center gap-3">
+<button aria-label="Go back" class="p-2 -ml-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+</button>
+<div class="relative">
+<img alt="Dr. Sarah Jenkins" class="w-10 h-10 rounded-full object-cover shadow-sm" data-alt="A small circular avatar portrait of a professional female mentor with dark hair, wearing a navy blazer, smiling warmly in a bright, modern office setting with light mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDk75lOqGz12kzvLFLN-t6qz-iN5enSMgxwSmQ0S6QbeeYr0q7uUdKrlOJEH3lE33xW9InR-BjlMkUVsSA-bRI6bfEAnkix0aDejIYzRkCh1E-yGEkuywYm7jD--y6HDYNMFdvf-2dLJNqUv4AZ5W4Ge3qkVjiBQf9VsC1FGHkLj0uT9sWwSpLj6gth08MJHC_Ahyzei3dLW7nfCF9YZ8EVF3bsw-Z7B7dWEsA1JLsky-lNhCz6k1w"/>
+<span aria-label="Online" class="absolute bottom-0 right-0 w-3 h-3 bg-success border-2 border-surface-container-lowest rounded-full"></span>
+</div>
+<div class="flex flex-col">
+<h1 class="font-body-bold text-body-bold text-on-surface leading-tight">Dr. Sarah Jenkins</h1>
+<span class="font-caption-xs text-caption-xs text-on-surface-variant leading-none mt-0.5">Senior AI Researcher • Mentor</span>
+</div>
+</div>
+<div class="flex gap-1">
+<button aria-label="Call" class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">call</span>
+</button>
+<button aria-label="More options" class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Chat Canvas -->
+<main class="flex-1 overflow-y-auto no-scrollbar pt-20 pb-24 px-margin-mobile flex flex-col gap-sm" id="chat-container">
+<!-- Date Divider -->
+<div class="flex justify-center my-md">
+<span class="bg-surface-container-high text-on-surface-variant font-caption-xs text-caption-xs px-3 py-1 rounded-full">Today, 10:42 AM</span>
+</div>
+<!-- Received Message -->
+<div class="flex flex-col items-start max-w-[85%] self-start">
+<div class="glass-card rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-on-surface font-body-base text-body-base">
+<p>Hi there! Thanks for reaching out. I reviewed the portfolio you sent over.</p>
+</div>
+<span class="font-caption-xs text-caption-xs text-outline mt-1 ml-1">10:42 AM</span>
+</div>
+<!-- Received Message (Consecutive) -->
+<div class="flex flex-col items-start max-w-[85%] self-start mt-[-4px]">
+<div class="glass-card rounded-2xl rounded-l-sm px-4 py-3 shadow-sm text-on-surface font-body-base text-body-base">
+<p>I noticed you're using React for the frontend. Have you considered implementing a custom hook for that data fetching logic? It might clean up the component considerably.</p>
+</div>
+<span class="font-caption-xs text-caption-xs text-outline mt-1 ml-1">10:43 AM</span>
+</div>
+<!-- Sent Message -->
+<div class="flex flex-col items-end max-w-[85%] self-end">
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-sm px-4 py-3 shadow-md font-body-base text-body-base">
+<p>That's a great point. I was actually struggling with that exact issue. I tried extracting it but ran into some stale state problems.</p>
+</div>
+<span class="font-caption-xs text-caption-xs text-outline mt-1 mr-1 flex items-center gap-1">
+                10:45 AM
+                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</span>
+</div>
+<!-- Sent Message with Code Snippet -->
+<div class="flex flex-col items-end max-w-[90%] self-end">
+<div class="bg-primary text-on-primary rounded-2xl rounded-r-sm px-4 py-3 shadow-md font-body-base text-body-base overflow-hidden">
+<p class="mb-2">Here's a simplified version of what I attempted:</p>
+<div class="bg-on-secondary-fixed text-surface-container-low rounded-lg p-3 overflow-x-auto text-left w-full mt-2 border border-white/10">
+<pre class="font-code-mono text-code-mono m-0"><code>const useUserData = (id) =&gt; {
+  const [data, setData] = useState(null);
+  
+  useEffect(() =&gt; {
+    fetchData(id).then(res =&gt; setData(res));
+  }, [id]);
+
+  return data;
+};</code></pre>
+</div>
+</div>
+<span class="font-caption-xs text-caption-xs text-outline mt-1 mr-1 flex items-center gap-1">
+                10:47 AM
+                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</span>
+</div>
+<!-- Typing Indicator -->
+<div class="flex flex-col items-start self-start mt-2">
+<div class="glass-card rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm flex items-center gap-1 h-10 w-16">
+<div class="w-2 h-2 bg-on-surface-variant rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+<div class="w-2 h-2 bg-on-surface-variant rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+<div class="w-2 h-2 bg-on-surface-variant rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+</div>
+</div>
+<!-- Spacer for input area -->
+<div class="h-2"></div>
+</main>
+<!-- Bottom Input Area -->
+<footer class="fixed bottom-0 w-full bg-glass-light backdrop-blur-lg border-t border-white/50 px-margin-mobile py-sm flex items-end gap-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
+<button aria-label="Attach file" class="p-2 text-on-surface-variant hover:bg-surface-variant rounded-full transition-colors self-end mb-1 shrink-0">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<div class="flex-1 bg-surface-container-lowest rounded-xl border border-outline-variant/50 focus-within:ring-2 focus-within:ring-primary shadow-inner flex items-center px-3 py-1 min-h-[44px]">
+<textarea aria-label="Message input" class="w-full bg-transparent border-none focus:ring-0 resize-none font-body-base text-body-base text-on-surface placeholder:text-on-surface-variant/70 py-2 max-h-32" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" placeholder="Message..." rows="1"></textarea>
+</div>
+<button aria-label="Send message" class="w-11 h-11 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:bg-primary-fixed-variant shadow-md shrink-0 self-end mb-0.5 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</footer>
+<script>
+        // Auto-scroll to bottom on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
+        });
+    </script>
+</body></html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Connect. Learn. Grow. Together.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#ededf9",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-tertiary": "#ffffff",
+                      "on-surface-variant": "#434655",
+                      "outline": "#737686",
+                      "surface-container-highest": "#e1e2ed",
+                      "success": "#16a34a",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "tertiary-container": "#bc4800",
+                      "error": "#dc2626",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#faf8ff",
+                      "on-tertiary-fixed": "#360f00",
+                      "surface-dim": "#d9d9e5",
+                      "tertiary-fixed": "#ffdbcd",
+                      "on-background": "#191b23",
+                      "surface-container-low": "#f3f3fe",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#b4c5ff",
+                      "on-error": "#ffffff",
+                      "background": "#faf8ff",
+                      "secondary": "#505f76",
+                      "inverse-on-surface": "#f0f0fb",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#54647a",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "warning": "#d97706",
+                      "on-tertiary-container": "#ffede6",
+                      "on-primary-fixed": "#00174b",
+                      "primary-fixed": "#dbe1ff",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-tint": "#0053db",
+                      "primary-container": "#2563eb",
+                      "alumni-magenta": "#c026d3",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "surface-container-high": "#e7e7f3",
+                      "secondary-container": "#d0e1fb",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "surface-variant": "#e1e2ed",
+                      "on-error-container": "#93000a",
+                      "on-primary-container": "#eeefff",
+                      "surface-bright": "#faf8ff",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-secondary-fixed": "#0b1c30",
+                      "primary": "#004ac6",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "outline-variant": "#c3c6d7",
+                      "tertiary": "#943700",
+                      "inverse-surface": "#2e3039",
+                      "on-surface": "#191b23",
+                      "student-cyan": "#0ea5e9"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-desktop": "2rem",
+                      "xs": "0.25rem",
+                      "sm": "0.5rem",
+                      "xl": "2rem",
+                      "gutter": "1rem",
+                      "md": "1rem",
+                      "margin-mobile": "1rem",
+                      "lg": "1.5rem"
+              },
+              "fontFamily": {
+                      "body-bold": ["Outfit"],
+                      "title-lg": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "body-base": ["Outfit"],
+                      "code-mono": ["JetBrains Mono"],
+                      "caption-xs": ["Outfit"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "display-2xl": ["Outfit"],
+                      "headline-md": ["Outfit"],
+                      "body-sm": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                      "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                      "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                      "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                      "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                      "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 74, 198, 0.05), 0 2px 4px -1px rgba(0, 74, 198, 0.03);
+        }
+        
+        .mesh-gradient-bg {
+            background-color: #faf8ff;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(219, 225, 255, 0.4) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(208, 225, 251, 0.4) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(238, 239, 255, 0.5) 0px, transparent 50%);
+        }
+        
+        .hero-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 74, 198, 0.08) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 40%),
+                radial-gradient(at 100% 100%, rgba(192, 38, 211, 0.08) 0px, transparent 40%),
+                radial-gradient(at 0% 100%, rgba(37, 99, 235, 0.08) 0px, transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background mesh-gradient-bg min-h-screen selection:bg-primary-container selection:text-on-primary-container font-body-base overflow-x-hidden">
+<!-- Navbar -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 dark:border-gray-700/50 shadow-sm transition-all duration-300" id="navbar">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<!-- Brand -->
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">school</span>
+<span class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim tracking-tight">Alumnex Connect</span>
+</div>
+<!-- Navigation Links (Desktop) -->
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-bold text-primary border-b-2 border-primary py-4 px-1" href="#features">Platform</a>
+<a class="font-body-base text-on-surface-variant hover:text-primary transition-colors py-4 px-1" href="#mentorship">Mentorship</a>
+<a class="font-body-base text-on-surface-variant hover:text-primary transition-colors py-4 px-1" href="#testimonials">Stories</a>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-body-bold text-primary hover:bg-primary-container/10 px-4 py-2 rounded-xl transition-colors">Log In</button>
+<button class="bg-primary text-on-primary font-body-bold px-5 py-2 rounded-xl shadow-primary-500/30 hover:shadow-lg hover:bg-on-primary-fixed-variant transition-all scale-95 active:scale-90">Join Network</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden hero-mesh">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="max-w-2xl">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container border border-white/60 mb-6 glass-card">
+<span class="flex h-2 w-2 rounded-full bg-success"></span>
+<span class="font-caption-xs text-secondary uppercase tracking-wider">Platform Live</span>
+</div>
+<h1 class="font-headline-lg-mobile md:font-display-2xl text-on-background mb-6 leading-tight">
+                        Connect. Learn. <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-student-cyan">Grow. Together.</span>
+</h1>
+<p class="font-body-base text-on-surface-variant text-lg md:text-xl mb-10 max-w-xl leading-relaxed">
+                        The premium network designed to bridge the gap between ambitious students and established alumni. Forge meaningful connections that accelerate careers.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="bg-primary text-on-primary font-body-bold px-8 py-4 rounded-xl shadow-lg shadow-primary-500/30 hover:-translate-y-1 hover:shadow-xl transition-all flex items-center justify-center gap-2 group">
+                            Start Connecting
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<button class="bg-white/50 text-on-background border border-white hover:bg-white/80 font-body-bold px-8 py-4 rounded-xl backdrop-blur-sm transition-all flex items-center justify-center gap-2">
+                            Explore Mentors
+                        </button>
+</div>
+</div>
+<div class="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden glass-card p-2 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+<img alt="Network Visualization" class="w-full h-full object-cover rounded-xl" data-alt="A modern, abstract digital composition representing a professional network. Glowing nodes and connection lines set against a bright, airy light-mode background. The aesthetic is clean, glassmorphic, and high-tech, using shades of primary blue, cyan, and soft magenta to convey growth, data, and human connection in a sophisticated SaaS environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBX3RUICsAx1U7-nts2Yr13Kkgi4DUsTmodMBXPttEA8ULsRiTa4GQY5wAQI0Ge1t7lV-beJk5b1X0Nt3e-5DFgSDIKugcGjUTXhKyeB5mKq512zC92Z8WgtTj2ukaYN2Xp1LbSss9515fonjKLdthOb_P5U4-728w7hK-WkWKSDrd6fpcNiGUrBvgk7Jsf4dAsXORBPbTsFIKal2MJn3ebesPb3oB32FbvxZVIc9XYvUfY9TMPuNNo"/>
+<!-- Floating Elements -->
+<div class="absolute top-10 -left-6 glass-card p-4 rounded-xl shadow-lg animate-bounce" style="animation-duration: 3s;">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-alumni-magenta/10 flex items-center justify-center text-alumni-magenta">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div>
+<p class="font-body-bold text-sm">Alumni Verified</p>
+<p class="font-caption-xs text-on-surface-variant">Just now</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+</body></html>

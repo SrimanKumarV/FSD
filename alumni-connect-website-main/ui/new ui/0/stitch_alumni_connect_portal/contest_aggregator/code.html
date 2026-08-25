@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Global Coding Contests Aggregator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Outfit:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#2563eb",
+                      "on-surface-variant": "#434655",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "surface-tint": "#0053db",
+                      "on-secondary-container": "#54647a",
+                      "on-tertiary-container": "#ffede6",
+                      "on-surface": "#191b23",
+                      "background": "#faf8ff",
+                      "outline-variant": "#c3c6d7",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "inverse-on-surface": "#f0f0fb",
+                      "tertiary-fixed": "#ffdbcd",
+                      "tertiary-container": "#bc4800",
+                      "secondary": "#505f76",
+                      "surface-container-high": "#e7e7f3",
+                      "student-cyan": "#0ea5e9",
+                      "error": "#dc2626",
+                      "tertiary": "#943700",
+                      "surface-bright": "#faf8ff",
+                      "primary": "#004ac6",
+                      "surface-variant": "#e1e2ed",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#191b23",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#b4c5ff",
+                      "surface-container-low": "#f3f3fe",
+                      "inverse-surface": "#2e3039",
+                      "surface-dim": "#d9d9e5",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-tertiary-fixed": "#360f00",
+                      "surface-container-highest": "#e1e2ed",
+                      "surface": "#faf8ff",
+                      "surface-container": "#ededf9",
+                      "on-tertiary": "#ffffff",
+                      "outline": "#737686",
+                      "secondary-container": "#d0e1fb",
+                      "on-primary-fixed": "#00174b",
+                      "success": "#16a34a",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "primary-fixed": "#dbe1ff",
+                      "warning": "#d97706",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "error-container": "#ffdad6",
+                      "alumni-magenta": "#c026d3",
+                      "on-primary-container": "#eeefff",
+                      "on-secondary-fixed": "#0b1c30",
+                      "on-secondary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "0.25rem",
+                      "margin-desktop": "2rem",
+                      "unit": "4px",
+                      "xl": "2rem",
+                      "sm": "0.5rem",
+                      "lg": "1.5rem",
+                      "margin-mobile": "1rem",
+                      "md": "1rem",
+                      "gutter": "1rem"
+              },
+              "fontFamily": {
+                      "body-bold": ["Outfit"],
+                      "code-mono": ["JetBrains Mono"],
+                      "headline-md": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "caption-xs": ["Outfit"],
+                      "display-2xl": ["Outfit"],
+                      "body-base": ["Outfit"],
+                      "title-lg": ["Outfit"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "body-sm": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                      "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                      "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                      "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                      "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                      "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-mesh-pattern {
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(217,100%,75%,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(289,100%,75%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(355,100%,85%,0.15) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base text-body-base min-h-screen relative bg-mesh-pattern selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 dark:border-gray-700/50 shadow-sm font-body-base text-body-base">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<!-- Mobile Menu Trigger -->
+<button class="lg:hidden text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 rounded-lg p-2 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+                    Alumnex Connect
+                </div>
+</div>
+<!-- Search Bar (on_left configuration per JSON) -->
+<div class="hidden md:flex flex-1 max-w-md mx-6">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-xl pl-10 pr-4 py-2 text-body-sm font-body-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-outline" placeholder="Search contests, platforms..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button aria-label="Notifications" class="text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button aria-label="Chat" class="text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button aria-label="Account" class="text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-glass-light dark:bg-glass-dark backdrop-blur-lg border-r border-white/50 dark:border-gray-700/50 shadow-primary-500/10 font-body-sm text-body-sm hidden lg:flex flex-col p-md gap-sm pt-24">
+<div class="px-4 pb-6 mb-4 border-b border-outline-variant/30 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-high border-2 border-white shadow-sm mb-3 overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="A professional portrait of a software engineer smiling confidently in a bright, modern light-mode office setting. The lighting is soft and flattering, highlighting a clean aesthetic with subtle cool-toned background elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOiVF-RjExbGig8mTwRka5S4p6v2j5HoQOMgtBL-eRYod1QIBHD2BNSiaDAq60YUMbwkM2PxELvamXTd_Ix95Yn7qQB4JuyYlySxDaiQjtakum-2Kv3kTKQ4KJvPx61p7ThVlpBn_Vg9K4Hn1jXSqO4YQBDnWcQcrmG27jHhw-GIONvCPNVZsS8_SRYuAHUab3xg2dQbRa-UgUoieG6IZF635MMVwu-0rpgDJgzbztsvmY2gJSKldO"/>
+</div>
+<h2 class="text-title-lg font-headline-md font-bold text-on-surface">Alumnex Connect</h2>
+<p class="text-caption-xs font-caption-xs text-on-surface-variant bg-surface-container px-2 py-1 rounded-full mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-alumni-magenta" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Verified Alumnus
+            </p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 rounded-xl hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined">group</span>
+                Network
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 rounded-xl hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 rounded-xl hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined">insights</span>
+                DevPulse
+            </a>
+<!-- Active State Navigation -->
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+                Events
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 rounded-xl hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 -translate-y-0.5 hover:shadow-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant/30 flex flex-col gap-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 rounded-xl hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300" href="#">
+<span class="material-symbols-outlined">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-error px-4 py-3 rounded-xl hover:bg-error/10 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Log out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-12 lg:pl-72 px-margin-mobile md:pr-margin-desktop max-w-[1600px] mx-auto min-h-screen flex flex-col gap-8">
+<!-- Header & Status -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">Contest Radar</h1>
+<p class="text-body-base font-body-base text-on-surface-variant">Global coding competitions aggregated in real-time.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-glass-light backdrop-blur-md border border-success/20 px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+</span>
+<span class="text-caption-xs font-caption-xs font-medium text-success tracking-wide uppercase">In-memory Cache: 0ms Latency</span>
+</div>
+</div>
+</header>
+<!-- Filters & Views -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-glass-light backdrop-blur-md border border-white/50 p-2 rounded-2xl shadow-sm">
+<div class="flex overflow-x-auto no-scrollbar w-full sm:w-auto gap-2 p-1">
+<button class="px-5 py-2 rounded-xl bg-on-surface text-surface-container-lowest text-body-sm font-body-bold shadow-sm whitespace-nowrap transition-transform active:scale-95">All Platforms</button>
+<button class="px-5 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-high text-body-sm font-body-base transition-colors whitespace-nowrap">LeetCode</button>
+<button class="px-5 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-high text-body-sm font-body-base transition-colors whitespace-nowrap">Codeforces</button>
+<button class="px-5 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-high text-body-sm font-body-base transition-colors whitespace-nowrap">CodeChef</button>
+</div>
+<div class="flex items-center gap-2 p-1 border-t sm:border-t-0 sm:border-l border-outline-variant/30 w-full sm:w-auto pt-3 sm:pt-1 sm:pl-3">
+<button class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary-container/10 text-primary-container font-body-bold text-body-sm transition-colors">
+<span class="material-symbols-outlined text-[20px]">view_agenda</span>
+                    List
+                </button>
+<button class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-high font-body-base text-body-sm transition-colors">
+<span class="material-symbols-outlined text-[20px]">calendar_view_month</span>
+                    Calendar
+                </button>
+</div>
+</div>
+<!-- Bento Grid: Live & Upcoming -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Live Now Section (Spans 8 cols on large screens) -->
+<section class="lg:col-span-8 flex flex-col gap-4">
+<h2 class="text-title-lg font-headline-md font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">radio_button_checked</span>
+                    Live Now
+                </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Live Card 1 -->
+<div class="glass-card bg-glass-light backdrop-blur-md border border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 -translate-y-0.5 hover:-translate-y-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">code</span>
+</div>
+<span class="text-caption-xs font-body-bold text-on-surface-variant uppercase tracking-wider">LeetCode</span>
+</div>
+<span class="bg-error/10 text-error px-3 py-1 rounded-full text-caption-xs font-body-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span> Live
+                            </span>
+</div>
+<h3 class="text-title-lg font-title-lg font-semibold text-on-surface mb-2 line-clamp-2">Weekly Contest 384</h3>
+<div class="flex items-center gap-4 text-body-sm text-on-surface-variant mb-6">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                1h 45m left
+                            </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_alt</span>
+                                All Levels
+                            </div>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+<div class="font-code-mono font-bold text-lg text-primary">01:45:22</div>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-xl text-body-sm font-body-bold hover:shadow-primary-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">Enter Arena</button>
+</div>
+</div>
+<!-- Live Card 2 -->
+<div class="glass-card bg-glass-light backdrop-blur-md border border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 -translate-y-0.5 hover:-translate-y-1 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[#1f8bcb]">terminal</span>
+</div>
+<span class="text-caption-xs font-body-bold text-on-surface-variant uppercase tracking-wider">Codeforces</span>
+</div>
+<span class="bg-error/10 text-error px-3 py-1 rounded-full text-caption-xs font-body-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span> Live
+                            </span>
+</div>
+<h3 class="text-title-lg font-title-lg font-semibold text-on-surface mb-2 line-clamp-2">Codeforces Round 920 (Div. 2)</h3>
+<div class="flex items-center gap-4 text-body-sm text-on-surface-variant mb-6">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                45m left
+                            </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_alt_2_bar</span>
+                                Div 2
+                            </div>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+<div class="font-code-mono font-bold text-lg text-primary">00:45:10</div>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-xl text-body-sm font-body-bold hover:shadow-primary-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">Enter Arena</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Upcoming Section (Spans 4 cols on large screens, vertical list) -->
+<section class="lg:col-span-4 flex flex-col gap-4">
+<h2 class="text-title-lg font-headline-md font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-warning" style="font-variation-settings: 'FILL' 1;">update</span>
+                    Upcoming
+                </h2>
+<div class="flex flex-col gap-3">
+<!-- Upcoming Item 1 -->
+<div class="bg-glass-light backdrop-blur-md border border-white/50 rounded-xl p-4 shadow-sm hover:bg-surface-container-lowest transition-colors flex gap-4 items-center">
+<div class="flex flex-col items-center justify-center bg-surface-container-low rounded-lg p-2 min-w-[60px] text-center border border-outline-variant/20">
+<span class="text-caption-xs text-on-surface-variant font-bold uppercase">Feb</span>
+<span class="text-title-lg font-headline-md text-primary font-bold leading-none">18</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-caption-xs text-on-surface-variant mb-1 font-medium">CodeChef</div>
+<h4 class="text-body-base font-title-lg font-semibold text-on-surface truncate">Starters 121 (Div 1 to 4)</h4>
+<div class="text-caption-xs font-code-mono text-secondary mt-1">Starts in 05:22:00</div>
+</div>
+<button aria-label="Set Reminder" class="p-2 rounded-full hover:bg-surface-container-high transition-colors text-outline">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+</div>
+<!-- Upcoming Item 2 -->
+<div class="bg-glass-light backdrop-blur-md border border-white/50 rounded-xl p-4 shadow-sm hover:bg-surface-container-lowest transition-colors flex gap-4 items-center">
+<div class="flex flex-col items-center justify-center bg-surface-container-low rounded-lg p-2 min-w-[60px] text-center border border-outline-variant/20">
+<span class="text-caption-xs text-on-surface-variant font-bold uppercase">Feb</span>
+<span class="text-title-lg font-headline-md text-primary font-bold leading-none">20</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-caption-xs text-on-surface-variant mb-1 font-medium">LeetCode</div>
+<h4 class="text-body-base font-title-lg font-semibold text-on-surface truncate">Biweekly Contest 124</h4>
+<div class="text-caption-xs font-code-mono text-secondary mt-1">Starts in 2d 14h</div>
+</div>
+<button aria-label="Set Reminder" class="p-2 rounded-full hover:bg-surface-container-high transition-colors text-outline">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+</div>
+<!-- Upcoming Item 3 -->
+<div class="bg-glass-light backdrop-blur-md border border-white/50 rounded-xl p-4 shadow-sm hover:bg-surface-container-lowest transition-colors flex gap-4 items-center">
+<div class="flex flex-col items-center justify-center bg-surface-container-low rounded-lg p-2 min-w-[60px] text-center border border-outline-variant/20">
+<span class="text-caption-xs text-on-surface-variant font-bold uppercase">Feb</span>
+<span class="text-title-lg font-headline-md text-primary font-bold leading-none">24</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-caption-xs text-on-surface-variant mb-1 font-medium">GeeksForGeeks</div>
+<h4 class="text-body-base font-title-lg font-semibold text-on-surface truncate">Job-A-Thon Hiring Challenge</h4>
+<div class="text-caption-xs font-code-mono text-secondary mt-1">Starts in 6d 09h</div>
+</div>
+<button aria-label="Set Reminder" class="p-2 rounded-full hover:bg-surface-container-high transition-colors text-outline">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+</div>
+<button class="mt-2 w-full py-3 rounded-xl border border-outline-variant/50 text-body-sm font-body-bold text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors flex justify-center items-center gap-2">
+                        View Full Calendar
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+</body></html>

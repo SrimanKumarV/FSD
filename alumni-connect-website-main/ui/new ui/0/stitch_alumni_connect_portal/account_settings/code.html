@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Account Settings | Alumnex Connect</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Outfit:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#2563eb",
+                    "on-surface-variant": "#434655",
+                    "glass-light": "rgba(255, 255, 255, 0.80)",
+                    "surface-tint": "#0053db",
+                    "on-secondary-container": "#54647a",
+                    "on-tertiary-container": "#ffede6",
+                    "on-surface": "#191b23",
+                    "background": "#faf8ff",
+                    "outline-variant": "#c3c6d7",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "inverse-on-surface": "#f0f0fb",
+                    "tertiary-fixed": "#ffdbcd",
+                    "tertiary-container": "#bc4800",
+                    "secondary": "#505f76",
+                    "surface-container-high": "#e7e7f3",
+                    "student-cyan": "#0ea5e9",
+                    "error": "#dc2626",
+                    "tertiary": "#943700",
+                    "surface-bright": "#faf8ff",
+                    "primary": "#004ac6",
+                    "surface-variant": "#e1e2ed",
+                    "on-error": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-background": "#191b23",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-tertiary-fixed-variant": "#7d2d00",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-container-low": "#f3f3fe",
+                    "inverse-surface": "#2e3039",
+                    "surface-dim": "#d9d9e5",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-tertiary-fixed": "#360f00",
+                    "surface-container-highest": "#e1e2ed",
+                    "surface": "#faf8ff",
+                    "surface-container": "#ededf9",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#737686",
+                    "secondary-container": "#d0e1fb",
+                    "on-primary-fixed": "#00174b",
+                    "success": "#16a34a",
+                    "tertiary-fixed-dim": "#ffb596",
+                    "primary-fixed": "#dbe1ff",
+                    "warning": "#d97706",
+                    "glass-dark": "rgba(31, 41, 55, 0.60)",
+                    "error-container": "#ffdad6",
+                    "alumni-magenta": "#c026d3",
+                    "on-primary-container": "#eeefff",
+                    "on-secondary-fixed": "#0b1c30",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "0.25rem",
+                    "margin-desktop": "2rem",
+                    "unit": "4px",
+                    "xl": "2rem",
+                    "sm": "0.5rem",
+                    "lg": "1.5rem",
+                    "margin-mobile": "1rem",
+                    "md": "1rem",
+                    "gutter": "1rem"
+            },
+            "fontFamily": {
+                    "body-bold": ["Outfit"],
+                    "code-mono": ["JetBrains Mono"],
+                    "headline-md": ["Outfit"],
+                    "headline-lg": ["Outfit"],
+                    "caption-xs": ["Outfit"],
+                    "display-2xl": ["Outfit"],
+                    "body-base": ["Outfit"],
+                    "title-lg": ["Outfit"],
+                    "headline-lg-mobile": ["Outfit"],
+                    "body-sm": ["Outfit"]
+            },
+            "fontSize": {
+                    "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                    "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                    "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                    "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                    "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                    "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Glassmorphic Utilities */
+        .glass-panel {
+            @apply bg-glass-light backdrop-blur-md border border-white/50 rounded-xl shadow-sm;
+        }
+        .glass-input {
+            @apply bg-white/60 backdrop-blur-sm border border-white/40 rounded-lg px-4 py-2 focus:bg-white focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-base text-body-base text-on-surface placeholder:text-outline-variant;
+        }
+        .btn-primary {
+            @apply bg-primary-container text-on-primary-container rounded-xl px-6 py-2.5 font-body-bold text-body-bold shadow-sm hover:shadow-primary-500/30 hover:-translate-y-0.5 transition-all duration-300;
+        }
+        .btn-secondary {
+            @apply bg-surface-container-high text-on-surface rounded-xl px-6 py-2.5 font-body-bold text-body-bold hover:bg-surface-variant transition-all duration-200;
+        }
+        .btn-danger {
+            @apply bg-error-container text-error rounded-xl px-6 py-2.5 font-body-bold text-body-bold hover:bg-error hover:text-on-error transition-all duration-300;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-base flex antialiased">
+<!-- TopNavBar (Visible on Mobile/Tablet usually, but per JSON keeping it fixed top) -->
+<nav class="fixed top-0 w-full z-50 bg-glass-light dark:bg-glass-dark backdrop-blur-md border-b border-white/50 dark:border-gray-700/50 shadow-sm lg:hidden">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Alumnex Connect</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 rounded-full p-2 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 rounded-full p-2 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<button class="text-primary dark:text-primary-fixed-dim hover:bg-primary-container/10 transition-colors duration-200 rounded-full p-2 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Visible on Desktop) -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-glass-light dark:bg-glass-dark backdrop-blur-lg border-r border-white/50 dark:border-gray-700/50 shadow-primary-500/10 hidden lg:flex flex-col p-md gap-sm">
+<!-- Header -->
+<div class="mb-xl px-2 pt-4">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim mb-1">Alumnex Connect</h1>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-alumni-magenta"></span>
+<span class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider">Verified Alumnus</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 flex flex-col gap-2">
+<!-- Inactive -->
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Network
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+                DevPulse
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-sm text-body-sm -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+                Events
+            </a>
+<!-- Active -->
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 font-body-bold text-body-bold -translate-y-0.5 hover:shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined icon-fill" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<!-- CTA -->
+<div class="mt-auto mb-4">
+<button class="w-full bg-primary-container/10 text-primary-container rounded-xl px-4 py-3 font-body-bold text-body-bold border border-primary-container/20 hover:bg-primary-container/20 transition-colors">
+                Find a Mentor
+            </button>
+</div>
+<!-- Footer Links -->
+<div class="border-t border-white/50 pt-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-2 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-outline-variant px-4 py-2 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-sm text-body-sm" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Log out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full pt-20 lg:pt-8 lg:pl-64 min-h-screen px-margin-mobile md:px-margin-desktop pb-12 relative overflow-hidden">
+<!-- Ambient Background Decoration -->
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-fixed-dim/30 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3"></div>
+<div class="absolute bottom-0 left-64 w-[600px] h-[600px] bg-secondary-fixed/40 rounded-full blur-3xl -z-10 -translate-x-1/4 translate-y-1/4"></div>
+<div class="max-w-5xl mx-auto mt-4 lg:mt-8">
+<header class="mb-8">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background mb-2">Account Settings</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Manage your profile, preferences, and platform security.</p>
+</header>
+<!-- Bento/Grid Layout for Settings -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Internal Navigation (Tabs) -->
+<div class="md:col-span-3 flex flex-row md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface-container-highest text-on-surface font-body-bold text-body-bold whitespace-nowrap">
+<span class="material-symbols-outlined icon-fill">person</span>
+                        Profile
+                    </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high font-body-base text-body-base whitespace-nowrap transition-colors">
+<span class="material-symbols-outlined">palette</span>
+                        Appearance
+                    </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high font-body-base text-body-base whitespace-nowrap transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+                        Notifications
+                    </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high font-body-base text-body-base whitespace-nowrap transition-colors">
+<span class="material-symbols-outlined">shield_lock</span>
+                        Security
+                    </button>
+</div>
+<!-- Active Content Pane -->
+<div class="md:col-span-9 flex flex-col gap-6">
+<!-- Profile Management -->
+<section class="glass-panel p-6 md:p-8 flex flex-col gap-6">
+<div class="flex items-start gap-6 border-b border-outline-variant/30 pb-6">
+<div class="relative group">
+<div class="w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20 bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a software engineer in a well-lit, modern light-mode office setting. The lighting is soft and bright, emphasizing a clean, contemporary aesthetic. The mood is confident and approachable, utilizing a palette of crisp whites, soft grays, and subtle primary blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvGhxSQ3h8Tet5HTG_nJg_gtDG-X1EeYXCBxYEwA7jbKZ4UmTsvaZ0PT7ikAmglht6-xeMP1bv6f8wqyKhMXrIFB22es6sz_YBmV1NXadcoLiZbe1POctG32VduZlI-WRi0gsVCnORspZGSLwnWL1qlwlrjAhbPQUb-SZrBRfVpmKIFej-rtrVYroCH5j8MrdxJlMcotupU4Q-VUqmkOBzd4o9CF0Jkrmo8NVHHzzXXjMfP1TYSkDv"/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary-container text-on-primary-container p-1.5 rounded-full shadow-sm hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+<div class="flex flex-col justify-center pt-2">
+<h3 class="font-title-lg text-title-lg text-on-surface mb-1">Avatar &amp; Identity</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm">Upload a professional photo to help alumni and mentors recognize you across the network.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-1.5">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wide">Full Name</label>
+<input class="glass-input" type="text" value="Eleanor Shellstrop"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wide">Graduation Year</label>
+<input class="glass-input" disabled="" type="text" value="Class of 2021"/>
+</div>
+<div class="flex flex-col gap-1.5 md:col-span-2">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wide">Professional Headline / Bio</label>
+<textarea class="glass-input min-h-[100px] resize-none">Senior Full-Stack Engineer specializing in responsive UI architecture and distributed systems. Passionate about mentoring recent grads.</textarea>
+</div>
+<div class="flex flex-col gap-1.5 md:col-span-2">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wide">Top Skills</label>
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface rounded-lg font-body-sm text-body-sm flex items-center gap-1">React <button class="hover:text-error"><span class="material-symbols-outlined text-[14px]">close</span></button></span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface rounded-lg font-body-sm text-body-sm flex items-center gap-1">TypeScript <button class="hover:text-error"><span class="material-symbols-outlined text-[14px]">close</span></button></span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface rounded-lg font-body-sm text-body-sm flex items-center gap-1">Node.js <button class="hover:text-error"><span class="material-symbols-outlined text-[14px]">close</span></button></span>
+<button class="px-3 py-1 border border-dashed border-outline text-on-surface-variant rounded-lg font-body-sm text-body-sm hover:bg-surface-variant transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> Add Skill
+                                    </button>
+</div>
+</div>
+</div>
+<div class="flex justify-end pt-4 border-t border-outline-variant/30 mt-2">
+<button class="btn-primary">Save Changes</button>
+</div>
+</section>
+<!-- Theme Toggler Preview (Bento Card) -->
+<section class="glass-panel p-6 flex flex-col gap-5">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Appearance &amp; Theme</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Customize your workspace lighting and accent colors.</p>
+</div>
+</div>
+<div class="flex flex-col md:flex-row gap-6">
+<!-- Mode Toggle -->
+<div class="flex bg-surface-container-low rounded-xl p-1 border border-outline-variant/50 w-fit">
+<button class="flex items-center gap-2 px-6 py-2 rounded-lg bg-white shadow-sm text-primary font-body-bold text-body-bold">
+<span class="material-symbols-outlined icon-fill">light_mode</span> Light
+                                </button>
+<button class="flex items-center gap-2 px-6 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-body-base text-body-base transition-colors">
+<span class="material-symbols-outlined">dark_mode</span> Dark
+                                </button>
+</div>
+<!-- Theme Presets (7 items) -->
+<div class="flex-1 border-l md:border-l border-outline-variant/30 pl-0 md:pl-6 pt-4 md:pt-0">
+<label class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wide mb-3 block">Accent Presets</label>
+<div class="flex gap-3">
+<button class="w-8 h-8 rounded-full bg-primary-container ring-2 ring-offset-2 ring-primary-container ring-offset-background"></button>
+<button class="w-8 h-8 rounded-full bg-student-cyan hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-alumni-magenta hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-tertiary-container hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-success hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-secondary hover:scale-110 transition-transform"></button>
+<button class="w-8 h-8 rounded-full bg-on-surface hover:scale-110 transition-transform"></button>
+</div>
+</div>
+</div>
+</section>
+<!-- JWT Security Preview (Bento Card) -->
+<section class="glass-panel p-6 flex flex-col gap-4">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary text-[28px]">security</span>
+<h3 class="font-title-lg text-title-lg text-on-surface">Active Sessions</h3>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/30 flex justify-between items-center">
+<div class="flex items-center gap-4">
+<div class="bg-white p-2 rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-on-surface">laptop_mac</span>
+</div>
+<div>
+<p class="font-body-bold text-body-bold text-on-surface">MacBook Pro - San Francisco, CA</p>
+<p class="font-code-mono text-code-mono text-on-surface-variant mt-0.5">Current Session • Last active: Just now</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-success/10 text-success rounded text-caption-xs font-body-bold uppercase tracking-wider">Active</span>
+</div>
+<button class="text-primary font-body-bold text-body-sm w-fit hover:underline">Revoke all other sessions</button>
+</section>
+<!-- Danger Zone -->
+<section class="glass-panel p-6 border-error/30 bg-error-container/5 mt-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h3 class="font-title-lg text-title-lg text-error mb-1">Delete Account</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-lg">Permanently remove your profile, network connections, and telemetry data from Alumnex Connect. This action is irreversible.</p>
+</div>
+<button class="btn-danger whitespace-nowrap self-start md:self-auto">Delete Account</button>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+</body></html>

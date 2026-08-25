@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Analytics Dashboard - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#dbe1ff",
+                      "on-tertiary-fixed": "#360f00",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "surface-tint": "#0053db",
+                      "error-container": "#ffdad6",
+                      "on-background": "#191b23",
+                      "tertiary-fixed": "#ffdbcd",
+                      "primary": "#004ac6",
+                      "on-surface-variant": "#434655",
+                      "on-secondary-container": "#54647a",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "surface": "#faf8ff",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#faf8ff",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "warning": "#d97706",
+                      "on-error-container": "#93000a",
+                      "alumni-magenta": "#c026d3",
+                      "surface-dim": "#d9d9e5",
+                      "surface-container": "#ededf9",
+                      "secondary-container": "#d0e1fb",
+                      "primary-container": "#2563eb",
+                      "surface-container-low": "#f3f3fe",
+                      "surface-variant": "#e1e2ed",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-container": "#ffede6",
+                      "on-secondary-fixed": "#0b1c30",
+                      "inverse-on-surface": "#f0f0fb",
+                      "student-cyan": "#0ea5e9",
+                      "inverse-surface": "#2e3039",
+                      "on-primary-fixed": "#00174b",
+                      "tertiary": "#943700",
+                      "secondary-fixed": "#d3e4fe",
+                      "outline": "#737686",
+                      "on-surface": "#191b23",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "success": "#16a34a",
+                      "on-secondary": "#ffffff",
+                      "error": "#dc2626",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-container-high": "#e7e7f3",
+                      "inverse-primary": "#b4c5ff",
+                      "surface-container-highest": "#e1e2ed",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-primary-container": "#eeefff",
+                      "tertiary-container": "#bc4800",
+                      "secondary": "#505f76",
+                      "outline-variant": "#c3c6d7",
+                      "on-primary": "#ffffff",
+                      "background": "#faf8ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "1rem",
+                      "md": "1rem",
+                      "unit": "4px",
+                      "margin-desktop": "2rem",
+                      "sm": "0.5rem",
+                      "xs": "0.25rem",
+                      "gutter": "1rem",
+                      "lg": "1.5rem",
+                      "xl": "2rem"
+              },
+              "fontFamily": {
+                      "code-mono": [
+                              "JetBrains Mono"
+                      ],
+                      "body-bold": [
+                              "Outfit"
+                      ],
+                      "headline-md": [
+                              "Outfit"
+                      ],
+                      "caption-xs": [
+                              "Outfit"
+                      ],
+                      "display-2xl": [
+                              "Outfit"
+                      ],
+                      "body-sm": [
+                              "Outfit"
+                      ],
+                      "body-base": [
+                              "Outfit"
+                      ],
+                      "title-lg": [
+                              "Outfit"
+                      ],
+                      "headline-lg-mobile": [
+                              "Outfit"
+                      ],
+                      "headline-lg": [
+                              "Outfit"
+                      ]
+              },
+              "fontSize": {
+                      "code-mono": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-bold": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "1.5rem",
+                              {
+                                      "lineHeight": "2rem",
+                                      "letterSpacing": "-0.015em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "caption-xs": [
+                              "0.75rem",
+                              {
+                                      "lineHeight": "1rem",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-2xl": [
+                              "4.5rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.03em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-sm": [
+                              "0.875rem",
+                              {
+                                      "lineHeight": "1.25rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-base": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1.5rem",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-lg": [
+                              "1.25rem",
+                              {
+                                      "lineHeight": "1.75rem",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "1.875rem",
+                              {
+                                      "lineHeight": "2.25rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "2.25rem",
+                              {
+                                      "lineHeight": "2.5rem",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #faf8ff;
+            background-image: radial-gradient(at 0% 0%, hsla(220,100%,94%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(220,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(220,100%,94%,1) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-base min-h-screen flex flex-col md:flex-row">
+<!-- Top Navigation (Mobile) -->
+<nav class="md:hidden bg-glass-light backdrop-blur-md fixed top-0 w-full z-50 border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile h-16 max-w-7xl mx-auto">
+<div class="text-title-lg font-headline-md font-bold text-primary">Alumnex Connect</div>
+<div class="flex gap-4">
+<button class="text-primary font-body-bold hover:bg-primary-container/10 p-2 rounded-full transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant p-2 rounded-full transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</nav>
+<!-- Side Navigation (Desktop) -->
+<aside class="hidden md:flex flex-col p-md gap-sm bg-glass-light backdrop-blur-lg fixed left-0 top-0 h-full w-64 z-40 border-r border-white/50 shadow-primary-500/10">
+<div class="mb-8 px-4 py-2">
+<h1 class="text-headline-md font-headline-md font-extrabold text-primary">Alumnex Connect</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Admin Portal</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-xl px-4 py-3 shadow-primary-500/20 font-body-sm text-body-sm -translate-y-0.5 shadow-md transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">insights</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 font-body-sm text-body-sm hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">group</span>
+                Network
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 font-body-sm text-body-sm hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">psychology</span>
+                Mentorship
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 font-body-sm text-body-sm hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+                Events
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 font-body-sm text-body-sm hover:bg-surface-container-high transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto space-y-2">
+<button class="w-full bg-primary text-on-primary rounded-xl px-4 py-3 font-body-bold text-body-bold hover:shadow-primary-500/30 shadow-md transition-all duration-300">
+                Generate Report
+            </button>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 font-body-sm text-body-sm hover:bg-surface-container-high transition-all duration-300 rounded-xl mt-4" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Log out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 pt-20 md:pt-8 p-margin-mobile md:p-margin-desktop max-w-7xl mx-auto w-full">
+<header class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Platform Overview</h2>
+<p class="font-body-base text-body-base text-secondary mt-1">Real-time engagement and growth metrics.</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-xl font-body-sm text-body-sm hover:bg-surface-variant transition-colors border border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                    Last 30 Days
+                </button>
+</div>
+</header>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-lg">
+<!-- Total Users -->
+<div class="glass-card rounded-xl p-6 transition-transform hover:-translate-y-0.5 duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-primary-fixed rounded-lg text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+</div>
+<span class="bg-success/10 text-success font-caption-xs text-caption-xs px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> +12%
+                    </span>
+</div>
+<h3 class="font-body-sm text-body-sm text-secondary mb-1">Total Verified Users</h3>
+<p class="font-display-2xl text-display-2xl text-on-background">24,592</p>
+</div>
+<!-- Active Mentorships -->
+<div class="glass-card rounded-xl p-6 transition-transform hover:-translate-y-0.5 duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-fixed rounded-lg text-surface-tint">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="bg-success/10 text-success font-caption-xs text-caption-xs px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> +8%
+                    </span>
+</div>
+<h3 class="font-body-sm text-body-sm text-secondary mb-1">Active Mentorships</h3>
+<p class="font-display-2xl text-display-2xl text-on-background">1,843</p>
+</div>
+<!-- Donation Goals -->
+<div class="glass-card rounded-xl p-6 transition-transform hover:-translate-y-0.5 duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-tertiary-fixed rounded-lg text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">volunteer_activism</span>
+</div>
+<span class="bg-warning/10 text-warning font-caption-xs text-caption-xs px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">trending_flat</span> 75%
+                    </span>
+</div>
+<h3 class="font-body-sm text-body-sm text-secondary mb-1">Fund Campaign Goal</h3>
+<p class="font-display-2xl text-display-2xl text-on-background">$1.2M</p>
+<div class="w-full bg-surface-container-high h-2 rounded-full mt-4 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout for Complex Data -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Engagement Trend Chart (Spans 2 columns) -->
+<div class="lg:col-span-2 glass-card rounded-xl p-6 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-lg text-title-lg text-on-background">Engagement Trends</h3>
+<button class="text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<!-- Placeholder for Chart -->
+<div class="flex-1 bg-surface-container-lowest/50 rounded-lg border border-outline-variant/30 flex items-center justify-center min-h-[300px] relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary-fixed/20 to-transparent"></div>
+<!-- Faux Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between py-4 px-2 opacity-10 pointer-events-none">
+<div class="border-b border-primary w-full"></div>
+<div class="border-b border-primary w-full"></div>
+<div class="border-b border-primary w-full"></div>
+<div class="border-b border-primary w-full"></div>
+</div>
+<div class="text-center z-10">
+<span class="material-symbols-outlined text-4xl text-secondary/50 mb-2">monitoring</span>
+<p class="font-body-sm text-body-sm text-secondary/70">Interactive chart visualization would render here.</p>
+</div>
+</div>
+</div>
+<!-- Recent Activity Log -->
+<div class="glass-card rounded-xl p-6 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-lg text-title-lg text-on-background">Recent Activity</h3>
+<a class="font-caption-xs text-caption-xs text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+<!-- Activity Item 1 -->
+<div class="flex items-start gap-3">
+<div class="mt-1">
+<img class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" data-alt="A small circular avatar placeholder image showing a professional headshot of a young professional smiling slightly against a neutral gray background. Soft studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbsm95Fbf_N1OHLRtAabNiAE3IEekxEG8h28ojojUpQ9rjX3xHSu_x8E5KKiR3qwXqy7paTJBvj5AVhBFELSs7YDHFw1daVlwwVjq-pfCAp6goYdUbVHq64kJ9w92B7QE4OdUkb4QAM5td3uMN7YvSxiSPa4a5YTvML-VgqAlKspAq2rey-guJ44IChzxQUbneeh3jGYOTuU6-8VohqW_GhECmXUxFb1cCihZ3ImSBoaySWaHExxZT"/>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-background"><span class="font-body-bold">Sarah Jenkins</span> requested <span class="text-alumni-magenta font-body-bold">Alumni Verification</span>.</p>
+<p class="font-caption-xs text-caption-xs text-secondary mt-0.5">2 mins ago • Class of '18</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex items-start gap-3">
+<div class="mt-1 bg-student-cyan/20 p-1.5 rounded-full text-student-cyan flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">school</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-background">50 new <span class="font-body-bold text-student-cyan">Student</span> accounts registered.</p>
+<p class="font-caption-xs text-caption-xs text-secondary mt-0.5">15 mins ago • Batch import</p>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex items-start gap-3">
+<div class="mt-1 bg-surface-tint/20 p-1.5 rounded-full text-surface-tint flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">handshake</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-background">New mentorship match: <span class="font-body-bold">David L.</span> &amp; <span class="font-body-bold">Emma C.</span></p>
+<p class="font-caption-xs text-caption-xs text-secondary mt-0.5">1 hour ago • Engineering Dept</p>
+</div>
+</div>
+<!-- Activity Item 4 -->
+<div class="flex items-start gap-3 opacity-75">
+<div class="mt-1">
+<img class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" data-alt="A small circular avatar placeholder image showing a professional headshot of an older executive in a suit against a light blue background. Corporate lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvKeLb8w-WZUbIyvBu0nVX_0dP9NSPYEGWk1FLa-xp80ExXYLPybGLlQbnl-O7KPW7DO0AoJcLmaBG4DYzZFjdV8UbMFTqqFDxpCEKUjErYxmfzOxj2xbbj3TwrLxseOCq71QRXSf6Flg2z_hHKn5iq1PqB4vVE6Bn9ldnoGY6j0kBzYtwvIrrBR1PTgkITszg2d2GYYR1M7c8pLW1feJu0jo1wT4BvGxcOCz8lpecS2Kui9d_rjRr"/>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-background"><span class="font-body-bold">Michael Chang</span> posted a new job listing.</p>
+<p class="font-caption-xs text-caption-xs text-secondary mt-0.5">3 hours ago • Tech sector</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

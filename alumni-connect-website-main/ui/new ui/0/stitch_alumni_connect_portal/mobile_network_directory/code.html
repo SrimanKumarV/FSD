@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alumnex Connect - Network Directory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#00174b",
+                      "tertiary-container": "#bc4800",
+                      "secondary-fixed": "#d3e4fe",
+                      "glass-dark": "rgba(31, 41, 55, 0.60)",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "outline": "#737686",
+                      "surface": "#faf8ff",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "surface-container-low": "#f3f3fe",
+                      "alumni-magenta": "#c026d3",
+                      "tertiary-fixed": "#ffdbcd",
+                      "surface-tint": "#0053db",
+                      "surface-container-highest": "#e1e2ed",
+                      "on-primary-container": "#eeefff",
+                      "on-secondary-fixed": "#0b1c30",
+                      "primary": "#004ac6",
+                      "inverse-on-surface": "#f0f0fb",
+                      "surface-container-high": "#e7e7f3",
+                      "surface-bright": "#faf8ff",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "surface-variant": "#e1e2ed",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#54647a",
+                      "secondary": "#505f76",
+                      "outline-variant": "#c3c6d7",
+                      "inverse-surface": "#2e3039",
+                      "surface-container-lowest": "#ffffff",
+                      "glass-light": "rgba(255, 255, 255, 0.80)",
+                      "on-surface-variant": "#434655",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "inverse-primary": "#b4c5ff",
+                      "tertiary": "#943700",
+                      "surface-dim": "#d9d9e5",
+                      "secondary-container": "#d0e1fb",
+                      "primary-fixed": "#dbe1ff",
+                      "error": "#dc2626",
+                      "on-surface": "#191b23",
+                      "on-tertiary-container": "#ffede6",
+                      "success": "#16a34a",
+                      "on-error": "#ffffff",
+                      "on-background": "#191b23",
+                      "surface-container": "#ededf9",
+                      "student-cyan": "#0ea5e9",
+                      "background": "#faf8ff",
+                      "primary-container": "#2563eb",
+                      "on-tertiary-fixed": "#360f00",
+                      "warning": "#d97706",
+                      "secondary-fixed-dim": "#b7c8e1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "2rem",
+                      "md": "1rem",
+                      "gutter": "1rem",
+                      "unit": "4px",
+                      "lg": "1.5rem",
+                      "margin-mobile": "1rem",
+                      "xl": "2rem",
+                      "xs": "0.25rem",
+                      "sm": "0.5rem"
+              },
+              "fontFamily": {
+                      "body-bold": ["Outfit"],
+                      "caption-xs": ["Outfit"],
+                      "body-base": ["Outfit"],
+                      "headline-md": ["Outfit"],
+                      "code-mono": ["JetBrains Mono"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "display-2xl": ["Outfit"],
+                      "body-sm": ["Outfit"],
+                      "title-lg": ["Outfit"],
+                      "headline-lg": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-bold": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "600"}],
+                      "caption-xs": ["0.75rem", {"lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "body-base": ["1rem", {"lineHeight": "1.5rem", "fontWeight": "400"}],
+                      "headline-md": ["1.5rem", {"lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                      "code-mono": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["1.875rem", {"lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "display-2xl": ["4.5rem", {"lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                      "body-sm": ["0.875rem", {"lineHeight": "1.25rem", "fontWeight": "400"}],
+                      "title-lg": ["1.25rem", {"lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg": ["2.25rem", {"lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: theme('colors.glass-light');
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-card {
+            background-color: theme('colors.glass-dark');
+            border-color: rgba(55, 65, 81, 0.5);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-input {
+            background-color: rgba(31, 41, 55, 0.4);
+            border-color: rgba(55, 65, 81, 0.3);
+        }
+        .glass-input:focus {
+            background-color: theme('colors.surface');
+        }
+        .dark .glass-input:focus {
+            background-color: theme('colors.surface-container-highest');
+        }
+        
+        /* Hide scrollbar for horizontal chips */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased min-h-screen pb-24">
+<!-- Background Gradient Effect -->
+<div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+<div class="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-fixed opacity-40 blur-[100px]"></div>
+<div class="absolute top-[40%] -right-[20%] w-[60%] h-[60%] rounded-full bg-secondary-fixed opacity-30 blur-[120px]"></div>
+</div>
+<!-- TopNavBar (Shared Component) -->
+<nav class="bg-glass-light dark:bg-glass-dark backdrop-blur-md fixed top-0 w-full z-50 border-b border-white/50 dark:border-gray-700/50 shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-sm text-title-lg font-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+<span>Alumnex Connect</span>
+</div>
+<div class="flex items-center gap-xs">
+<button aria-label="notifications" class="p-2 rounded-full text-on-surface-variant dark:text-outline-variant hover:bg-primary-container/10 transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="chat_bubble" class="p-2 rounded-full text-on-surface-variant dark:text-outline-variant hover:bg-primary-container/10 transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<button aria-label="account_circle" class="p-2 rounded-full text-on-surface-variant dark:text-outline-variant hover:bg-primary-container/10 transition-colors duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content Area (Mobile Optimized) -->
+<main class="pt-20 px-margin-mobile max-w-7xl mx-auto flex flex-col gap-md lg:hidden">
+<!-- Search Bar -->
+<section class="sticky top-16 z-30 bg-background/80 backdrop-blur-md py-sm -mx-margin-mobile px-margin-mobile">
+<div class="relative w-full">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-outline material-symbols-outlined" data-icon="search">search</span>
+<input aria-label="Search directory" class="glass-input w-full h-12 pl-10 pr-4 rounded-xl text-body-base text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary focus:outline-none transition-all w-full" placeholder="Search alumni, roles, companies..." type="text"/>
+</div>
+</section>
+<!-- Filter Chips (Horizontal Scroll) -->
+<section class="flex overflow-x-auto gap-sm py-xs no-scrollbar -mx-margin-mobile px-margin-mobile">
+<button class="flex-shrink-0 bg-primary text-on-primary font-body-sm text-body-sm px-4 py-2 rounded-full flex items-center gap-2 shadow-primary-500/30 shadow-sm transition-transform active:scale-95">
+                All Alumni
+            </button>
+<button class="flex-shrink-0 bg-surface-container text-on-surface font-body-sm text-body-sm px-4 py-2 rounded-full flex items-center gap-2 border border-outline-variant/30 hover:bg-surface-container-high transition-colors active:scale-95">
+                Grad Year <span class="material-symbols-outlined text-[16px]" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+<button class="flex-shrink-0 bg-surface-container text-on-surface font-body-sm text-body-sm px-4 py-2 rounded-full flex items-center gap-2 border border-outline-variant/30 hover:bg-surface-container-high transition-colors active:scale-95">
+                Industry <span class="material-symbols-outlined text-[16px]" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+<button class="flex-shrink-0 bg-surface-container text-on-surface font-body-sm text-body-sm px-4 py-2 rounded-full flex items-center gap-2 border border-outline-variant/30 hover:bg-surface-container-high transition-colors active:scale-95">
+                Location <span class="material-symbols-outlined text-[16px]" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+</section>
+<!-- Results Summary -->
+<div class="flex justify-between items-center py-xs">
+<h1 class="font-title-lg text-title-lg text-on-surface">Network Directory</h1>
+<span class="font-body-sm text-body-sm text-on-surface-variant">2,401 matches</span>
+</div>
+<!-- Alumni Cards List -->
+<div class="flex flex-col gap-md">
+<!-- Card 1 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-sm shadow-sm transition-transform hover:-translate-y-0.5">
+<div class="flex items-start gap-md">
+<div class="relative flex-shrink-0">
+<img alt="Sarah Jenkins Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-surface-container-lowest shadow-sm" data-alt="A professional headshot of a young woman with warm lighting in a modern office environment, maintaining a clean light-mode saas aesthetic with soft blues and whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrzugDcJka0D3lG69N0_AsdUdHMOmWErrmFMkc1iCBAgzmocAo7IIZ4zgfJlPO1YZW28taQmktAHJzDKJsnjqctnyUx0OlwsDAibV52Gufq7dx0VAcwyi92vK3St-O5JT3NcBBdSobNHOZia95WfLxp5Pcj69PeTlJF_c0vss4Vqd-22eHMMxiBcKrKErRhcnkoFFAA9Wy1U9QaaTRNx9Vs1xm21fmbLPRpLfFxuQlE_yHlUBLVING"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-lowest rounded-full p-[2px] shadow-sm">
+<span class="material-symbols-outlined text-alumni-magenta text-[16px]" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col min-w-0">
+<h2 class="font-body-bold text-body-bold text-on-surface truncate">Sarah Jenkins</h2>
+<p class="font-body-sm text-body-sm text-primary truncate">Senior Product Designer</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Acme Corp • Class of 2019</p>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap pt-xs">
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant font-caption-xs text-caption-xs rounded-md border border-outline-variant/20">Design</span>
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant font-caption-xs text-caption-xs rounded-md border border-outline-variant/20">San Francisco</span>
+</div>
+<button class="mt-2 w-full bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary font-body-bold text-body-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-primary-500/10">
+                    Connect
+                </button>
+</article>
+<!-- Card 2 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-sm shadow-sm transition-transform hover:-translate-y-0.5">
+<div class="flex items-start gap-md">
+<div class="relative flex-shrink-0">
+<img alt="David Chen Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-surface-container-lowest shadow-sm" data-alt="A professional headshot of a man with a beard wearing a casual button-down shirt, lit with soft natural light against a blurred architectural background, fitting a sleek saas platform aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjLi6tpjAtgWtVQiqn69s9J231vUbTU2MSEX4f31xrOK4xIafgdLfDiGzlzaAgI6X7m186hl0TjJ65w68Xszvd53APRp_O64wfHJBtp80y8q3n64zhlIJ5JGLPxuHqpda5q12kD6jwzTVxsUE0UXKlYBqQKhK_FMr2UAYG7c0Cd2QT83JaWKVJZa3kXLU8mx8OacmCwo5a5aCm6Yzh9KBGCBK2qtNZUw2-ajP1DI3uwti-86I9LSUA"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-lowest rounded-full p-[2px] shadow-sm">
+<span class="material-symbols-outlined text-alumni-magenta text-[16px]" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col min-w-0">
+<h2 class="font-body-bold text-body-bold text-on-surface truncate">David Chen</h2>
+<p class="font-body-sm text-body-sm text-primary truncate">Lead Software Engineer</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">TechFlow Inc • Class of 2017</p>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap pt-xs">
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant font-caption-xs text-caption-xs rounded-md border border-outline-variant/20">Engineering</span>
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant font-caption-xs text-caption-xs rounded-md border border-outline-variant/20">Remote</span>
+</div>
+<button class="mt-2 w-full bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary font-body-bold text-body-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-primary-500/10">
+                    Connect
+                </button>
+</article>
+<!-- Card 3 -->
+<article class="glass-card rounded-xl p-md flex flex-col gap-sm shadow-sm transition-transform hover:-translate-y-0.5">
+<div class="flex items-start gap-md">
+<div class="relative flex-shrink-0">
+<img alt="Elena Rodriguez Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-surface-container-lowest shadow-sm" data-alt="A professional headshot of a woman looking confident, wearing glasses, in a well-lit studio setting with a clean, light-mode background featuring subtle geometric shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAOHsDhcnPas9OTcipEHZNDzXK1BMLTlxZuZXk2kSqV1I9Rm0y0PNCOUamYKjdZk7kRjbK78oLTyyvG8Uvv0Dm4q3MY8xKttDSYSb1CFTHhszloHH_Z6_ovbsOxe018jioV-ogYOHCZks8v0qQH5xPHslpT6za_pr7oR-BDV8c9tMeJqgfc-cLf09ZYb-Ye2IkLW5OSOpgO1gF-Y84SAgGO9GaEjzr1PR-bPPA1Q9k0_2ahuoie-45"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-lowest rounded-full p-[2px] shadow-sm">
+<span class="material-symbols-outlined text-alumni-magenta text-[16px]" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col min-w-0">
+<h2 class="font-body-bold text-body-bold text-on-surface truncate">Elena Rodriguez</h2>
+<p class="font-body-sm text-body-sm text-primary truncate">Marketing Director</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">GlobalReach • Class of 2015</p>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap pt-xs">
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant font-caption-xs text-caption-xs rounded-md border border-outline-variant/20">Marketing</span>
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant font-caption-xs text-caption-xs rounded-md border border-outline-variant/20">New York</span>
+</div>
+<button class="mt-2 w-full bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary font-body-bold text-body-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-primary-500/10">
+                    Connect
+                </button>
+</article>
+<!-- Loading State Skeleton -->
+<div aria-busy="true" class="glass-card rounded-xl p-md flex flex-col gap-sm animate-pulse">
+<div class="flex items-start gap-md">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex-shrink-0"></div>
+<div class="flex-1 flex flex-col gap-2 py-1">
+<div class="h-4 bg-surface-container-high rounded w-1/2"></div>
+<div class="h-3 bg-surface-container-high rounded w-3/4"></div>
+<div class="h-3 bg-surface-container-high rounded w-2/3"></div>
+</div>
+</div>
+<div class="h-10 bg-surface-container-high rounded-lg mt-2 w-full"></div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar for Mobile Navigation -->
+<nav class="fixed bottom-0 left-0 w-full bg-glass-light dark:bg-glass-dark backdrop-blur-lg z-40 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="flex justify-around items-center h-16 px-4">
+<a class="flex flex-col items-center justify-center w-full h-full text-primary dark:text-primary-fixed-dim border-t-2 border-primary pt-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="group" data-weight="fill" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-caption-xs text-caption-xs">Network</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors border-t-2 border-transparent pt-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="psychology">psychology</span>
+<span class="font-caption-xs text-caption-xs">Mentorship</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors border-t-2 border-transparent pt-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="insights">insights</span>
+<span class="font-caption-xs text-caption-xs">DevPulse</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors border-t-2 border-transparent pt-1" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_month">calendar_month</span>
+<span class="font-caption-xs text-caption-xs">Events</span>
+</a>
+</div>
+</nav>
+</body></html>

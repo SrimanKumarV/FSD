@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Mobile Dashboard - Alumnex Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "inverse-surface": "#2e3039",
+                        "primary-container": "#2563eb",
+                        "surface-tint": "#0053db",
+                        "glass-dark": "rgba(31, 41, 55, 0.60)",
+                        "tertiary-fixed": "#ffdbcd",
+                        "success": "#16a34a",
+                        "on-secondary": "#ffffff",
+                        "glass-light": "rgba(255, 255, 255, 0.80)",
+                        "student-cyan": "#0ea5e9",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-background": "#191b23",
+                        "inverse-primary": "#b4c5ff",
+                        "primary-fixed": "#dbe1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191b23",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-error-container": "#93000a",
+                        "error": "#dc2626",
+                        "surface-bright": "#faf8ff",
+                        "on-primary-container": "#eeefff",
+                        "surface-variant": "#e1e2ed",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-container-highest": "#e1e2ed",
+                        "tertiary-container": "#bc4800",
+                        "warning": "#d97706",
+                        "on-secondary-container": "#54647a",
+                        "on-error": "#ffffff",
+                        "outline": "#737686",
+                        "inverse-on-surface": "#f0f0fb",
+                        "surface-container-high": "#e7e7f3",
+                        "secondary": "#505f76",
+                        "primary": "#004ac6",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "alumni-magenta": "#c026d3",
+                        "on-surface-variant": "#434655",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface": "#faf8ff",
+                        "tertiary": "#943700",
+                        "surface-container": "#ededf9",
+                        "on-tertiary-fixed": "#360f00",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-tertiary-container": "#ffede6",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-low": "#f3f3fe",
+                        "background": "#faf8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1rem",
+                        "sm": "0.5rem",
+                        "margin-mobile": "1rem",
+                        "xl": "2rem",
+                        "md": "1rem",
+                        "unit": "4px",
+                        "lg": "1.5rem",
+                        "xs": "0.25rem",
+                        "margin-desktop": "2rem"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Outfit"],
+                        "code-mono": ["JetBrains Mono"],
+                        "caption-xs": ["Outfit"],
+                        "body-bold": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-2xl": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "title-lg": ["Outfit"],
+                        "headline-md": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-base": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+                        "code-mono": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" }],
+                        "caption-xs": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-bold": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-2xl": ["4.5rem", { "lineHeight": "1", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "headline-lg": ["2.25rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+                        "title-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .mesh-bg {
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
+        }
+        
+        /* Hide scrollbar for horizontal scrolling areas */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-base mesh-bg pb-20 selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation (Mobile Version of TopNavBar) -->
+<header class="fixed top-0 w-full z-50 bg-glass-light backdrop-blur-md border-b border-white/50 shadow-sm flex justify-between items-center px-margin-mobile h-16 max-w-md mx-auto inset-x-0">
+<!-- Logo / Title -->
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span class="font-headline-md text-headline-md font-extrabold text-primary">Alumnex</span>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-3">
+<button aria-label="Notifications" class="text-on-surface-variant hover:bg-primary-container/10 p-2 rounded-full transition-colors duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined relative">
+                    notifications
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-white"></span>
+</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-white shadow-sm">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A close up portrait photo of a young male student in a bright, modern university setting. Soft, natural light illuminates his face, highlighting a focused, ambitious expression. The background is a slightly blurred, high-key bright white architectural space, consistent with a clean SaaS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjt77AQGOa2P0u_IG34uspVmovKLaJe9sariHjfQE65WNTt2-wtk0OyQKNmvWQcIrPZo0xYxx3pBkyH3ua4u2aEzPkpuRWx5vlyk3vrmicA0bbwb0xd2nTYhomGeSglr8dZpISmHq_4t_A3Kr9H9Y2xU4v-LPJVtm64lYb_t_uEOHtzA1af4Jno-_u-kNsjsg4QNbUnTCM5rS4gkUimirsGrdGCeYhj75QYmh85cmcH_MvwmFWUbTZ"/>
+</div>
+</div>
+</header>
+<!-- Main Mobile Content Area (Restricted to mobile width for preview) -->
+<main class="flex-grow pt-20 px-margin-mobile flex flex-col gap-lg max-w-md mx-auto w-full">
+<!-- Welcome Section -->
+<section class="flex flex-col gap-1 mt-2">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Welcome back,</p>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background">Alex Developer</h1>
+</section>
+<!-- DevPulse Quick Stats (Bento style) -->
+<section class="grid grid-cols-2 gap-4">
+<div class="col-span-2 glass-card rounded-xl p-4 flex justify-between items-center bg-gradient-to-br from-surface-container to-surface">
+<div>
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-student-cyan">local_fire_department</span>
+                        14 Day Streak
+                    </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Keep it up! 3 more days for next badge.</p>
+</div>
+<div class="w-12 h-12 rounded-full border-4 border-student-cyan flex items-center justify-center bg-surface-container-lowest">
+<span class="font-body-bold text-body-bold text-primary">⚡</span>
+</div>
+</div>
+<div class="glass-card rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-primary-container/10 rounded-full blur-xl group-hover:bg-primary-container/20 transition-all"></div>
+<span class="material-symbols-outlined text-primary text-xl">code</span>
+<div>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider">Commits</p>
+<p class="font-headline-md text-headline-md text-on-background mt-1">42 <span class="text-success text-body-sm font-body-sm">↑12%</span></p>
+</div>
+</div>
+<div class="glass-card rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-alumni-magenta/10 rounded-full blur-xl group-hover:bg-alumni-magenta/20 transition-all"></div>
+<span class="material-symbols-outlined text-alumni-magenta text-xl">psychology</span>
+<div>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant uppercase tracking-wider">Mentor Hours</p>
+<p class="font-headline-md text-headline-md text-on-background mt-1">8.5 <span class="text-on-surface-variant font-body-sm text-body-sm">hrs</span></p>
+</div>
+</div>
+</section>
+<!-- One-Tap Action -->
+<section>
+<button class="w-full bg-primary text-on-primary rounded-xl py-4 px-6 flex items-center justify-between shadow-primary-500/30 shadow-lg active:scale-95 transition-transform">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-body-bold text-body-bold">Ask AI Mentor</span>
+</div>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</section>
+<!-- Upcoming Contests (Horizontal Scroll) -->
+<section class="flex flex-col gap-3 -mx-margin-mobile">
+<div class="px-margin-mobile flex justify-between items-end">
+<h2 class="font-title-lg text-title-lg text-on-background">Upcoming Contests</h2>
+<a class="font-body-sm text-body-sm text-primary font-body-bold hover:underline" href="#">View All</a>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar gap-4 px-margin-mobile pb-4 snap-x snap-mandatory">
+<!-- Contest Card 1 -->
+<div class="glass-card min-w-[280px] rounded-xl p-0 overflow-hidden flex flex-col snap-center shadow-sm">
+<div class="h-24 bg-surface-container-high relative">
+<img alt="Hackathon Cover" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A minimalist, abstract 3D rendering of interconnected glowing nodes and wireframes on a clean, light-mode background. The color palette features whites, light grays, and electric student-cyan accents. The composition suggests complex networks, coding, and technological innovation in a bright, modern SaaS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_V_YC6ex7vl4t3wXyQSpKrAW4puXA9nQil8C1bFBNQxYsWRUt_RJ6lfoWMuT8RuaaU26jiRSkeq96Y1QFSC5bLp1iop18na7FwmqgScwNMDvdFKr70WJ8fGSWeJq2a7RsK0eXcXYn67yf2tWVKk0oCal8Xt1kYGtzHQByUizUzyGLe9fI7GU4i3xLvx2gxqr_iGVUcbpVE1n7qhMh-RB5j2wT_rtjz3cFCMm43qShNuleE6YAOrfC"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest/90 backdrop-blur text-xs font-body-bold px-2 py-1 rounded-md text-student-cyan shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> 2 Days Left
+                        </div>
+</div>
+<div class="p-4 flex flex-col gap-2 bg-surface-container-lowest">
+<h3 class="font-body-bold text-body-bold text-on-background line-clamp-1">Global Algo-Sprint 2024</h3>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant line-clamp-2">Compete with top students worldwide in this algorithmic challenge.</p>
+<div class="mt-2 flex gap-2">
+<span class="bg-surface-container px-2 py-1 rounded text-xs text-on-surface font-code-mono">Python</span>
+<span class="bg-surface-container px-2 py-1 rounded text-xs text-on-surface font-code-mono">C++</span>
+</div>
+</div>
+</div>
+<!-- Contest Card 2 -->
+<div class="glass-card min-w-[280px] rounded-xl p-0 overflow-hidden flex flex-col snap-center shadow-sm">
+<div class="h-24 bg-surface-container-high relative">
+<img alt="UI Challenge Cover" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A clean, conceptual illustration of a mobile app interface floating in an ethereal, light-mode environment. Soft shadows and subtle glassmorphic layers characterize the scene. The palette is predominantly white and light blue, conveying clarity, UI/UX design, and modern software development." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAXg5tT6ryLDEWWopZLR1tK9Yw8rnxQZICnWO5xItyGxu5HRucIxN6SHkB-R3nc0oz0wNwWW-RRXfXg9fI6deycv8i_T9FoaSrCLdyU8YaHjadcAGUZjLFGjtwuC-nsWIov7XMwD6kRuByhiXkC60eRKll0yDoQztkWuYAU83c5IzGgKek12j48CEyn68caziWVA7GUfsBiKqFjXkMESM1gLxWRmJyuBrlNcUgQCByGuwhO451-Exg"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest/90 backdrop-blur text-xs font-body-bold px-2 py-1 rounded-md text-warning shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> Oct 15
+                        </div>
+</div>
+<div class="p-4 flex flex-col gap-2 bg-surface-container-lowest">
+<h3 class="font-body-bold text-body-bold text-on-background line-clamp-1">Frontend UI Challenge</h3>
+<p class="font-caption-xs text-caption-xs text-on-surface-variant line-clamp-2">Build a pixel-perfect dashboard using modern CSS frameworks.</p>
+<div class="mt-2 flex gap-2">
+<span class="bg-surface-container px-2 py-1 rounded text-xs text-on-surface font-code-mono">React</span>
+<span class="bg-surface-container px-2 py-1 rounded text-xs text-on-surface font-code-mono">Tailwind</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Spacer for bottom nav -->
+<div class="h-6"></div>
+</main>
+<!-- Mobile Bottom Navigation (Strictly for mobile viewport) -->
+<nav class="fixed bottom-0 w-full z-50 bg-glass-light backdrop-blur-lg shadow-[0_-4px_20px_rgba(0,0,0,0.05)] border-t border-white/50 max-w-md mx-auto inset-x-0 pb-safe">
+<div class="flex justify-around items-center h-16 px-2">
+<!-- Active State: DevPulse -->
+<a class="flex flex-col items-center justify-center w-full h-full text-primary gap-1 group relative" href="#">
+<div class="absolute -top-1 w-8 h-1 bg-primary rounded-b-full"></div>
+<div class="bg-primary-container/10 p-1 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">insights</span>
+</div>
+<span class="font-caption-xs text-[10px] font-body-bold">DevPulse</span>
+</a>
+<!-- Inactive States -->
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-primary transition-colors gap-1 group" href="#">
+<div class="p-1 rounded-full group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-2xl">group</span>
+</div>
+<span class="font-caption-xs text-[10px]">Network</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-primary transition-colors gap-1 group" href="#">
+<div class="p-1 rounded-full group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-2xl">psychology</span>
+</div>
+<span class="font-caption-xs text-[10px]">Mentorship</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-primary transition-colors gap-1 group" href="#">
+<div class="p-1 rounded-full group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-2xl">calendar_month</span>
+</div>
+<span class="font-caption-xs text-[10px]">Events</span>
+</a>
+</div>
+</nav>
+<!-- Safe area padding for iOS -->
+<style>
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    </style>
+</body></html>

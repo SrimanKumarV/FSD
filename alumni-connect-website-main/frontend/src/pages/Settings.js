@@ -489,7 +489,7 @@ const Settings = () => {
               </Button>
             </div>
           </div>
-
+        </div>
       </Card>
 
       {/* Delete Account Modal */}

@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumnex Connect — Production Deployment & Budget Estimation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+      --primary-dark: #3730a3;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --orange: #f97316;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --bg: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --card-bg: #f8fafc;
+      --render-green: #46e3b7;
+      --aws-orange: #ff9900;
+      --azure-blue: #0078d4;
+      --do-blue: #0069ff;
+      --railway-purple: #8b5cf6;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      font-size: 11px;
+    }
+
+    @media print {
+      body { font-size: 10px; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      @page { margin: 12mm 15mm; size: A4; }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Cover Page */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4f46e5 60%, #06b6d4 100%);
+      color: white;
+      text-align: center;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    }
+
+    .cover * { position: relative; z-index: 1; }
+
+    .cover-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .cover h1 {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .cover h1 span { color: #67e8f9; }
+
+    .cover .subtitle {
+      font-size: 18px;
+      font-weight: 300;
+      opacity: 0.85;
+      max-width: 600px;
+      margin-bottom: 40px;
+    }
+
+    .cover-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 20px;
+    }
+
+    .cover-stat {
+      text-align: center;
+    }
+
+    .cover-stat .number {
+      font-size: 36px;
+      font-weight: 800;
+      color: #67e8f9;
+    }
+
+    .cover-stat .label {
+      font-size: 11px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cover-meta {
+      margin-top: 50px;
+      font-size: 12px;
+      opacity: 0.6;
+    }
+
+    /* Section Headers */
+    .section {
+      padding: 30px 0 20px;
+    }
+
+    .section-number {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 20px 0 10px;
+    }
+
+    h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin: 14px 0 8px;
+    }
+
+    p, li {
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 10.5px;
+    }
+
+    thead th {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      color: white;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child { border-radius: 0 8px 0 0; }
+
+    tbody td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #eff6ff; }
+
+    tbody tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+    tbody tr:last-child td:last-child { border-radius: 0 0 8px 0; }
+
+    .total-row td {
+      font-weight: 700 !important;
+      background: linear-gradient(135deg, #eff6ff, #e0e7ff) !important;
+      color: var(--primary-dark) !important;
+      font-size: 12px !important;
+      border-top: 2px solid var(--primary);
+    }
+
+    /* Comparison Tables */
+    .compare-table thead th { font-size: 9.5px; }
+    .compare-table td { font-size: 10px; padding: 7px 8px; }
+
+    .provider-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .badge-render { background: var(--render-green); color: #1e293b; }
+    .badge-aws { background: var(--aws-orange); }
+    .badge-azure { background: var(--azure-blue); }
+    .badge-do { background: var(--do-blue); }
+    .badge-railway { background: var(--railway-purple); }
+
+    /* Alert Boxes */
+    .alert {
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin: 16px 0;
+      font-size: 11px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border-left: 4px solid var(--danger);
+      color: #991b1b;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      color: #92400e;
+    }
+
+    .alert-success {
+      background: #ecfdf5;
+      border-left: 4px solid var(--success);
+      color: #065f46;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+      color: #1e40af;
+    }
+
+    .alert-icon { font-size: 18px; flex-shrink: 0; }
+    .alert-content { flex: 1; }
+    .alert-title { font-weight: 700; margin-bottom: 4px; }
+
+    /* Budget Cards */
+    .budget-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .budget-card {
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .budget-card::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -30%;
+      width: 80%;
+      height: 80%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+
+    .budget-card * { position: relative; z-index: 1; }
+
+    .budget-card.mvp { background: linear-gradient(135deg, #10b981, #059669); }
+    .budget-card.small { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .budget-card.medium { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .budget-card.large { background: linear-gradient(135deg, #f97316, #ea580c); }
+
+    .budget-card .tier { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; }
+    .budget-card .price { font-size: 28px; font-weight: 900; margin: 6px 0; }
+    .budget-card .price-inr { font-size: 12px; opacity: 0.85; }
+    .budget-card .users { font-size: 10px; opacity: 0.7; margin-top: 6px; }
+
+    /* Code blocks */
+    .code-block {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      line-height: 1.8;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+
+    .code-block .route { color: #67e8f9; }
+    .code-block .desc { color: #94a3b8; }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checklist .status {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .status-critical { background: #fef2f2; color: var(--danger); }
+    .status-required { background: #fffbeb; color: var(--warning); }
+    .status-nice { background: #ecfdf5; color: var(--success); }
+    .status-done { background: #ecfdf5; color: var(--success); }
+
+    /* Provider Comparison Visual */
+    .comparison-visual {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .provider-card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .provider-card.winner {
+      border-color: var(--success);
+      background: #ecfdf5;
+    }
+
+    .provider-card .name {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .provider-card .total {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--primary-dark);
+    }
+
+    .provider-card .verdict {
+      font-size: 9px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Bottom Line Box */
+    .bottom-line {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      color: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin: 30px 0;
+      text-align: center;
+    }
+
+    .bottom-line h3 {
+      color: #67e8f9;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .bottom-line p {
+      color: rgba(255,255,255,0.8);
+      font-size: 12px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .bottom-line .highlight {
+      color: #fbbf24;
+      font-weight: 700;
+    }
+
+    /* Pricing Bar Charts */
+    .bar-chart {
+      margin: 16px 0;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+
+    .bar-label {
+      width: 120px;
+      font-size: 10px;
+      font-weight: 600;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 24px;
+      background: #f1f5f9;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      color: white;
+      min-width: 50px;
+      transition: width 0.5s ease;
+    }
+
+    .bar-render { background: linear-gradient(90deg, #34d399, #10b981); }
+    .bar-aws { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .bar-azure { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+    .bar-do { background: linear-gradient(90deg, #38bdf8, #0284c7); }
+    .bar-railway { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-secondary);
+      font-size: 10px;
+      border-top: 1px solid var(--border);
+      margin-top: 30px;
+    }
+
+    /* TOC */
+    .toc {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px 30px;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+    }
+
+    .toc h3 {
+      font-size: 14px;
+      margin-bottom: 14px;
+      color: var(--primary-dark);
+    }
+
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      columns: 2;
+      column-gap: 30px;
+    }
+
+    .toc-list li {
+      padding: 5px 0;
+      border-bottom: 1px dotted var(--border);
+      font-size: 11px;
+    }
+
+    .toc-list li span {
+      color: var(--primary);
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    /* Inline price highlight */
+    .price-tag {
+      display: inline-block;
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 10px;
+    }
+
+    .price-tag.free {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .price-tag.paid {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .price-tag.expensive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Scaling roadmap */
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .roadmap::before {
+      content: '';
+      position: absolute;
+      top: 35px;
+      left: 12.5%;
+      right: 12.5%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--success), var(--primary), var(--purple), var(--orange));
+      z-index: 0;
+    }
+
+    .roadmap-step {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .roadmap-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin: 25px auto 10px;
+      border: 3px solid white;
+      box-shadow: 0 0 0 2px currentColor;
+    }
+
+    .roadmap-step:nth-child(1) .roadmap-dot { background: var(--success); color: var(--success); }
+    .roadmap-step:nth-child(2) .roadmap-dot { background: var(--primary); color: var(--primary); }
+    .roadmap-step:nth-child(3) .roadmap-dot { background: var(--purple); color: var(--purple); }
+    .roadmap-step:nth-child(4) .roadmap-dot { background: var(--orange); color: var(--orange); }
+
+    .roadmap-phase { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+    .roadmap-users { font-size: 9px; color: var(--text-secondary); }
+    .roadmap-price { font-size: 14px; font-weight: 800; margin-top: 4px; }
+    .roadmap-time { font-size: 9px; color: var(--text-secondary); }
+
+    /* Stack recommendation */
+    .stack-table td:first-child { font-weight: 600; }
+    .recommended-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 600;
+    }
+
+    /* Action items */
+    .action-list {
+      counter-reset: action;
+      list-style: none;
+      padding: 0;
+    }
+
+    .action-list li {
+      counter-increment: action;
+      padding: 10px 14px;
+      margin: 6px 0;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .action-list li::before {
+      content: counter(action);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="cover">
+  <div class="cover-badge">📄 Production Deployment Guide</div>
+  <h1>Alumnex Connect<br><span>Budget & Pricing Estimation</span></h1>
+  <p class="subtitle">A comprehensive analysis of all infrastructure, APIs, and services required to publish Alumnex Connect as a production-grade SaaS application.</p>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="number">18</div>
+      <div class="label">External APIs</div>
+    </div>
+    <div class="cover-stat">
+      <div class="number">5</div>
+      <div class="label">Cloud Providers</div>
+    </div>
+    <div class="cover-stat">
+      <div class="number">4</div>
+      <div class="label">Budget Tiers</div>
+    </div>
+    <div class="cover-stat">
+      <div class="number">21</div>
+      <div class="label">API Routes</div>
+    </div>
+  </div>
+  <div class="cover-meta">
+    Project: Alumnex Connect (MERN + Redis + WebSockets + AI) &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; v1.0
+  </div>
+</div>
+
+<!-- ==================== TABLE OF CONTENTS ==================== -->
+<div class="container page-break">
+  <div class="toc">
+    <h3>📑 Table of Contents</h3>
+    <ol class="toc-list">
+      <li><span>01</span> Project Architecture Overview</li>
+      <li><span>02</span> Infrastructure Requirements</li>
+      <li><span>03</span> API & Third-Party Service Inventory</li>
+      <li><span>04</span> Cloud Hosting Provider Comparison</li>
+      <li><span>05</span> Database Tier Comparison</li>
+      <li><span>06</span> Redis/Caching Tier Comparison</li>
+      <li><span>07</span> API Pricing Deep Dive</li>
+      <li><span>08</span> Domain, SSL & CDN Costs</li>
+      <li><span>09</span> Production Optimization Checklist</li>
+      <li><span>10</span> Budget Summary Tables</li>
+      <li><span>11</span> Scaling Roadmap</li>
+      <li><span>12</span> Recommended Production Stack</li>
+    </ol>
+  </div>
+
+  <!-- ==================== BUDGET OVERVIEW CARDS ==================== -->
+  <h3 style="margin-top:20px;">💰 Quick Budget Overview</h3>
+  <div class="budget-grid">
+    <div class="budget-card mvp">
+      <div class="tier">MVP / Demo</div>
+      <div class="price">$8</div>
+      <div class="price-inr">₹660/mo</div>
+      <div class="users">0 - 500 users</div>
+    </div>
+    <div class="budget-card small">
+      <div class="tier">Small Production</div>
+      <div class="price">$70</div>
+      <div class="price-inr">₹5,880/mo</div>
+      <div class="users">500 - 2K users</div>
+    </div>
+    <div class="budget-card medium">
+      <div class="tier">Medium Scale</div>
+      <div class="price">$310</div>
+      <div class="price-inr">₹26,000/mo</div>
+      <div class="users">2K - 10K users</div>
+    </div>
+    <div class="budget-card large">
+      <div class="tier">Large Scale</div>
+      <div class="price">$950</div>
+      <div class="price-inr">₹79,800/mo</div>
+      <div class="users">10K - 50K users</div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 1: ARCHITECTURE ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">1</span> Project Architecture Overview</h2>
+
+    <h3>Tech Stack Summary</h3>
+    <table class="no-break">
+      <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Frontend</strong></td><td>React 18 + Tailwind CSS + Three.js + Framer Motion</td><td>SPA with 3D visuals, animations</td></tr>
+        <tr><td><strong>Backend</strong></td><td>Node.js + Express.js</td><td>REST API server (21 route modules)</td></tr>
+        <tr><td><strong>Database</strong></td><td>MongoDB (Atlas)</td><td>Primary data store (23 models)</td></tr>
+        <tr><td><strong>Cache/PubSub</strong></td><td>Redis</td><td>Caching + Socket.IO adapter</td></tr>
+        <tr><td><strong>Real-time</strong></td><td>Socket.IO (Redis adapter)</td><td>Live chat, notifications</td></tr>
+        <tr><td><strong>File Storage</strong></td><td>Cloudinary</td><td>Image/file uploads & CDN</td></tr>
+        <tr><td><strong>Email</strong></td><td>Brevo (Sendinblue)</td><td>OTP, notifications, weekly digests</td></tr>
+        <tr><td><strong>SMS</strong></td><td>Fast2SMS</td><td>OTP & notification forwarding (India)</td></tr>
+        <tr><td><strong>AI Primary</strong></td><td>Groq API (compound-mini)</td><td>Career mentor, resume, interviews</td></tr>
+        <tr><td><strong>AI Fallback</strong></td><td>Google Gemini (3.x Flash)</td><td>Fallback AI engine</td></tr>
+        <tr><td><strong>Auth</strong></td><td>Google OAuth + GitHub OAuth + JWT</td><td>Multi-provider authentication</td></tr>
+        <tr><td><strong>Code Exec</strong></td><td>Judge0 CE (RapidAPI)</td><td>Coding contest evaluation (planned)</td></tr>
+        <tr><td><strong>Dev Stats</strong></td><td>GitHub + LeetCode + HackerRank + GFG + CodeChef + CF + Duolingo</td><td>Developer profile aggregation</td></tr>
+        <tr><td><strong>Mobile</strong></td><td>Capacitor (Android)</td><td>Mobile APK wrapper</td></tr>
+      </tbody>
+    </table>
+
+    <h3>API Routes (21 Modules)</h3>
+    <div class="code-block">
+<span class="route">/api/auth</span>        <span class="desc">→ Authentication (Google, GitHub, JWT, OTP, 2FA)</span>
+<span class="route">/api/users</span>       <span class="desc">→ User profiles, search, connections</span>
+<span class="route">/api/mentorship</span>  <span class="desc">→ Mentorship requests, matching, sessions</span>
+<span class="route">/api/jobs</span>        <span class="desc">→ Job listings, applications, AI matching</span>
+<span class="route">/api/events</span>      <span class="desc">→ Event creation, RSVP, calendar</span>
+<span class="route">/api/forum</span>       <span class="desc">→ Discussion posts, comments, voting</span>
+<span class="route">/api/contests</span>    <span class="desc">→ Coding contests, submissions (Judge0)</span>
+<span class="route">/api/messages</span>    <span class="desc">→ Real-time chat (Socket.IO), group chats</span>
+<span class="route">/api/admin</span>       <span class="desc">→ Admin dashboard, user management</span>
+<span class="route">/api/notifications</span> <span class="desc">→ Push notifications system</span>
+<span class="route">/api/upload</span>      <span class="desc">→ File uploads (Cloudinary)</span>
+<span class="route">/api/dev-activity</span> <span class="desc">→ Developer stats aggregation</span>
+<span class="route">/api/leaderboard</span> <span class="desc">→ Gamification leaderboard</span>
+<span class="route">/api/feedback</span>    <span class="desc">→ User feedback collection</span>
+<span class="route">/api/helpdesk</span>    <span class="desc">→ Support ticket system</span>
+<span class="route">/api/projects</span>    <span class="desc">→ Project showcase</span>
+<span class="route">/api/institutions</span> <span class="desc">→ College/institution management</span>
+<span class="route">/api/tasks</span>       <span class="desc">→ Task management</span>
+<span class="route">/api/ai</span>          <span class="desc">→ AI Career Mentor (Chat, Resume, Interview)</span>
+<span class="route">/api/tech-hub</span>    <span class="desc">→ Tech news/resources</span>
+<span class="route">/api/business</span>    <span class="desc">→ Business directory</span>
+    </div>
+
+    <h3>MongoDB Models (23)</h3>
+    <div class="code-block" style="font-size:10px;">User, Message, ChatGroup, Contest, DevProfile, Event, Feedback, ForumPost, HelpDesk, Job, JobApplication, JobOpportunity, MentorReview, MentorReward, Mentorship, MentorshipRequest, MentorshipSession, Notification, Project, Report, Task, TechHub, Business</div>
+  </div>
+
+  <!-- ==================== SECTION 2: INFRASTRUCTURE ==================== -->
+  <div class="section no-break">
+    <h2><span class="section-number">2</span> Infrastructure Requirements</h2>
+    <table>
+      <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead>
+      <tbody>
+        <tr><td>Backend Server</td><td>1 vCPU, 1 GB RAM</td><td>2 vCPU, 2 GB RAM</td></tr>
+        <tr><td>MongoDB</td><td>512 MB (Atlas M0 Free)</td><td>M10 Dedicated (2 GB RAM)</td></tr>
+        <tr><td>Redis</td><td>256 MB</td><td>1 GB (Socket.IO + caching)</td></tr>
+        <tr><td>Frontend Hosting</td><td>Static site CDN</td><td>Static site CDN</td></tr>
+        <tr><td>Domain</td><td>1x custom domain</td><td>.com or .in domain</td></tr>
+        <tr><td>SSL Certificate</td><td>Required (HTTPS)</td><td>Free with most hosts</td></tr>
+        <tr><td>CI/CD Pipeline</td><td>GitHub Actions (free)</td><td>GitHub Actions</td></tr>
+        <tr><td>Monitoring</td><td>Basic health checks</td><td>APM + error tracking</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 3: API INVENTORY ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">3</span> API & Third-Party Service Inventory</h2>
+    <table style="font-size:10px;">
+      <thead><tr><th>#</th><th>Service</th><th>Purpose</th><th>Auth</th><th>Source File</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Groq API</strong></td><td>AI Chat, Resume, Mock Interview, Job Match</td><td>API Key</td><td>aiHelper.js, ai.js</td></tr>
+        <tr><td>2</td><td><strong>Google Gemini</strong></td><td>AI Fallback Engine</td><td>API Key</td><td>aiHelper.js</td></tr>
+        <tr><td>3</td><td><strong>Brevo (Sendinblue)</strong></td><td>Transactional Emails (OTP, Welcome, Digest)</td><td>API Key</td><td>sendEmail.js</td></tr>
+        <tr><td>4</td><td><strong>Fast2SMS</strong></td><td>SMS OTP & Notifications (India)</td><td>API Key</td><td>sendSMS.js</td></tr>
+        <tr><td>5</td><td><strong>Cloudinary</strong></td><td>Image/File Upload & CDN</td><td>Key + Secret</td><td>cloudinary.js</td></tr>
+        <tr><td>6</td><td><strong>Google OAuth 2.0</strong></td><td>Google Sign-In</td><td>Client ID</td><td>authService.js</td></tr>
+        <tr><td>7</td><td><strong>GitHub OAuth</strong></td><td>GitHub Sign-In</td><td>ID + Secret</td><td>authService.js</td></tr>
+        <tr><td>8</td><td><strong>GitHub GraphQL</strong></td><td>Dev Stats (repos, contributions, badges)</td><td>PAT</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>9</td><td><strong>LeetCode GraphQL</strong></td><td>Coding stats, badges, ratings</td><td>Public</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>10</td><td><strong>HackerRank REST</strong></td><td>Profile, badges, certificates</td><td>Public</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>11</td><td><strong>GFG Scraper</strong></td><td>Coding score, problems solved</td><td>Scraping</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>12</td><td><strong>CodeChef Scraper</strong></td><td>Rating, stars, division</td><td>Scraping</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>13</td><td><strong>Codeforces API</strong></td><td>Rating, contests, problems</td><td>Public</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>14</td><td><strong>Duolingo API</strong></td><td>Language learning stats</td><td>Public</td><td>devStatsFetcher.js</td></tr>
+        <tr><td>15</td><td><strong>Disify API</strong></td><td>Email validation (disposable detection)</td><td>Public</td><td>authService.js</td></tr>
+        <tr><td>16</td><td><strong>Judge0 CE</strong></td><td>Code execution for contests</td><td>API Key</td><td>contests.js (TODO)</td></tr>
+        <tr><td>17</td><td><strong>Google Userinfo</strong></td><td>OAuth profile data</td><td>Bearer</td><td>authService.js</td></tr>
+        <tr><td>18</td><td><strong>GitHub User API</strong></td><td>OAuth email retrieval</td><td>Bearer</td><td>authService.js</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 4: CLOUD HOSTING COMPARISON ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">4</span> Cloud Hosting Provider Comparison</h2>
+    <h3>Backend Server (Node.js + Express + Socket.IO)</h3>
+    <p>Requirement: 1-2 vCPU, 1-2 GB RAM, always-on, WebSocket support, auto-deploy from GitHub</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th><span class="provider-badge badge-render">Render</span></th>
+          <th><span class="provider-badge badge-aws">AWS</span></th>
+          <th><span class="provider-badge badge-azure">Azure</span></th>
+          <th><span class="provider-badge badge-do">DigitalOcean</span></th>
+          <th><span class="provider-badge badge-railway">Railway</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Starter Plan</strong></td><td>$7/mo</td><td>~$15-18/mo</td><td>~$13/mo</td><td>$6/mo</td><td>$5/mo</td></tr>
+        <tr><td><strong>Production Plan</strong></td><td>$25/mo</td><td>~$18/mo</td><td>~$13/mo</td><td>$12/mo</td><td>$20/mo</td></tr>
+        <tr><td><strong>WebSocket</strong></td><td>✅ Native</td><td>✅ With ALB</td><td>✅ Config</td><td>✅ Native</td><td>✅ Native</td></tr>
+        <tr><td><strong>Auto-Deploy</strong></td><td>✅ Built-in</td><td>⚠️ CodePipeline</td><td>⚠️ DevOps</td><td>✅ App Platform</td><td>✅ Built-in</td></tr>
+        <tr><td><strong>Free SSL</strong></td><td>✅</td><td>⚠️ ACM+ALB</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td><strong>Scaling</strong></td><td>Manual/Auto</td><td>Auto Groups</td><td>Scale-up/out</td><td>Manual</td><td>Auto</td></tr>
+        <tr><td><strong>Cold Start</strong></td><td>⚠️ Free sleeps</td><td>❌ None</td><td>❌ None</td><td>❌ None</td><td>⚠️ Starter</td></tr>
+        <tr><td><strong>Hidden Costs</strong></td><td>None</td><td>EBS, ALB ($20+)</td><td>Data egress</td><td>BW overages</td><td>Bandwidth</td></tr>
+        <tr><td><strong>Ease of Setup</strong></td><td>⭐⭐⭐⭐⭐</td><td>⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐⭐</td><td>⭐⭐⭐⭐⭐</td></tr>
+        <tr><td><strong>Best For</strong></td><td>Small-Med</td><td>Enterprise</td><td>Microsoft</td><td>Budget Prod</td><td>Quick Deploy</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Frontend Hosting (React Static Build) — All Free Options</h3>
+    <table>
+      <thead><tr><th>Provider</th><th>Cost</th><th>CDN</th><th>Bandwidth</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cloudflare Pages</strong></td><td><span class="price-tag free">FREE</span></td><td>✅ Fastest</td><td>Unlimited</td><td>⭐ Recommended</td></tr>
+        <tr><td><strong>Vercel</strong></td><td><span class="price-tag free">FREE</span></td><td>✅ Edge</td><td>100 GB/mo</td><td>Best React DX</td></tr>
+        <tr><td><strong>Netlify</strong></td><td><span class="price-tag free">FREE</span></td><td>✅ CDN</td><td>100 GB/mo</td><td>Great CI/CD</td></tr>
+        <tr><td><strong>Render Static</strong></td><td><span class="price-tag free">FREE</span></td><td>✅ Global</td><td>100 GB/mo</td><td>Current setup</td></tr>
+        <tr><td><strong>Azure Static Web Apps</strong></td><td><span class="price-tag free">FREE</span></td><td>✅ Azure</td><td>100 GB/mo</td><td>2 free apps</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 5: DATABASE COMPARISON ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">5</span> Database Tier Comparison</h2>
+    <table>
+      <thead><tr><th>Provider</th><th>Free Tier</th><th>Cost/mo</th><th>Storage</th><th>RAM</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>MongoDB Atlas M0</strong></td><td>✅ 512 MB</td><td><span class="price-tag free">$0</span></td><td>512 MB</td><td>Shared</td><td>Current. 100 conn max</td></tr>
+        <tr><td><strong>MongoDB Atlas M10</strong></td><td>❌</td><td><span class="price-tag paid">~$57</span></td><td>10 GB</td><td>2 GB</td><td>Recommended starter prod</td></tr>
+        <tr><td><strong>MongoDB Atlas M20</strong></td><td>❌</td><td><span class="price-tag expensive">~$146</span></td><td>20 GB</td><td>4 GB</td><td>Medium scale</td></tr>
+        <tr><td><strong>AWS DocumentDB</strong></td><td>❌</td><td><span class="price-tag expensive">~$200+</span></td><td>Pay/GB</td><td>Varies</td><td>Expensive</td></tr>
+        <tr><td><strong>Azure Cosmos DB</strong></td><td>✅ 1000 RU/s</td><td><span class="price-tag paid">~$25+</span></td><td>Pay/GB</td><td>Varies</td><td>Complex RU pricing</td></tr>
+        <tr><td><strong>DigitalOcean MongoDB</strong></td><td>❌</td><td><span class="price-tag paid">$15</span></td><td>10 GB</td><td>1 GB</td><td>Simple & affordable</td></tr>
+        <tr><td><strong>Self-hosted (VM)</strong></td><td>❌</td><td><span class="price-tag free">$0 extra</span></td><td>Disk</td><td>VM</td><td>You manage it</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Scale-Based Recommendations</h3>
+    <table>
+      <thead><tr><th>Scale</th><th>Users</th><th>Est. DB Size</th><th>Tier</th><th>Cost/mo</th></tr></thead>
+      <tbody>
+        <tr><td>MVP / Demo</td><td>0 - 500</td><td>&lt; 200 MB</td><td>Atlas M0 (Free)</td><td><strong>$0</strong></td></tr>
+        <tr><td>Single College</td><td>500 - 2K</td><td>200 MB - 1 GB</td><td>Atlas M0 or Shared</td><td><strong>$0 - $9</strong></td></tr>
+        <tr><td>Multi-College</td><td>2K - 10K</td><td>1 - 5 GB</td><td>Atlas M10</td><td><strong>~$57</strong></td></tr>
+        <tr><td>Regional</td><td>10K - 50K</td><td>5 - 20 GB</td><td>Atlas M20</td><td><strong>~$146</strong></td></tr>
+        <tr><td>National</td><td>50K+</td><td>20+ GB</td><td>Atlas M30+</td><td><strong>$300+</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 6: REDIS COMPARISON ==================== -->
+  <div class="section no-break">
+    <h2><span class="section-number">6</span> Redis / Caching Tier Comparison</h2>
+    <p>Used for: API response caching (30-min TTL) + Socket.IO adapter (multi-instance WebSocket scaling)</p>
+    <table>
+      <thead><tr><th>Provider</th><th>Free Tier</th><th>Cost/mo</th><th>Memory</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Upstash Redis</strong></td><td>✅ 256 MB, 10K/day</td><td><span class="price-tag free">$0 → $10+</span></td><td>256 MB</td><td>⭐ Serverless, best free</td></tr>
+        <tr><td><strong>Redis Cloud</strong></td><td>✅ 30 MB</td><td><span class="price-tag">$0 → $5+</span></td><td>30-250 MB</td><td>Official Redis</td></tr>
+        <tr><td><strong>Render Key Value</strong></td><td>✅ 25 MB</td><td><span class="price-tag paid">$0 → $10</span></td><td>25-256 MB</td><td>Same ecosystem</td></tr>
+        <tr><td><strong>AWS ElastiCache</strong></td><td>❌</td><td><span class="price-tag paid">~$13</span></td><td>0.5 GB</td><td>Enterprise-grade</td></tr>
+        <tr><td><strong>Azure Cache</strong></td><td>❌</td><td><span class="price-tag paid">~$16</span></td><td>250 MB</td><td>Azure ecosystem</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 7: API PRICING DEEP DIVE ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">7</span> API Pricing Deep Dive</h2>
+
+    <!-- 7.1 Groq -->
+    <h3>7.1 — Groq API (Primary AI Engine)</h3>
+    <p>Used for: AI Career Mentor, Resume Analysis, Mock Interview, Job Matching, Interview Evaluation</p>
+    <table>
+      <thead><tr><th>Component</th><th>Pricing</th></tr></thead>
+      <tbody>
+        <tr><td>Free Tier</td><td>✅ Available (rate-limited RPM/TPM per org)</td></tr>
+        <tr><td>Model Tokens (compound-mini)</td><td>~$0.15 / 1M input, ~$0.60 / 1M output</td></tr>
+        <tr><td>Web Search (if used)</td><td>$5 - $8 / 1,000 requests</td></tr>
+        <tr><td>Code Execution</td><td>$0.18 / hour</td></tr>
+      </tbody>
+    </table>
+    <h4>Estimated Monthly Cost by Scale</h4>
+    <table>
+      <thead><tr><th>Scale</th><th>AI Requests/mo</th><th>Est. Tokens/mo</th><th>Monthly Cost</th></tr></thead>
+      <tbody>
+        <tr><td>MVP (&lt;100 users)</td><td>~500</td><td>~2M</td><td><span class="price-tag free">$0 (Free)</span></td></tr>
+        <tr><td>Small (500 users)</td><td>~2,000</td><td>~10M</td><td><span class="price-tag">$2 - $5</span></td></tr>
+        <tr><td>Medium (5K users)</td><td>~15,000</td><td>~75M</td><td><span class="price-tag paid">$15 - $40</span></td></tr>
+        <tr><td>Large (25K users)</td><td>~75,000</td><td>~375M</td><td><span class="price-tag expensive">$75 - $200</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7.2 Gemini -->
+    <h3>7.2 — Google Gemini API (AI Fallback)</h3>
+    <div class="alert alert-warning">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">
+        <div class="alert-title">Action Required</div>
+        Your code uses <code>gemini-2.0-flash</code> which was retired in June 2026. Update <code>aiHelper.js</code> to use <code>gemini-3.5-flash</code> or <code>gemini-3.7-flash</code>.
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Component</th><th>Pricing</th></tr></thead>
+      <tbody>
+        <tr><td>Free Tier</td><td>✅ Available via Google AI Studio (rate-limited)</td></tr>
+        <tr><td>Gemini 3.7 Flash</td><td>$0.75 / 1M input tokens, $3.75 / 1M output tokens</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Scale</th><th>Fallback Requests/mo</th><th>Monthly Cost</th></tr></thead>
+      <tbody>
+        <tr><td>MVP</td><td>~50</td><td><span class="price-tag free">$0</span></td></tr>
+        <tr><td>Small</td><td>~200</td><td>$0 - $1</td></tr>
+        <tr><td>Medium</td><td>~1,500</td><td><span class="price-tag paid">$2 - $8</span></td></tr>
+        <tr><td>Large</td><td>~7,500</td><td><span class="price-tag expensive">$15 - $50</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7.3 Brevo -->
+    <h3>7.3 — Brevo (Sendinblue) — Transactional Emails</h3>
+    <p>Used for: OTP verification, welcome emails, password resets, peer notifications, weekly Dev Pulse digests</p>
+    <table>
+      <thead><tr><th>Plan</th><th>Cost</th><th>Limit</th><th>Branding</th></tr></thead>
+      <tbody>
+        <tr><td>Free</td><td><span class="price-tag free">$0/mo</span></td><td>300 emails/day (~9K/mo)</td><td>"Sent with Brevo"</td></tr>
+        <tr><td>Starter</td><td><span class="price-tag paid">$9/mo</span></td><td>5,000 emails/mo</td><td>Watermark (+$12 remove)</td></tr>
+        <tr><td>Business</td><td><span class="price-tag paid">$18/mo</span></td><td>5,000 emails/mo</td><td>No watermark</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Scale</th><th>OTP</th><th>Notifications</th><th>Digest</th><th>Total/mo</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>MVP (100 users)</td><td>~200</td><td>~300</td><td>~400</td><td>~900</td><td><span class="price-tag free">$0</span></td></tr>
+        <tr><td>Small (500)</td><td>~800</td><td>~1,500</td><td>~2,000</td><td>~4,300</td><td><span class="price-tag free">$0</span></td></tr>
+        <tr><td>Medium (5K)</td><td>~3K</td><td>~10K</td><td>~20K</td><td>~33K</td><td><span class="price-tag paid">$25/mo</span></td></tr>
+        <tr><td>Large (25K)</td><td>~10K</td><td>~50K</td><td>~100K</td><td>~160K</td><td><span class="price-tag expensive">$65/mo</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7.4 Fast2SMS -->
+    <div class="page-break"></div>
+    <h3>7.4 — Fast2SMS — SMS Notifications (India Only)</h3>
+    <table>
+      <thead><tr><th>Wallet Amount</th><th>Per SMS Cost</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>₹100 - ₹3,999</td><td><strong>₹0.25</strong></td><td>+ GST</td></tr>
+        <tr><td>₹4,000 - ₹7,999</td><td><strong>₹0.21</strong></td><td>+ GST</td></tr>
+        <tr><td>₹8,000 - ₹13,999</td><td><strong>₹0.19</strong></td><td>+ GST</td></tr>
+        <tr><td>₹14,000+</td><td><strong>₹0.17</strong></td><td>+ GST</td></tr>
+        <tr><td>Quick SMS (No DLT)</td><td><strong>₹5.00</strong></td><td>International route</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Scale</th><th>SMS/mo</th><th>Cost (₹0.25)</th><th>Cost (₹0.17)</th></tr></thead>
+      <tbody>
+        <tr><td>MVP</td><td>~100</td><td>₹25 (~$0.30)</td><td>₹17</td></tr>
+        <tr><td>Small</td><td>~500</td><td>₹125 (~$1.50)</td><td>₹85</td></tr>
+        <tr><td>Medium</td><td>~3,000</td><td>₹750 (~$9)</td><td>₹510</td></tr>
+        <tr><td>Large</td><td>~15,000</td><td>₹3,750 (~$45)</td><td>₹2,550</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7.5 Cloudinary -->
+    <h3>7.5 — Cloudinary — File Uploads & Image CDN</h3>
+    <table>
+      <thead><tr><th>Plan</th><th>Cost</th><th>Credits</th><th>Storage</th><th>Bandwidth</th></tr></thead>
+      <tbody>
+        <tr><td>Free</td><td><span class="price-tag free">$0/mo</span></td><td>25</td><td>25 GB</td><td>25 GB</td></tr>
+        <tr><td>Plus</td><td><span class="price-tag expensive">$89/mo</span></td><td>225</td><td>225 GB</td><td>225 GB</td></tr>
+        <tr><td>Advanced</td><td><span class="price-tag expensive">$249/mo</span></td><td>1,000</td><td>1 TB</td><td>1 TB</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7.6 Judge0 -->
+    <h3>7.6 — Judge0 CE (RapidAPI) — Code Execution</h3>
+    <table>
+      <thead><tr><th>Plan</th><th>Cost</th><th>Submissions</th></tr></thead>
+      <tbody>
+        <tr><td>Basic (Free)</td><td><span class="price-tag free">$0/mo</span></td><td>~50/day (shared, unreliable)</td></tr>
+        <tr><td>Pay-Per-Use</td><td>~$0.0017/submission</td><td>Unlimited</td></tr>
+        <tr><td>Self-Hosted (Docker)</td><td>VM cost only</td><td>Unlimited</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7.7-7.10 Free APIs -->
+    <h3>7.7 — Free APIs (No Cost)</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Cost</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Google OAuth 2.0</td><td><span class="price-tag free">FREE</span></td><td>Unlimited. Only basic scopes needed.</td></tr>
+        <tr><td>GitHub OAuth</td><td><span class="price-tag free">FREE</span></td><td>Unlimited.</td></tr>
+        <tr><td>GitHub GraphQL API</td><td><span class="price-tag free">FREE</span></td><td>5,000 points/hr with PAT</td></tr>
+        <tr><td>LeetCode GraphQL</td><td><span class="price-tag free">FREE</span></td><td>Unofficial, may break</td></tr>
+        <tr><td>HackerRank REST</td><td><span class="price-tag free">FREE</span></td><td>Unofficial, may break</td></tr>
+        <tr><td>Codeforces API</td><td><span class="price-tag free">FREE</span></td><td>1 req/2 sec rate limit</td></tr>
+        <tr><td>CodeChef (Scraping)</td><td><span class="price-tag free">FREE</span></td><td>May break without notice</td></tr>
+        <tr><td>GFG (Scraping)</td><td><span class="price-tag free">FREE</span></td><td>May break without notice</td></tr>
+        <tr><td>Duolingo API</td><td><span class="price-tag free">FREE</span></td><td>Unofficial</td></tr>
+        <tr><td>Disify (Email Validation)</td><td><span class="price-tag free">FREE</span></td><td>10K validations/day (free acct)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 8: DOMAIN & SSL ==================== -->
+  <div class="section page-break no-break">
+    <h2><span class="section-number">8</span> Domain, SSL & CDN Costs</h2>
+    <table>
+      <thead><tr><th>Item</th><th>Provider</th><th>Cost</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>alumnexconnect.com</strong></td><td>Namecheap</td><td>~$7 (1st yr) → $18/yr renewal</td><td>Recommended</td></tr>
+        <tr><td><strong>alumnexconnect.in</strong></td><td>Namecheap / GoDaddy</td><td>~$10-11/yr</td><td>India-specific</td></tr>
+        <tr><td><strong>SSL Certificate</strong></td><td>Cloudflare / Let's Encrypt</td><td><span class="price-tag free">FREE</span></td><td>Auto-provisioned</td></tr>
+        <tr><td><strong>CDN</strong></td><td>Cloudflare Free</td><td><span class="price-tag free">FREE</span></td><td>Unlimited BW, best free CDN</td></tr>
+        <tr><td><strong>DNS</strong></td><td>Cloudflare</td><td><span class="price-tag free">FREE</span></td><td>Fast DNS + DDoS protection</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 9: CHECKLIST ==================== -->
+  <div class="section">
+    <h2><span class="section-number">9</span> Production Optimization Checklist</h2>
+
+    <div class="alert alert-danger">
+      <span class="alert-icon">🚨</span>
+      <div class="alert-content">
+        <div class="alert-title">SECURITY ALERT</div>
+        Your .env file contains <strong>real API keys, database credentials, and OAuth secrets</strong>. Rotate ALL keys immediately before going public. Never commit .env to Git.
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>#</th><th>Task</th><th>Status</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Rotate ALL API keys & secrets</td><td>🔴 CRITICAL</td><td>P0</td></tr>
+        <tr><td>2</td><td>Set strong JWT_SECRET (currently placeholder)</td><td>🔴 CRITICAL</td><td>P0</td></tr>
+        <tr><td>3</td><td>Update Gemini model to gemini-3.x</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>4</td><td>Remove self-ping hack (Render free tier workaround)</td><td>🟢 Production</td><td>P2</td></tr>
+        <tr><td>5</td><td>Add error monitoring (Sentry free: 5K events/mo)</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>6</td><td>Add health check endpoint (/api/health)</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>7</td><td>Enable MongoDB Atlas IP allowlist</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>8</td><td>Register DLT for production SMS (India requirement)</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>9</td><td>Google OAuth consent screen verification (&gt;100 users)</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>10</td><td>Implement Judge0 integration (currently TODO)</td><td>🟢 Nice to have</td><td>P2</td></tr>
+        <tr><td>11</td><td>Add rate limiting for AI endpoints (prevent abuse)</td><td>🟡 Required</td><td>P1</td></tr>
+        <tr><td>12</td><td>Enable gzip/brotli compression</td><td>✅ Done</td><td>—</td></tr>
+        <tr><td>13</td><td>Set up CI/CD pipeline (GitHub Actions)</td><td>🟢 Recommended</td><td>P2</td></tr>
+        <tr><td>14</td><td>Add Redis connection pooling config</td><td>🟢 Optimization</td><td>P2</td></tr>
+        <tr><td>15</td><td>Configure structured production logging</td><td>🟢 Recommended</td><td>P2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 10: BUDGET TABLES ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">10</span> Budget Summary Tables</h2>
+
+    <!-- 10.1 MVP -->
+    <h3>10.1 — MVP / College Demo (0-500 users)</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Provider</th><th>Plan</th><th>USD/mo</th><th>INR/mo</th></tr></thead>
+      <tbody>
+        <tr><td>Backend Server</td><td>Render</td><td>Starter</td><td>$7</td><td>₹588</td></tr>
+        <tr><td>Frontend Hosting</td><td>Cloudflare Pages</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Database</td><td>MongoDB Atlas</td><td>M0 Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Redis/Cache</td><td>Upstash</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Email</td><td>Brevo</td><td>Free (300/day)</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>SMS</td><td>Fast2SMS</td><td>~100 SMS</td><td>~$0.30</td><td>~₹25</td></tr>
+        <tr><td>AI (Groq)</td><td>Groq</td><td>Free Tier</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>AI (Gemini)</td><td>Google</td><td>Free Tier</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>File Uploads</td><td>Cloudinary</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Domain</td><td>Namecheap</td><td>.com</td><td>~$0.58</td><td>~₹50</td></tr>
+        <tr><td>SSL + CDN</td><td>Cloudflare</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Monitoring</td><td>Sentry</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr class="total-row"><td colspan="3"><strong>TOTAL (Monthly)</strong></td><td><strong>~$8</strong></td><td><strong>~₹660</strong></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 10.2 Small -->
+    <h3>10.2 — Small Production (500-2,000 users)</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Provider</th><th>Plan</th><th>USD/mo</th><th>INR/mo</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td>Render</td><td>Standard</td><td>$25</td><td>₹2,100</td></tr>
+        <tr><td>Workspace</td><td>Render</td><td>Pro</td><td>$25</td><td>₹2,100</td></tr>
+        <tr><td>Frontend</td><td>Cloudflare Pages</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Database</td><td>MongoDB Atlas</td><td>Shared</td><td>$9</td><td>₹756</td></tr>
+        <tr><td>Redis</td><td>Upstash</td><td>Pay-as-you-go</td><td>~$5</td><td>₹420</td></tr>
+        <tr><td>Email</td><td>Brevo</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>SMS</td><td>Fast2SMS</td><td>~500 SMS</td><td>~$1.50</td><td>~₹125</td></tr>
+        <tr><td>AI</td><td>Groq</td><td>Pay-as-you-go</td><td>~$3</td><td>₹252</td></tr>
+        <tr><td>Domain</td><td>Namecheap</td><td>.com renewal</td><td>~$1.50</td><td>~₹126</td></tr>
+        <tr class="total-row"><td colspan="3"><strong>TOTAL (Monthly)</strong></td><td><strong>~$70</strong></td><td><strong>~₹5,880</strong></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 10.3 Medium -->
+    <div class="page-break"></div>
+    <h3>10.3 — Medium Production (2,000-10,000 users)</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Provider</th><th>Plan</th><th>USD/mo</th><th>INR/mo</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td>Render / AWS</td><td>Production</td><td>$25</td><td>₹2,100</td></tr>
+        <tr><td>Workspace</td><td>Render Pro</td><td>—</td><td>$25</td><td>₹2,100</td></tr>
+        <tr><td>Frontend</td><td>Cloudflare Pages</td><td>Free</td><td>$0</td><td>₹0</td></tr>
+        <tr><td>Database</td><td>MongoDB Atlas</td><td>M10 Dedicated</td><td>$57</td><td>₹4,788</td></tr>
+        <tr><td>Redis</td><td>Redis Cloud</td><td>Essentials</td><td>$5</td><td>₹420</td></tr>
+        <tr><td>Email</td><td>Brevo</td><td>Starter (20K)</td><td>$25</td><td>₹2,100</td></tr>
+        <tr><td>SMS</td><td>Fast2SMS</td><td>~3K SMS</td><td>~$9</td><td>~₹750</td></tr>
+        <tr><td>AI (Groq)</td><td>Groq</td><td>Pay-as-you-go</td><td>~$25</td><td>₹2,100</td></tr>
+        <tr><td>AI (Gemini)</td><td>Google</td><td>Pay-as-you-go</td><td>~$5</td><td>₹420</td></tr>
+        <tr><td>File Uploads</td><td>Cloudinary</td><td>Plus</td><td>$89</td><td>₹7,476</td></tr>
+        <tr><td>Judge0</td><td>RapidAPI</td><td>Pay-per-use</td><td>~$17</td><td>₹1,428</td></tr>
+        <tr><td>Domain</td><td>Namecheap</td><td>.com</td><td>~$1.50</td><td>~₹126</td></tr>
+        <tr><td>Monitoring</td><td>Sentry</td><td>Team</td><td>$26</td><td>₹2,184</td></tr>
+        <tr class="total-row"><td colspan="3"><strong>TOTAL (Monthly)</strong></td><td><strong>~$310</strong></td><td><strong>~₹26,000</strong></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 10.4 Large -->
+    <h3>10.4 — Large Scale (10,000-50,000 users)</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Provider</th><th>Plan</th><th>USD/mo</th><th>INR/mo</th></tr></thead>
+      <tbody>
+        <tr><td>Backend (2x)</td><td>AWS ECS / Azure</td><td>2x instances</td><td>$60</td><td>₹5,040</td></tr>
+        <tr><td>Load Balancer</td><td>AWS ALB</td><td>—</td><td>$20</td><td>₹1,680</td></tr>
+        <tr><td>Frontend</td><td>Cloudflare Pages</td><td>Pro</td><td>$20</td><td>₹1,680</td></tr>
+        <tr><td>Database</td><td>MongoDB Atlas</td><td>M20 Dedicated</td><td>$146</td><td>₹12,264</td></tr>
+        <tr><td>Redis</td><td>Redis Cloud</td><td>1 GB</td><td>$32</td><td>₹2,688</td></tr>
+        <tr><td>Email</td><td>Brevo</td><td>Business (60K)</td><td>$65</td><td>₹5,460</td></tr>
+        <tr><td>SMS</td><td>Fast2SMS</td><td>~15K SMS</td><td>~$45</td><td>~₹3,750</td></tr>
+        <tr><td>AI (Groq)</td><td>Groq</td><td>Pay-as-you-go</td><td>~$150</td><td>₹12,600</td></tr>
+        <tr><td>AI (Gemini)</td><td>Google</td><td>Pay-as-you-go</td><td>~$35</td><td>₹2,940</td></tr>
+        <tr><td>File Uploads</td><td>Cloudinary</td><td>Advanced</td><td>$249</td><td>₹20,916</td></tr>
+        <tr><td>Judge0</td><td>Self-hosted</td><td>Dedicated VM</td><td>$25</td><td>₹2,100</td></tr>
+        <tr><td>Monitoring</td><td>Sentry + Datadog</td><td>Team</td><td>$50</td><td>₹4,200</td></tr>
+        <tr><td>Backup/DR</td><td>Atlas + S3</td><td>—</td><td>$30</td><td>₹2,520</td></tr>
+        <tr><td>Domain + CDN</td><td>Cloudflare Pro</td><td>—</td><td>~$21.50</td><td>~₹1,800</td></tr>
+        <tr class="total-row"><td colspan="3"><strong>TOTAL (Monthly)</strong></td><td><strong>~$950</strong></td><td><strong>~₹79,800</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== PROVIDER COMPARISON VISUAL ==================== -->
+  <div class="section page-break">
+    <h3>10.5 — Provider Stack Comparison (Medium Scale Total Monthly Cost)</h3>
+
+    <div class="bar-chart">
+      <div class="bar-row">
+        <div class="bar-label">🟣 DigitalOcean</div>
+        <div class="bar-track"><div class="bar-fill bar-do" style="width: 62.5%;">$200/mo</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🟡 Railway</div>
+        <div class="bar-track"><div class="bar-fill bar-railway" style="width: 76.5%;">$245/mo</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🔵 Azure</div>
+        <div class="bar-track"><div class="bar-fill bar-azure" style="width: 82.8%;">$265/mo</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🟢 Render</div>
+        <div class="bar-track"><div class="bar-fill bar-render" style="width: 87.5%;">$280/mo</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🟠 AWS</div>
+        <div class="bar-track"><div class="bar-fill bar-aws" style="width: 100%;">$320/mo</div></div>
+      </div>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr><th>Stack</th><th>Backend</th><th>DB</th><th>Redis</th><th>Email</th><th>CDN</th><th>Total/mo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="provider-badge badge-do">DigitalOcean</span></td><td>$12</td><td>$15</td><td>$10</td><td>$25</td><td>$0</td><td><strong>~$200</strong></td></tr>
+        <tr><td><span class="provider-badge badge-railway">Railway</span></td><td>$20</td><td>$57</td><td>$5</td><td>$25</td><td>$0</td><td><strong>~$245</strong></td></tr>
+        <tr><td><span class="provider-badge badge-azure">Azure</span></td><td>$13</td><td>$25</td><td>$16</td><td>$25</td><td>$0</td><td><strong>~$265</strong></td></tr>
+        <tr><td><span class="provider-badge badge-render">Render</span></td><td>$50</td><td>$57</td><td>$10</td><td>$25</td><td>$0</td><td><strong>~$280</strong></td></tr>
+        <tr><td><span class="provider-badge badge-aws">AWS</span></td><td>$38</td><td>$57</td><td>$13</td><td>$25</td><td>$3</td><td><strong>~$320</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="comparison-visual">
+      <div class="provider-card winner">
+        <div class="name" style="color: var(--do-blue);">DigitalOcean</div>
+        <div class="total">$200</div>
+        <div class="verdict">🏆 Winner: Cost</div>
+      </div>
+      <div class="provider-card">
+        <div class="name" style="color: var(--railway-purple);">Railway</div>
+        <div class="total">$245</div>
+        <div class="verdict">Easy + Affordable</div>
+      </div>
+      <div class="provider-card">
+        <div class="name" style="color: var(--azure-blue);">Azure</div>
+        <div class="total">$265</div>
+        <div class="verdict">Microsoft Ecosystem</div>
+      </div>
+      <div class="provider-card winner">
+        <div class="name" style="color: #10b981;">Render</div>
+        <div class="total">$280</div>
+        <div class="verdict">🏆 Winner: Ease</div>
+      </div>
+      <div class="provider-card winner">
+        <div class="name" style="color: var(--aws-orange);">AWS</div>
+        <div class="total">$320</div>
+        <div class="verdict">🏆 Winner: Scale</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 11: SCALING ROADMAP ==================== -->
+  <div class="section">
+    <h2><span class="section-number">11</span> Scaling Roadmap & Cost Projections</h2>
+
+    <div class="roadmap">
+      <div class="roadmap-step">
+        <div class="roadmap-phase">Phase 1: MVP</div>
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-price" style="color: var(--success);">$8/mo</div>
+        <div class="roadmap-users">0-500 users</div>
+        <div class="roadmap-time">Month 1-3</div>
+      </div>
+      <div class="roadmap-step">
+        <div class="roadmap-phase">Phase 2: Validation</div>
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-price" style="color: var(--primary);">$70/mo</div>
+        <div class="roadmap-users">500-2K users</div>
+        <div class="roadmap-time">Month 3-6</div>
+      </div>
+      <div class="roadmap-step">
+        <div class="roadmap-phase">Phase 3: Growth</div>
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-price" style="color: var(--purple);">$310/mo</div>
+        <div class="roadmap-users">2K-10K users</div>
+        <div class="roadmap-time">Month 6-12</div>
+      </div>
+      <div class="roadmap-step">
+        <div class="roadmap-phase">Phase 4: Scale</div>
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-price" style="color: var(--orange);">$950/mo</div>
+        <div class="roadmap-users">10K-50K users</div>
+        <div class="roadmap-time">Year 2+</div>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>Phase</th><th>Timeline</th><th>Users</th><th>Monthly (USD)</th><th>Monthly (INR)</th><th>Key Upgrades</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Phase 1: MVP</strong></td><td>Month 1-3</td><td>0-500</td><td><strong>$8</strong></td><td><strong>₹660</strong></td><td>Free tiers everywhere</td></tr>
+        <tr><td><strong>Phase 2: Validation</strong></td><td>Month 3-6</td><td>500-2K</td><td><strong>$70</strong></td><td><strong>₹5,880</strong></td><td>Paid backend, shared DB</td></tr>
+        <tr><td><strong>Phase 3: Growth</strong></td><td>Month 6-12</td><td>2K-10K</td><td><strong>$310</strong></td><td><strong>₹26,000</strong></td><td>Dedicated DB, paid email/AI</td></tr>
+        <tr><td><strong>Phase 4: Scale</strong></td><td>Year 2+</td><td>10K-50K</td><td><strong>$950</strong></td><td><strong>₹79,800</strong></td><td>Multi-instance, load balancer</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 12: RECOMMENDED STACK ==================== -->
+  <div class="section page-break">
+    <h2><span class="section-number">12</span> Recommended Production Stack</h2>
+
+    <div class="alert alert-success">
+      <span class="alert-icon">🏆</span>
+      <div class="alert-content">
+        <div class="alert-title">Best Value Stack for Launch</div>
+        This stack uses free tiers strategically to minimize cost while maintaining production quality.
+      </div>
+    </div>
+
+    <table class="stack-table">
+      <thead><tr><th>Component</th><th>Provider</th><th>Plan</th><th>Cost/mo</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td><strong>Render</strong> <span class="recommended-badge">Recommended</span></td><td>Starter → Standard</td><td>$7 - $25</td></tr>
+        <tr><td>Frontend</td><td><strong>Cloudflare Pages</strong> <span class="recommended-badge">Recommended</span></td><td>Free</td><td>$0</td></tr>
+        <tr><td>Database</td><td><strong>MongoDB Atlas</strong></td><td>M0 Free → M10</td><td>$0 - $57</td></tr>
+        <tr><td>Redis</td><td><strong>Upstash</strong> <span class="recommended-badge">Recommended</span></td><td>Free → Pay-as-you-go</td><td>$0 - $5</td></tr>
+        <tr><td>Email</td><td><strong>Brevo</strong></td><td>Free (300/day)</td><td>$0</td></tr>
+        <tr><td>SMS</td><td><strong>Fast2SMS</strong></td><td>Wallet</td><td>~$1</td></tr>
+        <tr><td>AI</td><td><strong>Groq</strong></td><td>Free → Pay-as-you-go</td><td>$0 - $5</td></tr>
+        <tr><td>CDN + DNS + SSL</td><td><strong>Cloudflare</strong></td><td>Free</td><td>$0</td></tr>
+        <tr><td>Domain</td><td><strong>Namecheap</strong></td><td>.com</td><td>~$1/mo</td></tr>
+        <tr><td>Monitoring</td><td><strong>Sentry</strong></td><td>Free</td><td>$0</td></tr>
+        <tr class="total-row"><td colspan="3"><strong>TOTAL RANGE</strong></td><td><strong>$8 - $94/mo</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h3>⚡ Immediate Action Items to Go Live</h3>
+    <ol class="action-list">
+      <li><strong>Buy domain</strong> → alumnexconnect.com on Namecheap (~$7)</li>
+      <li><strong>Set up Cloudflare</strong> → Point domain, enable free CDN + SSL</li>
+      <li><strong>Deploy backend</strong> → Render Starter ($7/mo) with all env vars</li>
+      <li><strong>Deploy frontend</strong> → Cloudflare Pages (free) with REACT_APP_API_URL</li>
+      <li><strong>Rotate all keys</strong> → Generate fresh secrets for all APIs</li>
+      <li><strong>Google OAuth verification</strong> → Submit consent screen for >100 users</li>
+      <li><strong>DLT registration</strong> → Register for production SMS (if needed)</li>
+      <li><strong>Update Gemini model</strong> → Change to gemini-3.7-flash in aiHelper.js</li>
+      <li><strong>Test everything</strong> → Run through all features on production</li>
+      <li><strong>Set up monitoring</strong> → Free Sentry account for error tracking</li>
+    </ol>
+  </div>
+
+  <!-- ==================== BOTTOM LINE ==================== -->
+  <div class="bottom-line">
+    <h3>💡 Bottom Line</h3>
+    <p>
+      You can launch Alumnex Connect as a production SaaS for <span class="highlight">as low as ₹660/month ($8/mo)</span>
+      using free tiers strategically. As you grow to 10,000+ users, expect costs to reach 
+      <span class="highlight">₹26,000/month (~$310/mo)</span>. The platform is architecturally sound for scaling — 
+      the main cost drivers at scale are <strong>Cloudinary</strong> (file storage), <strong>MongoDB Atlas</strong> (database), 
+      and <strong>AI APIs</strong> (Groq/Gemini).
+    </p>
+  </div>
+
+  <div class="footer">
+    <p>📄 Alumnex Connect — Production Deployment & Budget Estimation Guide &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; v1.0</p>
+    <p style="margin-top:4px;">Based on analysis of the Alumnex Connect codebase and current market pricing. Prices are subject to change.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -173,6 +174,7 @@ const ApplyJobModal = ({ job, onClose, onSuccess }) => {
 
 const DefaultJobs = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -406,7 +408,7 @@ const DefaultJobs = () => {
               </p>
             </div>
             {(user?.role === 'alumni' || user?.role === 'admin') && (
-              <Button variant="primary" onClick={() => setShowPostModal(true)} className="px-6 py-3 shrink-0">
+              <Button variant="primary" onClick={() => navigate('/career-board?action=post')} className="px-6 py-3 shrink-0">
                 <Plus className="w-5 h-5 mr-2" /> Post Opportunity
               </Button>
             )}

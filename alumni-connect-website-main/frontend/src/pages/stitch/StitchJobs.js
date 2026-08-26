@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
@@ -6,6 +7,7 @@ import PostJobModal from '../../components/jobs/PostJobModal';
 
 const StitchJobs = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [internalJobs, setInternalJobs] = useState([]);
   const [externalJobs, setExternalJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -206,7 +208,7 @@ const StitchJobs = () => {
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-20" style={{ background:'radial-gradient(circle,#7c3aed,transparent)', transform:'translate(30%,-30%)' }} />
               <p className="text-lg mb-1 font-bold text-white">📢 Post a Referral</p>
               <p className="text-sm mb-4" style={{ color:'rgba(241,245,249,0.65)' }}>Help your network by sharing open roles at your company.</p>
-              <button onClick={() => setShowPostModal(true)} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background:'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow:'0 4px 15px rgba(37,99,235,0.35)' }}>
+              <button onClick={() => navigate('/career-board?action=post')} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background:'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow:'0 4px 15px rgba(37,99,235,0.35)' }}>
                 Post a Job
               </button>
             </div>

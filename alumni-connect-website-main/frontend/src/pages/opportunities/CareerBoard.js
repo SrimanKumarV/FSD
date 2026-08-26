@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Briefcase, MapPin, Building, Clock, ExternalLink } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -7,6 +8,7 @@ import PostJobModal from '../../components/opportunities/PostJobModal';
 
 const CareerBoard = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('jobs');
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,11 @@ const CareerBoard = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('action') === 'post') {
+      setShowPostModal(true);
+    }
+  }, [location.search]);
 
   const fetchJobs = async () => {
     try {

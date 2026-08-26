@@ -681,7 +681,7 @@ const DefaultJobs = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
+                      {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === (user._id || user.id) && (
                         <>
                           <button
                             onClick={() => setJobToEdit(selectedJob)}
@@ -843,7 +843,7 @@ const DefaultJobs = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
+                        {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === (user._id || user.id) && (
                           <>
                             <button onClick={() => setJobToEdit(selectedJob)} className="p-2 text-gray-500 hover:text-blue-500">
                               <Edit3 className="w-5 h-5" />

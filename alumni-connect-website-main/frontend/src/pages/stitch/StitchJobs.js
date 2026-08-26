@@ -251,11 +251,11 @@ const StitchJobs = () => {
                 <div>
                   <h2 className="text-xl font-bold text-white">{selectedJob.title}</h2>
                   <p className="text-sm text-blue-300">{selectedJob.company} {selectedJob.location ? `· ${selectedJob.location}` : ''}</p>
-                  <p className="text-xs text-white/50 mt-1">{selectedJob.salary || 'Competitive'}</p>
+                  <p className="text-xs text-white/50 mt-1">{typeof selectedJob.salary === 'object' ? (selectedJob.salary?.min ? `$${selectedJob.salary.min.toLocaleString()}` : 'Competitive') : (selectedJob.salary || 'Competitive')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
+                {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === (user._id || user.id) && (
                   <>
                     {((Date.now() - new Date(selectedJob.createdAt).getTime()) / (1000 * 60 * 60) <= 24) ? (
                       <button onClick={() => setJobToEdit(selectedJob)} className="text-white/50 hover:text-blue-400 bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors" title="Edit Job (Only available for 24 hours)">

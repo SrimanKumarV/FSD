@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
 const StitchJobs = () => {
   const { user } = useAuth();
@@ -9,6 +10,11 @@ const StitchJobs = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('referrals');
+  
+  // Job Modal State
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [matchResult, setMatchResult] = useState(null);
+  const [matchLoading, setMatchLoading] = useState(false);
 
   useEffect(() => {
     Promise.allSettled([api.get('/jobs'), api.get('/jobs/external')])
@@ -25,6 +31,25 @@ const StitchJobs = () => {
     j.company?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleCalculateMatch = async () => {
+    if (!selectedJob || !user) return;
+    setMatchLoading(true);
+    try {
+      const payload = {
+        jobDescription: selectedJob.description || selectedJob.title,
+        studentSkills: user.skills?.join(', ') || 'None listed',
+        studentExperience: user.bio || 'None listed'
+      };
+      const response = await api.post('/ai/match-job', payload);
+      setMatchResult(response.data);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to calculate match score');
+    } finally {
+      setMatchLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -34,7 +59,7 @@ const StitchJobs = () => {
   }
 
   const JobCard = ({ job, type }) => (
-    <div className="glass-card rounded-2xl p-5 flex gap-4 group cursor-pointer">
+    <div onClick={() => { setSelectedJob(job); setMatchResult(null); }} className="glass-card rounded-2xl p-5 flex gap-4 group cursor-pointer hover:border-blue-500/50 transition-colors">
       {/* Company Logo */}
       <div className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center text-2xl font-bold text-white" style={{ background:'linear-gradient(135deg,rgba(37,99,235,0.30),rgba(124,58,237,0.30))', border:'1px solid rgba(255,255,255,0.10)' }}>
         {job.company?.charAt(0) || 'C'}
@@ -60,7 +85,7 @@ const StitchJobs = () => {
         <div className="flex items-center justify-between pt-3" style={{ borderTop:'1px solid rgba(255,255,255,0.07)' }}>
           <span className="text-sm font-semibold" style={{ color:'rgba(241,245,249,0.80)' }}>{job.salary || 'Competitive'}</span>
           <div className="flex gap-2">
-            <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" aria-label="Save">
+            <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" aria-label="Save" onClick={(e) => e.stopPropagation()}>
               <span className="material-symbols-outlined text-base" style={{ color:'rgba(241,245,249,0.45)' }}>bookmark_border</span>
             </button>
             <button className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:scale-105" style={{ background: type === 'referral' ? 'linear-gradient(135deg,#be185d,#9333ea)' : 'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow:'0 3px 12px rgba(37,99,235,0.30)' }}>
@@ -75,7 +100,7 @@ const StitchJobs = () => {
   const shown = activeTab === 'referrals' ? filter(internalJobs) : filter(externalJobs);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8 relative">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -182,6 +207,95 @@ const StitchJobs = () => {
           </div>
         </aside>
       </div>
+
+      {/* Job Details Modal */}
+      {selectedJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col relative overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-start">
+              <div className="flex gap-4">
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl font-bold text-white" style={{ background:'linear-gradient(135deg,rgba(37,99,235,0.30),rgba(124,58,237,0.30))', border:'1px solid rgba(255,255,255,0.10)' }}>
+                  {selectedJob.company?.charAt(0) || 'C'}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedJob.title}</h2>
+                  <p className="text-sm text-blue-300">{selectedJob.company} {selectedJob.location ? `· ${selectedJob.location}` : ''}</p>
+                  <p className="text-xs text-white/50 mt-1">{selectedJob.salary || 'Competitive'}</p>
+                </div>
+              </div>
+              <button onClick={() => { setSelectedJob(null); setMatchResult(null); }} className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors">
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+            
+            {/* Scrollable Body */}
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+              {matchResult && (
+                <div className="p-5 rounded-xl border border-white/10" style={{ background:'linear-gradient(135deg,rgba(37,99,235,0.10),rgba(124,58,237,0.10))' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">✨</span>
+                    <h3 className="font-bold text-white">AI Match: {matchResult.score}%</h3>
+                  </div>
+                  <p className="text-sm text-white/80 leading-relaxed mb-3">{matchResult.analysis}</p>
+                  
+                  {matchResult.missingSkills?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-white/60 mb-2 uppercase tracking-wider">Missing Skills to Learn</p>
+                      <div className="flex flex-wrap gap-2">
+                        {matchResult.missingSkills.map((s, i) => (
+                          <span key={i} className="text-xs px-2 py-1 rounded border border-red-500/30 bg-red-500/10 text-red-300">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div>
+                <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Job Description</h3>
+                <div className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+                  {selectedJob.description || 'No detailed description provided.'}
+                </div>
+              </div>
+              
+              {(selectedJob.skills?.length > 0 || selectedJob.requirements?.length > 0) && (
+                <div>
+                  <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Requirements & Skills</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedJob.skills || []).concat(selectedJob.requirements || []).map((s, i) => (
+                      <span key={i} className="text-xs px-2.5 py-1 rounded-md font-mono border border-blue-500/30 bg-blue-500/10 text-blue-300">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Fixed Footer */}
+            <div className="p-5 border-t border-white/10 bg-[#0f172a] flex justify-end gap-3 shrink-0">
+              <button 
+                onClick={handleCalculateMatch}
+                disabled={matchLoading}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 border border-white/10 hover:bg-white/10 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-sm">{matchLoading ? 'sync' : 'auto_awesome'}</span>
+                {matchLoading ? 'Analyzing...' : 'AI Match'}
+              </button>
+              
+              <a 
+                href={selectedJob.applicationLink || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 shadow-lg"
+                style={{ background:'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow:'0 4px 15px rgba(37,99,235,0.35)' }}
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                Apply on external site
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

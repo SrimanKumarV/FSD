@@ -14,6 +14,7 @@ const StitchNetwork = () => {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('student'); // 'student', 'alumni', 'startup'
 
   // Debounce search
   React.useEffect(() => {
@@ -21,10 +22,13 @@ const StitchNetwork = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Determine role filter based on active tab
+  const roleFilter = activeTab === 'startup' ? '' : activeTab;
+
   // Fetch users
   const { data, isLoading } = useQuery(
-    ['network-users', debouncedSearch, currentUser?.role],
-    () => api.get(`/users/search?q=${debouncedSearch}&role=${currentUser?.role}`),
+    ['network-users', debouncedSearch, roleFilter],
+    () => api.get(`/users/search?q=${debouncedSearch}&role=${roleFilter}`),
     {
       keepPreviousData: true
     }
@@ -56,10 +60,31 @@ const StitchNetwork = () => {
   };
 
   return (
-    <>
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
       <div className="mb-6 lg:mb-8">
-        <h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Alumni Network</h2>
-        <p className="font-body-base text-body-base text-on-surface-variant mt-2 max-w-2xl">Connect with thousands of graduates. Filter by industry, graduation year, or location to find the right connections for your career journey.</p>
+        <h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Alumnex Network</h2>
+        <p className="font-body-base text-body-base text-on-surface-variant mt-2 max-w-2xl">Connect with thousands of graduates and students. Filter by industry, graduation year, or location to find the right connections for your career journey.</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+        {[
+          ['student', '🎓 Student Network'],
+          ['alumni', '👔 Alumni Network'],
+          ['startup', '🚀 Startup & Business Network']
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap"
+            style={activeTab === key
+              ? { background:'linear-gradient(135deg,#2563eb,#7c3aed)', color:'#fff', boxShadow:'0 4px 15px rgba(37,99,235,0.35)' }
+              : { background:'rgba(255,255,255,0.06)', color:'rgba(241,245,249,0.65)', border:'1px solid rgba(255,255,255,0.09)' }
+            }
+          >
+            {label}
+          </button>
+        ))}
       </div>
       
       {/* Search & Filters Container */}
@@ -180,7 +205,7 @@ const StitchNetwork = () => {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

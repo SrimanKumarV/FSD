@@ -52,6 +52,23 @@ const DevProfileSettings = () => {
     }
   );
 
+  React.useEffect(() => {
+    if (data?.data?.usernames) {
+      setUsernames({
+        github: data.data.usernames.github || { username: '', isVerified: false },
+        leetcode: data.data.usernames.leetcode || { username: '', isVerified: false },
+        hackerrank: data.data.usernames.hackerrank || { username: '', isVerified: false },
+        gfg: data.data.usernames.gfg || { username: '', isVerified: false },
+        codechef: data.data.usernames.codechef || { username: '', isVerified: false },
+        codeforces: data.data.usernames.codeforces || { username: '', isVerified: false },
+        duolingo: data.data.usernames.duolingo || { username: '', isVerified: false }
+      });
+    }
+    if (data?.data?.verificationCode) {
+      setVerificationCode(data.data.verificationCode);
+    }
+  }, [data]);
+
   const saveMutation = useMutation(
     (newSettings) => api.post('/dev-activity/usernames', {
       github: newSettings.github?.username || '',

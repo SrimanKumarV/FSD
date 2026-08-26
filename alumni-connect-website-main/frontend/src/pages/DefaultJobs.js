@@ -355,9 +355,12 @@ const DefaultJobs = () => {
   const [showApplyModal, setShowApplyModal] = useState(null); // stores the job being applied to
   const { socket } = useSocket();
 
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+
   // Socket.io Real-time integration for new jobs
   useEffect(() => {
     setMatchResult(null);
+    setIsDescExpanded(false);
   }, [selectedJob]);
 
   useEffect(() => {
@@ -892,7 +895,15 @@ const DefaultJobs = () => {
 
                   <div className="mb-8">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Job Description</h3>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedJob.description}</p>
+                    <p className={`text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap ${!isDescExpanded ? 'line-clamp-4' : ''}`}>{selectedJob.description}</p>
+                    {selectedJob.description && selectedJob.description.length > 200 && (
+                      <button 
+                        onClick={() => setIsDescExpanded(!isDescExpanded)} 
+                        className="mt-2 text-sm text-primary-500 hover:text-primary-600 font-medium transition-colors"
+                      >
+                        {isDescExpanded ? 'Read Less' : 'Read More...'}
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex gap-4 flex-wrap">
@@ -1020,7 +1031,15 @@ const DefaultJobs = () => {
                     
                     <div className="mb-6">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Job Description</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{selectedJob.description}</p>
+                      <p className={`text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap ${!isDescExpanded ? 'line-clamp-4' : ''}`}>{selectedJob.description}</p>
+                      {selectedJob.description && selectedJob.description.length > 200 && (
+                        <button 
+                          onClick={() => setIsDescExpanded(!isDescExpanded)} 
+                          className="mt-2 text-sm text-primary-500 hover:text-primary-600 font-medium transition-colors"
+                        >
+                          {isDescExpanded ? 'Read Less' : 'Read More...'}
+                        </button>
+                      )}
                     </div>
                     
                     <div className="flex flex-col gap-3">

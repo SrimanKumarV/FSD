@@ -254,7 +254,6 @@ const StitchJobs = () => {
                   <p className="text-xs text-white/50 mt-1">{selectedJob.salary || 'Competitive'}</p>
                 </div>
               </div>
-              </div>
               <div className="flex items-center gap-2">
                 {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
                   <>

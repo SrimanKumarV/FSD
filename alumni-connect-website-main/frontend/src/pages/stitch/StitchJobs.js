@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
+import PostJobModal from '../../components/jobs/PostJobModal';
 
 const StitchJobs = () => {
   const { user } = useAuth();
@@ -16,6 +17,32 @@ const StitchJobs = () => {
   const [matchResult, setMatchResult] = useState(null);
   const [matchLoading, setMatchLoading] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [jobToEdit, setJobToEdit] = useState(null);
+
+  const fetchJobs = () => {
+    setLoading(true);
+    Promise.allSettled([api.get('/jobs'), api.get('/jobs/external')])
+      .then(([ir, er]) => {
+        if (ir.status === 'fulfilled') setInternalJobs(ir.value.data.jobs || ir.value.data || []);
+        if (er.status === 'fulfilled') setExternalJobs(er.value.data.jobs || er.value.data || []);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm('Are you sure you want to delete this job?')) return;
+    try {
+      await api.delete(`/jobs/${jobId}`);
+      toast.success('Job deleted successfully');
+      setInternalJobs(internalJobs.filter(j => (j._id || j.id) !== jobId));
+      if (selectedJob && (selectedJob._id || selectedJob.id) === jobId) {
+        setSelectedJob(null);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete job');
+    }
+  };
 
   useEffect(() => {
     Promise.allSettled([api.get('/jobs'), api.get('/jobs/external')])
@@ -179,7 +206,7 @@ const StitchJobs = () => {
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-20" style={{ background:'radial-gradient(circle,#7c3aed,transparent)', transform:'translate(30%,-30%)' }} />
               <p className="text-lg mb-1 font-bold text-white">📢 Post a Referral</p>
               <p className="text-sm mb-4" style={{ color:'rgba(241,245,249,0.65)' }}>Help your network by sharing open roles at your company.</p>
-              <button className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background:'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow:'0 4px 15px rgba(37,99,235,0.35)' }}>
+              <button onClick={() => setShowPostModal(true)} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background:'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow:'0 4px 15px rgba(37,99,235,0.35)' }}>
                 Post a Job
               </button>
             </div>
@@ -225,9 +252,28 @@ const StitchJobs = () => {
                   <p className="text-xs text-white/50 mt-1">{selectedJob.salary || 'Competitive'}</p>
                 </div>
               </div>
-              <button onClick={() => { setSelectedJob(null); setMatchResult(null); }} className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-sm">close</span>
-              </button>
+              </div>
+              <div className="flex items-center gap-2">
+                {user && selectedJob.postedBy && (selectedJob.postedBy._id || selectedJob.postedBy) === user._id && (
+                  <>
+                    {((Date.now() - new Date(selectedJob.createdAt).getTime()) / (1000 * 60 * 60) <= 24) ? (
+                      <button onClick={() => setJobToEdit(selectedJob)} className="text-white/50 hover:text-blue-400 bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors" title="Edit Job (Only available for 24 hours)">
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                      </button>
+                    ) : (
+                      <button disabled className="text-white/20 bg-white/5 p-2 rounded-lg cursor-not-allowed" title="Edit time limit (24h) expired">
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                      </button>
+                    )}
+                    <button onClick={() => handleDeleteJob(selectedJob._id || selectedJob.id)} className="text-white/50 hover:text-red-400 bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors" title="Delete Job">
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </>
+                )}
+                <button onClick={() => { setSelectedJob(null); setMatchResult(null); }} className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors">
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
             </div>
             
             {/* Scrollable Body */}
@@ -304,6 +350,26 @@ const StitchJobs = () => {
             </div>
           </div>
         </div>
+      )}
+      {showPostModal && (
+        <PostJobModal 
+          onClose={() => setShowPostModal(false)} 
+          onSuccess={() => {
+            setShowPostModal(false);
+            fetchJobs();
+          }} 
+        />
+      )}
+
+      {jobToEdit && (
+        <PostJobModal
+          initialData={jobToEdit}
+          onClose={() => setJobToEdit(null)}
+          onSuccess={() => {
+            setJobToEdit(null);
+            fetchJobs();
+          }}
+        />
       )}
     </div>
   );

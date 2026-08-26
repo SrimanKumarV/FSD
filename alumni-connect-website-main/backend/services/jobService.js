@@ -187,6 +187,14 @@ const updateJob = async (user, jobId, data, io) => {
     throw err;
   }
 
+  // Enforce 24-hour edit limit
+  const hoursSinceCreation = (Date.now() - new Date(job.createdAt).getTime()) / (1000 * 60 * 60);
+  if (hoursSinceCreation > 24) {
+    const err = new Error('Edit time limit expired. Jobs can only be edited within 24 hours of posting.');
+    err.status = 400;
+    throw err;
+  }
+
   const allowedFields = [
     'title', 'description', 'company', 'companyLogo', 'companyWebsite',
     'jobType', 'category', 'location', 'isRemote', 'remoteType',

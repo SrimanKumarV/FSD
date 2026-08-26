@@ -15,6 +15,7 @@ const StitchJobs = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
   const [matchLoading, setMatchLoading] = useState(false);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   useEffect(() => {
     Promise.allSettled([api.get('/jobs'), api.get('/jobs/external')])
@@ -59,7 +60,7 @@ const StitchJobs = () => {
   }
 
   const JobCard = ({ job, type }) => (
-    <div onClick={() => { setSelectedJob(job); setMatchResult(null); }} className="glass-card rounded-2xl p-5 flex gap-4 group cursor-pointer hover:border-blue-500/50 transition-colors">
+    <div onClick={() => { setSelectedJob(job); setMatchResult(null); setIsDescExpanded(false); }} className="glass-card rounded-2xl p-5 flex gap-4 group cursor-pointer hover:border-blue-500/50 transition-colors">
       {/* Company Logo */}
       <div className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center text-2xl font-bold text-white" style={{ background:'linear-gradient(135deg,rgba(37,99,235,0.30),rgba(124,58,237,0.30))', border:'1px solid rgba(255,255,255,0.10)' }}>
         {job.company?.charAt(0) || 'C'}
@@ -254,9 +255,17 @@ const StitchJobs = () => {
               
               <div>
                 <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Job Description</h3>
-                <div className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+                <div className={`text-sm text-white/80 leading-relaxed whitespace-pre-wrap ${!isDescExpanded ? 'line-clamp-4' : ''}`}>
                   {selectedJob.description || 'No detailed description provided.'}
                 </div>
+                {selectedJob.description && selectedJob.description.length > 200 && (
+                  <button 
+                    onClick={() => setIsDescExpanded(!isDescExpanded)} 
+                    className="mt-2 text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                  >
+                    {isDescExpanded ? 'Read Less' : 'Read More...'}
+                  </button>
+                )}
               </div>
               
               {(selectedJob.skills?.length > 0 || selectedJob.requirements?.length > 0) && (

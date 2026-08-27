@@ -18,20 +18,58 @@ export const mobileTokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
-const getBaseUrl = () => {
-  if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.includes('localhost')) {
-    return process.env.REACT_APP_API_URL;
+const getAvailableBackendUrls = () => {
+  if (process.env.NODE_ENV === 'development' && (!process.env.REACT_APP_API_URL || process.env.REACT_APP_API_URL.includes('localhost'))) {
+    return ['/api'];
   }
-  // Use relative path in development to route through the Webpack proxy, avoiding CORS entirely
-  if (process.env.NODE_ENV === 'development') {
-    return '/api';
+  
+  const urls = [];
+  if (process.env.REACT_APP_API_URL) urls.push(process.env.REACT_APP_API_URL);
+  if (process.env.REACT_APP_BACKUP_API_URL) urls.push(process.env.REACT_APP_BACKUP_API_URL);
+  if (process.env.REACT_APP_BACKUP_API_URL_2) urls.push(process.env.REACT_APP_BACKUP_API_URL_2);
+  
+  if (urls.length === 0) {
+    return [`http://${window.location.hostname}:5000/api`];
   }
-  return `http://${window.location.hostname}:5000/api`;
+  
+  // Basic URL validation/deduplication
+  return [...new Set(urls)].filter(Boolean);
+};
+
+// Global state for failover tracking
+let activeBackendUrls = [...getAvailableBackendUrls()];
+
+// Load balancer: pick a random starting URL
+if (activeBackendUrls.length > 1) {
+  const startingIndex = Math.floor(Math.random() * activeBackendUrls.length);
+  const chosenUrl = activeBackendUrls.splice(startingIndex, 1)[0];
+  activeBackendUrls.unshift(chosenUrl);
+}
+
+export const getActiveBackendUrl = () => activeBackendUrls[0];
+
+export const triggerFailover = (failedUrl) => {
+  if (activeBackendUrls.length > 1 && activeBackendUrls[0] === failedUrl) {
+    activeBackendUrls = activeBackendUrls.filter(url => url !== failedUrl);
+    console.warn(`Load Balancer shifted to next backend: ${activeBackendUrls[0]}`);
+    
+    // Update Axios default if it has been initialized
+    try {
+      if (api && api.defaults) {
+        api.defaults.baseURL = activeBackendUrls[0];
+      }
+    } catch (e) {
+      // Ignore if api is not yet initialized
+    }
+    
+    window.dispatchEvent(new CustomEvent('backend-failover', { detail: activeBackendUrls[0] }));
+  }
+  return activeBackendUrls[0];
 };
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: activeBackendUrls[0],
   timeout: 60000, // Increased to 60s to allow Render free tier to wake up
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
@@ -110,14 +148,16 @@ api.interceptors.response.use(
     const isNetworkOrTimeout = !error.response || error.code === 'ECONNABORTED';
     
     if (isNetworkOrTimeout && !originalRequest._retryFailover) {
-      const backupUrl = process.env.REACT_APP_BACKUP_API_URL;
+      // Get the URL that this request actually tried to hit
+      const currentFailedUrl = originalRequest.baseURL || activeBackendUrls[0];
       
-      if (backupUrl) {
+      if (activeBackendUrls.length > 1) {
         originalRequest._retryFailover = true;
-        console.warn(`Primary API failed or timed out. Failing over to backup: ${backupUrl}`);
         
-        // Swap the base URL to Koyeb (or any backup)
-        originalRequest.baseURL = backupUrl;
+        // Trigger global failover (this will shift the array and emit event)
+        const nextUrl = triggerFailover(currentFailedUrl);
+        
+        originalRequest.baseURL = nextUrl;
         
         // Retry the request instantly on the backup server
         return api(originalRequest);

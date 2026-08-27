@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { getActiveBackendUrl, triggerFailover } from '../utils/api';
 
 const SocketContext = createContext();
 
@@ -31,16 +32,9 @@ export const SocketProvider = ({ children }) => {
     const userId = user._id || user.id;
 
     // Create socket connection
-    const getBaseUrl = () => {
-      if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.includes('localhost')) {
-        return process.env.REACT_APP_API_URL;
-      }
-      return `http://${window.location.hostname}:5000/api`;
-    };
-    const apiUrl = getBaseUrl();
-    const defaultSocketUrl = apiUrl.replace(/\/api$/, '');
-    const socketUrl = process.env.REACT_APP_SOCKET_URL || defaultSocketUrl;
-    const newSocket = io(socketUrl, {
+    const apiUrl = getActiveBackendUrl();
+    let currentSocketUrl = process.env.REACT_APP_SOCKET_URL || apiUrl.replace(/\/api$/, '');
+    const newSocket = io(currentSocketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling']
     });
@@ -62,20 +56,35 @@ export const SocketProvider = ({ children }) => {
       console.error('Socket connection error:', error);
       setIsConnected(false);
       
-      // Socket Failover Logic
-      const backupUrl = process.env.REACT_APP_BACKUP_API_URL;
-      if (!fallbackAttempted && backupUrl) {
-        fallbackAttempted = true;
-        const backupSocketUrl = backupUrl.replace(/\/api$/, '');
-        console.warn(`Socket failed to connect, failing over to backup: ${backupSocketUrl}`);
-        
-        // Update the socket URL and attempt to reconnect manually
-        newSocket.io.uri = backupSocketUrl;
+      // Socket Failover Logic leveraging the global load balancer
+      const failedApiUrl = currentSocketUrl + '/api';
+      const nextApiUrl = triggerFailover(failedApiUrl);
+      
+      if (nextApiUrl !== failedApiUrl) {
+        const nextSocketUrl = nextApiUrl.replace(/\/api$/, '');
+        console.warn(`Socket failed to connect, failing over to backup: ${nextSocketUrl}`);
+        currentSocketUrl = nextSocketUrl;
+        newSocket.io.uri = nextSocketUrl;
         setTimeout(() => {
           newSocket.connect();
-        }, 1000); // Wait 1 second before trying to connect to backup
+        }, 1000);
       }
     });
+
+    const handleFailoverEvent = (e) => {
+      const newApiUrl = e.detail;
+      const newSocketUrl = newApiUrl.replace(/\/api$/, '');
+      if (newSocketUrl !== currentSocketUrl && newSocket) {
+        console.warn(`HTTP failover detected. Swapping socket to match API: ${newSocketUrl}`);
+        currentSocketUrl = newSocketUrl;
+        newSocket.io.uri = newSocketUrl;
+        newSocket.disconnect();
+        setTimeout(() => {
+          newSocket.connect();
+        }, 1000);
+      }
+    };
+    window.addEventListener('backend-failover', handleFailoverEvent);
 
     // Join user to their personal room
     newSocket.on('connect', () => {
@@ -108,6 +117,7 @@ export const SocketProvider = ({ children }) => {
 
     // Cleanup on unmount
     return () => {
+      window.removeEventListener('backend-failover', handleFailoverEvent);
       newSocket.disconnect();
     };
   }, [user]);

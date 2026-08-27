@@ -687,10 +687,6 @@ const Profile = () => {
             {user.socialLinks?.github && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 mt-6">
                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">GitHub Overview</h3>
-                <div className="flex flex-col lg:flex-row gap-4 items-center">
-                  <img src={`https://github-readme-stats.vercel.app/api?username=${user.socialLinks.github.split('/').filter(Boolean).pop()}&show_icons=true&theme=transparent&hide_border=true&title_color=6366f1&text_color=94a3b8`} alt="GitHub Stats" className="max-w-full lg:max-w-1/2" />
-                  <img src={`https://github-readme-stats.vercel.app/api/top-langs/?username=${user.socialLinks.github.split('/').filter(Boolean).pop()}&layout=compact&theme=transparent&hide_border=true&title_color=6366f1&text_color=94a3b8`} alt="Top Languages" className="max-w-full lg:max-w-1/2" />
-                </div>
               </div>
             )}
 

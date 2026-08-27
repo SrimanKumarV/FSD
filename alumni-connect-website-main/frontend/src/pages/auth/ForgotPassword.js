@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, AlertCircle, Key, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import AnimatedOTP from '../../components/AnimatedOTP';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [otpStatus, setOtpStatus] = useState('idle'); // For AnimatedOTP
   
   const { forgotPassword, resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -23,8 +25,12 @@ const ForgotPassword = () => {
   const {
     register: registerReset,
     handleSubmit: handleResetSubmit,
-    formState: { errors: resetErrors }
+    formState: { errors: resetErrors },
+    setValue: setResetValue,
+    watch: watchReset
   } = useForm();
+  
+  const currentOtp = watchReset('otp') || '';
 
   const onEmailSubmit = async (data) => {
     setIsLoading(true);
@@ -44,16 +50,21 @@ const ForgotPassword = () => {
 
   const onResetSubmit = async (data) => {
     setIsLoading(true);
+    setOtpStatus('loading');
     try {
       const result = await resetPassword(email, data.otp, data.newPassword);
-      if (result.success) {
+      if (result && result.success) {
+        setOtpStatus('success');
         setSuccessMessage('Password reset successfully! Redirecting to login...');
         setTimeout(() => {
           navigate('/login');
         }, 3000);
+      } else {
+        setOtpStatus('error');
       }
     } catch (error) {
       console.error(error);
+      setOtpStatus('error');
     } finally {
       setIsLoading(false);
     }
@@ -155,33 +166,43 @@ const ForgotPassword = () => {
               </motion.button>
             </form>
           ) : (
-            <form className="space-y-6" onSubmit={handleResetSubmit(onResetSubmit)}>
+            <form className="space-y-8" onSubmit={handleResetSubmit(onResetSubmit)}>
               <div>
-                <label htmlFor="otp" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Verification Code (OTP)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Key className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <input
-                    id="otp"
-                    type="text"
-                    {...registerReset('otp', {
-                      required: 'Verification code is required',
-                      minLength: { value: 6, message: 'Code must be 6 digits' },
-                      maxLength: { value: 6, message: 'Code must be 6 digits' }
-                    })}
-                    className={`glass-input block w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none tracking-widest text-center transition-all ${resetErrors.otp ? 'border-red-400 ring-1 ring-red-400' : ''}`}
-                    placeholder="123456"
-                  />
+                <div className="flex justify-between items-center mb-3">
+                  <label htmlFor="otp" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Verification Code
+                  </label>
+                  <AnimatePresence>
+                    {(resetErrors.otp || otpStatus === 'error') && (
+                      <motion.span 
+                        initial={{ opacity: 0, x: -10 }} 
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="text-xs font-bold text-red-500 flex items-center gap-1"
+                      >
+                        <AlertCircle className="w-3 h-3" /> {resetErrors.otp ? resetErrors.otp.message : 'Wrong Code'}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
-                {resetErrors.otp && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {resetErrors.otp.message}
-                  </p>
-                )}
+                
+                {/* Hidden input for react-hook-form validation */}
+                <input
+                  type="hidden"
+                  {...registerReset('otp', {
+                    required: 'Verification code is required',
+                    minLength: { value: 6, message: 'Code must be 6 digits' }
+                  })}
+                />
+                
+                <AnimatedOTP 
+                  status={otpStatus} 
+                  onChange={(val) => {
+                    setResetValue('otp', val, { shouldValidate: true });
+                    if (otpStatus === 'error') setOtpStatus('idle');
+                  }}
+                  onClear={() => setResetValue('otp', '', { shouldValidate: true })}
+                />
               </div>
 
               <div>
@@ -202,6 +223,7 @@ const ForgotPassword = () => {
                         message: 'Password must be at least 6 characters'
                       }
                     })}
+                    disabled={isLoading || otpStatus === 'success'}
                     className={`glass-input block w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none transition-all ${resetErrors.newPassword ? 'border-red-400 ring-1 ring-red-400' : ''}`}
                     placeholder="Enter new password"
                   />
@@ -214,25 +236,43 @@ const ForgotPassword = () => {
                 )}
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={isLoading}
-                className={`w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white shadow-lg transition-all duration-300 ${isLoading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-primary-600 to-alumni-600 hover:from-primary-500 hover:to-alumni-500'
-                  }`}
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Resetting...
-                  </div>
-                ) : (
-                  'Reset Password'
-                )}
-              </motion.button>
+              <div className="relative pt-2">
+                <AnimatePresence mode="wait">
+                  {otpStatus === 'success' ? (
+                    <motion.div
+                      key="success"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-emerald-500 shadow-lg shadow-emerald-500/30"
+                    >
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      Reset Successfully!
+                    </motion.div>
+                  ) : (
+                    <motion.button
+                      key="submit"
+                      type="submit"
+                      disabled={isLoading || currentOtp.length !== 6}
+                      whileHover={currentOtp.length === 6 ? { scale: 1.02 } : {}}
+                      whileTap={currentOtp.length === 6 ? { scale: 0.98 } : {}}
+                      className={`w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white shadow-lg transition-all duration-300 ${
+                        isLoading || currentOtp.length !== 6
+                          ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400'
+                          : 'bg-gradient-to-r from-primary-600 to-alumni-600 hover:from-primary-500 hover:to-alumni-500 shadow-primary-500/25'
+                      }`}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Resetting...
+                        </div>
+                      ) : (
+                        'Reset Password'
+                      )}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
             </form>
           )}
 

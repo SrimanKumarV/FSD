@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { ShieldCheck, Mail, Smartphone, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Mail, Smartphone, ArrowRight, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import AnimatedOTP from '../../components/AnimatedOTP';
 
 const Verify2FA = () => {
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState('');
+  const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
   const [isLoading, setIsLoading] = useState(false);
   const [methodSent, setMethodSent] = useState('');
   
@@ -39,32 +41,29 @@ const Verify2FA = () => {
     }
   };
 
-  const handleChange = (element, index) => {
-    if (isNaN(element.value)) return false;
-
-    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
-
-    // Focus next input
-    if (element.nextSibling) {
-      element.nextSibling.focus();
-    }
-  };
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    const otpValue = otp.join('');
     
-    if (otpValue.length !== 6) {
+    if (otp.length !== 6) {
       toast.error('Please enter a valid 6-digit OTP');
       return;
     }
 
     setIsLoading(true);
+    setStatus('loading');
     try {
-      const result = await verify2FA(email, otpValue);
-      if (result.success) {
-        navigate('/dashboard', { replace: true });
+      const result = await verify2FA(email, otp);
+      if (result && result.success) {
+        setStatus('success');
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 1800);
+      } else {
+        setStatus('error');
       }
+    } catch (error) {
+      setStatus('error');
     } finally {
       setIsLoading(false);
     }
@@ -140,38 +139,53 @@ const Verify2FA = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleVerify}>
-          <div className="flex justify-center gap-2">
-            {otp.map((data, index) => (
-              <input
-                className="w-12 h-12 text-center text-xl font-bold glass-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
-                type="text"
-                name="otp"
-                maxLength="1"
-                key={index}
-                value={data}
-                onChange={e => handleChange(e.target, index)}
-                onFocus={e => e.target.select()}
-                required
-              />
-            ))}
-          </div>
+          <AnimatedOTP 
+            status={status} 
+            onChange={(val) => {
+              setOtp(val);
+              if (status === 'error') setStatus('idle');
+            }}
+            onClear={() => setOtp('')}
+          />
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-alumni-600 hover:from-primary-500 hover:to-alumni-500 transition-all shadow-lg disabled:opacity-50"
-            >
-              {isLoading ? 'Verifying...' : 'Verify & Continue'}
-            </button>
+          <div className="relative pt-2">
+            <AnimatePresence mode="wait">
+              {status === 'success' ? (
+                <motion.div
+                  key="success"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-emerald-500 shadow-lg shadow-emerald-500/30"
+                >
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Verified Successfully!
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="submit"
+                  type="submit"
+                  disabled={isLoading || otp.length !== 6}
+                  whileHover={otp.length === 6 ? { scale: 1.02 } : {}}
+                  whileTap={otp.length === 6 ? { scale: 0.98 } : {}}
+                  className={`w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white shadow-lg transition-all duration-300 ${
+                    isLoading || otp.length !== 6
+                      ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400'
+                      : 'bg-gradient-to-r from-primary-600 to-alumni-600 hover:from-primary-500 hover:to-alumni-500 shadow-primary-500/25'
+                  }`}
+                >
+                  {isLoading ? 'Verifying...' : 'Verify & Continue'}
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </form>
 
-        <div className="mt-6 flex flex-col space-y-2 text-center text-sm">
+        <div className="mt-6 flex flex-col space-y-3 text-center text-sm border-t border-gray-100 dark:border-gray-800 pt-6">
           <button
+            type="button"
             onClick={() => handleSendOtp(methodSent)}
-            disabled={isLoading}
-            className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
+            disabled={isLoading || status === 'success'}
+            className="font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 disabled:opacity-50"
           >
             Didn't receive the code? Resend
           </button>

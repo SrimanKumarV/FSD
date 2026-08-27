@@ -8,6 +8,7 @@ import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
+import AnimatedOTP from '../components/AnimatedOTP';
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -24,6 +25,7 @@ const Settings = () => {
   const [isUpdatingPhone, setIsUpdatingPhone] = useState(false);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [phoneOtp, setPhoneOtp] = useState('');
+  const [phoneOtpStatus, setPhoneOtpStatus] = useState('idle');
   const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
 
   // Initialize phone number if it exists
@@ -69,13 +71,19 @@ const Settings = () => {
   const handleVerifyPhone = async () => {
     try {
       setIsVerifyingPhone(true);
+      setPhoneOtpStatus('loading');
       const res = await api.post('/users/profile/phone/verify-otp', { otp: phoneOtp });
       toast.success(res.data.message || 'Phone verified');
-      setShowPhoneModal(false);
-      setPhoneOtp('');
-      // Force update user context
-      updateUser({ smsNotifications: true }); // trigger a silent sync with what backend returned
+      setPhoneOtpStatus('success');
+      setTimeout(() => {
+        setShowPhoneModal(false);
+        setPhoneOtp('');
+        // Force update user context
+        updateUser({ smsNotifications: true }); // trigger a silent sync with what backend returned
+        setPhoneOtpStatus('idle');
+      }, 1500);
     } catch(err) {
+      setPhoneOtpStatus('error');
       toast.error(err.response?.data?.message || 'Verification failed');
     } finally {
       setIsVerifyingPhone(false);
@@ -117,11 +125,13 @@ const Settings = () => {
   // State for Account Deletion
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteOtp, setDeleteOtp] = useState('');
+  const [deleteOtpStatus, setDeleteOtpStatus] = useState('idle');
   const [deletingAccount, setDeletingAccount] = useState(false);
 
   // State for Password Change
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordOtp, setPasswordOtp] = useState('');
+  const [passwordOtpStatus, setPasswordOtpStatus] = useState('idle');
   const [newPassword, setNewPassword] = useState('');
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -151,16 +161,22 @@ const Settings = () => {
     
     try {
       setIsChangingPassword(true);
+      setPasswordOtpStatus('loading');
       await api.post('/auth/reset-password', { 
         email: user.email, 
         otp: passwordOtp, 
         newPassword: newPassword 
       });
       toast.success('Password changed successfully');
-      setShowPasswordModal(false);
-      setPasswordOtp('');
-      setNewPassword('');
+      setPasswordOtpStatus('success');
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPasswordOtp('');
+        setNewPassword('');
+        setPasswordOtpStatus('idle');
+      }, 1500);
     } catch (error) {
+      setPasswordOtpStatus('error');
       toast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
       setIsChangingPassword(false);
@@ -183,18 +199,23 @@ const Settings = () => {
   };
 
   const confirmDeleteAccount = async () => {
-    if (!deleteOtp) {
+    if (!deleteOtp || deleteOtp.length !== 6) {
       toast.error('Please enter the OTP');
       return;
     }
     try {
       setDeletingAccount(true);
+      setDeleteOtpStatus('loading');
       await api.delete('/users/me', { data: { otp: deleteOtp } });
       toast.success('Account deleted successfully');
-      setShowDeleteModal(false);
-      logout();
-      navigate('/');
+      setDeleteOtpStatus('success');
+      setTimeout(() => {
+        setShowDeleteModal(false);
+        logout();
+        navigate('/');
+      }, 1500);
     } catch (error) {
+      setDeleteOtpStatus('error');
       toast.error(error.response?.data?.message || 'Failed to delete account');
       setDeletingAccount(false);
     }
@@ -483,14 +504,16 @@ const Settings = () => {
             <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm">
               We've sent an OTP to your email. Please enter it below to permanently delete your account. This action cannot be undone.
             </p>
-            <input
-              type="text"
-              value={deleteOtp}
-              onChange={(e) => setDeleteOtp(e.target.value)}
-              placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent mb-6 text-center text-2xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
-              maxLength={6}
-            />
+            <div className="mb-6">
+              <AnimatedOTP 
+                status={deleteOtpStatus} 
+                onChange={(val) => {
+                  setDeleteOtp(val);
+                  if (deleteOtpStatus === 'error') setDeleteOtpStatus('idle');
+                }}
+                onClear={() => setDeleteOtp('')}
+              />
+            </div>
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -531,14 +554,14 @@ const Settings = () => {
             
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Security Code (OTP)</label>
-                <input
-                  type="text"
-                  value={passwordOtp}
-                  onChange={(e) => setPasswordOtp(e.target.value)}
-                  placeholder="Enter 6-digit code"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
-                  maxLength={6}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">Security Code (OTP)</label>
+                <AnimatedOTP 
+                  status={passwordOtpStatus} 
+                  onChange={(val) => {
+                    setPasswordOtp(val);
+                    if (passwordOtpStatus === 'error') setPasswordOtpStatus('idle');
+                  }}
+                  onClear={() => setPasswordOtp('')}
                 />
               </div>
               
@@ -595,13 +618,13 @@ const Settings = () => {
             
             <div className="space-y-4 mb-6">
               <div>
-                <input
-                  type="text"
-                  value={phoneOtp}
-                  onChange={(e) => setPhoneOtp(e.target.value)}
-                  placeholder="Enter 6-digit OTP"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono"
-                  maxLength={6}
+                <AnimatedOTP 
+                  status={phoneOtpStatus} 
+                  onChange={(val) => {
+                    setPhoneOtp(val);
+                    if (phoneOtpStatus === 'error') setPhoneOtpStatus('idle');
+                  }}
+                  onClear={() => setPhoneOtp('')}
                 />
               </div>
             </div>

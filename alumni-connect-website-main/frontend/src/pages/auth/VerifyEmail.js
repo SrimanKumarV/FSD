@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, CheckCircle, RefreshCw, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import AnimatedOTP from '../../components/AnimatedOTP';
 
 const VerifyEmail = () => {
-  const [otpArray, setOtpArray] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState('');
   const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   
-  const inputRefs = useRef([]);
   const location = useLocation();
   const navigate = useNavigate();
   const { verifyEmail } = useAuth();
@@ -27,57 +27,13 @@ const VerifyEmail = () => {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Focus first input on mount
-  useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
-    }
-  }, []);
-
   if (!email) {
     navigate('/login', { replace: true });
     return null;
   }
 
-  const handleChange = (index, e) => {
-    const value = e.target.value;
-    if (isNaN(value)) return;
-    
-    const newOtp = [...otpArray];
-    newOtp[index] = value.substring(value.length - 1);
-    setOtpArray(newOtp);
-    if (status === 'error') setStatus('idle');
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1].focus();
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otpArray[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text/plain').replace(/\D/g, '').substring(0, 6);
-    if (!pastedData) return;
-    
-    const newOtp = [...otpArray];
-    for (let i = 0; i < pastedData.length; i++) {
-      newOtp[i] = pastedData[i];
-    }
-    setOtpArray(newOtp);
-    if (status === 'error') setStatus('idle');
-    
-    const focusIndex = Math.min(pastedData.length, 5);
-    inputRefs.current[focusIndex].focus();
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const otp = otpArray.join('');
     if (otp.length < 6) {
       toast.error('Please enter the full 6-digit code');
       return;
@@ -92,20 +48,11 @@ const VerifyEmail = () => {
           navigate('/dashboard', { replace: true });
         }, 1800);
       } else {
-        triggerError();
+        setStatus('error');
       }
     } catch (error) {
-      triggerError();
+      setStatus('error');
     }
-  };
-
-  const triggerError = () => {
-    setStatus('error');
-    setTimeout(() => {
-      setOtpArray(['', '', '', '', '', '']);
-      setStatus('idle');
-      if (inputRefs.current[0]) inputRefs.current[0].focus();
-    }, 1000);
   };
 
   const handleResend = async () => {
@@ -126,7 +73,7 @@ const VerifyEmail = () => {
     }
   };
 
-  const isFull = otpArray.every(d => d !== '');
+  const isFull = otp.length === 6;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-300">
@@ -177,35 +124,14 @@ const VerifyEmail = () => {
                 </AnimatePresence>
               </div>
 
-              <motion.div
-                animate={status === 'error' ? { x: [-10, 10, -10, 10, -5, 5, 0] } : {}}
-                transition={{ duration: 0.4 }}
-                className="flex justify-between gap-2 sm:gap-3"
-              >
-                {otpArray.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={el => inputRefs.current[index] = el}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleChange(index, e)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={handlePaste}
-                    disabled={status === 'loading' || status === 'success'}
-                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black rounded-2xl border-2 transition-all duration-300 outline-none
-                      ${status === 'success' 
-                        ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-400 text-emerald-600 dark:text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' 
-                        : status === 'error'
-                        ? 'bg-red-50 dark:bg-red-900/20 border-red-400 text-red-600 dark:text-red-400'
-                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20'
-                      }
-                      ${digit && status !== 'error' && status !== 'success' ? 'border-primary-400' : ''}
-                    `}
-                  />
-                ))}
-              </motion.div>
+              <AnimatedOTP 
+                status={status} 
+                onChange={(val) => {
+                  setOtp(val);
+                  if (status === 'error') setStatus('idle');
+                }}
+                onClear={() => setOtp('')}
+              />
             </div>
 
             <div className="relative">

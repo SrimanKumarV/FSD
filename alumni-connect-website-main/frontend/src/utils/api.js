@@ -95,29 +95,28 @@ let csrfTokenMemory = null;
 // ─── Request Interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    // ── Mobile / Capacitor: use Bearer token from localStorage ──
-    if (isCapacitor) {
-      const storedToken = mobileTokenStore.get();
-      if (storedToken) {
-        config.headers['Authorization'] = `Bearer ${storedToken}`;
-      }
-      // Skip CSRF for mobile — the backend will whitelist capacitor origin
-      config.headers['X-Mobile-App'] = 'capacitor';
-      return config;
-    }
-
-    // Token is now handled automatically by the browser via HTTP-only cookies
+    // ── Universal Token Authentication ──
+    // Use Bearer token from localStorage for ALL clients, not just Capacitor.
+    // This fixes "Invalid CSRF" and login issues on Safari, Brave, Edge, and WebViews
+    // which block third-party cookies by default.
+    const storedToken = mobileTokenStore.get();
     
-    // Read XSRF-TOKEN from cookies for CSRF protection
-    const xsrfTokenCookie = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('XSRF-TOKEN='))
-      ?.split('=')[1];
+    if (storedToken) {
+      config.headers['Authorization'] = `Bearer ${storedToken}`;
+      // Tell backend to bypass CSRF because we are using secure Bearer tokens instead of cookies
+      config.headers['X-Mobile-App'] = 'capacitor';
+    } else {
+      // Fallback to cookie-based CSRF protection if no token is in localStorage yet
+      const xsrfTokenCookie = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1];
 
-    const finalToken = xsrfTokenCookie || csrfTokenMemory;
+      const finalToken = xsrfTokenCookie || csrfTokenMemory;
 
-    if (finalToken) {
-      config.headers['X-XSRF-TOKEN'] = finalToken;
+      if (finalToken) {
+        config.headers['X-XSRF-TOKEN'] = finalToken;
+      }
     }
     
     // Bypass ngrok warning screen for local development

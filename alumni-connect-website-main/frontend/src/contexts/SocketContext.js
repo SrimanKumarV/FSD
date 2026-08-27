@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { useAuth } from './AuthContext';
-import { getActiveBackendUrl, triggerFailover } from '../utils/api';
+import { getActiveBackendUrl, triggerFailover, mobileTokenStore } from '../utils/api';
 
 const SocketContext = createContext();
 
@@ -36,7 +36,10 @@ export const SocketProvider = ({ children }) => {
     let currentSocketUrl = process.env.REACT_APP_SOCKET_URL || apiUrl.replace(/\/api$/, '');
     const newSocket = io(currentSocketUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      auth: {
+        token: mobileTokenStore.get()
+      }
     });
 
     // Socket event handlers

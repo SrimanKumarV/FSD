@@ -19,8 +19,7 @@ const sendSMS = async (phoneNumber, message) => {
     const targetNumber = cleanNumber.length > 10 ? cleanNumber.slice(-10) : cleanNumber;
 
     const response = await axios.post('https://www.fast2sms.com/dev/bulkV2', {
-      route: 'v3',
-      sender_id: 'TXTIND',
+      route: 'q',
       message: message,
       language: 'english',
       flash: 0,

@@ -115,9 +115,17 @@ const Settings = () => {
     setCurrentLang(langCode);
     setIsSwitchingLanguage(true);
     
-    // Set cookie explicitly for stateful behavior across domain and subdomain
-    document.cookie = `googtrans=/en/${langCode}; path=/;`;
-    document.cookie = `googtrans=/en/${langCode}; path=/; domain=${window.location.hostname};`;
+    // Clear existing cookies to prevent conflicts across different domain scopes
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+
+    if (langCode !== 'en') {
+      // Set new cookie explicitly for stateful behavior
+      document.cookie = `googtrans=/en/${langCode}; path=/;`;
+      document.cookie = `googtrans=/en/${langCode}; path=/; domain=${window.location.hostname};`;
+      document.cookie = `googtrans=/en/${langCode}; path=/; domain=.${window.location.hostname};`;
+    }
 
     // The most robust way to ensure Google Translate picks up the new language
     // and translates the entire DOM instantly is to reload the page.

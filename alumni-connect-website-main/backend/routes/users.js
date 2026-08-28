@@ -357,9 +357,10 @@ router.post('/profile/phone/send-otp', protect, async (req, res) => {
     }
     
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
     await User.updateOne(
       { _id: user._id }, 
-      { $set: { twoFactorOtp: otp, twoFactorOtpExpires: Date.now() + 15 * 60 * 1000 } }
+      { $set: { twoFactorOtp: otp, twoFactorOtpExpires: expires } }
     );
     
     // Simulate SMS sending by logging, AND try to send actual SMS
@@ -405,8 +406,12 @@ router.post('/profile/phone/verify-otp', protect, [
     const { otp } = req.body;
     const user = await User.findById(req.user.id);
 
-    if (!user || user.twoFactorOtp !== otp || user.twoFactorOtpExpires < Date.now()) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    if (!user || !user.twoFactorOtp || String(user.twoFactorOtp).trim() !== String(otp).trim()) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+    
+    if (new Date(user.twoFactorOtpExpires).getTime() < Date.now()) {
+      return res.status(400).json({ message: 'Expired OTP' });
     }
 
     await User.updateOne(

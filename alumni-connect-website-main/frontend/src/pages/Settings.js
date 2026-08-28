@@ -108,10 +108,12 @@ const Settings = () => {
     return match ? match[1] : 'en';
   };
   const [currentLang, setCurrentLang] = useState(getCookieLanguage());
+  const [isSwitchingLanguage, setIsSwitchingLanguage] = useState(false);
 
   const handleLanguageChange = (e) => {
     const langCode = e.target.value;
     setCurrentLang(langCode);
+    setIsSwitchingLanguage(true);
     
     // Set cookie explicitly for stateful behavior across domain and subdomain
     document.cookie = `googtrans=/en/${langCode}; path=/;`;
@@ -119,7 +121,9 @@ const Settings = () => {
 
     // The most robust way to ensure Google Translate picks up the new language
     // and translates the entire DOM instantly is to reload the page.
-    window.location.reload();
+    setTimeout(() => {
+      window.location.reload();
+    }, 1200);
   };
 
   // State for Account Deletion
@@ -223,6 +227,13 @@ const Settings = () => {
 
   return (
     <>
+      {isSwitchingLanguage && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600 mb-4"></div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Applying Language Preferences...</h2>
+          <p className="text-slate-500 mt-2 font-medium">Please wait while we seamlessly translate the interface.</p>
+        </div>
+      )}
       <div className="max-w-6xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8 w-full">
       <motion.div
         initial={{ opacity: 0, y: 20 }}

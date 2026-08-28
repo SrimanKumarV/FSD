@@ -110,7 +110,7 @@ const UserProfile = () => {
   );
 
   // Fetch connections count
-  const { data: connData } = useQuery(
+  const { data: connData, isLoading: connLoading } = useQuery(
     ['user-connections', id],
     () => api.get(`/users/${id}/connections`),
     { enabled: !!id }
@@ -288,11 +288,19 @@ const UserProfile = () => {
           {/* Follower stats */}
           <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-white/5">
             <div className="text-center">
-              <p className="text-xl font-black text-slate-900 dark:text-white">{connData?.data?.followers?.length ?? 0}</p>
+              {connLoading ? (
+                <div className="w-10 h-7 bg-slate-200 dark:bg-slate-700 animate-pulse mx-auto rounded mb-1"></div>
+              ) : (
+                <p className="text-xl font-black text-slate-900 dark:text-white">{connData?.data?.followers?.length ?? 0}</p>
+              )}
               <p className="text-xs text-slate-500">Followers</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-black text-slate-900 dark:text-white">{connData?.data?.following?.length ?? 0}</p>
+              {connLoading ? (
+                <div className="w-10 h-7 bg-slate-200 dark:bg-slate-700 animate-pulse mx-auto rounded mb-1"></div>
+              ) : (
+                <p className="text-xl font-black text-slate-900 dark:text-white">{connData?.data?.following?.length ?? 0}</p>
+              )}
               <p className="text-xs text-slate-500">Following</p>
             </div>
             {hasDevProfile && (

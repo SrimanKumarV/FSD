@@ -56,6 +56,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [network, setNetwork] = useState({ followers: [], following: [] });
+  const [networkLoading, setNetworkLoading] = useState(true);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -84,10 +85,13 @@ const Profile = () => {
 
   const fetchNetwork = async (userId) => {
     try {
+      setNetworkLoading(true);
       const res = await api.get(`/users/${userId}/connections`);
       setNetwork({ followers: res.data.followers || [], following: res.data.following || [] });
     } catch (error) {
       console.error('Error fetching network:', error);
+    } finally {
+      setNetworkLoading(false);
     }
   };
 
@@ -310,11 +314,19 @@ const Profile = () => {
 
               <div className="flex items-center space-x-6 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                 <div className="text-center cursor-pointer hover:opacity-80" onClick={() => setActiveTab('network')}>
-                  <span className="block text-2xl font-bold text-gray-900 dark:text-white">{network.followers.length}</span>
+                  {networkLoading ? (
+                    <div className="w-10 h-7 bg-slate-200 dark:bg-slate-700 animate-pulse mx-auto rounded mb-1"></div>
+                  ) : (
+                    <span className="block text-2xl font-bold text-gray-900 dark:text-white">{network.followers.length}</span>
+                  )}
                   <span className="text-sm text-gray-500 dark:text-gray-400">Followers</span>
                 </div>
                 <div className="text-center cursor-pointer hover:opacity-80" onClick={() => setActiveTab('network')}>
-                  <span className="block text-2xl font-bold text-gray-900 dark:text-white">{network.following.length}</span>
+                  {networkLoading ? (
+                    <div className="w-10 h-7 bg-slate-200 dark:bg-slate-700 animate-pulse mx-auto rounded mb-1"></div>
+                  ) : (
+                    <span className="block text-2xl font-bold text-gray-900 dark:text-white">{network.following.length}</span>
+                  )}
                   <span className="text-sm text-gray-500 dark:text-gray-400">Following</span>
                 </div>
               </div>

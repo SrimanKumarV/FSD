@@ -46,7 +46,8 @@ const Login = () => {
   const [oauthData, setOauthData] = useState({
     country: '',
     college: '',
-    department: ''
+    department: '',
+    interests: []
   });
   const [departments, setDepartments] = useState([]);
   const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin } = useAuth();
@@ -295,7 +296,7 @@ const Login = () => {
       setIsLoading(false);
       setOauthTempToken(null);
       setOauthRole(null);
-      setOauthData({ country: '', college: '', department: '' });
+      setOauthData({ country: '', college: '', department: '', interests: [] });
     }
   };
 
@@ -569,7 +570,7 @@ const Login = () => {
                   setShowRoleModal(false);
                   setOauthTempToken(null);
                   setOauthRole(null);
-                  setOauthData({ country: '', college: '', department: '' });
+                  setOauthData({ country: '', college: '', department: '', interests: [] });
                 }}
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
@@ -688,6 +689,26 @@ const Login = () => {
                         styles={selectStyles}
                         menuPortalTarget={document.body}
                         value={oauthData.department ? { value: oauthData.department, label: oauthData.department } : null}
+                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        {oauthRole === 'alumni' ? 'Domain Interest' : 'Area of Interest'}
+                      </label>
+                      <CreatableSelect
+                        isMulti
+                        options={[]}
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                        onChange={(selected) => {
+                          setOauthData(prev => ({ ...prev, interests: selected ? selected.map(s => s.value) : [] }));
+                        }}
+                        placeholder={oauthRole === 'alumni' ? "e.g. AI, Management..." : "e.g. Web Dev, Machine Learning..."}
+                        styles={selectStyles}
+                        menuPortalTarget={document.body}
+                        value={oauthData.interests ? oauthData.interests.map(i => ({ value: i, label: i })) : []}
                         formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                       />
                     </div>

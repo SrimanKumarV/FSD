@@ -97,12 +97,10 @@ const autoAssignMentor = async (studentId, college) => {
     const SEAT_LIMIT = 10;
     const query = {
       role: 'alumni',
-      college: college,
       isApproved: true
     };
-    if (studentUser.department) {
-      query.department = studentUser.department;
-    }
+    
+    // We fetch all approved alumni, but we will rank them by domain interest and college
     const alumni = await User.find(query).select('_id name college department alumniInfo skills interests');
 
     if (!alumni.length) return null;
@@ -125,6 +123,7 @@ const autoAssignMentor = async (studentId, college) => {
     const studentCourse = (studentUser.studentInfo?.course || '').toLowerCase();
     const studentInterests = (studentUser.interests || []).map(i => i.toLowerCase());
     const studentSkills = (studentUser.skills || []).map(s => s.toLowerCase());
+    const allStudentKeywords = new Set([...studentInterests, ...studentSkills]);
 
     let bestMentor = null;
     let highestScore = -1;
@@ -135,7 +134,17 @@ const autoAssignMentor = async (studentId, college) => {
       
       if (remainingCapacity <= 0) continue;
 
-      let score = remainingCapacity;
+      let score = remainingCapacity; // base score based on availability
+
+      // Huge boost for same college
+      if (college && alum.college && college.toLowerCase() === alum.college.toLowerCase()) {
+        score += 50;
+      }
+
+      // Boost for same department
+      if (studentUser.department && alum.department && studentUser.department.toLowerCase() === alum.department.toLowerCase()) {
+        score += 20;
+      }
 
       const alumIndustry = (alum.alumniInfo?.industry || '').toLowerCase();
       const alumPosition = (alum.alumniInfo?.position || '').toLowerCase();
@@ -144,19 +153,19 @@ const autoAssignMentor = async (studentId, college) => {
           (alumIndustry && (studentCourse.includes(alumIndustry) || alumIndustry.includes(studentCourse))) ||
           (alumPosition && (studentCourse.includes(alumPosition) || alumPosition.includes(studentCourse)))
       )) {
-        score += 20;
+        score += 15;
       }
 
       const alumMentorshipAreas = (alum.alumniInfo?.mentorshipAreas || []).map(a => a.toLowerCase());
       const alumSkills = (alum.skills || []).map(s => s.toLowerCase());
       const alumInterests = (alum.interests || []).map(i => i.toLowerCase());
 
-      const allStudentKeywords = new Set([...studentInterests, ...studentSkills]);
       const allAlumKeywords = new Set([...alumMentorshipAreas, ...alumSkills, ...alumInterests]);
 
+      // Heavy boost for exact domain / area of interest matches
       for (const keyword of allStudentKeywords) {
         if (keyword && Array.from(allAlumKeywords).some(k => k.includes(keyword) || keyword.includes(k))) {
-          score += 10;
+          score += 30;
         }
       }
 
@@ -172,7 +181,7 @@ const autoAssignMentor = async (studentId, college) => {
       student: studentId,
       mentor: bestMentor._id,
       title: 'Auto-Assigned Mentorship',
-      description: 'This mentorship was automatically requested via Smart Allocation based on your college affiliation.',
+      description: 'This mentorship was automatically requested via Smart Allocation based on your area of interests.',
       focusAreas: ['General Guidance'],
       goals: ['Academic & Career Support'],
       expectedDuration: 12,

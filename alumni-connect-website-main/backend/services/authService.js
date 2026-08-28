@@ -218,11 +218,12 @@ class AuthService {
       photo: decoded.picture,
       isVerified: true,
       studentInfo: role === 'student' ? {} : undefined,
-      alumniInfo: role === 'alumni' ? {} : undefined,
+      alumniInfo: role === 'alumni' ? { mentorshipAreas: additionalData.interests || [] } : undefined,
       isApproved: role === 'student' ? true : false,
       country: additionalData.country || '',
       college: additionalData.college || '',
-      department: additionalData.department || ''
+      department: additionalData.department || '',
+      interests: role === 'student' ? (additionalData.interests || []) : undefined
     });
     
     await user.save();

@@ -83,7 +83,7 @@ const MentorAllocation = () => {
     toast.success('Request accepted');
 
     try {
-      await api.put(`/mentorship/accept/${requestId}`);
+      await api.put(`/mentorship/${requestId}/status`, { status: 'accepted' });
       // Background refetch for consistency
       fetchRequests();
     } catch (error) {
@@ -104,8 +104,9 @@ const MentorAllocation = () => {
     toast.success('Request rejected');
 
     try {
-      await api.put(`/mentorship/reject/${requestId}`, {
-        rejectionReason: 'Currently at full capacity'
+      await api.put(`/mentorship/${requestId}/status`, {
+        status: 'rejected',
+        reason: 'Currently at full capacity'
       });
       // Background refetch for consistency
       fetchRequests();
@@ -131,7 +132,7 @@ const MentorAllocation = () => {
             className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
           >
             <Star className="w-5 h-5" />
-            Auto-Allocate Best Match
+            AI Auto-Assign
           </button>
         )}
       </div>

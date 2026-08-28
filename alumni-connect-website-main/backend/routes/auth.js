@@ -56,14 +56,15 @@ router.post('/oauth-complete', [
   body('role', 'Role must be student or alumni').isIn(['student', 'alumni']),
   body('country').optional().trim(),
   body('college').optional().trim(),
-  body('department').optional().trim()
+  body('department').optional().trim(),
+  body('interests').optional().isArray()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { tempToken, role, country, college, department } = req.body;
-    const result = await authService.completeOAuth(tempToken, role, { country, college, department });
+    const { tempToken, role, country, college, department, interests } = req.body;
+    const result = await authService.completeOAuth(tempToken, role, { country, college, department, interests });
     
     setTokenCookie(res, result.token);
     res.json({ success: true, ...result });

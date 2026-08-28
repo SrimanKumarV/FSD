@@ -18,6 +18,7 @@ const DefaultNetwork = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [recentlyAccepted, setRecentlyAccepted] = useState([]);
+  const [activeTab, setActiveTab] = useState('student');
 
   // Debounce search
   React.useEffect(() => {
@@ -27,8 +28,8 @@ const DefaultNetwork = () => {
 
   // Fetch users
   const { data, isLoading } = useQuery(
-    ['network-users', debouncedSearch, currentUser?.role],
-    () => api.get(`/users/search?q=${debouncedSearch}&role=${currentUser?.role}`),
+    ['network-users', debouncedSearch, activeTab],
+    () => api.get(`/users/search?q=${debouncedSearch}&role=${activeTab}`),
     {
       keepPreviousData: true
     }
@@ -255,7 +256,7 @@ const DefaultNetwork = () => {
           </div>
 
           <div className="glass-card p-4 sm:p-6 shadow-sm">
-            <div className="relative max-w-2xl">
+            <div className="relative max-w-2xl mb-6">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
@@ -264,6 +265,29 @@ const DefaultNetwork = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
+            </div>
+            
+            <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setActiveTab('student')}
+                className={`py-3 px-4 font-semibold text-sm transition-colors border-b-2 ${
+                  activeTab === 'student'
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                Students
+              </button>
+              <button
+                onClick={() => setActiveTab('alumni')}
+                className={`py-3 px-4 font-semibold text-sm transition-colors border-b-2 ${
+                  activeTab === 'alumni'
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                Alumni
+              </button>
             </div>
           </div>
         </div>

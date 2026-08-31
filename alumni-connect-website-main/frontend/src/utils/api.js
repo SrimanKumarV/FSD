@@ -19,8 +19,8 @@ export const mobileTokenStore = {
 };
 
 const getAvailableBackendUrls = () => {
-  if (process.env.NODE_ENV === 'development' && (!process.env.REACT_APP_API_URL || process.env.REACT_APP_API_URL.includes('localhost'))) {
-    return ['/api'];
+  if (process.env.NODE_ENV === 'development') {
+    return ['http://localhost:5000/api'];
   }
   
   const urls = [];

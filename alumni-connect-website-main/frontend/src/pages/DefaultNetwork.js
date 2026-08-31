@@ -9,6 +9,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import DefaultAvatar from '../components/DefaultAvatar';
 import UserAvatar from '../components/UserAvatar';
+import Container from '../components/ui/layout/Container';
+import Grid from '../components/ui/layout/Grid';
+import Avatar from '../components/ui/data-display/Avatar';
+import Tabs from '../components/ui/data-display/Tabs';
 
 const DefaultNetwork = () => {
   const { user: currentUser } = useAuth();
@@ -244,327 +248,312 @@ const DefaultNetwork = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full pb-8">
+    <Container className="flex-1 flex flex-col w-full pb-8">
       {/* Sticky Header Container */}
-      <div className="mb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Network</h1>
-              <p className="text-gray-600 dark:text-gray-400">Discover and connect with fellow alumni and students</p>
-            </div>
+      <div className="mb-8 mt-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Network</h1>
+            <p className="text-gray-600 dark:text-gray-400">Discover and connect with fellow alumni and students</p>
           </div>
+        </div>
 
-          <div className="glass-card p-4 sm:p-6 shadow-sm">
-            <div className="relative max-w-2xl mb-6">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by name, skills, or role..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              />
-            </div>
-            
-            <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => setActiveTab('student')}
-                className={`py-3 px-4 font-semibold text-sm transition-colors border-b-2 ${
-                  activeTab === 'student'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                }`}
-              >
-                Students
-              </button>
-              <button
-                onClick={() => setActiveTab('alumni')}
-                className={`py-3 px-4 font-semibold text-sm transition-colors border-b-2 ${
-                  activeTab === 'alumni'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                }`}
-              >
-                Alumni
-              </button>
-            </div>
+        <div className="glass-card p-4 sm:p-6 shadow-sm rounded-2xl">
+          <div className="relative max-w-2xl mb-6">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by name, skills, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+            />
+          </div>
+          
+          <div className="max-w-md">
+            <Tabs 
+              tabs={[
+                { id: 'student', label: 'Students', icon: <GraduationCap size={16} /> },
+                { id: 'alumni', label: 'Alumni', icon: <Briefcase size={16} /> }
+              ]} 
+              activeTab={activeTab} 
+              onChange={setActiveTab} 
+            />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-      {pendingRequests.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Follow Requests</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingRequests.map(reqUser => (
-              <div key={reqUser._id} className="glass-card p-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
-                    {onlineUsersMap?.has(reqUser._id) && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+      <div className="w-full">
+        {pendingRequests.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Follow Requests</h2>
+            <Grid columns={3} gap={4}>
+              {pendingRequests.map(reqUser => (
+                <div key={reqUser._id} className="glass-card p-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
+                      {onlineUsersMap?.has(reqUser._id) && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
+                      <p className="text-xs text-gray-500 capitalize">{reqUser.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button onClick={() => acceptMutation.mutate(reqUser._id)} disabled={acceptMutation.isLoading} className="px-3 py-1 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-all disabled:opacity-50">Accept</button>
+                    <button onClick={() => declineMutation.mutate(reqUser._id)} disabled={declineMutation.isLoading} className="px-3 py-1 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50">Decline</button>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Recently Accepted - Follow Back */}
+              {recentlyAccepted.map(reqUser => (
+                <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
+                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">Request Accepted</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    {!followingIds.includes(reqUser._id) ? (
+                      <button 
+                        onClick={() => {
+                          followMutation.mutate(reqUser._id);
+                          setRecentlyAccepted(prev => prev.filter(u => u._id !== reqUser._id));
+                        }} 
+                        disabled={followMutation.isLoading} 
+                        className="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-all disabled:opacity-50"
+                      >
+                        Follow Back
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-500 dark:text-gray-400 font-medium px-2 py-1">Following</span>
                     )}
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
-                    <p className="text-xs text-gray-500 capitalize">{reqUser.role}</p>
-                  </div>
                 </div>
-                <div className="flex space-x-2">
-                  <button onClick={() => acceptMutation.mutate(reqUser._id)} disabled={acceptMutation.isLoading} className="px-3 py-1 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-all disabled:opacity-50">Accept</button>
-                  <button onClick={() => declineMutation.mutate(reqUser._id)} disabled={declineMutation.isLoading} className="px-3 py-1 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50">Decline</button>
-                </div>
-              </div>
-            ))}
-            
-            {/* Recently Accepted - Follow Back */}
-            {recentlyAccepted.map(reqUser => (
-              <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
-                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">Request Accepted</p>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  {!followingIds.includes(reqUser._id) ? (
-                    <button 
-                      onClick={() => {
-                        followMutation.mutate(reqUser._id);
-                        setRecentlyAccepted(prev => prev.filter(u => u._id !== reqUser._id));
-                      }} 
-                      disabled={followMutation.isLoading} 
-                      className="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-all disabled:opacity-50"
-                    >
-                      Follow Back
-                    </button>
-                  ) : (
-                    <span className="text-sm text-gray-500 dark:text-gray-400 font-medium px-2 py-1">Following</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
+            </Grid>
           </div>
-        </div>
-      )}
-      
-      {/* Fallback if only recentlyAccepted is present but pending is empty */}
-      {pendingRequests.length === 0 && recentlyAccepted.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recently Accepted</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentlyAccepted.map(reqUser => (
-              <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
+        )}
+        
+        {/* Fallback if only recentlyAccepted is present but pending is empty */}
+        {pendingRequests.length === 0 && recentlyAccepted.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recently Accepted</h2>
+            <Grid columns={3} gap={4}>
+              {recentlyAccepted.map(reqUser => (
+                <div key={`accepted-${reqUser._id}`} className="glass-card p-4 flex items-center justify-between border-2 border-green-500/20">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <UserAvatar src={reqUser.photo} name={reqUser.name} className="w-10 h-10 flex-shrink-0" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
+                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">Request Accepted</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{reqUser.name}</h4>
-                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">Request Accepted</p>
+                  <div className="flex space-x-2">
+                    {!followingIds.includes(reqUser._id) ? (
+                      <button 
+                        onClick={() => {
+                          followMutation.mutate(reqUser._id);
+                          setRecentlyAccepted(prev => prev.filter(u => u._id !== reqUser._id));
+                        }} 
+                        disabled={followMutation.isLoading} 
+                        className="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-all disabled:opacity-50"
+                      >
+                        Follow Back
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-500 dark:text-gray-400 font-medium px-2 py-1">Following</span>
+                    )}
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  {!followingIds.includes(reqUser._id) ? (
-                    <button 
-                      onClick={() => {
-                        followMutation.mutate(reqUser._id);
-                        setRecentlyAccepted(prev => prev.filter(u => u._id !== reqUser._id));
-                      }} 
-                      disabled={followMutation.isLoading} 
-                      className="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-all disabled:opacity-50"
-                    >
-                      Follow Back
-                    </button>
-                  ) : (
-                    <span className="text-sm text-gray-500 dark:text-gray-400 font-medium px-2 py-1">Following</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
+            </Grid>
           </div>
-        </div>
-      )}
+        )}
 
-      {suggestedUsers && suggestedUsers.length > 0 && !searchQuery && (
-        <div className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Suggested for You</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {suggestedUsers.map(user => {
+        {suggestedUsers && suggestedUsers.length > 0 && !searchQuery && (
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Suggested for You</h2>
+            <Grid columns={4} gap={4}>
+              {suggestedUsers.map(user => {
+                const isRequested = user.followRequests?.some(id => id.toString() === (currentUser?._id || currentUser?.id)?.toString());
+                return (
+                  <div 
+                    key={user._id} 
+                    className="glass-card p-5 flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => navigate(`/users/${user._id}`)}
+                  >
+                    <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 mb-3" />
+                    <h4 className="font-bold text-gray-900 dark:text-white truncate w-full">{user.name}</h4>
+                    <p className="text-xs text-primary-600 dark:text-primary-400 capitalize mb-3">{user.role}</p>
+                    
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, false, isRequested); }}
+                      disabled={followMutation.isLoading || isRequested}
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-all ${
+                        isRequested
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
+                          : 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40'
+                      }`}
+                    >
+                      {isRequested ? 'Requested' : 'Connect'}
+                    </button>
+                  </div>
+                );
+              })}
+            </Grid>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        ) : (
+          <Grid columns={3} gap={6}>
+            {data?.data?.users?.map((user) => {
+              const isFollowing = followingIds.includes(user._id);
               const isRequested = user.followRequests?.some(id => id.toString() === (currentUser?._id || currentUser?.id)?.toString());
               return (
-                <div 
-                  key={user._id} 
-                  className="glass-card p-5 flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-shadow"
+                <motion.div
+                  key={user._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card p-6 flex flex-col cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group border border-gray-100 dark:border-gray-800"
                   onClick={() => navigate(`/users/${user._id}`)}
                 >
-                  <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 mb-3" />
-                  <h4 className="font-bold text-gray-900 dark:text-white truncate w-full">{user.name}</h4>
-                  <p className="text-xs text-primary-600 dark:text-primary-400 capitalize mb-3">{user.role}</p>
-                  
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, false, isRequested); }}
-                    disabled={followMutation.isLoading || isRequested}
-                    className={`w-full py-2 rounded-xl text-sm font-medium transition-all ${
-                      isRequested
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
-                        : 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40'
-                    }`}
-                  >
-                    {isRequested ? 'Requested' : 'Connect'}
-                  </button>
-                </div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
+                  <div className="flex items-start space-x-4 mb-4 relative z-10">
+                    <div className="relative">
+                      <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 flex-shrink-0" />
+                      {onlineUsersMap?.has(user._id) && (
+                        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                        {user.name}
+                      </h3>
+                      <p className="text-sm font-medium text-primary-600 dark:text-primary-400 capitalize mb-1">
+                        {user.role}
+                      </p>
+                      {user.location && (
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          <span className="truncate">{user.location}</span>
+                        </div>
+                      )}
+                      {user.country && (
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <Globe className="w-3 h-3 mr-1" />
+                          <span className="truncate">{user.country}</span>
+                        </div>
+                      )}
+                      {user.college && (
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <Building2 className="w-3 h-3 mr-1" />
+                          <span className="truncate">{user.college}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mb-4 flex-1">
+                    {user.role === 'alumni' && user.alumniInfo && (
+                      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                        {user.alumniInfo.company && (
+                          <div className="flex items-center">
+                            <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
+                            <span className="truncate">{user.alumniInfo.position} at {user.alumniInfo.company}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {user.role === 'student' && user.studentInfo && (
+                      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                        {user.studentInfo.course && (
+                          <div className="flex items-center">
+                            <GraduationCap className="w-4 h-4 mr-2 text-gray-500" />
+                            <span className="truncate">{user.studentInfo.course}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {user.skills && user.skills.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {user.skills.slice(0, 3).map((skill, index) => (
+                          <span key={index} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg">
+                            {skill}
+                          </span>
+                        ))}
+                        {user.skills.length > 3 && (
+                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg">
+                            +{user.skills.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800/50 relative z-10">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, isFollowing, isRequested); }}
+                      disabled={followMutation.isLoading || unfollowMutation.isLoading}
+                      className={`flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm active:scale-95 ${
+                        isFollowing
+                          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800/80 dark:text-gray-300 dark:hover:bg-gray-700'
+                          : isRequested
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800/80 dark:text-gray-400'
+                          : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md'
+                      }`}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserCheck className="w-4 h-4 mr-2" />
+                          Following
+                        </>
+                      ) : isRequested ? (
+                        <>
+                          <UserCheck className="w-4 h-4 mr-2" />
+                          Requested
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Follow
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleMessage(user.email); }}
+                      className="p-2.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 active:scale-95"
+                      title="Message"
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                    </button>
+                  </div>
+                </motion.div>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data?.data?.users?.map((user) => {
-            const isFollowing = followingIds.includes(user._id);
-            const isRequested = user.followRequests?.some(id => id.toString() === (currentUser?._id || currentUser?.id)?.toString());
-            return (
-              <motion.div
-                key={user._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-card p-6 flex flex-col cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group border border-gray-100 dark:border-gray-800"
-                onClick={() => navigate(`/users/${user._id}`)}
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
-                <div className="flex items-start space-x-4 mb-4 relative z-10">
-                  <div className="relative">
-                    <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 flex-shrink-0" />
-                    {onlineUsersMap?.has(user._id) && (
-                      <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
-                      {user.name}
-                    </h3>
-                    <p className="text-sm font-medium text-primary-600 dark:text-primary-400 capitalize mb-1">
-                      {user.role}
-                    </p>
-                    {user.location && (
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        <span className="truncate">{user.location}</span>
-                      </div>
-                    )}
-                    {user.country && (
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <Globe className="w-3 h-3 mr-1" />
-                        <span className="truncate">{user.country}</span>
-                      </div>
-                    )}
-                    {user.college && (
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <Building2 className="w-3 h-3 mr-1" />
-                        <span className="truncate">{user.college}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mb-4 flex-1">
-                  {user.role === 'alumni' && user.alumniInfo && (
-                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                      {user.alumniInfo.company && (
-                        <div className="flex items-center">
-                          <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
-                          <span className="truncate">{user.alumniInfo.position} at {user.alumniInfo.company}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {user.role === 'student' && user.studentInfo && (
-                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                      {user.studentInfo.course && (
-                        <div className="flex items-center">
-                          <GraduationCap className="w-4 h-4 mr-2 text-gray-500" />
-                          <span className="truncate">{user.studentInfo.course}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {user.skills && user.skills.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {user.skills.slice(0, 3).map((skill, index) => (
-                        <span key={index} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg">
-                          {skill}
-                        </span>
-                      ))}
-                      {user.skills.length > 3 && (
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg">
-                          +{user.skills.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800/50 relative z-10">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleFollowToggle(user._id, isFollowing, isRequested); }}
-                    disabled={followMutation.isLoading || unfollowMutation.isLoading}
-                    className={`flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm active:scale-95 ${
-                      isFollowing
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800/80 dark:text-gray-300 dark:hover:bg-gray-700'
-                        : isRequested
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800/80 dark:text-gray-400'
-                        : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md'
-                    }`}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Following
-                      </>
-                    ) : isRequested ? (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Requested
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Follow
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleMessage(user.email); }}
-                    className="p-2.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/20 rounded-xl transition-all shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 active:scale-95"
-                    title="Message"
-                  >
-                    <MessageSquare className="w-5 h-5" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-          {(!data?.data?.users || data.data.users.length === 0) && (
-            <div className="col-span-full py-12 text-center text-gray-500 dark:text-gray-400">
-              No members found matching your search.
-            </div>
-          )}
-        </div>
-      )}
+            {(!data?.data?.users || data.data.users.length === 0) && (
+              <div className="col-span-full py-12 text-center text-gray-500 dark:text-gray-400">
+                No members found matching your search.
+              </div>
+            )}
+          </Grid>
+        )}
       </div>
-    </div>
+    </Container>
   );
 };
 

@@ -166,8 +166,14 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  require('fs').appendFileSync('error.log', err.stack + '\n');
-  res.status(500).json({ message: err.message || 'Something went wrong!', error: err.message, stack: err.stack });
+  require('fs').appendFile('error.log', `[${new Date().toISOString()}] ${err.stack}\n`, () => {});
+  
+  // Never expose internal details in production
+  if (process.env.NODE_ENV === 'development') {
+    res.status(500).json({ message: err.message || 'Something went wrong!', error: err.message, stack: err.stack });
+  } else {
+    res.status(500).json({ message: 'Something went wrong!' });
+  }
 });
 
 // Prevent unhandled promise rejections from crashing the server

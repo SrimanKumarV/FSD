@@ -94,9 +94,9 @@ class AuthService {
   }
 
   async processGithubLogin(code, clientId) {
-    const isMobile = clientId === 'Ov23liziKGoBWdUOVmxJ' || clientId === process.env.GITHUB_MOBILE_CLIENT_ID;
-    const activeClientId = isMobile ? 'Ov23liziKGoBWdUOVmxJ' : process.env.GITHUB_CLIENT_ID;
-    const activeClientSecret = isMobile ? '4439829704a6990d66d64877e2429eb4dba0f9b0' : process.env.GITHUB_CLIENT_SECRET;
+    const isMobile = clientId === process.env.GITHUB_MOBILE_CLIENT_ID;
+    const activeClientId = isMobile ? process.env.GITHUB_MOBILE_CLIENT_ID : process.env.GITHUB_CLIENT_ID;
+    const activeClientSecret = isMobile ? process.env.GITHUB_MOBILE_CLIENT_SECRET : process.env.GITHUB_CLIENT_SECRET;
 
     const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
@@ -394,7 +394,26 @@ class AuthService {
       throw { status: 401, message: 'No token provided' };
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+    let decoded;
+    try {
+      // First try to verify normally (token still valid)
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        // Allow refresh only if token expired within the last 24 hours
+        decoded = jwt.decode(token);
+        if (!decoded || !decoded.exp) {
+          throw { status: 401, message: 'Invalid token' };
+        }
+        const expiredAt = decoded.exp * 1000; // convert to ms
+        const maxRefreshWindow = 24 * 60 * 60 * 1000; // 24 hours
+        if (Date.now() - expiredAt > maxRefreshWindow) {
+          throw { status: 401, message: 'Token expired too long ago. Please login again.' };
+        }
+      } else {
+        throw { status: 401, message: 'Invalid token' };
+      }
+    }
 
     const user = await User.findById(decoded.id);
     if (!user || !user.isActive) {

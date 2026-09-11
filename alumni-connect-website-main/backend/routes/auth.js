@@ -304,8 +304,10 @@ router.post('/verify-2fa', [
 
 // Mobile proxy routes
 router.get('/mobile/github', (req, res) => {
-  const isMobile = true;
-  const activeClientId = isMobile ? 'Ov23liziKGoBWdUOVmxJ' : process.env.GITHUB_CLIENT_ID;
+  const activeClientId = process.env.GITHUB_MOBILE_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
+  if (!activeClientId) {
+    return res.status(500).json({ message: 'GitHub OAuth not configured' });
+  }
   const backendUrl = req.protocol + '://' + req.get('host');
   const redirectUri = `${backendUrl}/api/auth/mobile/github/callback`;
   res.redirect(`https://github.com/login/oauth/authorize?client_id=${activeClientId}&redirect_uri=${redirectUri}&scope=user:email`);
@@ -339,7 +341,10 @@ router.get('/mobile/github/callback', (req, res) => {
 router.get('/mobile/google', (req, res) => {
   const backendUrl = req.protocol + '://' + req.get('host');
   const redirectUri = `${backendUrl}/api/auth/mobile/google/callback`;
-  const clientId = process.env.GOOGLE_CLIENT_ID || '253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com';
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(500).json({ message: 'Google OAuth not configured' });
+  }
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email profile`);
 });
 

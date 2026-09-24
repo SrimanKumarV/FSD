@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08111f">
+<title>Alumnex Connect — Live Engineering Dossier</title>
+<style>
+:root{
+ --bg:#07111f;--bg2:#0b1628;--surface:rgba(13,26,45,.86);--surface2:#101d31;--line:rgba(148,163,184,.16);
+ --text:#edf7fb;--muted:#9cafc3;--cyan:#63e5e8;--violet:#a995ff;--pink:#ff7ec8;--green:#62e6a0;--amber:#f7c85d;--red:#ff7188;
+ --radius:20px;--shadow:0 24px 80px rgba(0,0,0,.28);--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;color:var(--text);background:radial-gradient(circle at 12% 0%,rgba(99,229,232,.12),transparent 24%),radial-gradient(circle at 88% 10%,rgba(169,149,255,.12),transparent 28%),linear-gradient(180deg,#07111f,#081524 54%,#07111f);font:15px/1.7 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+body.light{--bg:#f4f8fd;--bg2:#fff;--surface:rgba(255,255,255,.92);--surface2:#fff;--line:rgba(15,23,42,.1);--text:#122033;--muted:#607083;background:linear-gradient(180deg,#f8fbff,#eef4fb)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.28;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,#000,transparent 88%);z-index:-1}
+button,input{font:inherit} button{cursor:pointer} a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;overflow:auto;padding:20px 16px;border-right:1px solid var(--line);background:rgba(5,14,26,.74);backdrop-filter:blur(18px);z-index:40}
+.light .sidebar{background:rgba(248,251,255,.88)}
+.brand{display:flex;gap:12px;align-items:center;margin:2px 4px 18px}.brand-mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:950;background:conic-gradient(from 210deg,var(--cyan),var(--violet),var(--pink),var(--cyan));color:#04101d;box-shadow:0 0 34px rgba(99,229,232,.2)}.brand b{display:block;letter-spacing:.03em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.side-tools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.tool{padding:9px 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--text);font-size:11px}.search-box{position:relative;margin:10px 0}.search-box input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px 11px 34px;background:var(--surface);color:var(--text);outline:none}.search-box span{position:absolute;left:11px;top:7px;color:var(--muted);font-size:16px}
+.progress-card{padding:12px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(140deg,rgba(99,229,232,.06),rgba(169,149,255,.05));margin:12px 0}.progress-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}.progress-track{height:6px;background:rgba(148,163,184,.13);border-radius:99px;margin-top:8px;overflow:hidden}.progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));transition:width .2s}
+.nav-title{font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin:14px 6px 7px}.nav{display:flex;flex-direction:column;gap:2px}.nav a{display:flex;gap:8px;align-items:center;padding:8px 9px;border:1px solid transparent;border-radius:10px;color:var(--muted);font-size:11px}.nav a span{font-family:var(--mono);color:var(--cyan);min-width:24px}.nav a:hover,.nav a.active{background:rgba(99,229,232,.055);border-color:rgba(99,229,232,.14);color:var(--text)}
+.main{min-width:0}.topbar{position:sticky;top:0;z-index:35;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 24px;border-bottom:1px solid var(--line);background:rgba(7,17,31,.66);backdrop-filter:blur(18px)}.light .topbar{background:rgba(248,251,255,.78)}.topbar-left{display:flex;align-items:center;gap:10px}.mobile-menu{display:none}.crumb{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:800}.actions{display:flex;gap:7px;flex-wrap:wrap}.action{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:8px 11px;font-size:11px}
+.shell{max-width:1450px;margin:auto;padding:24px 28px 90px}.hero{position:relative;overflow:hidden;display:grid;grid-template-columns:1.2fr .8fr;gap:24px;padding:44px;border:1px solid var(--line);border-radius:30px;background:linear-gradient(135deg,rgba(99,229,232,.08),rgba(169,149,255,.07) 48%,rgba(255,126,200,.06));box-shadow:var(--shadow)}.hero::before{content:"";position:absolute;inset:-80px auto auto 55%;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle,rgba(99,229,232,.18),transparent 67%);animation:orb 11s ease-in-out infinite}.hero::after{content:"";position:absolute;inset:auto auto -160px -120px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(169,149,255,.16),transparent 67%);animation:orb 13s ease-in-out infinite reverse}@keyframes orb{50%{transform:translate(20px,18px)}}
+.hero-copy,.hero-panel{position:relative;z-index:1}.eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}.hero h1{font-size:clamp(44px,6vw,82px);line-height:.96;letter-spacing:-.055em;margin:11px 0 16px;max-width:900px}.hero h1 span{background:linear-gradient(90deg,var(--text),var(--cyan) 40%,var(--violet) 74%,var(--pink));color:transparent;background-clip:text}.hero p{margin:0;color:var(--muted);max-width:860px;font-size:16px}.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}.chip{padding:6px 9px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:10px;color:var(--muted)}
+.hero-panel{border:1px solid var(--line);border-radius:22px;background:rgba(4,12,22,.38);padding:17px;display:flex;flex-direction:column;justify-content:space-between;min-height:245px}.panel-top{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.15em}.live-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(98,230,160,.4);animation:pulse 1.7s infinite}@keyframes pulse{70%{box-shadow:0 0 0 10px rgba(98,230,160,0)}100%{box-shadow:0 0 0 0 rgba(98,230,160,0)}}.terminal{font:12px/1.75 var(--mono);color:#c8edf0}.terminal .muted{color:#6d8296}.terminal .cyan{color:var(--cyan)}.terminal .violet{color:var(--violet)}.terminal .green{color:var(--green)}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:16px 0}.metric{padding:15px;border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow)}.metric b{display:block;font-size:25px;letter-spacing:-.03em}.metric span{font-size:10px;color:var(--muted)}
+.section-block{margin:36px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:13px}.section-head h2{font-size:24px;letter-spacing:-.025em;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:0}
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.story-card{position:relative;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface);overflow:hidden;transition:.22s}.story-card:hover{transform:translateY(-3px);border-color:rgba(99,229,232,.24)}.story-card h3{font-size:15px;margin:0 0 6px}.story-card p{font-size:12px;color:var(--muted);margin:0}.story-card small{display:inline-block;margin-top:11px;font:10px var(--mono);color:var(--cyan)}
+.switcher{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.switcher button{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font-size:10px}.switcher button.active{border-color:rgba(99,229,232,.36);color:var(--cyan);box-shadow:0 0 0 2px rgba(99,229,232,.05)}.viz{border:1px solid var(--line);border-radius:22px;background:linear-gradient(150deg,rgba(99,229,232,.045),rgba(169,149,255,.045)),var(--surface);box-shadow:var(--shadow);padding:10px;overflow:hidden}.viz svg{display:block;width:100%;height:auto}.svg-node{cursor:pointer}.svg-node rect{transition:.18s;fill:#07111d;stroke:rgba(99,229,232,.26)}.svg-node:hover rect,.svg-node.active rect{stroke:var(--cyan);filter:drop-shadow(0 0 8px rgba(99,229,232,.28))}.svg-title{font-size:11px;fill:#eefbff;font-weight:800}.svg-sub{font-size:9px;fill:#93a7bb}.svg-edge{stroke:rgba(148,163,184,.44);stroke-width:2;stroke-dasharray:7 9;animation:dash 18s linear infinite}@keyframes dash{to{stroke-dashoffset:-170}}
+.lab{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.lab-card{padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}.lab-card h3{margin:0 0 6px;font-size:14px}.lab-card p{font-size:11px;color:var(--muted);margin:0}.lab-btns{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.lab-btns button{border:1px solid var(--line);background:var(--surface2);color:var(--text);border-radius:10px;padding:8px 9px;font-size:10px}.stream{height:190px;overflow:auto;background:#030914;border-radius:13px;padding:12px;font:11px/1.7 var(--mono);color:#c5e8ef}.stream .ok{color:var(--green)}.stream .warn{color:var(--amber)}.stream .violet{color:var(--violet)}
+.heatmap{display:grid;grid-template-columns:repeat(18,1fr);gap:4px;margin-top:12px}.heatmap i{display:block;aspect-ratio:1;border-radius:3px;background:rgba(99,229,232,.06);border:1px solid rgba(99,229,232,.05);transition:.2s}.heatmap i:nth-child(3n){background:rgba(99,229,232,.12)}.heatmap i:nth-child(5n){background:rgba(169,149,255,.18)}.heatmap i:hover{transform:scale(1.4);background:var(--cyan)}
+.evidence-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}.evidence-card{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}.evidence-card strong{display:block;font-size:10px;letter-spacing:.12em;color:var(--cyan)}.evidence-card code{display:block;font:11px var(--mono);margin:6px 0;color:var(--text)}.evidence-card span{font-size:11px;color:var(--muted)}
+.matrix-wrap{overflow:auto;border:1px solid var(--line);border-radius:17px}table{width:100%;border-collapse:collapse;min-width:700px;background:var(--surface)}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:11px}th{font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;background:rgba(99,229,232,.035)}td{color:var(--muted)}tr:last-child td{border-bottom:0}.status{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;font-size:9px;border:1px solid var(--line)}.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chapters{display:flex;flex-direction:column;gap:10px}.chapter{border:1px solid var(--line);border-radius:18px;background:var(--surface);overflow:hidden;box-shadow:var(--shadow);scroll-margin-top:82px}.chapter-top{display:grid;grid-template-columns:52px 1fr 38px;gap:13px;align-items:center;padding:17px 18px;cursor:pointer}.chapter-index{width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,rgba(99,229,232,.12),rgba(169,149,255,.12));border:1px solid rgba(99,229,232,.11);font:800 12px var(--mono);color:var(--cyan)}.chapter-heading .eyebrow{font-size:8px}.chapter-heading h2{font-size:16px;margin:4px 0 2px}.chapter-heading p{font-size:11px;color:var(--muted);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.chapter-toggle{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:10px;width:34px;height:34px;font-size:20px}.chapter.open .chapter-toggle{color:var(--cyan)}.chapter-body{display:none;border-top:1px solid var(--line);padding:0 20px 24px}.chapter.open .chapter-body{display:block;animation:enter .22s ease}@keyframes enter{from{opacity:.3;transform:translateY(-4px)}to{opacity:1;transform:none}}.chapter-body h3{font-size:14px;color:var(--cyan);margin:22px 0 7px}.chapter-body p,.chapter-body li{font-size:12px;color:var(--muted)}.chapter-body p{margin:8px 0}.chapter-body ul{margin:7px 0 12px;padding-left:19px}.chapter-body li{margin:3px 0}.chapter-body code{font:10px var(--mono);padding:2px 5px;border:1px solid rgba(99,229,232,.12);border-radius:5px;color:#c8ffff;background:rgba(99,229,232,.045)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;margin:11px 0}.chapter-body table{min-width:650px}.code-block{overflow:auto;padding:13px;background:#030914;border:1px solid rgba(99,229,232,.09);border-radius:14px;color:#b9dbe4;font:10px/1.55 var(--mono);margin:12px 0}.evidence-callout{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:rgba(99,229,232,.035);border:1px solid rgba(99,229,232,.1);border-radius:12px;color:#bce9ee;font-size:10px;margin:9px 0}
+.footer{margin-top:36px;padding:18px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:10px}
+.overlay{position:fixed;inset:0;background:rgba(2,7,15,.58);backdrop-filter:blur(9px);display:none;z-index:100}.overlay.open{display:block}.drawer{position:absolute;right:0;top:0;height:100%;width:min(780px,94vw);padding:18px;background:var(--bg2);border-left:1px solid var(--line);overflow:auto;box-shadow:-22px 0 70px rgba(0,0,0,.25)}.drawer-head{position:sticky;top:0;background:var(--bg2);padding-bottom:11px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.close{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:7px 9px;border-radius:9px}
+.toast{position:fixed;right:17px;bottom:17px;z-index:200;background:#07131f;border:1px solid rgba(99,229,232,.18);border-radius:12px;color:var(--text);padding:11px 13px;font-size:11px;opacity:0;transform:translateY(10px);transition:.22s;pointer-events:none;max-width:380px}.toast.show{opacity:1;transform:none}
+.presentation .sidebar,.presentation .topbar,.presentation .metrics,.presentation .story-grid,.presentation .evidence-wrap,.presentation .chapters{display:none!important}.presentation .shell{max-width:1500px}.presentation .hero{min-height:72vh;align-content:center}.presentation #visuals{margin-top:20px}
+@media(max-width:1120px){.app{grid-template-columns:240px 1fr}.hero{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:820px){.app{grid-template-columns:1fr}.sidebar{position:fixed;left:-305px;width:290px;transition:.22s}.sidebar.open{left:0}.mobile-menu{display:inline-flex}.hero{padding:30px 22px}.shell{padding:18px 14px 70px}.metrics{grid-template-columns:repeat(2,1fr)}.story-grid,.lab,.evidence-wrap{grid-template-columns:1fr}}
+@media print{body{background:#fff!important;color:#111!important}.sidebar,.topbar,.hero-panel,.metrics,.story-grid,.switcher,.lab,.footer,.overlay,.toast{display:none!important}.shell{padding:0!important;max-width:none!important}.chapter{break-inside:avoid;box-shadow:none;background:#fff!important;border:1px solid #ddd}.chapter-body{display:block!important}.chapter-body p,.chapter-body li,.chapter-heading p{color:#222}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="brand-mark">A</div><div><b>ALUMNEX CONNECT</b><small>Live Engineering Dossier</small></div></div>
+  <div class="side-tools"><button class="tool" id="themeBtn">◐ Theme</button><button class="tool" id="presentBtn">▶ Present</button><button class="tool" id="expandBtn">＋ Expand</button><button class="tool" id="collapseBtn">－ Collapse</button></div>
+  <div class="search-box"><span>⌕</span><input id="search" placeholder="Search report…"/></div>
+  <div class="progress-card"><div class="progress-meta"><span>Reading progress</span><b id="progressText">0%</b></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div>
+  <div class="nav-title">Chapters</div>
+  <nav class="nav" id="nav"><a href="#sec-1" data-nav="0"><span>1</span>Introduction and Project Rationale</a><a href="#sec-2" data-nav="1"><span>2</span>Requirements, User Roles and System Boundaries</a><a href="#sec-3" data-nav="2"><span>3</span>System Architecture and Data Flow</a><a href="#sec-4" data-nav="3"><span>4</span>Technology Stack and Engineering Rationale</a><a href="#sec-5" data-nav="4"><span>5</span>Frontend Implementation Dossier</a><a href="#sec-6" data-nav="5"><span>6</span>Backend Implementation Dossier</a><a href="#sec-7" data-nav="6"><span>7</span>Database Design and Data Lifecycle</a><a href="#sec-8" data-nav="7"><span>8</span>Authentication and Authorization</a><a href="#sec-9" data-nav="8"><span>9</span>Security Architecture and Threat Controls</a><a href="#sec-10" data-nav="9"><span>10</span>Module-wise Functional Implementation</a><a href="#sec-11" data-nav="10"><span>11</span>AI Architecture and Inference Workflows</a><a href="#sec-12" data-nav="11"><span>12</span>Real-Time Communication, Messaging and Presence</a><a href="#sec-13" data-nav="12"><span>13</span>External Integrations and Developer Intelligence</a><a href="#sec-14" data-nav="13"><span>14</span>Caching, Resilience and Fallback Engineering</a><a href="#sec-15" data-nav="14"><span>15</span>Performance and Optimization</a><a href="#sec-16" data-nav="15"><span>16</span>Testing and Quality Assurance</a><a href="#sec-17" data-nav="16"><span>17</span>CI/CD, Deployment and Operations</a><a href="#sec-18" data-nav="17"><span>18</span>Mobile Application Architecture</a><a href="#sec-19" data-nav="18"><span>19</span>Implementation Status, Limitations and Technical Debt</a><a href="#sec-20" data-nav="19"><span>20</span>Future Enhancements and Conclusion</a><a href="#sec-Appendix-A" data-nav="20"><span>Appendix A</span>Evidence Source Register</a><a href="#sec-Appendix-B" data-nav="21"><span>Appendix B</span>Selected API / Domain Inventory</a><a href="#sec-Appendix-C" data-nav="22"><span>Appendix C</span>Database Model Inventory</a><a href="#sec-Appendix-D" data-nav="23"><span>Appendix D</span>Environment / Configuration Map</a><a href="#sec-Appendix-E" data-nav="24"><span>Appendix E</span>Recommended Evidence Screenshots</a><a href="#sec-Appendix-F" data-nav="25"><span>Appendix F</span>Submission Note</a></nav>
+</aside>
+<main class="main">
+<header class="topbar"><div class="topbar-left"><button class="action mobile-menu" id="menuBtn">☰</button><div class="crumb">ALUMNEX CONNECT · SOFTWARE ENGINEERING DOSSIER</div></div><div class="actions"><button class="action" id="evidenceBtn">⌁ Evidence</button><button class="action" id="sourcesBtn">⌘ Sources</button><button class="action" id="printBtn">⤓ Print / PDF</button></div></header>
+<div class="shell">
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <div class="eyebrow">Repository-backed technical documentation</div>
+    <h1>ALUMNEX <span>CONNECT</span></h1>
+    <p>Alumnex Connect is a full-stack alumni–student ecosystem documented as an evidence-first engineering dossier. The platform combines a React client, Express/Node backend, MongoDB persistence, Redis-backed real-time infrastructure, AI-assisted career workflows, third-party developer intelligence, and an Android Capacitor wrapper. The report separates verified implementation from configuration-dependent behavior and planned scope.</p>
+    <div class="chips"><span class="chip">React + React Router + React Query</span><span class="chip">Express + Node.js</span><span class="chip">MongoDB + Mongoose</span><span class="chip">Redis + Socket.IO</span><span class="chip">Groq → Gemini</span><span class="chip">Capacitor Android</span><span class="chip">GitHub Actions</span></div>
+  </div>
+  <div class="hero-panel">
+    <div class="panel-top"><span>System pulse</span><i class="live-dot"></i></div>
+    <div class="terminal"><div><span class="muted">$</span> inspect <span class="cyan">alumnex-connect</span></div><div><span class="muted">→</span> frontend routes … <span class="green">ready</span></div><div><span class="muted">→</span> backend domains … <span class="green">ready</span></div><div><span class="muted">→</span> security controls … <span class="green">verified</span></div><div><span class="muted">→</span> AI failover … <span class="violet">active</span></div><div><span class="muted">→</span> realtime scaling … <span class="violet">redis-backed</span></div><div><span class="muted">→</span> mobile delivery … <span class="green">CI pipeline</span></div></div>
+    <div class="chips"><span class="chip">evidence-first</span><span class="chip">interactive</span><span class="chip">presentation mode</span></div>
+  </div>
+</section>
+<section class="metrics">
+  <div class="metric"><b data-count="20">0</b><span>major chapters</span></div><div class="metric"><b data-count="23">0</b><span>documented models</span></div><div class="metric"><b data-count="21">0</b><span>route domains* </span></div><div class="metric"><b>AI</b><span>provider failover</span></div><div class="metric"><b>RT</b><span>Socket.IO + Redis</span></div><div class="metric"><b>APK</b><span>automated build</span></div>
+</section>
+<section class="section-block" id="visuals">
+ <div class="section-head"><div><div class="eyebrow">Explore the architecture</div><h2>Interactive System Canvas</h2></div><p>Click nodes to inspect how the system is composed.</p></div>
+ <div class="switcher" id="vizTabs"><button class="active" data-viz="system">System</button><button data-viz="frontend">Frontend</button><button data-viz="security">Security</button><button data-viz="ai">AI</button><button data-viz="realtime">Realtime</button><button data-viz="delivery">CI/CD</button><button data-viz="mobile">Mobile</button></div>
+ <div class="viz" id="vizHost"></div>
+</section>
+<section class="section-block">
+ <div class="section-head"><div><div class="eyebrow">Engineering patterns</div><h2>Why this project is interesting</h2></div><p>Mechanisms worth showing during evaluation.</p></div>
+ <div class="story-grid">
+  <article class="story-card"><h3>Defense in depth</h3><p>Security is layered rather than delegated to one mechanism: headers, origins, rate controls, CSRF, sanitization, parameter-pollution protection, authentication, role checks and ownership checks.</p><small>server.js · auth.js · csrf.js</small></article>
+  <article class="story-card"><h3>Resilient client transport</h3><p>Axios keeps multiple backend URLs, detects network/timeout failures, retries the request against a backup and coordinates concurrent token refreshes.</p><small>frontend/src/utils/api.js</small></article>
+  <article class="story-card"><h3>Provider-level AI failover</h3><p>AI requests use Groq first and fall back to Gemini. Feature routes also provide demo behavior when keys are absent.</p><small>backend/utils/aiHelper.js · routes/ai.js</small></article>
+  <article class="story-card"><h3>Realtime continuity</h3><p>Socket connections track online presence, join user rooms and can reconnect when the active backend endpoint changes.</p><small>SocketContext.js</small></article>
+  <article class="story-card"><h3>Graceful data aggregation</h3><p>Developer intelligence gathers information from multiple platforms concurrently so one provider can degrade without collapsing the entire view.</p><small>devStatsFetcher.js</small></article>
+  <article class="story-card"><h3>Shared web + Android surface</h3><p>The React frontend is wrapped with Capacitor, while CI can build an Android APK from the same web artifact.</p><small>mobile-wrapper · build-apk.yml</small></article>
+ </div>
+</section>
+<section class="section-block">
+ <div class="section-head"><div><div class="eyebrow">Failure engineering</div><h2>Resilience Lab</h2></div><p>Simulate the documented failure paths.</p></div>
+ <div class="lab"><div class="lab-card"><h3>Choose a scenario</h3><p>This is a visual teaching aid for the implemented mechanisms, not a live connection to the production application.</p><div class="lab-btns"><button data-sim="backend">Backend timeout</button><button data-sim="ai">Groq failure</button><button data-sim="redis">Redis degraded</button><button data-sim="auth">401 refresh storm</button><button data-sim="stats">Stats provider failure</button></div></div><div class="lab-card"><h3>Execution stream</h3><div class="stream" id="stream">Select a scenario to watch the fallback sequence.</div></div></div>
+</section>
+<section class="section-block">
+ <div class="section-head"><div><div class="eyebrow">Repository evidence</div><h2>Source Evidence Vault</h2></div><p>Key claims linked to the files that support them.</p></div>
+ <div class="evidence-wrap" id="evidenceGrid"></div>
+</section>
+<section class="section-block" id="status">
+ <div class="section-head"><div><div class="eyebrow">Implementation discipline</div><h2>Verified vs configuration-dependent</h2></div><p>The dossier intentionally avoids turning documentation claims into source-code facts.</p></div>
+ <div class="matrix-wrap"><table><thead><tr><th>Status</th><th>Area</th><th>Evidence</th><th>Interpretation</th></tr></thead><tbody id="statusBody"></tbody></table></div>
+</section>
+<section class="section-block" id="report"><div class="section-head"><div><div class="eyebrow">Complete report</div><h2>Technical Chapters</h2></div><p>Expand any section for the full narrative, tables and implementation evidence.</p></div><div class="chapters" id="chapters"><section class="chapter" id="sec-1" data-index="0" data-search="1 introduction and project rationale 1.1 problem context traditional alumni directories are primarily identity stores. they often do not provide an integrated workflow for discovering mentors, requesting guidance, communicating in real time, finding jobs, showcasing projects, tracking developer activity, and obtaining structured career assistance. alumnex connect addresses that fragmentation by combining professio…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">1</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 1</div><h2>Introduction and Project Rationale</h2><p>1.1 Problem Context Traditional alumni directories are primarily identity stores. They often do not provide an integrated workflow for discovering mentors, requesting guidance, communicating in real time, finding jobs, showcasing projects, tracking developer activity, and obtaining structured career assistance. Alumnex Connect addresses that fragmentation by combining professio…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>1.1 Problem Context</h3>
+<p>Traditional alumni directories are primarily identity stores. They often do not provide an integrated workflow for discovering mentors, requesting guidance, communicating in real time, finding jobs, showcasing projects, tracking developer activity, and obtaining structured career assistance. Alumnex Connect addresses that fragmentation by combining professional-network functions with operational workflows.</p>
+<h3>1.2 Project Objectives</h3>
+<ul class="detail-list"><li>Provide a role-aware platform for students, alumni, administrators and college-oriented users.</li><li>Support mentorship discovery, requests, sessions, reviews and mentor-oriented metadata.</li><li>Provide career opportunities, job applications and AI-assisted job/resume workflows.</li><li>Enable discussion, networking, real-time messaging and notifications.</li><li>Aggregate public developer activity from multiple external platforms into a unified profile.</li><li>Provide layered security, external-service fallbacks and operational resilience.</li><li>Reuse the web application inside an Android wrapper rather than maintaining a completely separate</li></ul>
+<p>native feature set.</p>
+<h3>1.3 Architectural Principles Observed</h3>
+<p>Principle                  Evidence in implementation                         Practical effect</p>
+<p>Separation of concerns               Routes, middleware, services, models and   Business behavior is not concentrated utilities are separated                    entirely in one controller file.</p>
+<p>Defense in depth                     Helmet, CORS, rate limits, CSRF,           A request crosses multiple defensive sanitization, HPP, auth and RBAC           boundaries before business logic.</p>
+<p>Graceful degradation                 AI, Redis, backend URL and developer-      Selected failures can degrade stat fallbacks                             functionality instead of immediately terminating user workflows.</p>
+<p>Asynchronous I/O                     Axios, MongoDB, Redis and Socket.IO in     The runtime is suited to I/O-heavy Node.js                                    aggregation and live communication.</p>
+<p>Reusable client state                React contexts and React Query             Authentication, profile, socket and notification state are shared across routes.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence S1: backend/server.js - global server composition and middleware order</div>
+<div class="evidence-callout"><span>⌁</span>Evidence S2: frontend/src/App.js - frontend providers, lazy routes, retry and offline behavior</div>
+<div class="evidence-callout"><span>⌁</span>Evidence S3: backend/package.json / frontend/package.json - runtime and dependency inventory</div></div>
+    </section><section class="chapter" id="sec-2" data-index="1" data-search="2 requirements, user roles and system boundaries 2.1 functional capability map capability                observed implementation surface                               status authentication                         local, google, github, email verification,     verified password reset, 2fa, token refresh and logout profiles and networking                user profiles, connections/followers,          verified in model/routes; ex…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">2</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 2</div><h2>Requirements, User Roles and System Boundaries</h2><p>2.1 Functional Capability Map Capability                Observed implementation surface                               Status Authentication                         Local, Google, GitHub, email verification,     Verified password reset, 2FA, token refresh and logout Profiles and networking                User profiles, connections/followers,          Verified in model/routes; ex…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>2.1 Functional Capability Map</h3>
+<p>Capability                Observed implementation surface                               Status</p>
+<p>Authentication                         Local, Google, GitHub, email verification,     Verified password reset, 2FA, token refresh and logout</p>
+<p>Profiles and networking                User profiles, connections/followers,          Verified in model/routes; extent varies by developer links, social links                  subfeature</p>
+<p>Mentorship                             Mentorship requests, mentor-oriented           Verified components exist; status of each profile fields, sessions/reviews/rewards       workflow is source-dependent</p>
+<p>Jobs and opportunities                 Job posting, applications, opportunities and   Verified route/model surface; individual AI-assisted matching                           subfeatures vary</p>
+<p>Events                                 Event management and RSVP-oriented             Verified route/model surface domain</p>
+<p>Forum                                  Posts, comments,                               Verified route/model surface voting/reporting/moderation patterns</p>
+<p>Messaging                              Socket.IO chat, groups and persistence         Verified</p>
+<p>Notifications                          Notification domain plus real-time delivery    Verified hooks</p>
+<p>AI                                     Career chat, resume analysis, request          Verified routes with real/configuration/mock drafting, job matching, mock interviews,       paths interview evaluation</p>
+<p>Developer intelligence                 External platform aggregation and              Verified utilities; external dependency normalization                                  behavior is variable</p>
+<p>Mobile                                 Capacitor Android wrapper and automated        Verified APK build</p>
+<h3>2.2 User Role Model</h3>
+<p>Role / state                    Primary responsibility                            Relevant controls</p>
+<p>Student                                Career discovery, mentorship requests,         student / active / verified checks jobs, community participation                  depending on operation</p>
+<p>Alumni                                 Mentoring, job/event creation,                 alumni / active / approved / verified community and professional contribution        checks depending on operation</p>
+<p>Admin                                  Moderation and administrative actions          admin role gate</p>
+<p>College                                Institution-oriented identity and              role is present in User schema; feature metadata                                       depth depends on route implementation</p>
+<p>Role / state                      Primary responsibility                        Relevant controls</p>
+<p>Verified account state                Eligibility for features requiring verified   <code>verified</code> middleware identity</p>
+<p>Approved account state                Additional trust boundary for alumni-         <code>approved</code> and <code>canBeMentor</code> logic oriented actions</p>
+<h3>2.3 System Boundaries</h3>
+<p>Inside the application boundary React frontend, Node/Express backend, Mongoose data layer, Redis wrapper, Socket.IO handlers, authentication middleware, domain routes, services and local business logic.</p>
+<p>Outside the application boundary Google/GitHub OAuth, AI providers, Cloudinary, email/SMS providers, developer platforms, external job or data sources, hosting platforms and mobile platform infrastructure.</p></div>
+    </section><section class="chapter" id="sec-3" data-index="2" data-search="3 system architecture and data flow 3.1 high-level architecture figure 3.1 - high-level alumnex connect architecture the application follows a decoupled client-server model. browser users interact with a react spa; the same web build is also packaged through capacitor for android. the client communicates with the node/express server through http apis and socket.io. the backend persists domain data in mongodb, use…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">3</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 3</div><h2>System Architecture and Data Flow</h2><p>3.1 High-Level Architecture Figure 3.1 - High-level Alumnex Connect architecture The application follows a decoupled client-server model. Browser users interact with a React SPA; the same web build is also packaged through Capacitor for Android. The client communicates with the Node/Express server through HTTP APIs and Socket.IO. The backend persists domain data in MongoDB, use…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>3.1 High-Level Architecture</h3>
+<p>Figure 3.1 - High-level Alumnex Connect architecture</p>
+<p>The application follows a decoupled client-server model. Browser users interact with a React SPA; the same web build is also packaged through Capacitor for Android. The client communicates with the Node/Express server through HTTP APIs and Socket.IO. The backend persists domain data in MongoDB, uses Redis where configured for caching/pub/sub behavior, and communicates with external providers for authentication, AI, file delivery and developer-data aggregation.</p>
+<h3>3.2 Request Lifecycle</h3>
+<p>Observed request-processing layers Client request -&gt; CORS / security headers -&gt; rate limiting -&gt; body + cookie parsing -&gt; CSRF processing -&gt; NoSQL sanitization + HPP -&gt; authentication (where protected) -&gt; authorization / ownership</p>
+<p>-&gt; route validation -&gt; service / business logic -&gt; MongoDB / Redis / external API -&gt; response or centralized error handling</p>
+<p>The key architectural characteristic is that the application does not rely on a single “security check”. Request acceptance is layered. Likewise, availability is not delegated to one mechanism: the frontend can switch API endpoints, AI requests can switch provider, and some local Redis-dependent behavior can degrade into a mock cache implementation.</p>
+<h3>3.3 Resilience Architecture</h3>
+<p>Figure 3.2 - Generic failure/fallback decision pattern observed across the system</p>
+<p>The most important distinction is between independent fallback domains. Backend endpoint failover is a client-side mechanism. AI failover is service-level provider orchestration. Redis fallback is a runtime capability choice. GitHub developer-stat fallback is provider-specific. These should not be described as one generic load balancer; they are separate mechanisms that reduce single points of failure at different layers.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence S4: frontend/src/utils/api.js - backend URL selection, failover and 401 refresh queue</div>
+<div class="evidence-callout"><span>⌁</span>Evidence S5: backend/utils/aiHelper.js - Groq to Gemini provider failover</div>
+<div class="evidence-callout"><span>⌁</span>Evidence S6: backend/utils/cache.js - real Redis versus mock/degraded cache behavior</div></div>
+    </section><section class="chapter" id="sec-4" data-index="3" data-search="4 technology stack and engineering rationale technology                                  role                                observed use react 18                                 frontend application framework          componentized spa; lazy-loaded route pages; context providers react router                             client routing                          public/protected route structure react query                   …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">4</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 4</div><h2>Technology Stack and Engineering Rationale</h2><p>Technology                                  Role                                Observed use React 18                                 Frontend application framework          Componentized SPA; lazy-loaded route pages; context providers React Router                             Client routing                          Public/protected route structure React Query                   …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Technology                                  Role                                Observed use</p>
+<p>React 18                                 Frontend application framework          Componentized SPA; lazy-loaded route pages; context providers</p>
+<p>React Router                             Client routing                          Public/protected route structure</p>
+<p>React Query                              Server-state cache and retry policy     Two-hour stale time, three-hour cache, bounded retries, exponential backoff</p>
+<p>Axios                                    HTTP client                             Base URL failover, token handling, CSRF headers, refresh flow</p>
+<p>Node.js + Express                        Backend runtime and HTTP API            I/O-heavy REST and real-time integration</p>
+<p>MongoDB + Mongoose                       Primary persistence                     Flexible domain models, validation, indexes and model hooks</p>
+<p>Redis                                    Cache + Socket.IO adapter               Caching and cross-instance event propagation when configured</p>
+<p>Socket.IO                                Real-time transport                     Chat, presence, notifications and reconnect/failover behavior</p>
+<p>Technology                                   Role                             Observed use</p>
+<p>Cloudinary                               Managed media delivery                External media storage/CDN path</p>
+<p>bcryptjs                                 Password hashing                      Salted password hashing before persistence</p>
+<p>JWT                                      Session/authentication token          Bearer and cookie-based authentication paths</p>
+<p>Capacitor                                Mobile wrapper                        Reuse React build within Android WebView</p>
+<p>GitHub Actions                           Automation                            Testing and APK build/release</p>
+<p>Jest / Supertest / in-memory MongoDB     Automated backend testing             Endpoint/service behavior with isolated test data</p>
+<p>Why the stack fits the workload The architecture is I/O-heavy rather than compute-heavy: many workflows combine database access, third- party requests, notifications and real-time events. Node.js, Express, Axios, MongoDB and Socket.IO are consequently coherent choices for an application whose dominant latency is external/service interaction rather than local CPU computation.</p></div>
+    </section><section class="chapter" id="sec-5" data-index="4" data-search="5 frontend implementation dossier 5.1 application composition the root application composes queryclientprovider, themeprovider, authprovider, profileprovider, socketprovider, notificationprovider, router and callprovider. this makes the application state model explicit: server-state caching is handled separately from identity, profile, socket, notification and call state. provider hierarchy from frontend app.js…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">5</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 5</div><h2>Frontend Implementation Dossier</h2><p>5.1 Application Composition The root application composes QueryClientProvider, ThemeProvider, AuthProvider, ProfileProvider, SocketProvider, NotificationProvider, Router and CallProvider. This makes the application state model explicit: server-state caching is handled separately from identity, profile, socket, notification and call state. Provider hierarchy from frontend App.js…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>5.1 Application Composition</h3>
+<p>The root application composes QueryClientProvider, ThemeProvider, AuthProvider, ProfileProvider, SocketProvider, NotificationProvider, Router and CallProvider. This makes the application state model explicit: server-state caching is handled separately from identity, profile, socket, notification and call state.</p>
+<p>Provider hierarchy from frontend App.js QueryClientProvider ThemeProvider AuthProvider ProfileProvider SocketProvider NotificationProvider Router CallProvider Layout + Routes + Overlays</p>
+<div class="evidence-callout"><span>⌁</span>Evidence F1: frontend/src/App.js - provider stack and route composition</div>
+<h3>5.2 Routing and Feature Surface</h3>
+<p>Path                                                  Role / purpose</p>
+<p>/                                                             Public home</p>
+<p>Path                                                Role / purpose</p>
+<p>/login                                             Public login</p>
+<p>/register                                          Public registration</p>
+<p>/forgot-password                                   Password reset start</p>
+<p>/verify-email                                      Email verification</p>
+<p>/verify-2fa                                        2FA verification</p>
+<p>/dashboard                                         Protected dashboard</p>
+<p>/profile                                           Protected profile</p>
+<p>/users/:id                                         Protected user profile</p>
+<p>/network                                           Protected networking</p>
+<p>/devpulse                                          Protected developer intelligence</p>
+<p>/leaderboard                                       Protected leaderboard</p>
+<p>/notifications                                     Protected notifications</p>
+<p>/mentorship                                        Protected mentorship</p>
+<p>/jobs                                              Protected jobs</p>
+<p>/events                                            Protected events</p>
+<p>/forum                                             Protected forum</p>
+<p>/projects                                          Protected project showcase</p>
+<p>/tech-hub                                          Protected tech hub</p>
+<p>/career-board                                      Protected opportunity board</p>
+<p>/project-collaboration                             Protected collaboration</p>
+<p>/resume                                            Protected resume analyzer</p>
+<p>/businesses                                        Protected business directory</p>
+<p>/chat                                              Protected chat</p>
+<p>/admin                                             Admin-only</p>
+<p>/admin-dashboard                                   Admin-only dashboard</p>
+<p>/privacy                                           Public legal</p>
+<p>/terms                                             Public legal</p>
+<p>/cookies                                           Public legal</p>
+<p>Path                                                        Role / purpose</p>
+<p>/help                                                        Public support</p>
+<p>/contact                                                     Public support</p>
+<p>/faq                                                         Public support</p>
+<h3>5.3 Lazy Loading and Suspense</h3>
+<p>Major pages are imported with React.lazy and rendered under Suspense. This turns route modules into asynchronously loaded chunks rather than forcing the entire feature surface into the initial bundle. The application also places the route tree under an ErrorBoundary, creating a separate failure boundary for rendering errors.</p>
+<h3>5.4 Server-State Policy</h3>
+<p>Policy                             Observed value                           Engineering implication</p>
+<p>Retry                                  No retry for 401/403/404; otherwise up to   Auth and authorization errors are not 2 retries                                   pointlessly retried</p>
+<p>Backoff                                min(1000 * 2^attempt, 10000)                Avoids immediate repeated requests</p>
+<p>Window focus refetch                   Disabled                                    Reduces background refresh traffic</p>
+<p>Stale time                             2 hours                                     Navigation can reuse cached server state</p>
+<p>Cache time                             3 hours                                     Data can persist in memory beyond stale window</p>
+<p>Mutations                              No automatic retry                          Avoids accidental duplicate writes</p>
+<h3>5.5 Offline Awareness</h3>
+<p>The frontend registers <code>online</code> and <code>offline</code> browser events and displays a high-priority banner when <code>navigator.onLine</code> becomes false. This is a user-experience safeguard rather than a complete offline application: the message explicitly warns that some features may not work.</p>
+<h3>5.6 HTTP Client Resilience</h3>
+<p>The Axios wrapper is one of the most technically distinctive frontend files. It detects Capacitor, maintains a mobile token store, constructs a candidate backend URL list, randomizes the initial backend when more than one endpoint is available, fails over on network/timeout errors, queues concurrent requests during token refresh, distinguishes auth failures from network failures, and exposes a Promise.allSettled helper for independent parallel requests.</p>
+<p>Frontend resilience patterns Primary backend URL | network / timeout v</p>
+<p>triggerFailover() | +--&gt; next backend URL | +--&gt; retry original request</p>
+<p>401 responses | +--&gt; if refresh in progress: queue request +--&gt; else: refresh token once +--&gt; replay waiting requests if refresh path succeeds</p>
+<div class="evidence-callout"><span>⌁</span>Evidence F2: frontend/src/utils/api.js - failover, token refresh queue, CSRF token memory and parallel-</div>
+<p>request helper</p></div>
+    </section><section class="chapter" id="sec-6" data-index="5" data-search="6 backend implementation dossier 6.1 server composition the backend starts from an http server wrapping express and attaches socket.io. the server configures proxy awareness, dynamically assembled allowed origins, redis adapter support, global security middleware, rate limits, parsers, csrf protection, sanitization, route registration and centralized error handling. figure 6.1 - defensive request pipeline 6.2 …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">6</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 6</div><h2>Backend Implementation Dossier</h2><p>6.1 Server Composition The backend starts from an HTTP server wrapping Express and attaches Socket.IO. The server configures proxy awareness, dynamically assembled allowed origins, Redis adapter support, global security middleware, rate limits, parsers, CSRF protection, sanitization, route registration and centralized error handling. Figure 6.1 - Defensive request pipeline 6.2 …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>6.1 Server Composition</h3>
+<p>The backend starts from an HTTP server wrapping Express and attaches Socket.IO. The server configures proxy awareness, dynamically assembled allowed origins, Redis adapter support, global security middleware, rate limits, parsers, CSRF protection, sanitization, route registration and centralized error handling.</p>
+<p>Figure 6.1 - Defensive request pipeline</p>
+<h3>6.2 Security Middleware Sequence</h3>
+<p>Layer                            Observed mechanism                              Purpose</p>
+<p>1                                      Helmet with CSP and frameguard           Browser security headers and clickjacking reduction</p>
+<p>2                                      Compression                              Response size reduction</p>
+<p>3                                      Morgan                                   HTTP request logging</p>
+<p>4                                      CORS                                     Origin/credential policy</p>
+<p>5                                      General rate limit                       Request volume control</p>
+<p>6                                      Auth-specific rate limit                 Brute-force resistance on login/register</p>
+<p>7                                      JSON / URL-encoded parser                Request body decoding with 10 MB limit</p>
+<p>8                                      Cookie parser                            Cookie-based token and CSRF paths</p>
+<p>9                                      CSRF middleware                          State-changing request verification</p>
+<p>10                                     Mongo sanitize                           NoSQL operator injection reduction</p>
+<p>11                                     HPP                                      Repeated-parameter pollution reduction</p>
+<p>12                                     Route/auth middleware                    Identity, roles and ownership</p>
+<h3>6.3 Route Domains</h3>
+<p>#                                       Route prefix              Domain responsibility</p>
+<p>1                                     /api/auth                            Logical domain router</p>
+<p>2                                     /api/users                           Logical domain router</p>
+<p>3                                     /api/mentorship                      Logical domain router</p>
+<p>4                                     /api/jobs                            Logical domain router</p>
+<p>5                                     /api/events                          Logical domain router</p>
+<p>6                                     /api/forum                           Logical domain router</p>
+<p>7                                     /api/contests                        Logical domain router</p>
+<p>8                                     /api/messages                        Logical domain router</p>
+<p>9                                     /api/admin                           Logical domain router</p>
+<p>10                                    /api/notifications                   Logical domain router</p>
+<p>11                                    /api/upload                          Logical domain router</p>
+<p>12                                    /api/dev-activity                    Logical domain router</p>
+<p>13                                    /api/leaderboard                     Logical domain router</p>
+<p>14                                    /api/feedback                        Logical domain router</p>
+<p>15                                    /api/helpdesk                        Logical domain router</p>
+<p>16                                    /api/projects                        Logical domain router</p>
+<p>17                                    /api/institutions                    Logical domain router</p>
+<p>18                                    /api/tasks                           Logical domain router</p>
+<p>19                                    /api/ai                              Logical domain router</p>
+<p>20                                    /api/tech-hub                        Logical domain router</p>
+<p>21                                    /api/business                        Logical domain router</p>
+<h3>6.4 Error and Process-Level Safety</h3>
+<p>The server has a centralized error handler that logs the error stack and deliberately avoids exposing internal stack details in production. A bottom-of-stack wildcard handler returns a 404 JSON response. Process-level listeners log unhandled promise rejections and uncaught exceptions. These are not substitutes for graceful shutdown or process supervision, but they demonstrate deliberate attention to failure visibility and information disclosure.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence B1: backend/server.js - error handler, 404 handler, process listeners</div></div>
+    </section><section class="chapter" id="sec-7" data-index="6" data-search="7 database design and data lifecycle 7.1 model inventory #                               model                    primary responsibility 1                            user                            domain entity 2                            message                         domain entity 3                            chatgroup                       domain entity 4                            contest                   …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">7</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 7</div><h2>Database Design and Data Lifecycle</h2><p>7.1 Model Inventory #                               Model                    Primary responsibility 1                            User                            Domain entity 2                            Message                         Domain entity 3                            ChatGroup                       Domain entity 4                            Contest                   …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>7.1 Model Inventory</h3>
+<p>#                               Model                    Primary responsibility</p>
+<p>1                            User                            Domain entity</p>
+<p>2                            Message                         Domain entity</p>
+<p>3                            ChatGroup                       Domain entity</p>
+<p>4                            Contest                         Domain entity</p>
+<p>5                            DevProfile                      Domain entity</p>
+<p>6                            Event                           Domain entity</p>
+<p>7                            Feedback                        Domain entity</p>
+<p>8                            ForumPost                       Domain entity</p>
+<p>9                            HelpDesk                        Domain entity</p>
+<p>10                           Job                             Domain entity</p>
+<p>11                           JobApplication                  Domain entity</p>
+<p>12                           JobOpportunity                  Domain entity</p>
+<p>13                           MentorReview                    Domain entity</p>
+<p>14                           MentorReward                    Domain entity</p>
+<p>15                           Mentorship                      Domain entity</p>
+<p>16                           MentorshipRequest               Domain entity</p>
+<p>17                           MentorshipSession               Domain entity</p>
+<p>18                           Notification                    Domain entity</p>
+<p>19                           Project                         Domain entity</p>
+<p>20                           Report                          Domain entity</p>
+<p>21                           Task                            Domain entity</p>
+<p>22                           TechHub                         Domain entity</p>
+<p>23                           Business                        Domain entity</p>
+<h3>7.2 User Model - Detailed Evidence</h3>
+<p>Area                                     Fields                                   Implementation detail</p>
+<p>Identity                              name, email, phoneNumber, phoneVerified             Name is required; email unique and normalized; password is hidden from default selection</p>
+<p>Role                                  role                                                Enum: student, alumni, admin, college</p>
+<p>Profile                               photo, bio, skills, interests, location, country,   Trimmed profile fields and bounded bio college, department</p>
+<p>Student domain                        studentInfo.course/year/university                  Structured student metadata</p>
+<p>Alumni domain                         graduationYear, company, position,                  Mentor capacity/rating/availability fields industry, experience, mentor metadata</p>
+<p>College domain                        collegeInfo.*                                       Institution extraction and metadata surface</p>
+<p>Social                                linkedin, github, twitter, website, portfolio,      External profile references codeforces, leetcode, codolio</p>
+<p>Status                                status, isVerified, isApproved, isActive            Multiple account-state gates</p>
+<p>Network                               connections, followers, following,                  Self-referencing User ObjectIds followRequests</p>
+<p>Activity                              lastActive                                          Used for activity/online calculations</p>
+<p>Security tokens                       resetPasswordOtp, verificationOtp,                  Temporary authentication/verification state deleteAccountOtp, twoFactorOtp + expiries</p>
+<p>Timestamps                            createdAt, updatedAt                                Mongoose timestamps</p>
+<h3>7.3 User Model Behaviors</h3>
+<ul class="detail-list"><li>Password hashing uses bcrypt with a generated salt of 12 rounds before save when the password is</li></ul>
+<p>modified.</p>
+<ul class="detail-list"><li><code>comparePassword()</code> delegates candidate verification to bcrypt.</li><li><code>updateLastActive()</code> performs a targeted update rather than requiring the whole document to be saved</li></ul>
+<p>synchronously.</p>
+<ul class="detail-list"><li><code>getPublicProfile()</code> removes <code>password</code> and <code>__v</code> from the returned object.</li><li><code>isOnline</code> is computed from activity within a five-minute window.</li><li>Indexes exist for alumni company, skills, role/status, alumni industry and location.</li><li>A document delete hook removes related forum posts, messages, mentorships, notifications and jobs and</li></ul>
+<p>cleans relationship arrays in other users.</p>
+<h3>7.4 Data Integrity and Lifecycle</h3>
+<p>Cascade behavior The User model attempts an explicit cascade-like cleanup across related collections when a user document is deleted. This is important in a document database because references are not automatically cascaded by</p>
+<p>MongoDB in the way foreign keys may cascade in a relational system.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence D1: backend/models/User.js - validation, indexes, password hashing, virtuals and delete cleanup</div>
+<p>Figure 7.1 - Developer-data aggregation path (external to Mongo persistence)</p></div>
+    </section><section class="chapter" id="sec-8" data-index="7" data-search="8 authentication and authorization 8.1 authentication sources mechanism                        observed implementation                   security boundary local credentials                       email + bcrypt password                password verification + jwt google oauth                            dedicated endpoint                     provider identity verification github oauth                            ded…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">8</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 8</div><h2>Authentication and Authorization</h2><p>8.1 Authentication Sources Mechanism                        Observed implementation                   Security boundary Local credentials                       Email + bcrypt password                Password verification + JWT Google OAuth                            Dedicated endpoint                     Provider identity verification GitHub OAuth                            Ded…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>8.1 Authentication Sources</h3>
+<p>Mechanism                        Observed implementation                   Security boundary</p>
+<p>Local credentials                       Email + bcrypt password                Password verification + JWT</p>
+<p>Google OAuth                            Dedicated endpoint                     Provider identity verification</p>
+<p>GitHub OAuth                            Dedicated endpoint + mobile callback   Authorization-code exchange path paths</p>
+<p>Email verification                      OTP endpoint                           Verified account state</p>
+<p>Password reset                          Email + OTP                            Temporary reset token/OTP</p>
+<p>2FA                                     Email or SMS OTP                       Additional verification factor</p>
+<p>Bearer token                            Authorization header                   Used by clients including mobile path</p>
+<p>Cookie token                            HttpOnly cookie                        Browser-oriented token path</p>
+<h3>8.2 Cookie and Bearer Fallback</h3>
+<p>Authentication token selection Protected request |</p>
+<p>+-- cookie token available? --&gt; verify cookie JWT | +-- otherwise Authorization: Bearer &lt;token&gt; --&gt; verify bearer JWT | +-- no token --&gt; 401</p>
+<p>The <code>protect</code> middleware first checks a cookie token and then falls back to a Bearer header. After verification it reloads the user document, excludes the password field, rejects missing users, rejects inactive accounts and asynchronously updates last activity. Role and state middleware then create additional authorization boundaries.</p>
+<h3>8.3 Authorization Layers</h3>
+<p>Control                               Condition                                 Failure</p>
+<p>Authenticated                          valid JWT + active user                     401</p>
+<p>Admin                                  role === admin                              403</p>
+<p>Alumni                                 role === alumni                             403</p>
+<p>Student                                role === student                            403</p>
+<p>Verified                               isVerified === true                         403</p>
+<p>Approved                               isApproved === true                         403</p>
+<p>Resource ownership                     current user matches resource user id,      400/403 unless admin</p>
+<p>Mentor eligibility                     alumni + active + approved                  403</p>
+<p>Mentorship requester                   student + active                            403</p>
+<p>Forum poster                           active + verified                           403</p>
+<div class="evidence-callout"><span>⌁</span>Evidence A1: backend/middleware/auth.js - authentication, role, state and ownership middleware</div>
+<div class="evidence-callout"><span>⌁</span>Evidence A2: backend/routes/auth.js - registration, login, OAuth, reset, verification and 2FA route guards</div></div>
+    </section><section class="chapter" id="sec-9" data-index="8" data-search="9 security architecture and threat controls 9.1 control matrix threat                                 control                             effect / limitation credential theft                       httponly jwt cookie path; bearer token      cookie path reduces script-level access; path for clients                            mobile token has different exposure characteristics csrf                                   double-…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">9</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 9</div><h2>Security Architecture and Threat Controls</h2><p>9.1 Control Matrix Threat                                 Control                             Effect / limitation Credential theft                       HttpOnly JWT cookie path; Bearer token      Cookie path reduces script-level access; path for clients                            mobile token has different exposure characteristics CSRF                                   Double-…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>9.1 Control Matrix</h3>
+<p>Threat                                 Control                             Effect / limitation</p>
+<p>Credential theft                       HttpOnly JWT cookie path; Bearer token      Cookie path reduces script-level access; path for clients                            mobile token has different exposure characteristics</p>
+<p>CSRF                                   Double-submit style cookie + header check   Production rejects missing/mismatched token; safe methods bypass</p>
+<p>NoSQL injection                        express-mongo-sanitize                      Removes Mongo-style operators from</p>
+<p>Threat                                 Control                                   Effect / limitation</p>
+<p>request input</p>
+<p>HPP                                    hpp middleware                                  Reduces repeated-parameter ambiguity</p>
+<p>Brute force                            Auth-specific rate limit 10 requests / 15 min   Limits repeated login/register attempts per key</p>
+<p>General abuse                          API rate limit 5000 requests / 15 min           Broad request-volume control</p>
+<p>Clickjacking                           Helmet frameguard deny + CSP                    Blocks embedding in frames frameAncestors none</p>
+<p>CORS misuse                            Allowlist in production; credentials enabled    Rejects non-allowed origins</p>
+<p>Information disclosure                 Production error response excludes stack        Internal implementation details stay server- side</p>
+<p>Broken access control                  Role + verification + approval + ownership      Unauthorized requests receive 401/403 checks</p>
+<p>Sensitive fields                       Password <code>select:false</code> + public-profile        Reduces accidental response exposure stripping</p>
+<p>Figure 9.1 - Security boundary map</p>
+<h3>9.2 CSRF Behavior in Detail</h3>
+<p>The custom CSRF middleware generates a random 32-byte hexadecimal token when the XSRF cookie is absent, exposes the token through the response header, skips validation for GET/HEAD/OPTIONS, bypasses the state- changing check for the Capacitor marker, and in production returns HTTP 403 when the header is missing or mismatched. Development mode intentionally allows requests through after logging a warning. That development bypass is a configuration trade-off, not a production security feature.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence SEC1: backend/middleware/csrf.js - token creation, safe methods, mobile exception and production</div>
+<p>enforcement</p>
+<h3>9.3 Residual Risks</h3>
+<ul class="detail-list"><li>The mobile path stores a bearer token in localStorage. This is a conscious architecture trade-off for the</li></ul>
+<p>wrapper environment and carries greater token-extraction risk on a compromised device than an HttpOnly cookie.</p>
+<ul class="detail-list"><li>Client-side backend failover improves availability but is not equivalent to a managed infrastructure load</li></ul>
+<p>balancer or global traffic manager.</p>
+<ul class="detail-list"><li>The report should not assume file malware scanning, distributed rate-limiting, automated secret rotation</li></ul>
+<p>or full observability unless additional evidence exists.</p>
+<ul class="detail-list"><li>External scraping and third-party APIs remain subject to upstream schema/rate-limit changes.</li></ul></div>
+    </section><section class="chapter" id="sec-10" data-index="9" data-search="10 module-wise functional implementation module                             purpose                                 primary evidence authentication                        identity, verification, oauth, 2fa, token   auth.js, authservice.js, auth middleware lifecycle profiles / network                    user metadata, connections and developer    user model + users routes + profile pages links mentorship               …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">10</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 10</div><h2>Module-wise Functional Implementation</h2><p>Module                             Purpose                                 Primary evidence Authentication                        Identity, verification, OAuth, 2FA, token   auth.js, authService.js, auth middleware lifecycle Profiles / network                    User metadata, connections and developer    User model + users routes + profile pages links Mentorship               …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Module                             Purpose                                 Primary evidence</p>
+<p>Authentication                        Identity, verification, OAuth, 2FA, token   auth.js, authService.js, auth middleware lifecycle</p>
+<p>Profiles / network                    User metadata, connections and developer    User model + users routes + profile pages links</p>
+<p>Mentorship                            Mentor discovery/request/session/review     Mentorship-related models/routes domain</p>
+<p>Jobs                                  Listings, applications and AI support       jobs routes/services + Job models</p>
+<p>Events                                Community/event lifecycle                   events route + Event model</p>
+<p>Forum                                 Posts/comments/voting/moderation            forum route + ForumPost model + moderation utility</p>
+<p>Messaging                             Direct/group real-time communication        messages route + Socket.IO + Message/ChatGroup models</p>
+<p>Notifications                         Persistent and real-time signals            Notification model/routes/socket handlers</p>
+<p>Developer activity                    Multi-platform stats normalization          devStatsFetcher.js + DevProfile</p>
+<p>AI                                    Career chat, resume, job match, interview   ai.js + aiHelper.js</p>
+<p>Projects                              Project showcase/collaboration              Project model/routes</p>
+<p>Helpdesk                              Support tickets                             HelpDesk model/routes</p>
+<p>Business                              Business directory                          Business model/routes</p>
+<p>Tasks                                 Task lifecycle and user completion          Task model/routes</p>
+<p>Tech Hub                              Technology resources/news domain            TechHub model/routes</p>
+<p>Admin                                 Administrative controls                     admin routes/pages</p>
+<h3>10.1 Mentorship</h3>
+<p>The mentorship domain includes distinct models for mentorship requests, active mentorship relationships, sessions, mentor reviews and rewards. The User model itself contains mentor readiness fields such as availability, maximum mentees, preferred batches, rating, review count and accumulated mentorship hours. The authorization layer further restricts mentor eligibility to active, approved alumni.</p>
+<p>Mentorship domain flow - report model based on repository entities; individual transition details should be matched to the current route logic before claiming every transition as executed Student -&gt; mentor discovery -&gt; request creation -&gt; authorization / validation -&gt; notification</p>
+<p>-&gt; mentor decision -&gt; mentorship lifecycle -&gt; session / review / reward data</p>
+<h3>10.2 Jobs and Resume Analysis</h3>
+<p>The job domain combines conventional listing/application workflows with AI-assisted analysis. The resume- analysis route accepts a PDF, checks MIME type, parses the file from memory using pdf-parse, constructs a structured prompt containing the job description and extracted resume text, requests strict JSON output from the AI orchestrator, strips code-fence wrappers if present, extracts a JSON object and parses it before returning structured analysis.</p>
+<p>Resume analysis processing chain PDF upload -&gt; multipart memory buffer -&gt; MIME check == application/pdf -&gt; pdf-parse -&gt; resume text -&gt; JD + resume prompt -&gt; Groq / Gemini -&gt; remove markdown fences -&gt; extract JSON object -&gt; JSON.parse -&gt; structured ATS response</p>
+<div class="evidence-callout"><span>⌁</span>Evidence M1: backend/routes/ai.js - resume upload, MIME validation, pdf-parse and response parsing</div>
+<h3>10.3 Forum and Moderation</h3>
+<p>The forum route imports a moderation utility, user and notification models, and the AI helper. This indicates that the discussion subsystem is not purely a CRUD post store; moderation and notification-related behavior are part of its implementation surface. Exact trigger matrices should remain tied to the route code when extending this chapter with further endpoint-level evidence.</p>
+<h3>10.4 Developer Intelligence</h3>
+<p>The developer profile fetcher normalizes usernames before hitting external services, strips leading @ signs, handles profile URLs, uses parallel requests where useful, preserves partial success through Promise.allSettled, and applies provider-specific fallbacks. The GitHub implementation prefers GraphQL for rich data and falls back to the v3 REST endpoint when GraphQL fails. GFG parsing first attempts embedded JSON and then falls back to regex extraction.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence M2: backend/utils/devStatsFetcher.js - username normalization, parallel external calls, GitHub</div>
+<p>GraphQL/REST and GFG parsing fallback</p></div>
+    </section><section class="chapter" id="sec-11" data-index="10" data-search="11 ai architecture and inference workflows figure 11.1 - ai provider orchestration and demo-mode behavior 11.1 provider orchestration the ai helper exposes separate functions for groq and gemini and a coordinator named `callaiwithfallback`. the coordinator first attempts groq using the configured compound-mini model and then catches failure before attempting gemini. if gemini also fails, it raises a final error indicati…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">11</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 11</div><h2>AI Architecture and Inference Workflows</h2><p>Figure 11.1 - AI provider orchestration and demo-mode behavior 11.1 Provider Orchestration The AI helper exposes separate functions for Groq and Gemini and a coordinator named `callAIWithFallback`. The coordinator first attempts Groq using the configured compound-mini model and then catches failure before attempting Gemini. If Gemini also fails, it raises a final error indicati…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Figure 11.1 - AI provider orchestration and demo-mode behavior</p>
+<h3>11.1 Provider Orchestration</h3>
+<p>The AI helper exposes separate functions for Groq and Gemini and a coordinator named <code>callAIWithFallback</code>. The coordinator first attempts Groq using the configured compound-mini model and then catches failure before attempting Gemini. If Gemini also fails, it raises a final error indicating that both providers failed or are unconfigured.</p>
+<h3>11.2 AI Route Inventory</h3>
+<p>Endpoint                           Purpose                       Input surface                 Output mode</p>
+<p>POST /api/ai/chat                 Career mentor chat              message + optional history     Text</p>
+<p>POST /api/ai/analyze-resume       ATS-style resume analysis       PDF resume + job description   Structured JSON</p>
+<p>POST /api/ai/draft-request        Mentorship networking request   mentor/student profile data    Text draft draft</p>
+<p>POST /api/ai/match-job            Job fit evaluation              job description + skills +     Structured JSON experience</p>
+<p>POST /api/ai/mock-interview       Interactive interviewer         message + history + role +     Text experience</p>
+<p>POST /api/ai/evaluate-interview   Whole-session evaluation        history + role + experience    Structured JSON</p>
+<h3>11.3 Demonstration / Mock Mode</h3>
+<p>Several AI endpoints deliberately return deterministic demo output when neither Groq nor Gemini credentials are present. This is an important distinction: demo mode proves that the UI workflow can operate without a live provider, but it is not equivalent to live model inference. The final report therefore classifies this behavior as a fallback/demo mechanism rather than as AI capability itself.</p>
+<h3>11.4 Output Robustness</h3>
+<p>For JSON-oriented AI tasks, the implementation requests a JSON response mode where supported, then defensively removes markdown fences and extracts the first JSON object-shaped block before parsing. This is a lightweight normalization layer aimed at common formatting deviations from model output.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence AI1: backend/utils/aiHelper.js - Groq/Gemini functions and failover coordinator</div>
+<div class="evidence-callout"><span>⌁</span>Evidence AI2: backend/routes/ai.js - route-level mock behavior, prompt construction, PDF parsing and output</div>
+<p>normalization</p></div>
+    </section><section class="chapter" id="sec-12" data-index="11" data-search="12 real-time communication, messaging and presence figure 12.1 - socket.io with redis adapter concept 12.1 client socket lifecycle the socketcontext creates a socket.io connection only when a user exists. on logout or user removal it disconnects and clears state. it tracks `isconnected`, maintains an online-user map, joins a personal user room, requests current online users, reacts to user online/offline events, and marks a use…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">12</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 12</div><h2>Real-Time Communication, Messaging and Presence</h2><p>Figure 12.1 - Socket.IO with Redis adapter concept 12.1 Client Socket Lifecycle The SocketContext creates a Socket.IO connection only when a user exists. On logout or user removal it disconnects and clears state. It tracks `isConnected`, maintains an online-user map, joins a personal user room, requests current online users, reacts to user online/offline events, and marks a use…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Figure 12.1 - Socket.IO with Redis adapter concept</p>
+<h3>12.1 Client Socket Lifecycle</h3>
+<p>The SocketContext creates a Socket.IO connection only when a user exists. On logout or user removal it disconnects and clears state. It tracks <code>isConnected</code>, maintains an online-user map, joins a personal user room, requests current online users, reacts to user online/offline events, and marks a user away/back based on browser visibility. Cleanup removes event listeners and disconnects the socket on unmount.</p>
+<h3>12.2 Socket Failover</h3>
+<p>Socket connection failures trigger the same backend failover mechanism used by the Axios client. If HTTP failover changes the active backend, a <code>backend-failover</code> custom event is emitted so SocketContext can swap its Socket.IO URI to match the new backend and reconnect. This is a strong cross-layer consistency mechanism: API and WebSocket traffic are intentionally kept pointed at the same active backend.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence RT1: frontend/src/contexts/SocketContext.js - socket creation, presence state, failover event</div>
+<p>handling and cleanup</p>
+<div class="evidence-callout"><span>⌁</span>Evidence RT2: backend/server.js - Socket.IO initialization and Redis adapter configuration</div></div>
+    </section><section class="chapter" id="sec-13" data-index="12" data-search="13 external integrations and developer intelligence service                  domain                           auth                 role                         fallback groq                    ai                           api key                primary ai provider           gemini gemini                  ai                           api key                ai fallback provider          route-specific mock/degraded output where im…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">13</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 13</div><h2>External Integrations and Developer Intelligence</h2><p>Service                  Domain                           Auth                 Role                         Fallback Groq                    AI                           API key                Primary AI provider           Gemini Gemini                  AI                           API key                AI fallback provider          Route-specific mock/degraded output where im…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Service                  Domain                           Auth                 Role                         Fallback</p>
+<p>Groq                    AI                           API key                Primary AI provider           Gemini</p>
+<p>Gemini                  AI                           API key                AI fallback provider          Route-specific mock/degraded output where implemented</p>
+<p>Google OAuth            Authentication               OAuth credential       Identity provider             Application error path</p>
+<p>GitHub OAuth            Authentication               Client/application     Identity provider             Application error path credentials</p>
+<p>GitHub GraphQL          Developer stats              Optional token         Rich developer data           GitHub REST</p>
+<p>GitHub REST             Developer stats              Optional token         Fallback developer data       Null / error path</p>
+<p>LeetCode GraphQL        Developer stats              Public endpoint        Problem/contest data          Null result on failure</p>
+<p>HackerRank REST         Developer stats              Public endpoint        Badges/certificates/profile   Null result on profile failure</p>
+<p>GFG web parsing         Developer stats              HTTP request           Coding score / solved data    Regex fallback</p>
+<p>CodeChef web parsing    Developer stats              HTTP request           Rating/profile data           Error/partial path</p>
+<p>Codeforces API          Developer stats              Public endpoint        Competitive programming       Error/partial path metrics</p>
+<p>Cloudinary              Media                        API credentials        Managed upload/delivery       Upload error</p>
+<p>Email/SMS providers     Verification/notifications   Provider credentials   OTP and notifications         Route-specific error handling</p>
+<p>Judge0                  Contest execution            Configured API         Code evaluation               Classify by actual route implementation status</p>
+<p>External services are inherently outside the application’s control boundary. The most resilient integration points therefore normalize inputs, preserve partial results where possible, and avoid treating one external provider as the only source of truth. Developer-stat aggregation is especially explicit in this respect: the fetcher returns null/partial results for failed modules rather than requiring every platform to succeed.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence I1: backend/utils/devStatsFetcher.js - developer data integrations and provider-specific fallbacks</div></div>
+    </section><section class="chapter" id="sec-14" data-index="13" data-search="14 caching, resilience and fallback engineering 14.1 redis runtime modes the cache utility has two implementations: a real redis client and a mock cache. real redis is selected in production or when redis_url is present. otherwise a mock client exposes the same method names expected by dependent code. the real client serializes values, applies an ex ttl, and catches get/set/delete errors so cache failures can degrade into ca…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">14</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 14</div><h2>Caching, Resilience and Fallback Engineering</h2><p>14.1 Redis Runtime Modes The cache utility has two implementations: a real Redis client and a mock cache. Real Redis is selected in production or when REDIS_URL is present. Otherwise a mock client exposes the same method names expected by dependent code. The real client serializes values, applies an EX TTL, and catches get/set/delete errors so cache failures can degrade into ca…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>14.1 Redis Runtime Modes</h3>
+<p>The cache utility has two implementations: a real Redis client and a mock cache. Real Redis is selected in production or when REDIS_URL is present. Otherwise a mock client exposes the same method names expected by dependent code. The real client serializes values, applies an EX TTL, and catches get/set/delete errors so cache failures can degrade into cache misses or falsey writes rather than directly crashing application flows.</p>
+<p>Failure / condition                           Observed behavior                                 Engineering effect</p>
+<p>No REDIS_URL outside production               Mock cache selected                                Local development can run without a Redis server</p>
+<p>Redis get fails                               Undefined returned                                 Caller can continue as cache miss</p>
+<p>Redis set fails                               False returned                                     Persistence to cache is non-blocking to core flow</p>
+<p>Redis delete fails                            0 returned                                         Caller receives safe no-op-like result</p>
+<p>Redis adapter connection fails                Error logged                                       Main server path continues with degraded socket scaling</p>
+<p>AI provider failure                           Provider-level fallback                            Service continuity</p>
+<p>Backend timeout                               API URL failover                                   Request can be retried on another configured backend</p>
+<p>Concurrent 401s                               Refresh queue                                      One refresh path rather than many simultaneous attempts</p>
+<div class="evidence-callout"><span>⌁</span>Evidence R1: backend/utils/cache.js - Redis mode selection and safe cache wrappers</div>
+<div class="evidence-callout"><span>⌁</span>Evidence R2: frontend/src/utils/api.js - backend failover and token refresh queue</div>
+<h3>14.2 Failover Register</h3>
+<p>Subsystem                 Primary              Detection                 Fallback                  Recovery              User impact</p>
+<p>HTTP API                Primary backend       network/timeout           Next backend URL         Axios request retry     User may not notice if backup is healthy</p>
+<p>Socket.IO               Current backend       connect_error             Next backend             Reconnect after 1       Live connection Socket.IO endpoint       second                  briefly interrupted</p>
+<p>JWT refresh             Existing token        401                       single refresh request   Replay original         Logout only on + queued callers         requests                explicit auth failure</p>
+<p>AI                      Groq                  exception                 Gemini                   same AI route           Usually transparent</p>
+<p>AI no providers         Missing keys          environment               mock/demo response       No external inference   Feature remains inspection                for supported                                    demonstrable endpoint</p>
+<p>Subsystem                Primary             Detection               Fallback                Recovery              User impact</p>
+<p>GitHub developer          GraphQL              API error / errors      GitHub REST          re-fetch user data         Reduced richness stats                                          payload</p>
+<p>GFG parsing               Embedded JSON        parse failure / no      regex parsing        extract score/solved       Reduced parsing values                                       values                     robustness</p>
+<p>Redis                     Real client          connection/read/write   safe miss/no-op      Continue core request      Caching/scale features exception               mock/degraded path                              degrade</p></div>
+    </section><section class="chapter" id="sec-15" data-index="14" data-search="15 performance and optimization optimization                                  implementation                               expected benefit frontend code splitting                        react.lazy for page-level modules            smaller initial bundle / deferred route cost server-state caching                           react query staletime 2h / cachetime 3h      fewer duplicate reads retry backoff        …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">15</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 15</div><h2>Performance and Optimization</h2><p>Optimization                                  Implementation                               Expected benefit Frontend code splitting                        React.lazy for page-level modules            Smaller initial bundle / deferred route cost Server-state caching                           React Query staleTime 2h / cacheTime 3h      Fewer duplicate reads Retry backoff        …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Optimization                                  Implementation                               Expected benefit</p>
+<p>Frontend code splitting                        React.lazy for page-level modules            Smaller initial bundle / deferred route cost</p>
+<p>Server-state caching                           React Query staleTime 2h / cacheTime 3h      Fewer duplicate reads</p>
+<p>Retry backoff                                  Exponential delay up to 10s                  Avoids tight retry loops</p>
+<p>Mutation policy                                No automatic mutation retries                Prevents duplicate writes</p>
+<p>Request-level timeout                          Axios 60s                                    Accounts for slow/waking backend while bounding hang time</p>
+<p>Parallel external calls                        Promise.allSettled                           Reduces overall aggregation latency and preserves partial success</p>
+<p>Compression                                    Express compression                          Smaller HTTP responses</p>
+<p>Database indexes                               User indexes on common filters               Faster common queries</p>
+<p>Fire-and-forget activity update                Last-active update without blocking          Removes non-critical write latency from protected request                            request path</p>
+<p>Redis TTL                                      EX 1800 default in cache wrapper             Bounds cache lifetime</p>
+<p>Socket.IO Redis adapter                        Pub/sub across instances                     Enables horizontal event propagation when deployed multi-instance</p>
+<p>Cloudinary                                     Managed media delivery                       Offloads media storage/delivery from app server</p>
+<h3>15.1 Important Trade-offs</h3>
+<ul class="detail-list"><li>Long React Query stale windows improve responsiveness but increase the age of data reused from cache.</li><li>A 60-second Axios timeout reduces false failure during cold-start recovery but can make a genuinely</li></ul>
+<p>unavailable request feel slow.</p>
+<ul class="detail-list"><li>Client-side endpoint failover improves resilience but retains endpoint-selection state inside the client</li></ul>
+<p>process rather than an infrastructure control plane.</p>
+<ul class="detail-list"><li>In-memory PDF handling is simple, but memory usage scales with upload size and concurrency;</li></ul>
+<p>production-grade systems may move this work to a queue or object storage pipeline.</p></div>
+    </section><section class="chapter" id="sec-16" data-index="15" data-search="16 testing and quality assurance 16.1 automated test toolchain tool                                purpose                                   observed role jest                                  unit/service/api test execution              backend test runner supertest                             http integration testing                     exercises express routes without browser mongodb-memory-server          …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">16</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 16</div><h2>Testing and Quality Assurance</h2><p>16.1 Automated Test Toolchain Tool                                Purpose                                   Observed role Jest                                  Unit/service/API test execution              Backend test runner Supertest                             HTTP integration testing                     Exercises Express routes without browser mongodb-memory-server          …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>16.1 Automated Test Toolchain</h3>
+<p>Tool                                Purpose                                   Observed role</p>
+<p>Jest                                  Unit/service/API test execution              Backend test runner</p>
+<p>Supertest                             HTTP integration testing                     Exercises Express routes without browser</p>
+<p>mongodb-memory-server                 Database isolation                           Supports tests without using production MongoDB</p>
+<p>React Testing Library                 Component testing                            Frontend interaction tests</p>
+<p>Cypress                               End-to-end/browser automation                Available in frontend toolchain</p>
+<p>GitHub Actions                        Continuous test execution                    Backend test workflow</p>
+<h3>16.2 CI Test Workflow</h3>
+<p>Observed backend test workflow Push / pull request -&gt; checkout -&gt; Node 18 setup + npm cache -&gt; npm ci in backend -&gt; npm test</p>
+<div class="evidence-callout"><span>⌁</span>Evidence T1: .github/workflows/test.yml - Node.js 18, npm ci and npm test</div>
+<p>The repository contains tests named for authentication, authentication services, job services, mentorship services and RBAC in the supplied draft report; the exact breadth and current pass rate should be reported from the current test run rather than inferred from filenames alone.</p></div>
+    </section><section class="chapter" id="sec-17" data-index="16" data-search="17 ci/cd, deployment and operations figure 17.1 - android build and release workflow 17.1 verified workflow surface workflow                               trigger                            observed responsibilities test.yml                              push / pull request to main (per workflow)   backend dependency install and jest test execution build-apk.yml                         push to main/master + manual…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">17</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 17</div><h2>CI/CD, Deployment and Operations</h2><p>Figure 17.1 - Android build and release workflow 17.1 Verified Workflow Surface Workflow                               Trigger                            Observed responsibilities test.yml                              push / pull request to main (per workflow)   Backend dependency install and Jest test execution build-apk.yml                         push to main/master + manual…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Figure 17.1 - Android build and release workflow</p>
+<h3>17.1 Verified Workflow Surface</h3>
+<p>Workflow                               Trigger                            Observed responsibilities</p>
+<p>test.yml                              push / pull request to main (per workflow)   Backend dependency install and Jest test execution</p>
+<p>build-apk.yml                         push to main/master + manual dispatch        Frontend build, Capacitor sync, Android toolchain, debug APK, artifact and GitHub</p>
+<p>Workflow                                  Trigger                         Observed responsibilities</p>
+<p>release</p>
+<p>production-monitor.yml                  Repository workflow present            Operational monitoring intent; exact current semantics should be taken from the workflow source before claiming specific checks</p>
+<h3>17.2 Android Build Pipeline</h3>
+<p>The Android workflow checks out the repository, installs the frontend, runs the frontend build with explicit environment values, installs the mobile wrapper, copies the React build into <code>www</code>, runs Capacitor synchronization, configures Java 17 and Android tooling, makes <code>gradlew</code> executable, builds a debug APK, uploads the APK artifact, and creates a GitHub release carrying the generated APK.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence C1: .github/workflows/build-apk.yml - complete Android build/release chain</div>
+<h3>17.3 Deployment Classification</h3>
+<p>Current-vs-possible deployment rule A technical report must distinguish actual deployment evidence from documented hosting recommendations. The repository documentation discusses Render/Vercel/other providers, but a report should not claim “currently hosted on X” unless deployment evidence or configuration proves it.</p></div>
+    </section><section class="chapter" id="sec-18" data-index="17" data-search="18 mobile application architecture the mobile application is a capacitor wrapper around the web build rather than a separate native kotlin implementation. the capacitor configuration declares appid `com.alumnex.connect`, app name `alumnex connect`, a `www` web directory, https android scheme and cleartext allowance. the android ci flow synchronizes the compiled react assets into this wrapper before gradle builds…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">18</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 18</div><h2>Mobile Application Architecture</h2><p>The mobile application is a Capacitor wrapper around the web build rather than a separate native Kotlin implementation. The Capacitor configuration declares appId `com.alumnex.connect`, app name `Alumnex Connect`, a `www` web directory, HTTPS Android scheme and cleartext allowance. The Android CI flow synchronizes the compiled React assets into this wrapper before Gradle builds…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>The mobile application is a Capacitor wrapper around the web build rather than a separate native Kotlin implementation. The Capacitor configuration declares appId <code>com.alumnex.connect</code>, app name <code>Alumnex Connect</code>, a <code>www</code> web directory, HTTPS Android scheme and cleartext allowance. The Android CI flow synchronizes the compiled React assets into this wrapper before Gradle builds the APK.</p>
+<p>Figure 18.1 - Reuse of the React web build inside Capacitor/Android</p>
+<h3>18.1 Mobile Authentication Trade-off</h3>
+<p>The browser and mobile paths do not share identical cookie assumptions. The frontend API utility detects Capacitor environments and keeps a JWT in localStorage, then adds an Authorization Bearer header and the mobile marker used by the backend CSRF middleware. This makes the mobile path operational in a WebView environment where cross-origin cookie behavior can be unreliable, but it changes the token-exposure model compared with HttpOnly browser cookies.</p>
+<div class="evidence-callout"><span>⌁</span>Evidence MO1: mobile-wrapper/capacitor.config.json - Capacitor app identity and web directory</div>
+<div class="evidence-callout"><span>⌁</span>Evidence MO2: frontend/src/utils/api.js - Capacitor detection and mobile token store</div>
+<div class="evidence-callout"><span>⌁</span>Evidence MO3: backend/middleware/csrf.js - mobile bearer-token path and CSRF exception</div></div>
+    </section><section class="chapter" id="sec-19" data-index="18" data-search="19 implementation status, limitations and technical debt 19.1 evidence classification matrix capability                                 classification                      evidence basis mern foundation                             verified                            react frontend + express/node backend + mongo/mongoose granular authorization                      verified                            multiple dedicated middleware funct…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">19</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 19</div><h2>Implementation Status, Limitations and Technical Debt</h2><p>19.1 Evidence Classification Matrix Capability                                 Classification                      Evidence basis MERN foundation                             Verified                            React frontend + Express/Node backend + Mongo/Mongoose Granular authorization                      Verified                            Multiple dedicated middleware funct…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>19.1 Evidence Classification Matrix</h3>
+<p>Capability                                 Classification                      Evidence basis</p>
+<p>MERN foundation                             Verified                            React frontend + Express/Node backend + Mongo/Mongoose</p>
+<p>Granular authorization                      Verified                            Multiple dedicated middleware functions</p>
+<p>AI provider failover                        Verified                            Groq -&gt; Gemini coordinator</p>
+<p>AI demo mode                                Verified                            Routes return explicit mock data when providers are unconfigured</p>
+<p>Redis fallback wrapper                      Verified                            Mock/real selection</p>
+<p>Client backend failover                     Verified                            Axios active URL rotation</p>
+<p>Token refresh queue                         Verified                            Concurrent 401 requests are queued</p>
+<p>Socket failover synchronization             Verified                            Custom backend-failover event updates socket endpoint</p>
+<p>Developer-stat fallback                     Verified for observed services      GitHub GraphQL -&gt; REST; GFG parsing fallback</p>
+<p>Android automated build                     Verified                            GitHub Actions workflow builds APK</p>
+<p>Production infrastructure load balancer     Not established from source alone   Client-side failover exists; infrastructure LB is a separate claim</p>
+<p>Automatic secret rotation                   Not established                     Treat as future enhancement unless additional evidence exists</p>
+<p>Full malware scanning for uploaded files    Not established                     MIME validation/PDF parsing is not equivalent to AV scanning</p>
+<p>Full distributed tracing                    Not established                     Recommend separately</p>
+<h3>19.2 Technical Debt / Hardening Opportunities</h3>
+<ul class="detail-list"><li>Move heavy PDF/AI workloads to background workers or queues at scale.</li><li>Add formal schema/version migration strategy if model evolution becomes frequent.</li><li>Introduce centralized observability and distributed tracing for cross-service flows.</li><li>Consider distributed rate-limiting storage when scaling across multiple backend instances.</li><li>Add stronger file-content scanning if user uploads become security-critical.</li><li>Formalize API contract documentation (OpenAPI) from actual routes and validators.</li><li>Measure performance empirically with load tests rather than relying only on structural optimizations.</li><li>Review third-party scraping dependence and add source freshness/contract monitoring.</li></ul></div>
+    </section><section class="chapter" id="sec-20" data-index="19" data-search="20 future enhancements and conclusion 20.1 recommended evolution path phase                                               enhancement direction near term                                                formal api specification, stronger automated e2e tests, observability, deployment-state documentation scale phase                                              queue-based ai/pdf work, distributed cache/rate-limit stra…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">20</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER 20</div><h2>Future Enhancements and Conclusion</h2><p>20.1 Recommended Evolution Path Phase                                               Enhancement direction Near term                                                Formal API specification, stronger automated E2E tests, observability, deployment-state documentation Scale phase                                              Queue-based AI/PDF work, distributed cache/rate-limit stra…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><h3>20.1 Recommended Evolution Path</h3>
+<p>Phase                                               Enhancement direction</p>
+<p>Near term                                                Formal API specification, stronger automated E2E tests, observability, deployment-state documentation</p>
+<p>Scale phase                                              Queue-based AI/PDF work, distributed cache/rate-limit strategy, stronger background processing</p>
+<p>Security hardening                                       Secret rotation, file scanning, security regression suite, audit logging</p>
+<p>Data engineering                                         Provider freshness monitoring, normalized external-data schemas, background aggregation</p>
+<p>Operations                                               Metrics, traces, alerting, backup/restore drills and disaster- recovery procedures</p>
+<h3>20.2 Conclusion</h3>
+<p>Alumnex Connect is best understood as a multi-domain full-stack platform rather than a single-feature alumni directory. Its implementation includes a React application with substantial route-level code splitting and server-state policies, a Node/Express backend with layered security and authorization, MongoDB/Mongoose models with indexes and lifecycle hooks, Socket.IO real-time capabilities with Redis adapter support, AI provider orchestration with explicit fallback paths, external developer-data aggregation, managed media integration, and a Capacitor-based Android delivery path. The strongest evidence of engineering depth is the set of cross-cutting mechanisms that address failure, not simply the number of pages or libraries.</p>
+<p>For academic/evidence purposes, the most defensible claims are the ones tied directly to source files and functions. This report therefore treats the repository as the implementation record and explicitly separates verified mechanisms from documentation-only or configuration-dependent capabilities. That approach makes the report useful not only as a project description but as a traceable record of the engineering work present in the codebase.</p></div>
+    </section><section class="chapter" id="sec-Appendix-A" data-index="20" data-search="appendix a evidence source register id                                source                                    purpose s1                           backend/server.js                        express/socket.io server composition and global middleware s2                           frontend/src/app.js                      provider hierarchy, routes, queryclient policy and offline banner s3                           ba…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">Appendix A</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER </div><h2>Evidence Source Register</h2><p>ID                                Source                                    Purpose S1                           backend/server.js                        Express/Socket.IO server composition and global middleware S2                           frontend/src/App.js                      Provider hierarchy, routes, QueryClient policy and offline banner S3                           ba…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>ID                                Source                                    Purpose</p>
+<p>S1                           backend/server.js                        Express/Socket.IO server composition and global middleware</p>
+<p>S2                           frontend/src/App.js                      Provider hierarchy, routes, QueryClient policy and offline banner</p>
+<p>S3                           backend/package.json                     Backend dependencies and scripts</p>
+<p>S4                           frontend/src/utils/api.js                Backend URL failover, token refresh queue, mobile bearer path and parallel request helper</p>
+<p>S5                           backend/utils/aiHelper.js                Groq primary + Gemini fallback orchestration</p>
+<p>S6                           backend/utils/cache.js                   Real Redis and mock/degraded cache implementations</p>
+<p>S7                           backend/middleware/auth.js               JWT protection, role gates, verification, approval and ownership checks</p>
+<p>S8                           backend/middleware/csrf.js               Double-submit-style CSRF behavior and mobile exception</p>
+<p>S9                           backend/models/User.js                   User schema, indexes, password hashing, virtuals and delete cleanup</p>
+<p>S10                          backend/routes/ai.js                     AI endpoint implementations, PDF parsing, JSON normalization and mock behavior</p>
+<p>S11                          frontend/src/contexts/SocketContext.js   Socket lifecycle, presence and failover synchronization</p>
+<p>S12                          backend/utils/devStatsFetcher.js         Developer-stat integrations and provider- specific fallbacks</p>
+<p>S13                          .github/workflows/test.yml               Backend CI test workflow</p>
+<p>S14                          .github/workflows/build-apk.yml          Android build and release automation</p>
+<p>S15                          mobile-wrapper/capacitor.config.json     Capacitor application configuration</p></div>
+    </section><section class="chapter" id="sec-Appendix-B" data-index="21" data-search="appendix b selected api / domain inventory domain                           route prefix                  representative responsibilities auth                         /api/auth                                domain-specific rest operations users                        /api/users                               domain-specific rest operations mentorship                   /api/mentorship                          domain-spec…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">Appendix B</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER </div><h2>Selected API / Domain Inventory</h2><p>Domain                           Route prefix                  Representative responsibilities auth                         /api/auth                                Domain-specific REST operations users                        /api/users                               Domain-specific REST operations mentorship                   /api/mentorship                          Domain-spec…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Domain                           Route prefix                  Representative responsibilities</p>
+<p>auth                         /api/auth                                Domain-specific REST operations</p>
+<p>users                        /api/users                               Domain-specific REST operations</p>
+<p>mentorship                   /api/mentorship                          Domain-specific REST operations</p>
+<p>Domain                              Route prefix        Representative responsibilities</p>
+<p>jobs                            /api/jobs                          Domain-specific REST operations</p>
+<p>events                          /api/events                        Domain-specific REST operations</p>
+<p>forum                           /api/forum                         Domain-specific REST operations</p>
+<p>contests                        /api/contests                      Domain-specific REST operations</p>
+<p>messages                        /api/messages                      Domain-specific REST operations</p>
+<p>admin                           /api/admin                         Domain-specific REST operations</p>
+<p>notifications                   /api/notifications                 Domain-specific REST operations</p>
+<p>upload                          /api/upload                        Domain-specific REST operations</p>
+<p>dev-activity                    /api/dev-activity                  Domain-specific REST operations</p>
+<p>leaderboard                     /api/leaderboard                   Domain-specific REST operations</p>
+<p>feedback                        /api/feedback                      Domain-specific REST operations</p>
+<p>helpdesk                        /api/helpdesk                      Domain-specific REST operations</p>
+<p>projects                        /api/projects                      Domain-specific REST operations</p>
+<p>institutions                    /api/institutions                  Domain-specific REST operations</p>
+<p>tasks                           /api/tasks                         Domain-specific REST operations</p>
+<p>ai                              /api/ai                            Domain-specific REST operations</p>
+<p>tech-hub                        /api/tech-hub                      Domain-specific REST operations</p>
+<p>business                        /api/business                      Domain-specific REST operations</p></div>
+    </section><section class="chapter" id="sec-Appendix-C" data-index="22" data-search="appendix c database model inventory #                                   model                        domain 1                               user                               alumnex connect domain 2                               message                            alumnex connect domain 3                               chatgroup                          alumnex connect domain 4                               contes…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">Appendix C</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER </div><h2>Database Model Inventory</h2><p>#                                   Model                        Domain 1                               User                               Alumnex Connect domain 2                               Message                            Alumnex Connect domain 3                               ChatGroup                          Alumnex Connect domain 4                               Contes…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>#                                   Model                        Domain</p>
+<p>1                               User                               Alumnex Connect domain</p>
+<p>2                               Message                            Alumnex Connect domain</p>
+<p>3                               ChatGroup                          Alumnex Connect domain</p>
+<p>4                               Contest                            Alumnex Connect domain</p>
+<p>5                               DevProfile                         Alumnex Connect domain</p>
+<p>#                                        Model                         Domain</p>
+<p>6                                        Event                           Alumnex Connect domain</p>
+<p>7                                        Feedback                        Alumnex Connect domain</p>
+<p>8                                        ForumPost                       Alumnex Connect domain</p>
+<p>9                                        HelpDesk                        Alumnex Connect domain</p>
+<p>10                                       Job                             Alumnex Connect domain</p>
+<p>11                                       JobApplication                  Alumnex Connect domain</p>
+<p>12                                       JobOpportunity                  Alumnex Connect domain</p>
+<p>13                                       MentorReview                    Alumnex Connect domain</p>
+<p>14                                       MentorReward                    Alumnex Connect domain</p>
+<p>15                                       Mentorship                      Alumnex Connect domain</p>
+<p>16                                       MentorshipRequest               Alumnex Connect domain</p>
+<p>17                                       MentorshipSession               Alumnex Connect domain</p>
+<p>18                                       Notification                    Alumnex Connect domain</p>
+<p>19                                       Project                         Alumnex Connect domain</p>
+<p>20                                       Report                          Alumnex Connect domain</p>
+<p>21                                       Task                            Alumnex Connect domain</p>
+<p>22                                       TechHub                         Alumnex Connect domain</p>
+<p>23                                       Business                        Alumnex Connect domain</p></div>
+    </section><section class="chapter" id="sec-Appendix-D" data-index="23" data-search="appendix d environment / configuration map variable / setting                             purpose                   observed behavior mongodb_uri                              mongodb connection string       falls back to local mongo uri in server.js jwt_secret                               jwt signing secret              required by authentication logic redis_url                                redis connection          …">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">Appendix D</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER </div><h2>Environment / Configuration Map</h2><p>Variable / setting                             Purpose                   Observed behavior MONGODB_URI                              MongoDB connection string       Falls back to local Mongo URI in server.js JWT_SECRET                               JWT signing secret              Required by authentication logic REDIS_URL                                Redis connection          …</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Variable / setting                             Purpose                   Observed behavior</p>
+<p>MONGODB_URI                              MongoDB connection string       Falls back to local Mongo URI in server.js</p>
+<p>JWT_SECRET                               JWT signing secret              Required by authentication logic</p>
+<p>REDIS_URL                                Redis connection                Selects real Redis client when set</p>
+<p>NODE_ENV                                 Environment behavior            Controls test/production security and service initialization</p>
+<p>FRONTEND_URL                             Allowed production origin(s)    Comma-separated additional CORS origins</p>
+<p>GROQ_API_KEY                             Primary AI credentials          Absence drives provider fallback / route</p>
+<p>Variable / setting                            Purpose                      Observed behavior</p>
+<p>demo mode</p>
+<p>GEMINI_API_KEY                         Fallback AI credentials            Used when Groq fails or for demo absence logic</p>
+<p>REACT_APP_API_URL                      Primary frontend API               Used in production candidate backend list</p>
+<p>REACT_APP_BACKUP_API_URL               Backup frontend API                Used for client-side failover</p>
+<p>REACT_APP_BACKUP_API_URL_2             Additional backup API              Third candidate if configured</p>
+<p>REACT_APP_SOCKET_URL                   Optional socket base URL           Overrides socket URL derivation</p></div>
+    </section><section class="chapter" id="sec-Appendix-E" data-index="24" data-search="appendix e recommended evidence screenshots 1.   landing/home page 2.   registration + validation 3.   google/github authentication 4.   email verification / 2fa 5.   dashboard 6.   mentor discovery and request 7.   job board + application 8.   resume analyzer with structured result 9.   ai career chat 10. mock interview + evaluation 11. forum moderation / posting 12. real-time chat + presence 13. notifications 14. devel…">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">Appendix E</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER </div><h2>Recommended Evidence Screenshots</h2><p>1.   Landing/home page 2.   Registration + validation 3.   Google/GitHub authentication 4.   Email verification / 2FA 5.   Dashboard 6.   Mentor discovery and request 7.   Job board + application 8.   Resume analyzer with structured result 9.   AI career chat 10. Mock interview + evaluation 11. Forum moderation / posting 12. Real-time chat + presence 13. Notifications 14. Devel…</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>1.   Landing/home page</p>
+<p>2.   Registration + validation</p>
+<p>3.   Google/GitHub authentication</p>
+<p>4.   Email verification / 2FA</p>
+<p>5.   Dashboard</p>
+<p>6.   Mentor discovery and request</p>
+<p>7.   Job board + application</p>
+<p>8.   Resume analyzer with structured result</p>
+<p>9.   AI career chat</p>
+<p>10. Mock interview + evaluation</p>
+<p>11. Forum moderation / posting</p>
+<p>12. Real-time chat + presence</p>
+<p>13. Notifications</p>
+<p>14. Developer activity dashboard</p>
+<p>15. Leaderboard</p>
+<p>16. Admin dashboard</p>
+<p>17. Android APK running in emulator/device</p>
+<p>18. GitHub Actions successful test run</p>
+<p>19. GitHub Actions APK artifact/release</p>
+<p>20. Network failure / fallback demonstration (where safe to reproduce)</p></div>
+    </section><section class="chapter" id="sec-Appendix-F" data-index="25" data-search="appendix f submission note before final academic submission, replace the cover placeholders for institution, guide and register number, add selected runtime screenshots, and update any statements about live hosting or external-service configuration using the actual deployment state on the submission date. do not expose api keys, private credentials or personal tokens in screenshots or appendices.">
+       <div class="chapter-top" onclick="toggleChapter(this.parentElement)">
+         <div class="chapter-index">Appendix F</div>
+         <div class="chapter-heading"><div class="eyebrow">TECHNICAL CHAPTER </div><h2>Submission Note</h2><p>Before final academic submission, replace the cover placeholders for institution, guide and register number, add selected runtime screenshots, and update any statements about live hosting or external-service configuration using the actual deployment state on the submission date. Do not expose API keys, private credentials or personal tokens in screenshots or appendices.</p></div>
+         <button class="chapter-toggle" aria-label="Toggle chapter">+</button>
+       </div>
+       <div class="chapter-body"><p>Before final academic submission, replace the cover placeholders for institution, guide and register number, add selected runtime screenshots, and update any statements about live hosting or external-service configuration using the actual deployment state on the submission date. Do not expose API keys, private credentials or personal tokens in screenshots or appendices.</p></div>
+    </section></div></section>
+<footer class="footer"><span>Alumnex Connect · Interactive Engineering Dossier</span><span>Prepared from repository evidence and project documentation · 2026</span></footer>
+</div></main></div>
+<div class="overlay" id="sourceOverlay"><div class="drawer"><div class="drawer-head"><div><div class="eyebrow">Evidence register</div><b>Repository sources</b></div><button class="close" id="closeSources">×</button></div><div id="drawerBody" style="padding-top:12px"></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const EVIDENCE=[["SECURITY", "backend/server.js", "Helmet/CSP, CORS, compression, logging, rate limiting, body limits, CSRF, Mongo sanitization, HPP, routes, error handling and Socket.IO wiring."], ["AUTH", "backend/middleware/auth.js", "Cookie-first then Bearer-token extraction, JWT verification, active/verified/approved checks, role and ownership authorization."], ["CSRF", "backend/middleware/csrf.js", "Double-submit cookie token, safe-method bypass, production validation, and explicit Capacitor Bearer-token path."], ["AI", "backend/utils/aiHelper.js", "Groq primary provider → Gemini fallback → final failure."], ["AI-ROUTES", "backend/routes/ai.js", "AI chat, PDF resume parsing, mock/demo mode, JSON cleanup, job match and interview workflows."], ["CACHE", "backend/utils/cache.js", "Real Redis in production/explicit Redis mode and safe mock-cache behavior otherwise."], ["WEB API", "frontend/src/utils/api.js", "Backend URL discovery, application-level failover, token refresh queue, CSRF header handling and Promise.allSettled helper."], ["APP", "frontend/src/App.js", "Provider composition, protected/public route map, React Query retry policy, lazy loading, offline banner, ErrorBoundary and toast layer."], ["SOCKET", "frontend/src/contexts/SocketContext.js", "Socket connection lifecycle, online presence, room join, failover-driven reconnect and visibility state."], ["USER", "backend/models/User.js", "Validation, role/status flags, indexes, password hashing, profile method, virtuals and cascade cleanup."], ["STATS", "backend/utils/devStatsFetcher.js", "External developer-stat retrieval, concurrent requests, normalization and provider-specific fallbacks."], ["CI", "alumni-connect-website-main/.github/workflows/test.yml", "Automated backend test workflow with npm ci and Jest."], ["ANDROID", "alumni-connect-website-main/.github/workflows/build-apk.yml", "Frontend build → Capacitor sync → Java/Android setup → Gradle APK → artifact/release."], ["MOBILE", "mobile-wrapper/capacitor.config.json", "Capacitor app identity and webDir/native Android scheme settings."]]; const STATUS=[["VERIFIED", "Multi-layer backend security", "server.js + auth.js + csrf.js", "Security controls are visible in code; effectiveness remains deployment/configuration dependent."], ["VERIFIED", "Groq → Gemini AI failover", "utils/aiHelper.js", "Primary/fallback orchestration is directly implemented."], ["VERIFIED", "Application-level backend failover", "frontend/src/utils/api.js", "This is client-side endpoint failover; do not describe it as an infrastructure load balancer."], ["VERIFIED", "Socket failover integration", "frontend/src/contexts/SocketContext.js", "Socket reconnection follows backend-failover events."], ["VERIFIED", "Redis degradation path", "backend/utils/cache.js", "Mock-cache wrappers exist outside real-Redis mode."], ["VERIFIED", "Lazy-loaded React pages", "frontend/src/App.js", "Major pages are dynamically imported with Suspense."], ["VERIFIED", "Query retry policy", "frontend/src/App.js", "Auth/404 errors are not retried; other queries can retry with exponential backoff."], ["VERIFIED", "Offline UI indicator", "frontend/src/App.js", "navigator.onLine events drive a visible offline banner."], ["VERIFIED", "Developer-stat concurrent fetching", "backend/utils/devStatsFetcher.js", "Uses concurrent Promise.allSettled flows across provider calls."], ["VERIFIED", "Android CI pipeline", "build-apk.yml", "Produces an APK artifact and GitHub release."], ["CONFIG-DEPENDENT", "AI inference quality", "AI providers", "Real AI behavior depends on provider keys and external availability."], ["CONFIG-DEPENDENT", "Production Redis scaling", "Redis adapter", "Horizontal Socket.IO coordination needs operational Redis configuration."]];
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const body=document.body; const toast=$('#toast');
+function showToast(t){toast.textContent=t;toast.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>toast.classList.remove('show'),2200)}
+
+// Theme
+$('#themeBtn').onclick=()=>{body.classList.toggle('light');localStorage.setItem('alumnex-theme',body.classList.contains('light')?'light':'dark');};
+if(localStorage.getItem('alumnex-theme')==='light') body.classList.add('light');
+$('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
+$('#printBtn').onclick=()=>window.print();
+
+// Counters
+$$('[data-count]').forEach(el=>{let n=+el.dataset.count,cur=0; const step=Math.max(1,Math.ceil(n/30)); const timer=setInterval(()=>{cur+=step;if(cur>=n){cur=n;clearInterval(timer)}el.textContent=cur},28)});
+
+// Chapter controls
+function toggleChapter(sec){sec.classList.toggle('open');}
+window.toggleChapter=toggleChapter;
+$('#expandBtn').onclick=()=>$$('.chapter').forEach(s=>s.classList.add('open'));
+$('#collapseBtn').onclick=()=>$$('.chapter').forEach(s=>s.classList.remove('open'));
+
+// Search
+$('#search').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();$$('.chapter').forEach(s=>{const ok=!q||s.dataset.search.includes(q)||s.innerText.toLowerCase().includes(q);s.style.display=ok?'':'none';if(q&&ok)s.classList.add('open')});});
+
+// Reading progress + active nav
+const navLinks=$$('#nav a'); const secs=$$('.chapter');
+window.addEventListener('scroll',()=>{const d=document.documentElement;const p=Math.min(100,Math.max(0,(scrollY/(d.scrollHeight-innerHeight))*100));$('#progressFill').style.width=p+'%';$('#progressText').textContent=Math.round(p)+'%'; const mid=scrollY+innerHeight*.28; let active=secs[0]; secs.forEach(s=>{if(s.offsetTop<=mid)active=s});navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+active?.id));},{passive:true});
+navLinks.forEach(a=>a.onclick=()=>{if(innerWidth<820)$('#sidebar').classList.remove('open')});
+
+// Presentation mode
+let presentation=false;$('#presentBtn').onclick=()=>{presentation=!presentation;body.classList.toggle('presentation',presentation);$('#presentBtn').textContent=presentation?'■ Exit':'▶ Present';if(presentation){window.scrollTo({top:0,behavior:'smooth'});}};
+
+// Evidence mode
+let evidenceMode=false;$('#evidenceBtn').onclick=()=>{evidenceMode=!evidenceMode;document.querySelectorAll('.evidence-card,.evidence-callout').forEach(el=>el.style.boxShadow=evidenceMode?'0 0 0 2px rgba(99,229,232,.12),0 0 28px rgba(99,229,232,.07)':'');showToast(evidenceMode?'Evidence highlighting enabled':'Evidence highlighting disabled')};
+
+// Sources drawer
+const drawer=$('#sourceOverlay'); $('#sourcesBtn').onclick=()=>drawer.classList.add('open'); $('#closeSources').onclick=()=>drawer.classList.remove('open');
+$('#drawerBody').innerHTML=EVIDENCE.map(x=>`<div class="evidence-card" style="margin:9px 0"><strong>${x[0]}</strong><code>${x[1]}</code><span>${x[2]}</span></div>`).join('');
+
+// Status matrix
+$('#statusBody').innerHTML=STATUS.map(x=>`<tr><td><span class="status" style="color:${x[0]==='VERIFIED'?'var(--green)':'var(--amber)'}">${x[0]}</span></td><td><b style="color:var(--text)">${x[1]}</b></td><td><code>${x[2]}</code></td><td>${x[3]}</td></tr>`).join('');
+
+// Architecture SVG helper
+const C={cyan:'#63e5e8',violet:'#a995ff',pink:'#ff7ec8',green:'#62e6a0',amber:'#f7c85d'};
+function box(x,y,w,h,t,s,tone='cyan',id=''){return `<g class="svg-node" data-node="${id}"><rect x="${x}" y="${y}" rx="15" width="${w}" height="${h}" stroke="${C[tone]}"/><text class="svg-title" x="${x+15}" y="${y+24}">${t}</text><text class="svg-sub" x="${x+15}" y="${y+43}">${s}</text></g>`}
+function edge(x1,y1,x2,y2){return `<path class="svg-edge" d="M${x1} ${y1} L${x2} ${y2}" fill="none"/>`}
+function diagram(v){let n='';
+ if(v==='system'){n+=box(30,90,180,62,'React SPA','routes • contexts • UI','cyan','frontend');n+=box(270,90,180,62,'Axios transport','failover • refresh','violet','api');n+=box(510,90,190,62,'Express backend','middleware • routes','cyan','backend');n+=box(760,25,160,55,'MongoDB','persistent data','green','mongo');n+=box(760,102,160,55,'Redis','cache • pub/sub','violet','redis');n+=box(760,179,160,55,'External APIs','AI • OAuth • stats','pink','external');n+=box(270,190,180,62,'Socket.IO','realtime events','violet','socket');return `<svg viewBox="0 0 950 285">${edge(210,121,270,121)}${edge(450,121,510,121)}${edge(700,110,760,52)}${edge(700,130,760,130)}${edge(700,150,760,205)}${edge(360,190,360,152)}${n}</svg>`}
+ if(v==='frontend'){n+=box(30,90,170,60,'Browser / WebView','desktop + mobile','cyan','client');n+=box(250,40,160,60,'Router','public/protected','violet','router');n+=box(250,140,160,60,'Contexts','auth • profile • socket','violet','context');n+=box(470,90,170,60,'React Query','cache • retry • stale','green','query');n+=box(700,90,170,60,'Pages / UI','lazy + Suspense','cyan','ui');return `<svg viewBox="0 0 900 240">${edge(200,120,250,70)}${edge(200,120,250,170)}${edge(410,70,470,120)}${edge(410,170,470,120)}${edge(640,120,700,120)}${n}</svg>`}
+ if(v==='security'){n+=box(25,95,145,58,'Internet','untrusted','pink','internet');n+=box(220,30,150,50,'CORS','origin control','cyan','cors');n+=box(220,100,150,50,'Rate limit','abuse control','amber','rate');n+=box(220,170,150,50,'CSRF','state changes','amber','csrf');n+=box(420,30,165,50,'Mongo sanitize','NoSQL defense','cyan','mongo-san');n+=box(420,100,165,50,'HPP','parameter defense','cyan','hpp');n+=box(420,170,165,50,'JWT + RBAC','identity / access','violet','auth');n+=box(640,90,180,75,'Route / service','business logic','green','route');return `<svg viewBox="0 0 850 255">${edge(170,124,220,55)}${edge(170,124,220,125)}${edge(170,124,220,195)}${edge(370,55,420,55)}${edge(370,125,420,125)}${edge(370,195,420,195)}${edge(585,55,640,120)}${edge(585,125,640,125)}${edge(585,195,640,140)}${n}</svg>`}
+ if(v==='ai'){n+=box(25,105,150,58,'AI feature','authenticated request','cyan','req');n+=box(235,45,170,60,'Groq','primary provider','green','groq');n+=box(235,170,170,60,'Gemini','fallback provider','violet','gemini');n+=box(470,45,180,60,'Parser / schema','JSON cleanup','cyan','parser');n+=box(700,45,175,60,'Feature result','chat • ATS • match','green','result');n+=box(470,170,180,60,'Mock mode','keys absent','amber','mock');return `<svg viewBox="0 0 920 275">${edge(175,134,235,78)}${edge(405,78,470,78)}${edge(405,200,470,200)}${edge(650,78,700,78)}${edge(405,80,470,200)}${n}</svg>`}
+ if(v==='realtime'){n+=box(25,110,155,60,'Client A','Socket.IO','cyan','ca');n+=box(260,65,170,60,'Server A','Socket.IO','violet','sa');n+=box(260,160,170,60,'Redis adapter','pub/sub','violet','redis');n+=box(510,65,170,60,'Server B','Socket.IO','violet','sb');n+=box(735,110,155,60,'Client B','event delivery','cyan','cb');return `<svg viewBox="0 0 920 270">${edge(180,140,260,95)}${edge(345,125,345,160)}${edge(430,190,510,95)}${edge(680,95,735,140)}${n}</svg>`}
+ if(v==='delivery'){n+=box(25,110,135,58,'Git push','source change','cyan','push');n+=box(200,110,150,58,'Actions','workflow','violet','actions');n+=box(395,40,145,55,'Tests','npm ci + Jest','green','tests');n+=box(395,140,145,55,'Frontend build','production bundle','cyan','build');n+=box(585,110,150,58,'Capacitor sync','web → Android','violet','cap');n+=box(780,110,120,58,'APK','artifact/release','green','apk');return `<svg viewBox="0 0 930 235">${edge(160,139,200,139)}${edge(350,139,395,67)}${edge(350,139,395,167)}${edge(540,67,585,139)}${edge(540,167,585,139)}${edge(735,139,780,139)}${n}</svg>`}
+ if(v==='mobile'){n+=box(35,90,155,60,'React build','web artifact','cyan','web');n+=box(260,90,160,60,'Capacitor','native bridge','violet','cap');n+=box(500,55,165,55,'Android WebView','shared UI','cyan','webview');n+=box(500,145,165,55,'OAuth deep link','mobile callback','amber','oauth');n+=box(740,90,145,60,'APK','release artifact','green','apk');return `<svg viewBox="0 0 920 240">${edge(190,120,260,120)}${edge(420,120,500,82)}${edge(420,120,500,172)}${edge(665,82,740,120)}${edge(665,172,740,120)}${n}</svg>`}
+}
+function renderViz(v){$('vizHost').innerHTML=diagram(v);$$('.svg-node',$('vizHost')).forEach(el=>el.onclick=()=>showToast('Selected: '+el.dataset.node.replace(/-/g,' ')))}
+$$('[data-viz]').forEach(b=>b.onclick=()=>{$$('[data-viz]').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderViz(b.dataset.viz)});renderViz('system');
+
+// Resilience sequences
+const sims={backend:[['warn','detect · network / timeout threshold exceeded'],['warn','route · active backend marked failed'],['violet','switch · choose next configured backend URL'],['ok','retry · replay original request once'],['ok','socket · backend-failover event reconnects realtime channel']],ai:[['warn','detect · primary Groq request failed'],['violet','orchestrate · enter provider fallback'],['ok','fallback · call Gemini with compatible context'],['ok','result · return response through same feature path']],redis:[['warn','detect · Redis absent / connection unavailable'],['violet','degrade · cache wrapper returns safe miss/failure'],['ok','continue · non-cache request flow remains possible'],['warn','scope · cross-instance Socket.IO coordination still needs real Redis']],auth:[['warn','detect · multiple API calls return 401'],['violet','coordinate · one refresh operation becomes active'],['violet','queue · pendingRequests hold concurrent retries'],['ok','replay · refreshed credential releases queued calls']],stats:[['warn','detect · GitHub GraphQL unusable'],['violet','fallback · use GitHub REST endpoint'],['ok','normalize · reduced result shape is still usable'],['ok','degrade · individual provider failure does not end aggregation'] ]};
+$$('[data-sim]').forEach(btn=>btn.onclick=()=>{const out=$('#stream');out.innerHTML='';sims[btn.dataset.sim].forEach((line,i)=>setTimeout(()=>{const d=document.createElement('div');d.className=line[0];d.textContent='› '+line[1];out.appendChild(d);out.scrollTop=out.scrollHeight},i*280))});
+
+// Keyboard shortcuts
+window.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();$('#search').focus()}if(e.key.toLowerCase()==='p'&&document.activeElement===document.body)$('#presentBtn').click();if(e.key==='Escape')drawer.classList.remove('open')});
+</script>
+</body></html>

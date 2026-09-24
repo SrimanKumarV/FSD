@@ -252,7 +252,7 @@ router.post('/', [protect], [
                     <h2 style="color: #3b82f6;">New Post from ${authorWithFollowers.name}</h2>
                     <p style="font-size: 16px; font-weight: bold;">${title}</p>
                     <p style="color: #4b5563;">${content.substring(0, 150)}${content.length > 150 ? '...' : ''}</p>
-                    <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/forum" style="display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px;">View on Alumnex</a>
+                    <a href="${(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0].trim() : 'https://alumnex-connect.onrender.com')}/forum" style="display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px;">View on Alumnex</a>
                   </div>
                 `
               });

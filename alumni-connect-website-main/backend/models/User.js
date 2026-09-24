@@ -236,6 +236,10 @@ const userSchema = new mongoose.Schema({
     devPulse: {
       type: Boolean,
       default: true
+    },
+    weeklyDigest: {
+      type: Boolean,
+      default: true
     }
   },
   
@@ -280,6 +284,9 @@ const userSchema = new mongoose.Schema({
   lastActive: {
     type: Date,
     default: Date.now
+  },
+  lastEngagementEmailSent: {
+    type: Date
   },
   
   // Tasks completed by the user

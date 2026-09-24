@@ -676,7 +676,7 @@ router.post('/notifications', [protect, admin], [
                     <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
                     <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
                   </div>
-                  <p>Log in to <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">your portal</a> to view more details.</p>
+                  <p>Log in to <a href="${(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0].trim() : 'https://alumnex-connect.onrender.com')}">your portal</a> to view more details.</p>
                   <br/>
                   <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
                 </div>
@@ -709,6 +709,76 @@ router.post('/notifications', [protect, admin], [
   } catch (error) {
     console.error('Error sending system notification:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get engagement digest stats
+// @route   GET /api/admin/engagement-stats
+// @access  Private (Admin only)
+router.get('/engagement-stats', [protect, admin], async (req, res) => {
+  try {
+    const now = Date.now();
+    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
+    const totalUsers = await User.countDocuments({ isActive: true });
+    const inactiveUsers = await User.countDocuments({ 
+      isActive: true, 
+      $or: [
+        { lastActive: { $lt: sevenDaysAgo } },
+        { lastActive: { $exists: false } }
+      ] 
+    });
+    const digestSubscribers = await User.countDocuments({
+      isActive: true,
+      'emailPreferences.weeklyDigest': { $ne: false }
+    });
+    const recentlySent = await User.countDocuments({
+      lastEngagementEmailSent: { $gte: sevenDaysAgo }
+    });
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        inactiveUsers,
+        digestSubscribers,
+        recentlySent,
+        cronSchedule: process.env.WEEKLY_DIGEST_CRON || '0 10 * * 1 (Every Monday at 10:00 AM)',
+        emailProvider: process.env.BREVO_SMTP_KEY ? 'Brevo SMTP Relay' : process.env.BREVO_API_KEY ? 'Brevo HTTPS API' : 'Fallback SMTP',
+        smtpKeyConfigured: !!(process.env.BREVO_SMTP_KEY || (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith('xsmtpsib-')))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching engagement stats:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Trigger weekly engagement digest email
+// @route   POST /api/admin/trigger-weekly-engagement
+// @access  Private (Admin only)
+router.post('/trigger-weekly-engagement', [protect, admin], async (req, res) => {
+  try {
+    const { testEmail, dryRun, forceAll } = req.body;
+    const { runWeeklyEngagementJob } = require('../jobs/engagementCron');
+
+    const result = await runWeeklyEngagementJob({
+      testEmail: testEmail ? testEmail.trim() : null,
+      dryRun: Boolean(dryRun),
+      forceAll: Boolean(forceAll),
+      delayMs: testEmail ? 0 : 250
+    });
+
+    res.json({
+      success: result.success,
+      message: testEmail 
+        ? `Test engagement email dispatched to ${testEmail}`
+        : `Weekly engagement run completed. Sent: ${result.sentCount}, Inactive: ${result.inactiveUsersCount}, Skipped: ${result.skippedCount}`,
+      result
+    });
+  } catch (error) {
+    console.error('Error triggering weekly engagement:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 });
 

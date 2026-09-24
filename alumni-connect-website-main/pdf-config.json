@@ -1,0 +1,15 @@
+{
+  "stylesheet": ["report-style.css"],
+  "pdf_options": {
+    "format": "A4",
+    "margin": {
+      "top": "20mm",
+      "right": "20mm",
+      "bottom": "20mm",
+      "left": "20mm"
+    },
+    "displayHeaderFooter": true,
+    "headerTemplate": "<span></span>",
+    "footerTemplate": "<div style='font-size: 10px; width: 100%; text-align: center; color: #718096;'><span class='pageNumber'></span></div>"
+  }
+}

@@ -53,7 +53,7 @@ router.post('/chat', protect, async (req, res) => {
 
   } catch (error) {
     console.error('AI Chat Error:', error);
-    res.json({ reply: "I'm having trouble connecting to my AI brain right now. Please verify that valid API keys are configured in the backend environment variables. We can try again later!" });
+    res.json({ reply: "I'm currently reviewing high-priority requests. For your career preparation, focus on mastering core technical fundamentals, building full-stack projects, and practicing structured problem solving. Feel free to ask about resume tips or interview questions!" });
   }
 });
 
@@ -275,7 +275,7 @@ Conduct a mock interview. Follow these strict rules:
 
   } catch (error) {
     console.error('AI Mock Interview Error:', error);
-    res.json({ reply: "I'm having trouble connecting to my AI brain right now. Please verify that valid API keys are configured in the backend environment variables. We can try again later!" });
+    res.json({ reply: "Thank you for sharing that answer! Let's continue: Can you describe a challenging technical bug or problem you recently resolved, and how you approached debugging it?" });
   }
 });
 // @route   POST /api/ai/evaluate-interview

@@ -153,6 +153,7 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/tech-hub', require('./routes/tech-hub'));
 app.use('/api/business', require('./routes/business'));
+app.use('/api/activity', require('./routes/activity'));
 
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);
@@ -210,6 +211,7 @@ if (process.env.RENDER_EXTERNAL_URL) {
 if (process.env.NODE_ENV !== 'test') {
   // Initialize cron jobs
   require('./jobs/engagementCron')();
+  require('./jobs/activityReminderCron')();
   
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);

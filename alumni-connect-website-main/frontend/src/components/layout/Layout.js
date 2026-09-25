@@ -126,6 +126,7 @@ const Layout = ({ children }) => {
     {
       title: 'Engagement',
       items: [
+        { name: 'Activity Hub', href: '/activity', icon: Sparkles },
         { name: 'DevPulse', href: '/devpulse', icon: Activity },
         { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
       ]
@@ -190,6 +191,12 @@ const Layout = ({ children }) => {
       case 'contest-reminder':
       case 'contest-result':
         navigate('/contests');
+        break;
+      case 'activity-reminder':
+      case 'activity-milestone':
+      case 'activity-streak-warning':
+      case 'activity-weekly-summary':
+        navigate('/activity');
         break;
       default:
         break;

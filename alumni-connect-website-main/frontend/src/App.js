@@ -47,6 +47,7 @@ const HelpCentrePage = lazy(() => import('./pages/HelpCentrePage'));
 const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const BusinessDirectory = lazy(() => import('./pages/BusinessDirectory'));
+const ActivityHub = lazy(() => import('./pages/ActivityHub'));
 
 
 const TechHub = lazy(() => import('./pages/tech-hub/TechHub'));
@@ -313,6 +314,14 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <BusinessDirectory />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/activity" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ActivityHub />
                       </Layout>
                     </ProtectedRoute>
                   } />

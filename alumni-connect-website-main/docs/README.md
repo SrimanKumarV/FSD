@@ -30,6 +30,13 @@ Alumnex Connect is a premium, full-stack platform designed to bridge the gap bet
 - Persistent, real-time chat powered by **Socket.IO**.
 - Dedicated global Notifications center for tracking likes, comments, and connection requests.
 
+### ⚡ Activity Hub & Activity Intelligence 2.0
+- **Automated Developer Tracking**: Synchronizes and verifies activity from GitHub (commits, PRs), LeetCode (solved problems), and Codeforces without manual check-ins.
+- **Streak Center & Protection**: Calculates overall, category, and platform streaks. Real-time protection status alerts users before timezone day boundaries reset.
+- **Mobile-First UX Architecture**: Tailored mobile briefing (`md:hidden`) with one-tap completion, weekly rhythm dots (starting on Sunday), and progressive disclosure drawer, alongside a comprehensive desktop analytics workspace.
+- **Consistency Score**: Evaluates habit durability (0–100) using active days (50%), goal completion (30%), and streak momentum (20%).
+- **Automated Reminders & Quiet Hours**: Timezone-aware cron scheduler (`0 */2 * * *`) that respects custom reminder hours, preferred active weekdays, and quiet sleeping hours.
+
 ### 📝 Community Forum
 - Fully functional discussion forum.
 - Post creation, commenting, liking, and post/comment deletion features with robust author verification.

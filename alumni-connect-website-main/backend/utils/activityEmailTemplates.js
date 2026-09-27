@@ -275,10 +275,112 @@ const getWeeklyActivitySummaryTemplate = (user, summary = {}) => {
   `;
 };
 
+/**
+ * Platform Broadcast Announcement Email Template: Activity Hub Launch
+ */
+const getActivityHubAnnouncementTemplate = (user) => {
+  const portalUrl = getPortalUrl();
+  const userName = user?.name ? user.name.split(' ')[0] : 'Member';
+
+  return `
+    <div style="${baseStyle}">
+      <div style="${headerStyle}">
+        <div style="display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
+          ⚡ Major Feature Release
+        </div>
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800; line-height: 1.3;">
+          Introducing Activity Hub
+        </h1>
+        <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.95;">
+          Automated habit tracking & career momentum intelligence
+        </p>
+      </div>
+
+      <div style="${bodyStyle}">
+        <p style="font-size: 15px; color: #374151; margin: 0 0 16px 0;">
+          Hi <strong>${userName}</strong>,
+        </p>
+        
+        <p style="font-size: 14px; color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;">
+          Consistency is the #1 predictor of career breakthroughs. Today, we're thrilled to introduce <strong>Activity Hub</strong> — an intelligent, automated momentum engine built right into your Alumnex Connect portal.
+        </p>
+
+        <!-- Feature Grid Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+          <tr>
+            <td style="padding: 14px; background: #f8fafc; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0;">
+              <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                ⚡ Automated Platform Verification
+              </div>
+              <div style="font-size: 13px; color: #64748b; line-height: 1.5;">
+                Link GitHub, LeetCode, and Codeforces to automatically verify your daily commits, solved problems, and contest ratings without manual logging.
+              </div>
+            </td>
+          </tr>
+          <tr><td style="height: 10px;"></td></tr>
+          <tr>
+            <td style="padding: 14px; background: #fffbeb; border-radius: 8px; margin-bottom: 10px; border: 1px solid #fef3c7;">
+              <div style="font-size: 15px; font-weight: 700; color: #92400e; margin-bottom: 4px;">
+                🔥 Streak Center & Protection
+              </div>
+              <div style="font-size: 13px; color: #78350f; line-height: 1.5;">
+                Build compounding daily streaks across Coding, Learning, Projects, and Career. Real-time streak protection alerts you before your day boundary resets.
+              </div>
+            </td>
+          </tr>
+          <tr><td style="height: 10px;"></td></tr>
+          <tr>
+            <td style="padding: 14px; background: #f0fdf4; border-radius: 8px; margin-bottom: 10px; border: 1px solid #dcfce7;">
+              <div style="font-size: 15px; font-weight: 700; color: #166534; margin-bottom: 4px;">
+                📊 0–100 Consistency Score
+              </div>
+              <div style="font-size: 13px; color: #14532d; line-height: 1.5;">
+                Evaluate your long-term dedication with an objective Consistency Index factoring active days (50%), goal completion (30%), and streak continuity (20%).
+              </div>
+            </td>
+          </tr>
+          <tr><td style="height: 10px;"></td></tr>
+          <tr>
+            <td style="padding: 14px; background: #f5f3ff; border-radius: 8px; border: 1px solid #ede9fe;">
+              <div style="font-size: 15px; font-weight: 700; color: #5b21b6; margin-bottom: 4px;">
+                📱 Designed for Mobile & Desktop
+              </div>
+              <div style="font-size: 13px; color: #4c1d95; line-height: 1.5;">
+                Enjoy a focused mobile activity briefing with one-tap habit completion, Sunday-first weekly calendar dots, and Apple-style settings navigation.
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0 24px 0;">
+          <a href="${portalUrl}/activity" style="${btnStyle}">
+            Launch Your Activity Hub →
+          </a>
+        </div>
+
+        <p style="font-size: 12px; color: #6b7280; text-align: center; margin: 0;">
+          Ready to set your first goal? It takes less than 30 seconds to connect your accounts.
+        </p>
+      </div>
+
+      <div style="${footerStyle}">
+        <p style="margin: 0; font-weight: 600; color: #4b5563;">Alumnex Connect — Career & Mentorship Portal</p>
+        <p style="margin: 4px 0 0 0;">
+          <a href="${portalUrl}/activity?tab=settings" style="color: #6366f1; text-decoration: none;">Notification Settings</a> &bull; 
+          <a href="${portalUrl}/faq" style="color: #6366f1; text-decoration: none;">FAQ & Help</a>
+        </p>
+      </div>
+    </div>
+  `;
+};
+
 module.exports = {
   getDailyReminderTemplate,
   getStreakWarningTemplate,
   getGoalCompletedTemplate,
   getStreakMilestoneTemplate,
-  getWeeklyActivitySummaryTemplate
+  getWeeklyActivitySummaryTemplate,
+  getActivityHubAnnouncementTemplate
 };
+

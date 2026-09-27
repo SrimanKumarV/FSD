@@ -16,11 +16,36 @@ const GUIDES = [
   { icon: Calendar,    color: '#10b981', label: 'Events',             desc: 'Register for events, get reminders, and explore archives.' },
   { icon: MessageSquare,color:'#ec4899', label: 'Forum & Posts',      desc: 'Create posts, reply to threads, and earn reputation.' },
   { icon: Code,        color: '#f97316', label: 'Contests',           desc: 'Join contests, submit entries, and view leaderboards.' },
-  { icon: Trophy,      color: '#eab308', label: 'Leaderboard',        desc: 'Understand how the Alumnex Score is calculated and ranked.' },
+  { icon: Zap,         color: '#f59e0b', label: 'Activity Hub & Streaks', desc: 'Daily habit goals, automated platform verification, streak protection & consistency analytics.' },
   { icon: Shield,      color: '#64748b', label: 'Privacy & Safety',   desc: 'Control your profile visibility and report concerns.' },
 ];
 
 const FAQ_ITEMS = [
+  {
+    category: 'Activity Hub',
+    items: [
+      {
+        q: 'What is the Activity Hub and how does automated tracking work?',
+        a: 'The Activity Hub is Alumnex\'s automated momentum tracker. When you connect platforms like GitHub, LeetCode, and Codeforces, Alumnex periodically scans your public developer activity and automatically verifies your daily goals without manual check-ins.'
+      },
+      {
+        q: 'How are streaks calculated and what is Streak Protection?',
+        a: 'Your overall streak increases by 1 day when you complete at least one verified activity or goal during your local day. Streak Protection gives you real-time visibility into whether your momentum is secured or at risk, sending gentle evening alerts if your streak is about to break.'
+      },
+      {
+        q: 'What is the Consistency Index (Score)?',
+        a: 'Your Consistency Index (0–100) measures long-term dedication across 7-day to 1-year windows. It factors active days (50%), daily goal execution percentage (30%), and sustained streak length (20%).'
+      },
+      {
+        q: 'Can I set custom reminder times and quiet hours?',
+        a: 'Yes. In Activity Hub → Settings, you can configure your exact local reminder time, choose specific active weekdays (starting on Sunday), and define Quiet Hours to silence all notifications during your rest hours.'
+      },
+      {
+        q: 'Can I log goals manually if I don\'t use developer platforms?',
+        a: 'Yes. Every goal supports manual completion. You can create custom goals for studying, projects, or interview prep and mark them complete with one tap from Today\'s Action Plan.'
+      }
+    ]
+  },
   {
     category: 'Account',
     items: [

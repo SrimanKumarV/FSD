@@ -49,7 +49,7 @@ router.post('/sync', protect, async (req, res) => {
   try {
     const prefs = await ReminderPreference.findOne({ userId: req.user._id });
     const timezone = prefs?.timezone || 'Asia/Kolkata';
-    const result = await activityService.syncUserPlatformActivities(req.user._id, timezone);
+    const result = await activityService.syncUserPlatformActivities(req.user._id, timezone, true);
     await cache.del(`activity:dashboard:${req.user._id}`);
     const summary = await activityService.getDashboardSummary(req.user._id, timezone);
     res.json({ message: 'Sync complete', ...result, summary });

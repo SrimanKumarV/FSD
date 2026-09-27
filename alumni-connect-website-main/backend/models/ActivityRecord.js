@@ -72,8 +72,24 @@ const activityRecordSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Prevent duplicate records for the same goal on the same day
-activityRecordSchema.index({ userId: 1, goalId: 1, date: 1 }, { unique: true, sparse: true });
+// Prevent duplicate records for the same goal on the same day (only when goalId is an ObjectId)
+activityRecordSchema.index(
+  { userId: 1, goalId: 1, date: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { goalId: { $type: 'objectId' } }
+  }
+);
+
+// Prevent duplicate general records for the same platform on the same day when goalId is null
+activityRecordSchema.index(
+  { userId: 1, platform: 1, date: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { goalId: null }
+  }
+);
+
 activityRecordSchema.index({ userId: 1, date: 1 });
 activityRecordSchema.index({ userId: 1, platform: 1, date: 1 });
 

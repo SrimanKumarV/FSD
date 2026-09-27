@@ -341,12 +341,41 @@ async function refreshPlatformData(userId, platform) {
 
 // ─── AUTOMATED PLATFORM SYNC & GOAL VERIFICATION ────────────────
 
-async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata') {
+async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata', refreshRemote = false) {
   const today = getTodayInTimezone(timezone);
-  const devProfile = await DevProfile.findOne({ user: userId });
-  if (!devProfile || !devProfile.stats) return { synced: 0, activitiesDetected: [] };
+  let devProfile = await DevProfile.findOne({ user: userId });
+  if (!devProfile) return { synced: 0, activitiesDetected: [], goalsVerified: [] };
+
+  // If remote refresh is requested, fetch fresh platform stats for all connected usernames
+  if (refreshRemote && devProfile.usernames) {
+    let hasUpdates = false;
+    for (const [platform, uData] of Object.entries(devProfile.usernames)) {
+      const username = uData?.username;
+      const fetcher = PLATFORM_FETCHERS[platform];
+      if (username && fetcher) {
+        try {
+          const rawStats = await fetcher(username);
+          if (rawStats) {
+            if (!devProfile.stats) devProfile.stats = {};
+            devProfile.stats[platform] = rawStats;
+            hasUpdates = true;
+          }
+        } catch (fetchErr) {
+          console.warn(`[ActivityService] Error fetching ${platform} for sync:`, fetchErr.message);
+        }
+      }
+    }
+    if (hasUpdates) {
+      devProfile.lastUpdated = new Date();
+      devProfile.markModified('stats');
+      await devProfile.save();
+    }
+  }
+
+  if (!devProfile.stats) return { synced: 0, activitiesDetected: [], goalsVerified: [] };
 
   const detectedActivities = [];
+  const goalsVerified = [];
 
   for (const [platform, stats] of Object.entries(devProfile.stats)) {
     if (!stats || stats.fetchError) continue;
@@ -369,18 +398,24 @@ async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata') {
       });
 
       if (!existingPlatformRecord) {
-        await ActivityRecord.create({
-          userId,
-          platform,
-          category: PLATFORM_INFO[platform]?.category || 'coding',
-          title: `${PLATFORM_INFO[platform]?.name || platform} Activity Detected`,
-          sourceTitle: `${PLATFORM_INFO[platform]?.name || platform} platform activity`,
-          sourceId: `${platform}-${today}`,
-          date: today,
-          completed: true,
-          completionType: PLATFORM_INFO[platform]?.connectionType === 'api-verified' ? 'api-verified' : 'auto-detected',
-          metadata: { platform, autoDetected: true }
-        });
+        try {
+          await ActivityRecord.create({
+            userId,
+            platform,
+            category: PLATFORM_INFO[platform]?.category || 'coding',
+            title: `${PLATFORM_INFO[platform]?.name || platform} Activity Detected`,
+            sourceTitle: `${PLATFORM_INFO[platform]?.name || platform} platform activity`,
+            sourceId: `${platform}-${today}`,
+            date: today,
+            completed: true,
+            completionType: PLATFORM_INFO[platform]?.connectionType === 'api-verified' ? 'api-verified' : 'auto-detected',
+            metadata: { platform, autoDetected: true }
+          });
+        } catch (recordErr) {
+          if (recordErr.code !== 11000) {
+            console.error('[Activity] Error creating general platform record:', recordErr.message);
+          }
+        }
       }
 
       // 2. Auto-complete any active goals matching this platform or category
@@ -412,7 +447,15 @@ async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata') {
             goalRecord.completed = true;
             goalRecord.completionType = 'api-verified';
           }
-          await goalRecord.save();
+          
+          try {
+            await goalRecord.save();
+            goalsVerified.push({ goalId: goal._id, title: goal.title, platform });
+          } catch (goalSaveErr) {
+            if (goalSaveErr.code !== 11000) {
+              console.error('[Activity] Error saving goal record:', goalSaveErr.message);
+            }
+          }
 
           // Increment goal streak
           if (!goal.lastCompletedAt || isConsecutiveDay(goal.lastCompletedAt, timezone)) {
@@ -444,7 +487,11 @@ async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata') {
 
   // Invalidate cache
   await cache.del(`activity:dashboard:${userId}`);
-  return { synced: Object.keys(devProfile.stats).length, activitiesDetected: detectedActivities };
+  return { 
+    synced: Object.keys(devProfile.stats || {}).length, 
+    activitiesDetected: detectedActivities,
+    goalsVerified
+  };
 }
 
 // ─── STREAK ENGINE (OVERALL, CATEGORY, GOAL) ────────────────────

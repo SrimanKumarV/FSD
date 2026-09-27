@@ -10,7 +10,8 @@ import {
   CheckCircle, 
   AlertCircle, 
   Info, 
-  Activity 
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';

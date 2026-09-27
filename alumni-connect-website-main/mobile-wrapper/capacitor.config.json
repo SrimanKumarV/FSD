@@ -3,7 +3,7 @@
   "appName": "Alumnex Connect",
   "webDir": "www",
   "server": {
-    "androidScheme": "https",
+    "url": "https://alumnex-connect.onrender.com",
     "cleartext": true
   }
 }

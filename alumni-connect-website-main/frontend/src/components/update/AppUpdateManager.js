@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  isAndroidApp,
   checkForUpdate, 
   showUpdateNotification 
 } from '../../services/updateService';
@@ -12,6 +13,11 @@ const AppUpdateManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    // Strictly disable on web: NO timers, NO checks, NO event listeners
+    if (!isAndroidApp()) {
+      return;
+    }
+
     let isMounted = true;
 
     const performBackgroundCheck = async () => {
@@ -23,7 +29,7 @@ const AppUpdateManager = () => {
           setUpdateInfo(info);
           setIsModalOpen(true);
 
-          // Post a local notification if on Android and haven't notified for this version yet
+          // Post a local notification on Android if haven't notified for this version yet
           const lastNotified = localStorage.getItem(NOTIFIED_VERSION_KEY);
           if (lastNotified !== info.latestRelease.versionName) {
             showUpdateNotification(info.latestRelease.versionName);
@@ -39,11 +45,11 @@ const AppUpdateManager = () => {
     // Delay slightly to prioritize critical page loading
     const timer = setTimeout(() => {
       performBackgroundCheck();
-    }, 2500);
+    }, 3000);
 
-    // Listen for manual trigger events from Settings or elsewhere
+    // Listen for manual trigger events from Settings (Android only)
     const handleManualTrigger = (event) => {
-      if (event.detail) {
+      if (isAndroidApp() && event.detail) {
         setUpdateInfo(event.detail);
         setIsModalOpen(true);
       }
@@ -58,7 +64,10 @@ const AppUpdateManager = () => {
     };
   }, []);
 
-  if (!updateInfo || !updateInfo.hasUpdate) return null;
+  // NEVER render on web
+  if (!isAndroidApp() || !updateInfo || !updateInfo.hasUpdate) {
+    return null;
+  }
 
   return (
     <UpdateModal

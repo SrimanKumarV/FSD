@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { 
+  isAndroidApp,
   downloadAndInstallUpdate, 
   openInstallPermissionSettings, 
   installExistingApk 
@@ -48,7 +49,8 @@ const UpdateModal = ({
     }
   }, [isOpen]);
 
-  if (!isOpen || !release) return null;
+  // Strictly disable modal rendering on web browsers
+  if (!isAndroidApp() || !isOpen || !release) return null;
 
   const formatBytes = (bytes) => {
     if (!bytes || bytes <= 0) return '0 MB';
@@ -57,6 +59,11 @@ const UpdateModal = ({
   };
 
   const handleStartUpdate = async () => {
+    if (!isAndroidApp()) {
+      toast.error('APK installation is only supported on Android devices.');
+      return;
+    }
+
     if (!release.apkAsset) {
       toast.error('APK file is not available for this release.');
       return;

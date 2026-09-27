@@ -1,27 +1,58 @@
 import { registerPlugin, Capacitor } from '@capacitor/core';
 import localVersionData from '../version.json';
 
-// Register native AppUpdate plugin with a web fallback proxy
-export const AppUpdate = registerPlugin('AppUpdate', {
-  web: {
-    getAppInfo: async () => ({
-      versionName: localVersionData.versionName || '1.0.0',
-      versionCode: localVersionData.versionCode || 1,
-      packageName: 'com.alumnex.connect',
-      canInstall: false,
-      isNative: false,
-    }),
-    canRequestPackageInstalls: async () => ({ canInstall: false }),
-    openInstallPermissionSettings: async () => ({ opened: false }),
-    downloadAndInstall: async (options) => {
-      if (options?.url) {
-        window.open(options.url, '_blank', 'noopener,noreferrer');
-      }
-      return { success: true, status: 'web_download_opened' };
-    },
-    installExistingApk: async () => ({ success: false, status: 'unsupported_platform' }),
-    showUpdateNotification: async () => ({ success: true }),
-  },
+/**
+ * Platform Detection:
+ * Returns true ONLY when running inside the native Android APK.
+ * Returns false in all regular web browsers (Chrome, Edge, Safari, Firefox, etc.).
+ */
+export const isAndroidApp = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const isNative = Capacitor.isNativePlatform() || Boolean(window.Capacitor?.isNativePlatform?.());
+    const platform = Capacitor.getPlatform?.() || window.Capacitor?.getPlatform?.();
+    return Boolean(isNative && (platform === 'android' || Boolean(window.androidBridge)));
+  } catch {
+    return false;
+  }
+};
+
+let nativeAppUpdateInstance = null;
+
+/**
+ * Returns the native Android AppUpdate plugin instance ONLY when running on Android.
+ * Returns null on web, completely avoiding any native calls or registration issues.
+ */
+export const getNativeAppUpdate = () => {
+  if (!isAndroidApp()) {
+    return null;
+  }
+  if (!nativeAppUpdateInstance) {
+    nativeAppUpdateInstance = registerPlugin('AppUpdate');
+  }
+  return nativeAppUpdateInstance;
+};
+
+/**
+ * Safe fallback proxy for AppUpdate.
+ * On Android: delegates to the registered native plugin.
+ * On Web: safe no-op with dummy listener handle that NEVER throws "not implemented on web".
+ */
+export const AppUpdate = new Proxy({}, {
+  get(target, prop) {
+    const native = getNativeAppUpdate();
+    if (native && typeof native[prop] === 'function') {
+      return native[prop].bind(native);
+    }
+
+    if (prop === 'addListener') {
+      return async () => ({
+        remove: async () => {},
+      });
+    }
+
+    return async () => ({ isWeb: true, notSupported: true });
+  }
 });
 
 const GITHUB_REPO_OWNER = 'SrimanKumarV';
@@ -101,43 +132,78 @@ export const sanitizeReleaseNotes = (rawBody) => {
 
 /**
  * Retrieves current installed app info (version, code, platform).
+ * On Web: returns clean web version metadata without touching native plugins.
+ * On Android: queries native PackageManager via AppUpdate plugin.
  */
 export const getCurrentAppInfo = async () => {
-  try {
-    const isNative = Capacitor.isNativePlatform();
-    const nativeInfo = await AppUpdate.getAppInfo();
+  const isAndroid = isAndroidApp();
+
+  if (!isAndroid) {
     return {
-      versionName: nativeInfo.versionName || localVersionData.versionName || '1.0.0',
-      versionCode: Number(nativeInfo.versionCode) || Number(localVersionData.versionCode) || 1,
-      packageName: nativeInfo.packageName || 'com.alumnex.connect',
-      isNative,
-      canInstall: nativeInfo.canInstall !== false,
-      platform: isNative ? 'Android App' : 'Web',
-    };
-  } catch {
-    return {
-      versionName: localVersionData.versionName || '1.0.0',
-      versionCode: Number(localVersionData.versionCode) || 1,
+      versionName: localVersionData.versionName || '1.0.1',
+      versionCode: Number(localVersionData.versionCode) || 2,
       packageName: 'com.alumnex.connect',
       isNative: false,
       canInstall: false,
-      platform: 'Web',
+      platform: 'Web Version',
     };
   }
+
+  try {
+    const plugin = getNativeAppUpdate();
+    if (plugin) {
+      const nativeInfo = await plugin.getAppInfo();
+      return {
+        versionName: nativeInfo.versionName || localVersionData.versionName || '1.0.1',
+        versionCode: Number(nativeInfo.versionCode) || Number(localVersionData.versionCode) || 2,
+        packageName: nativeInfo.packageName || 'com.alumnex.connect',
+        isNative: true,
+        canInstall: nativeInfo.canInstall !== false,
+        platform: 'Android App',
+      };
+    }
+  } catch (err) {
+    console.warn('Could not read native Android app info:', err);
+  }
+
+  return {
+    versionName: localVersionData.versionName || '1.0.1',
+    versionCode: Number(localVersionData.versionCode) || 2,
+    packageName: 'com.alumnex.connect',
+    isNative: true,
+    canInstall: false,
+    platform: 'Android App',
+  };
 };
 
 /**
  * Checks GitHub for the latest APK release.
+ * NOTE: On the web, this function IMMEDIATELY returns hasUpdate: false.
+ * APK update checks are ONLY executed on native Android.
  *
  * @param {boolean} forceCheck - If true, bypasses 24h throttling cache.
  */
 export const checkForUpdate = async (forceCheck = false) => {
+  // If running in a web browser, DO NOT perform APK update checks.
+  if (!isAndroidApp()) {
+    return {
+      hasUpdate: false,
+      isWeb: true,
+      currentApp: {
+        versionName: localVersionData.versionName || '1.0.1',
+        versionCode: Number(localVersionData.versionCode) || 2,
+        platform: 'Web Version',
+        isNative: false,
+      },
+    };
+  }
+
   const currentApp = await getCurrentAppInfo();
   const now = Date.now();
   const lastCheckStr = localStorage.getItem(LAST_CHECK_KEY);
   const lastCheck = lastCheckStr ? parseInt(lastCheckStr, 10) : 0;
 
-  // Throttling for automatic background checks
+  // Throttling for automatic background checks (24h)
   if (!forceCheck && lastCheck && now - lastCheck < CHECK_INTERVAL_MS) {
     const cached = localStorage.getItem(LAST_RELEASE_KEY);
     if (cached) {
@@ -185,8 +251,8 @@ export const checkForUpdate = async (forceCheck = false) => {
 
     const release = await response.json();
 
-    // Ignore drafts
-    if (release.draft) {
+    // Ignore drafts and pre-releases
+    if (release.draft || release.prerelease) {
       return { hasUpdate: false, currentApp };
     }
 
@@ -246,13 +312,12 @@ export const checkForUpdate = async (forceCheck = false) => {
       }
     }
 
-    // Determine if update is available
+    // Determine if update is available:
+    // Prefer precise versionCode check to prevent downgrades
     let hasUpdate = false;
     if (releaseVersionCode !== null && currentApp.versionCode > 0) {
-      // Precise versionCode comparison
       hasUpdate = releaseVersionCode > currentApp.versionCode;
     } else {
-      // Semantic versionName comparison
       hasUpdate = compareVersions(latestVersionName, currentApp.versionName) > 0;
     }
 
@@ -286,14 +351,14 @@ export const checkForUpdate = async (forceCheck = false) => {
       },
     };
 
-    // Cache the result
+    // Cache the result on Android
     localStorage.setItem(LAST_RELEASE_KEY, JSON.stringify(result));
     return result;
 
   } catch (error) {
     return {
       hasUpdate: false,
-      error: error.message || 'Unable to connect to update server.',
+      error: error.message || 'Unable to check for updates. Please try again later.',
       currentApp,
     };
   }
@@ -301,27 +366,45 @@ export const checkForUpdate = async (forceCheck = false) => {
 
 /**
  * Downloads and installs the APK using the native Android plugin.
+ * On web: immediately throws an error without calling native methods.
  *
  * @param {object} apkAsset - The asset object with downloadUrl and name.
  * @param {string} sha256 - Expected SHA-256 checksum.
  * @param {function} onProgress - Callback receiving { percent, bytesDownloaded, totalBytes }.
  */
 export const downloadAndInstallUpdate = async (apkAsset, sha256, onProgress) => {
+  if (!isAndroidApp()) {
+    throw new Error('APK updates can only be downloaded and installed on Android devices.');
+  }
+
+  const plugin = getNativeAppUpdate();
+  if (!plugin) {
+    throw new Error('Native update plugin is unavailable.');
+  }
+
   if (!apkAsset || !apkAsset.downloadUrl) {
     throw new Error('Invalid APK download asset.');
   }
 
-  // Set up progress listener
+  // Set up progress listener safely on native Android
   let removeListener = null;
   if (onProgress && typeof onProgress === 'function') {
-    const handle = await AppUpdate.addListener('downloadProgress', (data) => {
-      onProgress(data);
-    });
-    removeListener = () => handle.remove();
+    try {
+      const handle = await plugin.addListener('downloadProgress', (data) => {
+        onProgress(data);
+      });
+      removeListener = () => {
+        if (handle && typeof handle.remove === 'function') {
+          handle.remove();
+        }
+      };
+    } catch (listenerErr) {
+      console.warn('Could not attach native progress listener:', listenerErr);
+    }
   }
 
   try {
-    const result = await AppUpdate.downloadAndInstall({
+    const result = await plugin.downloadAndInstall({
       url: apkAsset.downloadUrl,
       sha256: sha256 || undefined,
       fileName: apkAsset.name || 'AlumnexConnect-update.apk',
@@ -336,23 +419,29 @@ export const downloadAndInstallUpdate = async (apkAsset, sha256, onProgress) => 
  * Opens Unknown App Sources settings on Android.
  */
 export const openInstallPermissionSettings = async () => {
-  return await AppUpdate.openInstallPermissionSettings();
+  if (!isAndroidApp()) return { opened: false };
+  const plugin = getNativeAppUpdate();
+  return plugin ? await plugin.openInstallPermissionSettings() : { opened: false };
 };
 
 /**
- * Launches installation for an already downloaded APK.
+ * Launches installation for an already downloaded APK on Android.
  */
 export const installExistingApk = async (filePath) => {
-  return await AppUpdate.installExistingApk({ filePath });
+  if (!isAndroidApp()) return { success: false, status: 'not_android' };
+  const plugin = getNativeAppUpdate();
+  return plugin ? await plugin.installExistingApk({ filePath }) : { success: false };
 };
 
 /**
  * Shows an Android system notification for the available update.
  */
 export const showUpdateNotification = async (versionName) => {
-  if (!Capacitor.isNativePlatform()) return;
+  if (!isAndroidApp()) return;
+  const plugin = getNativeAppUpdate();
+  if (!plugin) return;
   try {
-    await AppUpdate.showUpdateNotification({
+    await plugin.showUpdateNotification({
       title: '🚀 Alumnex Connect Update Available',
       body: `Version ${versionName} is ready to install. Tap to update now!`,
     });

@@ -21,7 +21,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
 import AnimatedOTP from '../components/AnimatedOTP';
-import { checkForUpdate, getCurrentAppInfo } from '../services/updateService';
+import { isAndroidApp, checkForUpdate, getCurrentAppInfo } from '../services/updateService';
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -56,6 +56,9 @@ const Settings = () => {
   }, []);
 
   const handleManualCheckUpdates = async () => {
+    if (!isAndroidApp()) {
+      return;
+    }
     setIsCheckingUpdate(true);
     try {
       const res = await checkForUpdate(true);
@@ -562,6 +565,7 @@ const Settings = () => {
         </div>
 
           {/* About Alumnex Connect & App Updates */}
+          {/* About Alumnex Connect & App Updates */}
           <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <Smartphone className="w-5 h-5 mr-2 text-primary-500" />
@@ -577,13 +581,17 @@ const Settings = () => {
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-gray-900 dark:text-white text-base">Alumnex Connect</h4>
                       <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-primary-100 text-primary-700 dark:bg-primary-950 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
-                        v{appInfo.versionName}
+                        {isAndroidApp() ? `v${appInfo.versionName}` : 'Web Version'}
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Build Code: <span className="font-mono font-medium">{appInfo.versionCode}</span> • Platform: <span className="font-medium">{appInfo.platform}</span>
+                      {isAndroidApp() ? (
+                        <>Build Code: <span className="font-mono font-medium">{appInfo.versionCode}</span> • Platform: <span className="font-medium">Android App</span></>
+                      ) : (
+                        <>Cloud Web Application • <span className="font-medium text-emerald-600 dark:text-emerald-400">Always Up to Date</span></>
+                      )}
                     </p>
-                    {lastCheckedTime && (
+                    {isAndroidApp() && lastCheckedTime && (
                       <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
                         Last checked: {lastCheckedTime}
                       </p>
@@ -592,37 +600,46 @@ const Settings = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {updateStatus === 'up-to-date' && (
-                    <div className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1.5 rounded-xl">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Up to date
+                  {isAndroidApp() ? (
+                    <>
+                      {updateStatus === 'up-to-date' && (
+                        <div className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1.5 rounded-xl">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Up to date
+                        </div>
+                      )}
+
+                      {updateStatus === 'update-available' && availableRelease && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('alumnex_open_update_modal', { 
+                              detail: { hasUpdate: true, latestRelease: availableRelease, currentApp: appInfo } 
+                            }));
+                          }}
+                          className="px-4 py-2 bg-gradient-to-r from-primary-600 to-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:from-primary-700 hover:to-indigo-700 flex items-center gap-1.5 transition-all"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Update Available — v{availableRelease.versionName}
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleManualCheckUpdates}
+                        disabled={isCheckingUpdate}
+                        className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isCheckingUpdate ? 'animate-spin text-primary-500' : ''}`} />
+                        {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-4 py-2 rounded-xl">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Cloud Web Version • Up to date
                     </div>
                   )}
-
-                  {updateStatus === 'update-available' && availableRelease && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('alumnex_open_update_modal', { 
-                          detail: { hasUpdate: true, latestRelease: availableRelease, currentApp: appInfo } 
-                        }));
-                      }}
-                      className="px-4 py-2 bg-gradient-to-r from-primary-600 to-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:from-primary-700 hover:to-indigo-700 flex items-center gap-1.5 transition-all"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Update Available — v{availableRelease.versionName}
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleManualCheckUpdates}
-                    disabled={isCheckingUpdate}
-                    className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isCheckingUpdate ? 'animate-spin text-primary-500' : ''}`} />
-                    {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
-                  </button>
                 </div>
               </div>
             </div>

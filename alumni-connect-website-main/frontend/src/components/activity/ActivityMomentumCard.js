@@ -28,15 +28,15 @@ const ActivityMomentumCard = ({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 p-6 md:p-8 text-white shadow-xl border border-indigo-700/40"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 p-6 md:p-8 text-white shadow-xl border border-indigo-700/40 w-full min-w-0"
     >
       {/* Decorative Glow */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-purple-500/15 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 min-w-0">
         {/* Left Column: Greeting & Streak */}
-        <div className="space-y-3 max-w-xl">
+        <div className="space-y-3 max-w-xl min-w-0 flex-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold uppercase tracking-wider text-amber-300">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Activity Intelligence</span>
@@ -80,7 +80,7 @@ const ActivityMomentumCard = ({
         </div>
 
         {/* Right Column: Today's Goals Progress Box */}
-        <div className="flex flex-col justify-center bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/15 min-w-[260px] md:max-w-xs shadow-lg">
+        <div className="flex flex-col justify-center bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/15 w-full md:w-auto min-w-0 md:min-w-[240px] md:max-w-xs shadow-lg">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-200">Today's Progress</span>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-white/15 text-white">

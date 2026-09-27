@@ -834,9 +834,9 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
       </div>
 
       {/* ── DESKTOP TWO-COLUMN LAYOUT (hidden lg:grid) ── */}
-      <div className="hidden lg:grid grid-cols-12 gap-8">
+      <div className="hidden lg:grid grid-cols-12 gap-5 xl:gap-8 min-w-0">
         {/* Left Navigation Sidebar */}
-        <div className="col-span-4 space-y-1.5">
+        <div className="lg:col-span-5 xl:col-span-4 space-y-1.5 min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-3 pb-1">
             Settings Categories
           </p>
@@ -849,7 +849,7 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all text-left ${
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all text-left min-w-0 ${
                   isActive
                     ? isDanger
                       ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-sm'
@@ -857,22 +857,22 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? (isDanger ? 'text-rose-500' : 'text-indigo-500') : 'text-gray-400'}`} />
-                  <div>
-                    <span>{item.label}</span>
-                    <span className="block text-[11px] font-normal text-gray-400">{item.desc}</span>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? (isDanger ? 'text-rose-500' : 'text-indigo-500') : 'text-gray-400'}`} />
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate text-xs sm:text-sm font-bold">{item.label}</span>
+                    <span className="block text-[11px] font-normal text-gray-400 truncate">{item.desc}</span>
                   </div>
                 </div>
-                <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'translate-x-0.5 opacity-100' : 'opacity-30'}`} />
+                <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isActive ? 'translate-x-0.5 opacity-100' : 'opacity-30'}`} />
               </button>
             );
           })}
         </div>
 
         {/* Right Active Setting Panel */}
-        <div className="col-span-8">
-          <div className="glass-card rounded-3xl p-8 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6">
+        <div className="lg:col-span-7 xl:col-span-8 min-w-0">
+          <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6 min-w-0">
             {renderSectionContent()}
           </div>
         </div>

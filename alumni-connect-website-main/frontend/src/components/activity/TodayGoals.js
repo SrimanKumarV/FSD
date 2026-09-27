@@ -171,7 +171,7 @@ const TodayGoals = ({
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1 flex-wrap min-w-0">
                       {goal.platform && goal.platform !== 'custom' ? (
                         <span className="flex items-center gap-1">
                           <PlatformIcon platform={goal.platform} className="w-3 h-3" />

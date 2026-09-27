@@ -9,29 +9,29 @@ const PlatformActivityCard = ({ platform = {}, onRefresh, isRefreshing = false }
   const platformName = platform?.info?.name || platform?.name || platformKey;
 
   return (
-    <div className={`glass-card rounded-2xl p-5 border transition-all ${
+    <div className={`glass-card rounded-2xl p-5 border transition-all min-w-0 ${
       hasActivityToday
         ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10'
         : isConnected
         ? 'border-gray-200/50 dark:border-gray-800'
         : 'border-dashed border-gray-300 dark:border-gray-700 opacity-70'
     }`}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 min-w-0">
         {/* Platform Info */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
             <PlatformIcon platform={platformKey} className="w-5 h-5" />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h5 className="text-sm font-bold text-gray-900 dark:text-white">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h5 className="text-sm font-bold text-gray-900 dark:text-white truncate">
                 {platformName}
               </h5>
               {platform?.connectionType === 'api-verified' && (
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-500" title="Verified" />
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" title="Verified" />
               )}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {platform?.username ? `@${platform.username}` : 'Not connected'}
             </p>
           </div>
@@ -43,7 +43,7 @@ const PlatformActivityCard = ({ platform = {}, onRefresh, isRefreshing = false }
             onClick={() => onRefresh(platformKey)}
             disabled={isRefreshing}
             title="Refresh Platform Data"
-            className="p-2 rounded-xl text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors"
+            className="p-2 rounded-xl text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
           </button>

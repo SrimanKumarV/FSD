@@ -50,10 +50,10 @@ const ActivityHeatmap = ({ heatmapData }) => {
   const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4 min-w-0">
       {/* Header & Metrics */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
+      <div className="flex items-center justify-between flex-wrap gap-3 min-w-0">
+        <div className="min-w-0">
           <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Activity Calendar</h4>
           <p className="text-lg font-extrabold text-gray-900 dark:text-white mt-0.5">
             {heatmapData?.activeDays || 0} active days in past year
@@ -61,14 +61,14 @@ const ActivityHeatmap = ({ heatmapData }) => {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+        <div className="flex items-center gap-2 text-xs text-gray-400 font-medium shrink-0">
           <span>Less</span>
-          <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-800/80" />
-            <span className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-950/60" />
-            <span className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-700" />
-            <span className="w-3 h-3 rounded-sm bg-emerald-500 dark:bg-emerald-600" />
-            <span className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-400" />
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-800/80 shrink-0" />
+            <span className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-950/60 shrink-0" />
+            <span className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-700 shrink-0" />
+            <span className="w-3 h-3 rounded-sm bg-emerald-500 dark:bg-emerald-600 shrink-0" />
+            <span className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-400 shrink-0" />
           </div>
           <span>More</span>
         </div>
@@ -88,8 +88,8 @@ const ActivityHeatmap = ({ heatmapData }) => {
         )}
       </div>
 
-      {/* Grid Canvas with Sunday-first Day Labels */}
-      <div className="overflow-x-auto pb-2 relative no-scrollbar">
+      {/* Grid Canvas with Sunday-first Day Labels (DevPulse responsive visualization scroll pattern) */}
+      <div className="w-full overflow-x-auto touch-pan-x custom-scrollbar pb-2 relative">
         <div className="flex gap-2 min-w-[720px] justify-start py-2">
           {/* Day of Week Labels (Sunday first) */}
           <div className="flex flex-col gap-1.5 pt-0.5 pr-1 text-[10px] font-semibold text-gray-400 dark:text-gray-500 select-none">

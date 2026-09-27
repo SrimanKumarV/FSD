@@ -508,12 +508,12 @@ const ActivityHub = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-6 space-y-4 sm:space-y-6 pb-32 lg:pb-12 min-w-0">
+    <div className="max-w-6xl mx-auto w-full min-w-0 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6 pb-32 lg:pb-16 selection:bg-indigo-500/20">
       {/* ── MOBILE COMPACT HEADER (sm:hidden) ── */}
-      <div className="sm:hidden flex items-center justify-between gap-2 pb-3 border-b border-gray-200/50 dark:border-gray-800">
+      <div className="sm:hidden flex items-center justify-between gap-2 pb-3 border-b border-gray-200/50 dark:border-gray-800 min-w-0">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-gray-900 dark:text-white font-black text-lg">
-            <Zap className="w-5 h-5 text-amber-500 fill-amber-500 flex-shrink-0" />
+          <div className="flex items-center gap-1.5 text-gray-900 dark:text-white font-black text-lg min-w-0">
+            <Zap className="w-5 h-5 text-amber-500 fill-amber-500 shrink-0" />
             <span className="truncate">Activity Hub</span>
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
@@ -521,14 +521,14 @@ const ActivityHub = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={handleSyncAll}
             disabled={isSyncingAll}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold active:scale-95 transition-all shadow-sm"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold active:scale-95 transition-all shadow-sm shrink-0"
             title="Scan connected accounts"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin text-indigo-500' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isSyncingAll ? 'animate-spin text-indigo-500' : ''}`} />
             <span>{isSyncingAll ? '...' : 'Sync'}</span>
           </button>
 
@@ -537,35 +537,35 @@ const ActivityHub = () => {
               setEditingGoal(null);
               setShowGoalModal(true);
             }}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-600/20"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-600/20 shrink-0"
             title="Create Goal"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 shrink-0" />
             <span>Goal</span>
           </button>
         </div>
       </div>
 
       {/* ── DESKTOP RICH HEADER (hidden sm:flex) ── */}
-      <div className="hidden sm:flex sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/50 dark:border-gray-800">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
-            <Zap className="w-7 h-7 text-amber-500 fill-amber-500 flex-shrink-0" />
-            <span>Activity Intelligence</span>
+      <div className="hidden sm:flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-200/50 dark:border-gray-800 min-w-0">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2.5 min-w-0">
+            <Zap className="w-7 h-7 text-amber-500 fill-amber-500 shrink-0" />
+            <span className="truncate">Activity Intelligence</span>
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Automated tracking, streak intelligence & career momentum
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
             onClick={handleSyncAll}
             disabled={isSyncingAll}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all active:scale-95 shadow-sm whitespace-nowrap shrink-0"
             title="Scan connected accounts for new activity"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin text-indigo-500' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isSyncingAll ? 'animate-spin text-indigo-500' : ''}`} />
             <span>{isSyncingAll ? 'Syncing...' : 'Sync Platforms'}</span>
           </button>
 
@@ -574,9 +574,9 @@ const ActivityHub = () => {
               setEditingGoal(null);
               setShowGoalModal(true);
             }}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>New Goal</span>
           </button>
         </div>
@@ -690,8 +690,8 @@ const ActivityHub = () => {
         </button>
       </div>
 
-      {/* ── DESKTOP NAVIGATION: 8-TAB HORIZONTAL RAIL ── */}
-      <div className="hidden sm:flex gap-1.5 p-1.5 bg-gray-100 dark:bg-gray-800/60 rounded-2xl overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
+      {/* ── DESKTOP NAVIGATION: 8-TAB HORIZONTAL RAIL (DevPulse pattern) ── */}
+      <div className="hidden sm:flex gap-1.5 p-1.5 bg-gray-100 dark:bg-gray-800/60 rounded-2xl w-full overflow-x-auto touch-pan-x custom-scrollbar min-w-0">
         {allTabs.map(t => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
@@ -699,13 +699,13 @@ const ActivityHub = () => {
             <button
               key={t.id}
               onClick={() => handleTabChange(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
                 isActive
                   ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 shrink-0" />
               <span>{t.label}</span>
             </button>
           );
@@ -1057,50 +1057,50 @@ const ActivityHub = () => {
             </div>
 
             {/* 2-Column: Current Momentum Areas & Today's Priority */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
               {/* Left: Ranked Momentum Areas */}
-              <div className="lg:col-span-6 glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                    <Flame className="w-4 h-4 text-amber-500" />
-                    <span>Current Momentum</span>
+              <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4 min-w-0">
+                <div className="flex items-center justify-between min-w-0">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2 min-w-0">
+                    <Flame className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="truncate">Current Momentum</span>
                   </h3>
                   <button
                     onClick={() => handleTabChange('streaks')}
-                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 shrink-0"
                   >
                     <span>Streak Center</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                   </button>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-2.5 min-w-0">
                   {rankedCategories.map(cat => {
                     const Icon = cat.icon;
                     return (
                       <div
                         key={cat.key}
-                        className="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between gap-3"
+                        className="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between gap-3 min-w-0"
                       >
-                        <div className="flex items-center gap-2.5">
-                          <div className={`p-1.5 rounded-lg ${cat.color}`}>
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className={`p-1.5 rounded-lg ${cat.color} shrink-0`}>
                             <Icon className="w-4 h-4" />
                           </div>
-                          <div>
-                            <span className="text-xs font-bold text-gray-900 dark:text-white block">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs font-bold text-gray-900 dark:text-white block truncate">
                               {cat.name}
                             </span>
-                            <span className="text-[11px] text-gray-400">
+                            <span className="text-[11px] text-gray-400 block truncate">
                               {cat.activeToday ? 'Active today' : cat.current > 0 ? 'Pending today' : 'Not started'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           {cat.current > 0 ? (
                             <span className="flex items-center gap-1 text-xs font-extrabold text-amber-500">
-                              <Flame className="w-3.5 h-3.5 fill-amber-500" />
-                              {cat.current} days
+                              <Flame className="w-3.5 h-3.5 fill-amber-500 shrink-0" />
+                              <span>{cat.current} days</span>
                             </span>
                           ) : (
                             <span className="text-xs text-gray-400 font-semibold">— Not started</span>
@@ -1113,30 +1113,30 @@ const ActivityHub = () => {
               </div>
 
               {/* Right: Today's Priority & Behavioral Insights */}
-              <div className="lg:col-span-6 space-y-6">
+              <div className="space-y-6 min-w-0">
                 {/* Today's Priority Card */}
-                <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-                      <span>Today's Priority</span>
+                <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4 min-w-0">
+                  <div className="flex items-center justify-between min-w-0">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2 min-w-0">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                      <span className="truncate">Today's Priority</span>
                     </h3>
                     <button
                       onClick={() => handleTabChange('today')}
-                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 shrink-0"
                     >
                       <span>View Full Plan</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
 
                   {topPriorityGoal ? (
-                    <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                    <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 flex items-center justify-between gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <button
                           onClick={() => !topPriorityGoal.completedToday && handleCompleteGoal(topPriorityGoal._id || topPriorityGoal.id)}
                           disabled={topPriorityGoal.completedToday}
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${
                             topPriorityGoal.completedToday
                               ? 'bg-emerald-500 text-white shadow-sm'
                               : 'border-2 border-indigo-400 text-transparent hover:text-indigo-600 hover:border-indigo-600'
@@ -1145,17 +1145,17 @@ const ActivityHub = () => {
                           <Check className="w-4 h-4 stroke-[3]" />
                         </button>
 
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm font-extrabold ${topPriorityGoal.completedToday ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            <span className={`text-sm font-extrabold truncate ${topPriorityGoal.completedToday ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                               {topPriorityGoal.title}
                             </span>
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                               <ShieldCheck className="w-3 h-3" />
                               <span>Verified</span>
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                             {topPriorityGoal.target || '1 activity'} • {topPriorityGoal.platform || topPriorityGoal.category}
                           </p>
                         </div>
@@ -1163,7 +1163,7 @@ const ActivityHub = () => {
 
                       <button
                         onClick={() => handleTabChange('today')}
-                        className="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                        className="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold border border-gray-200 dark:border-gray-700 hover:bg-gray-50 shrink-0"
                       >
                         Open
                       </button>
@@ -1182,9 +1182,9 @@ const ActivityHub = () => {
                 </div>
 
                 {/* Momentum Insight Banner */}
-                <div className="glass-card rounded-2xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10">
+                <div className="glass-card rounded-2xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 min-w-0">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
                     <span>Momentum Insight</span>
                   </h4>
                   <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -1226,18 +1226,18 @@ const ActivityHub = () => {
           TAB 2: TODAY'S PLAN — WHAT SHOULD I DO TODAY?
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'today' && (
-        <div className="space-y-4 sm:space-y-6">
-          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-5">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-5 min-w-0">
             {/* Header: Date & Timezone */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                   {currentDateFormatted}
                 </span>
-                <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-0.5 truncate">
                   Today's Action Plan
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                   Operating in timezone: <strong className="text-gray-700 dark:text-gray-300">{preferences?.timezone || 'Asia/Kolkata'}</strong>
                 </p>
               </div>
@@ -1247,9 +1247,9 @@ const ActivityHub = () => {
                   setEditingGoal(null);
                   setShowGoalModal(true);
                 }}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 w-full sm:w-auto shrink-0 whitespace-nowrap"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 shrink-0" />
                 <span>Add Goal</span>
               </button>
             </div>
@@ -1435,9 +1435,9 @@ const ActivityHub = () => {
       {activeTab === 'streaks' && (
         <div className="space-y-4 sm:space-y-6">
           {/* Top: Streak Center Hero */}
-          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-transparent to-purple-500/5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
-              <div>
+          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-transparent to-purple-500/5 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6 min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
                   Streak Center
                 </span>
@@ -1445,7 +1445,7 @@ const ActivityHub = () => {
                   Your consistency at a glance
                 </h2>
                 <div className="mt-3 flex items-baseline gap-2">
-                  <Flame className="w-8 h-8 text-amber-500 fill-amber-500 animate-pulse" />
+                  <Flame className="w-8 h-8 text-amber-500 fill-amber-500 animate-pulse shrink-0" />
                   <span className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white">
                     {dashboard?.overallStreak?.current ?? 0}
                   </span>
@@ -1458,16 +1458,16 @@ const ActivityHub = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:min-w-[240px]">
-                <div className="p-3.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60 text-center sm:text-left">
+              <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:min-w-[240px] shrink-0">
+                <div className="p-3.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60 text-center sm:text-left min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Best Streak</span>
-                  <p className="text-lg font-black text-gray-900 dark:text-white mt-0.5">
+                  <p className="text-lg font-black text-gray-900 dark:text-white mt-0.5 truncate">
                     {dashboard?.overallStreak?.longest ?? 0} days
                   </p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60 text-center sm:text-left">
+                <div className="p-3.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60 text-center sm:text-left min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Today's State</span>
-                  <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center justify-center sm:justify-start gap-1">
+                  <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center justify-center sm:justify-start gap-1 truncate">
                     {dashboard?.overallStreak?.activeToday ? 'Protected' : 'Pending'}
                   </p>
                 </div>
@@ -1489,10 +1489,10 @@ const ActivityHub = () => {
           />
 
           {/* Ranked Category Streaks */}
-          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4 min-w-0">
             <div>
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                <Flame className="w-4 h-4 text-amber-500" />
+                <Flame className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>Your Areas of Momentum</span>
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -1504,22 +1504,22 @@ const ActivityHub = () => {
               {rankedCategories.map(cat => {
                 const Icon = cat.icon;
                 return (
-                  <div key={cat.key} className="py-3 flex items-center justify-between gap-2 sm:gap-4">
-                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                      <div className={`p-2 rounded-xl ${cat.color} flex-shrink-0`}>
+                  <div key={cat.key} className="py-3 flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                      <div className={`p-2 rounded-xl ${cat.color} shrink-0`}>
                         <Icon className="w-4 h-4" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="text-sm font-bold text-gray-900 dark:text-white block truncate">
                           {cat.name}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 block truncate">
                           Best: {cat.longest} days
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                       <span className={`text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full ${
                         cat.activeToday
                           ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -1531,7 +1531,7 @@ const ActivityHub = () => {
                       <div className="flex items-center gap-1 font-black text-xs sm:text-sm text-gray-900 dark:text-white min-w-[55px] sm:min-w-[70px] justify-end">
                         {cat.current > 0 ? (
                           <>
-                            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-500" />
+                            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-500 shrink-0" />
                             <span>{cat.current}d</span>
                           </>
                         ) : (
@@ -1547,32 +1547,32 @@ const ActivityHub = () => {
 
           {/* Connected Platform Momentum */}
           {(dashboard?.integrations?.platforms || []).length > 0 && (
-            <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+            <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4 min-w-0">
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                <Link2 className="w-4 h-4 text-indigo-500" />
+                <Link2 className="w-4 h-4 text-indigo-500 shrink-0" />
                 <span>Connected Platform Momentum</span>
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">
                 {(dashboard?.integrations?.platforms || []).map(p => (
                   <div
                     key={p.platform}
-                    className="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between"
+                    className="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between gap-2.5 min-w-0"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <PlatformIcon platform={p.platform} className="w-5 h-5 flex-shrink-0" />
-                      <div>
-                        <span className="text-xs font-bold text-gray-900 dark:text-white block capitalize">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <PlatformIcon platform={p.platform} className="w-5 h-5 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-bold text-gray-900 dark:text-white block capitalize truncate">
                           {p.platform}
                         </span>
-                        <span className="text-[11px] text-gray-400">
+                        <span className="text-[11px] text-gray-400 block truncate">
                           {p.username ? `@${p.username}` : 'Connected'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 text-xs font-black text-amber-500">
-                      <Flame className="w-3.5 h-3.5 fill-amber-500" />
+                    <div className="flex items-center gap-1 text-xs font-black text-amber-500 shrink-0">
+                      <Flame className="w-3.5 h-3.5 fill-amber-500 shrink-0" />
                       <span>{p.currentStreak || 0}d</span>
                     </div>
                   </div>
@@ -1626,30 +1626,36 @@ const ActivityHub = () => {
             </div>
           </div>
 
-          {/* Primary Charts & Consistency */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7 space-y-6">
+          {/* Primary Charts & Consistency Index (Balanced 2-Column Grid) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
+            <div className="min-w-0">
               <WeeklyActivityChart weeklyData={analytics?.weekly || dashboard?.weekly} />
-              <ConsistencyScoreCard consistencyData={analytics?.consistency || dashboard?.consistency} />
             </div>
-
-            <div className="lg:col-span-5 space-y-6">
-              <PersonalRecords records={dashboard?.personalRecords} />
-
-              <div className="glass-card rounded-2xl p-5 border border-indigo-500/20 bg-indigo-500/5 dark:bg-indigo-500/10 space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Consistency Index Breakdown</span>
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                  Your consistency index factors <strong>Active Days (50%)</strong>, <strong>Goal Completion (30%)</strong>, and <strong>Streak Length (20%)</strong> over the active evaluation window.
-                </p>
-              </div>
+            <div className="min-w-0">
+              <ConsistencyScoreCard consistencyData={analytics?.consistency || dashboard?.consistency} />
             </div>
           </div>
 
+          {/* Dedicated Full-Width Personal Records Row */}
+          <div className="w-full min-w-0">
+            <PersonalRecords records={dashboard?.personalRecords} />
+          </div>
+
+          {/* Consistency Index Breakdown Callout Banner */}
+          <div className="glass-card rounded-2xl p-5 border border-indigo-500/20 bg-indigo-500/5 dark:bg-indigo-500/10 space-y-2 min-w-0">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span>Consistency Index Breakdown</span>
+            </h4>
+            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+              Your consistency index factors <strong>Active Days (50%)</strong>, <strong>Goal Completion (30%)</strong>, and <strong>Streak Length (20%)</strong> over the active evaluation window.
+            </p>
+          </div>
+
           {/* Full Activity Heatmap with Sunday-first day labels */}
-          <ActivityHeatmap heatmapData={analytics?.heatmap} />
+          <div className="w-full min-w-0">
+            <ActivityHeatmap heatmapData={analytics?.heatmap} />
+          </div>
         </div>
       )}
 
@@ -1657,13 +1663,13 @@ const ActivityHub = () => {
           TAB 5: GOALS — HABIT GOAL MANAGEMENT
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'goals' && (
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white truncate">
                 Goal Management
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                 Build habits that compound through automated platform tracking and daily focus.
               </p>
             </div>
@@ -1673,16 +1679,16 @@ const ActivityHub = () => {
                 setEditingGoal(null);
                 setShowGoalModal(true);
               }}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 w-full sm:w-auto shrink-0 whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 shrink-0" />
               <span>New Goal</span>
             </button>
           </div>
 
           {/* Summary Bar */}
-          <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between flex-wrap gap-2 text-xs">
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap text-gray-600 dark:text-gray-300">
+          <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between flex-wrap gap-2 text-xs min-w-0">
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap text-gray-600 dark:text-gray-300 min-w-0">
               <span><strong>{goals.length}</strong> active goals</span>
               <span>•</span>
               <span className="text-emerald-600 dark:text-emerald-400"><strong>{completedTodayCount}</strong> completed today</span>
@@ -1693,7 +1699,7 @@ const ActivityHub = () => {
 
           {/* Goal Cards Grid */}
           {goals.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
               {goals.map(goal => {
                 const CategoryIcon = categoryIcons[goal.category] || Target;
                 const isCompleted = goal.completedToday;
@@ -1701,7 +1707,7 @@ const ActivityHub = () => {
                 return (
                   <div
                     key={goal._id}
-                    className="glass-card rounded-2xl p-4 sm:p-5 border border-gray-200/50 dark:border-gray-800 flex flex-col justify-between gap-4"
+                    className="glass-card rounded-2xl p-4 sm:p-5 border border-gray-200/50 dark:border-gray-800 flex flex-col justify-between gap-4 min-w-0"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
@@ -1800,13 +1806,13 @@ const ActivityHub = () => {
           TAB 6: PLATFORMS — CONNECTED DEVELOPER ACCOUNTS
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'platforms' && (
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white truncate">
                 Connected Platforms
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                 Activity is automatically verified from your connected developer accounts.
               </p>
             </div>
@@ -1814,15 +1820,15 @@ const ActivityHub = () => {
             <button
               onClick={handleSyncAll}
               disabled={isSyncingAll}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95 w-full sm:w-auto shrink-0 whitespace-nowrap"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isSyncingAll ? 'animate-spin' : ''}`} />
               <span>{isSyncingAll ? 'Syncing...' : 'Sync All Now'}</span>
             </button>
           </div>
 
           {/* Platform Rows Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
             {(dashboard?.integrations?.platforms || []).map(p => (
               <PlatformActivityCard
                 key={p.platform}
@@ -1839,9 +1845,9 @@ const ActivityHub = () => {
           TAB 7: TIMELINE — CHRONOLOGICAL ACTIVITY AUDIT
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'timeline' && (
-        <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+        <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-6 min-w-0">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white truncate">
               Activity Timeline
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -1857,17 +1863,19 @@ const ActivityHub = () => {
           TAB 8: SETTINGS — COMPLETE ACTIVITY PREFERENCES CENTER
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'settings' && (
-        <ActivitySettings
-          initialPreferences={preferences}
-          onPreferencesSaved={() => {
-            fetchPreferences();
-            fetchDashboard();
-          }}
-          onDataReset={() => {
-            reloadAll();
-          }}
-          onOpenPlatforms={() => handleTabChange('platforms')}
-        />
+        <div className="min-w-0">
+          <ActivitySettings
+            initialPreferences={preferences}
+            onPreferencesSaved={() => {
+              fetchPreferences();
+              fetchDashboard();
+            }}
+            onDataReset={() => {
+              reloadAll();
+            }}
+            onOpenPlatforms={() => handleTabChange('platforms')}
+          />
+        </div>
       )}
 
       {/* ── MOBILE "MORE" VIEWS BOTTOM SHEET DRAWER (Prompt #7) ── */}

@@ -118,20 +118,20 @@ const ActivityTimeline = ({ items, timeline, isCompact = false, compact = false,
           <div className="w-1 h-1 rounded-full bg-white" />
         </div>
 
-        <div className="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-1">
-            <div className="flex items-center gap-2 min-w-0">
+        <div className="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-1 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {item.platform && item.platform !== 'custom' ? (
-                <PlatformIcon platform={item.platform} className="w-4 h-4 flex-shrink-0" />
+                <PlatformIcon platform={item.platform} className="w-4 h-4 shrink-0" />
               ) : (
-                <CategoryIcon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                <CategoryIcon className="w-4 h-4 text-indigo-500 shrink-0" />
               )}
-              <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
+              <span className="text-sm font-bold text-gray-900 dark:text-white truncate min-w-0">
                 {item.title}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
               {/* Trust badge */}
               <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 isApiVerified

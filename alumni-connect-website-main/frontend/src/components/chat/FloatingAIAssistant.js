@@ -148,7 +148,7 @@ const FloatingAIAssistant = () => {
                     {msg.role === 'model' ? (
                       <ReactMarkdown
                         components={{
-                          p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                          p: ({node, children, ...props}) => <p className="mb-2 last:mb-0" {...props}>{children}</p>,
                           a: ({node, href, children, ...props}) => {
                             const isInternal = href && (href.startsWith('/') || href.startsWith('#'));
                             if (isInternal) {
@@ -174,11 +174,11 @@ const FloatingAIAssistant = () => {
                               </a>
                             );
                           },
-                          ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
-                          ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
-                          li: ({node, ...props}) => <li className="mb-0.5" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="font-bold text-base mt-2 mb-1 text-slate-900 dark:text-white" {...props} />,
-                          h4: ({node, ...props}) => <h4 className="font-semibold text-sm mt-1.5 mb-1 text-slate-800 dark:text-slate-200" {...props} />,
+                          ul: ({node, children, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props}>{children}</ul>,
+                          ol: ({node, children, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props}>{children}</ol>,
+                          li: ({node, children, ...props}) => <li className="mb-0.5" {...props}>{children}</li>,
+                          h3: ({node, children, ...props}) => <h3 className="font-bold text-base mt-2 mb-1 text-slate-900 dark:text-white" {...props}>{children}</h3>,
+                          h4: ({node, children, ...props}) => <h4 className="font-semibold text-sm mt-1.5 mb-1 text-slate-800 dark:text-slate-200" {...props}>{children}</h4>,
                         }}
                       >
                         {msg.text}

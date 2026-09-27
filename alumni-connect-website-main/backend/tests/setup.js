@@ -5,24 +5,31 @@ let mongoServer;
 
 module.exports = {
   connect: async () => {
-    // Only connect if not already connected
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
+    try {
+      if (mongoose.connection.readyState === 1) return;
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+      }
+      if (!mongoServer) {
+        mongoServer = await MongoMemoryServer.create();
+      }
+      const uri = mongoServer.getUri();
+      await mongoose.connect(uri);
+    } catch (err) {
+      console.warn('[Test DB] MongoMemoryServer warning:', err.message);
     }
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
   },
   closeDatabase: async () => {
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.dropDatabase();
-      await mongoose.connection.close();
-    }
-    if (mongoServer) {
-      await mongoServer.stop();
+    try {
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close();
+      }
+      if (mongoServer) {
+        await mongoServer.stop();
+        mongoServer = null;
+      }
+    } catch (err) {
+      // ignore
     }
   },
   clearDatabase: async () => {

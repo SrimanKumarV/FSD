@@ -24,6 +24,7 @@ import DashboardStreaks from '../components/activity/DashboardStreaks';
 import DashboardWeeklyActivity from '../components/activity/DashboardWeeklyActivity';
 import DashboardMomentumInsight from '../components/activity/DashboardMomentumInsight';
 import NextBestAction from '../components/dashboard/NextBestAction';
+import { checkAndTriggerStreakPushNotification } from '../utils/streakPushNotification';
 
 const iconMap = {
   Users: Users,
@@ -47,12 +48,15 @@ const DefaultDashboard = () => {
     try {
       const response = await api.get('/users/dashboard');
       setDashboardData(response.data);
+      if (response.data?.activity) {
+        checkAndTriggerStreakPushNotification(response.data.activity, user?.timezone);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.timezone]);
 
   useEffect(() => {
     fetchDashboardData();

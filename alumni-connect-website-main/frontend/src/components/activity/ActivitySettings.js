@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { requestPushPermission, sendTestStreakNotification } from '../../utils/streakPushNotification';
 
 const POPULAR_TIMEZONES = [
   { region: 'India', tz: 'Asia/Kolkata', label: 'India Standard Time (IST, UTC+5:30)' },
@@ -389,6 +390,53 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
                     >
                       <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
                         preferences.emailEnabled !== false ? 'translate-x-6' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200/60 dark:border-gray-700/60 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">Web Push & Streak Alerts</p>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          3h Limit
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Native browser notifications when your streak is within 3 hours of resetting at midnight
+                      </p>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const sent = await sendTestStreakNotification();
+                          if (sent) toast.success('Test streak notification dispatched via Service Worker!');
+                        }}
+                        className="mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>🔔 Send Test Streak Alert</span>
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!preferences.webPushEnabled) {
+                          const perm = await requestPushPermission();
+                          if (perm === 'granted') {
+                            handleToggle('webPushEnabled');
+                            toast.success('Web Push streak alerts enabled!');
+                          } else {
+                            toast.error('Browser push permission was not granted.');
+                          }
+                        } else {
+                          handleToggle('webPushEnabled');
+                        }
+                      }}
+                      className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 flex-shrink-0 ${
+                        preferences.webPushEnabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-700'
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                        preferences.webPushEnabled ? 'translate-x-6' : 'translate-x-0'
                       }`} />
                     </button>
                   </div>

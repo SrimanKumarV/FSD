@@ -63,3 +63,40 @@ jobs:
           CI: false
           REACT_APP_API_URL: https://alumnex-backend-backup.onrender.com/api
           REACT_APP_BACKUP_API_URL: https://alumnex-backend-9y5t.onrender.com/api
+
+  e2e-smoke-test:
+    name: Headless Browser E2E Smoke Tests (Desktop & Mobile)
+    needs: frontend-build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci || npm install
+
+      - name: Build Production Web Bundle
+        run: npm run build
+        env:
+          CI: false
+          REACT_APP_API_URL: https://alumnex-backend-backup.onrender.com/api
+          REACT_APP_BACKUP_API_URL: https://alumnex-backend-9y5t.onrender.com/api
+
+      - name: Install Playwright & Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Smoke Tests (Desktop & Mobile)
+        run: npx playwright test --config=e2e/playwright.config.js
+        env:
+          CI: true

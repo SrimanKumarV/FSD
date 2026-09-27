@@ -115,11 +115,27 @@ jobs:
             ${{ env.STANDARDIZED_APK }}
             ${{ env.STANDARDIZED_SHA }}
 
+      - name: Generate Automated Release Notes from Git History
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          echo "Previous release tag: $PREV_TAG"
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"* %s (%h)" "$PREV_TAG..HEAD")
+          else
+            COMMITS=$(git log -15 --pretty=format:"* %s (%h)")
+          fi
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$COMMITS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Create GitHub Release with APK & Checksum
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ env.VERSION_NAME }}"
           name: "Alumnex Connect v${{ env.VERSION_NAME }}"
+          generate_release_notes: true
           body: |
             ## 📱 Alumnex Connect v${{ env.VERSION_NAME }} (Build ${{ env.VERSION_CODE }})
 
@@ -133,12 +149,15 @@ jobs:
             - **Minimum Supported Version Code:** `${{ env.MIN_VERSION_CODE }}`
             - **SHA-256:** `${{ env.SHA256_HASH }}`
 
-            ### 📋 What's New
+            ### 📋 What's New in this Release
             - In-app automatic update system with GitHub Releases integration
             - Real-time download progress bar and SHA-256 checksum verification
             - Native Android Package Installer handoff with FileProvider support
             - Settings page update status and manual check functionality
             - Performance optimizations and ecosystem stability improvements
+
+            ### 📝 Recent Commits in this Build
+            ${{ env.CHANGELOG }}
 
             <!-- [versionCode: ${{ env.VERSION_CODE }}] [minVersionCode: ${{ env.MIN_VERSION_CODE }}] -->
           files: |

@@ -4,11 +4,46 @@ const axios = require('axios');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const { protect } = require('../middleware/auth');
-const { callAIWithFallback } = require('../utils/aiHelper');
+const { callAIWithFallback, generateSmartFallbackReply } = require('../utils/aiHelper');
 
 const upload = multer({ storage: multer.memoryStorage() });
+
+const ALUMNEX_SYSTEM_INSTRUCTION = `You are the official Alumnex Connect AI Career Mentor & Platform Navigator, built exclusively for the university alumni & student network of Alumnex Connect.
+
+CORE IDENTITY & ACCURACY RULES:
+1. You are powered by a high-availability dual-provider architecture: Groq Cloud API for ultra-fast primary inference, with automatic cascading failover to Google Gemini API, backed by a local offline intelligence engine.
+2. You do NOT run on OpenAI API or GPT-4. If asked about your AI engine or models, accurately state that you operate on Groq (Llama 3 / Qwen / GPT-OSS open weights) and Google Gemini with offline failover. Never claim to be ChatGPT or OpenAI.
+3. You represent Alumnex Connect. Keep your advice focused strictly on college career growth, technical interview prep, programming languages, resume optimization, alumni networking, and platform navigation.
+
+PLATFORM NAVIGATION & HYPERLINKS INSTRUCTION:
+Whenever you mention, suggest, or are asked about any platform feature or service, ALWAYS provide the exact clickable markdown link from this official directory:
+- 📄 AI Resume & ATS Evaluation: [AI Resume Analyzer](/resume)
+- 🤝 Alumni Mentorship & 1-on-1 Sessions: [Mentorship Hub](/mentorship)
+- 🌐 Alumni Directory & Networking: [Alumni Network](/network)
+- 💼 Jobs & Internships: [Jobs Portal](/jobs)
+- 🎯 Career Board & Application Tracking: [Career Board](/career-board)
+- ⚡ DevPulse (GitHub commits & LeetCode stats): [DevPulse](/devpulse)
+- 🥇 Campus Coder Leaderboard: [Campus Leaderboard](/leaderboard)
+- 🏆 Events, Hackathons & Coding Contests: [Events & Contests](/events)
+- 🚀 Project Showcase: [Project Showcase](/projects)
+- 👥 Project Collaboration & Hackathon Teams: [Project Collaboration](/project-collaboration)
+- 🏢 Alumni Startups & Ventures: [Startups & Businesses](/businesses)
+- 💡 Tech Articles & Deep Dives: [Tech Hub](/tech-hub)
+- 💬 Discussion Forum & Q&A: [Discussion Forum](/forum)
+- 📱 Real-Time Messaging & 1-on-1 Video Calls: [Messages & Chat](/chat)
+- 🎯 Activity Hub & Weekly Goal Tracker: [Activity Hub](/activity)
+- 👤 User Profile: [Profile](/profile)
+- ⚙️ Account Settings & 2FA: [Account Settings](/settings)
+- 🛟 Help Centre & FAQs: [Help Centre](/help-centre)
+- 📢 Bug Reports & Feedback: [Feedback](/feedback)
+
+STYLE & TONE:
+- Be encouraging, concise, highly structured, and insightful.
+- Use GitHub-flavored markdown: bold key concepts, use bullet points, and highlight code snippets.
+- Support multi-language requests (English, Hindi, Spanish, French, Tamil, etc.) seamlessly when requested.`;
+
 // @route   POST /api/ai/chat
-// @desc    Chat with AI Career Mentor
+// @desc    Chat with AI Career Mentor & Platform Navigator
 // @access  Private
 router.post('/chat', protect, async (req, res) => {
   try {
@@ -18,22 +53,8 @@ router.post('/chat', protect, async (req, res) => {
       return res.status(400).json({ message: 'Message is required' });
     }
 
-    // Mock mode if no keys
-    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
-      setTimeout(() => {
-        let mockResponse = "I'm your AI Career Mentor! It looks like my API keys haven't been configured yet, so I'm running in offline demo mode. How can I help you with your career goals today?";
-        if (message.toLowerCase().includes('resume')) {
-          mockResponse = "For a strong resume, highlight impact with metrics.";
-        }
-        return res.json({ reply: mockResponse });
-      }, 1500);
-      return;
-    }
-
     const formattedHistory = [];
-    const systemInstruction = "You are a helpful and professional AI Career Mentor for college students and alumni. You provide guidance on programming languages, resume review, interview preparation, higher studies, and career roadmaps. Keep responses concise, encouraging, and formatted well.";
-    
-    formattedHistory.push({ role: 'system', content: systemInstruction });
+    formattedHistory.push({ role: 'system', content: ALUMNEX_SYSTEM_INSTRUCTION });
 
     if (history && history.length > 0) {
       history.forEach(msg => {
@@ -48,12 +69,20 @@ router.post('/chat', protect, async (req, res) => {
 
     formattedHistory.push({ role: 'user', content: message });
 
-    const reply = await callAIWithFallback(formattedHistory, systemInstruction, false);
+    // Offline mode if no keys are provided
+    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+      const offlineReply = generateSmartFallbackReply(formattedHistory);
+      return res.json({ reply: offlineReply });
+    }
+
+    const reply = await callAIWithFallback(formattedHistory, ALUMNEX_SYSTEM_INSTRUCTION, false);
     res.json({ reply });
 
   } catch (error) {
     console.error('AI Chat Error:', error);
-    res.json({ reply: "I'm currently reviewing high-priority requests. For your career preparation, focus on mastering core technical fundamentals, building full-stack projects, and practicing structured problem solving. Feel free to ask about resume tips or interview questions!" });
+    // Graceful offline fallback even on unexpected route error
+    const fallbackHistory = [{ role: 'user', content: req.body?.message || '' }];
+    res.json({ reply: generateSmartFallbackReply(fallbackHistory) });
   }
 });
 

@@ -1,10 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, Send, Sparkles, Loader2 } from 'lucide-react';
+import { Bot, X, Send, Sparkles, Loader2, Compass } from 'lucide-react';
 import { api } from '../../utils/api';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../../contexts/AuthContext';
+
+const QUICK_PROMPTS = [
+  { label: '📄 Resume ATS Check', query: 'How can I optimize my resume for ATS on Alumnex Connect?' },
+  { label: '🤝 Find a Mentor', query: 'How do I connect with an alumni mentor on Alumnex Connect?' },
+  { label: '💼 Browse Jobs', query: 'Where can I find verified job and internship openings?' },
+  { label: '⚡ DevPulse Stats', query: 'What is DevPulse and how does it track my coding stats?' },
+  { label: '🗺️ Explore Site Map', query: 'Show me all available pages and services on Alumnex Connect' },
+];
 
 const FloatingAIAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +20,7 @@ const FloatingAIAssistant = () => {
   const [history, setHistory] = useState([
     {
       role: 'model',
-      text: "Hi there! I'm your AI Career Mentor. Ask me about resume reviews, interview prep, programming languages, or career roadmaps!"
+      text: "👋 Hi! I'm your **Alumnex Connect AI Career Mentor & Platform Navigator**.\n\nAsk me about [Resume ATS Reviews](/resume), [Alumni Mentors](/mentorship), [DevPulse Analytics](/devpulse), [Job Openings](/jobs), or exploring any service on Alumnex Connect!"
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,14 +38,12 @@ const FloatingAIAssistant = () => {
     }
   }, [history, isOpen]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+  const sendQuery = async (queryText) => {
+    if (!queryText.trim()) return;
 
-    const userMessage = message.trim();
+    const userMessage = queryText.trim();
     setMessage('');
     
-    // Add user message to history
     const updatedHistory = [...history, { role: 'user', text: userMessage }];
     setHistory(updatedHistory);
     setIsLoading(true);
@@ -45,7 +51,7 @@ const FloatingAIAssistant = () => {
     try {
       const response = await api.post('/ai/chat', {
         message: userMessage,
-        history: history.slice(1) // send previous history excluding the intro message
+        history: history.slice(1) // send previous history excluding intro
       });
       
       setHistory([...updatedHistory, { role: 'model', text: response.data.reply }]);
@@ -60,6 +66,11 @@ const FloatingAIAssistant = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sendQuery(message);
   };
 
   if (!user) return null; // Don't show if not logged in
@@ -101,8 +112,11 @@ const FloatingAIAssistant = () => {
                   <Bot className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">AI Career Mentor</h3>
-                  <p className="text-xs text-indigo-100 opacity-90">Online</p>
+                  <h3 className="font-bold text-sm">Alumnex AI Mentor</h3>
+                  <p className="text-xs text-indigo-100 opacity-90 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Online • Groq & Gemini Failover
+                  </p>
                 </div>
               </div>
               <button
@@ -123,9 +137,9 @@ const FloatingAIAssistant = () => {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
+                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       msg.role === 'user'
-                        ? 'bg-indigo-500 text-white rounded-br-sm'
+                        ? 'bg-indigo-600 text-white rounded-br-sm shadow-md'
                         : msg.isError
                         ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-bl-sm'
                         : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm border border-slate-100 dark:border-slate-700/50 rounded-bl-sm prose prose-sm dark:prose-invert max-w-full'
@@ -135,10 +149,36 @@ const FloatingAIAssistant = () => {
                       <ReactMarkdown
                         components={{
                           p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                          a: ({node, ...props}) => <a className="text-indigo-500 hover:underline" {...props} />,
-                          ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
-                          ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2" {...props} />,
-                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                          a: ({node, href, children, ...props}) => {
+                            const isInternal = href && (href.startsWith('/') || href.startsWith('#'));
+                            if (isInternal) {
+                              return (
+                                <Link 
+                                  to={href}
+                                  className="font-semibold text-indigo-600 dark:text-indigo-400 underline decoration-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                                  {...props}
+                                >
+                                  {children}
+                                </Link>
+                              );
+                            }
+                            return (
+                              <a 
+                                href={href} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="font-semibold text-indigo-600 dark:text-indigo-400 underline hover:text-indigo-800 transition-colors"
+                                {...props}
+                              >
+                                {children}
+                              </a>
+                            );
+                          },
+                          ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-0.5" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="font-bold text-base mt-2 mb-1 text-slate-900 dark:text-white" {...props} />,
+                          h4: ({node, ...props}) => <h4 className="font-semibold text-sm mt-1.5 mb-1 text-slate-800 dark:text-slate-200" {...props} />,
                         }}
                       >
                         {msg.text}
@@ -149,14 +189,37 @@ const FloatingAIAssistant = () => {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Quick Prompt Suggestion Chips (Shown initially) */}
+              {history.length === 1 && !isLoading && (
+                <div className="pt-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-2">
+                    <Compass className="w-3.5 h-3.5" />
+                    <span>Quick Navigation & Advice</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {QUICK_PROMPTS.map((prompt, i) => (
+                      <button
+                        key={i}
+                        onClick={() => sendQuery(prompt.query)}
+                        className="text-xs bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1.5 transition-all text-left shadow-2xs hover:border-indigo-300 dark:hover:border-indigo-500"
+                      >
+                        {prompt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {isLoading && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-slate-100 dark:border-slate-700/50">
-                    <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center gap-2 text-xs text-slate-500">
+                    <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />
+                    <span>Consulting Alumnex AI...</span>
                   </div>
                 </motion.div>
               )}
@@ -170,14 +233,14 @@ const FloatingAIAssistant = () => {
                   type="text"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask for advice..."
+                  placeholder="Ask for advice or any website page..."
                   className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder-slate-500"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={!message.trim() || isLoading}
-                  className="w-10 h-10 flex-shrink-0 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 rounded-full flex items-center justify-center text-white transition-colors"
+                  className="w-10 h-10 flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 rounded-full flex items-center justify-center text-white transition-colors cursor-pointer"
                 >
                   <Send className="w-4 h-4 ml-0.5" />
                 </button>

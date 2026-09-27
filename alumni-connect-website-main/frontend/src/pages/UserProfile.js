@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +7,7 @@ import {
   MapPin, Briefcase, MessageSquare, Users,
   Activity, Code, GitCommit, Trophy, TrendingUp,
   ExternalLink, Zap, Target, FolderGit2, Globe, Building2,
-  AlertTriangle, X, FileText
+  AlertTriangle, X, FileText, UserX, ArrowLeft
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -123,7 +123,16 @@ const UserProfile = () => {
     { enabled: !!id }
   );
 
-  const targetUser = profileData?.data?.user;
+  const lastUserRef = useRef(null);
+
+  useEffect(() => {
+    if (profileData?.data?.user) {
+      lastUserRef.current = profileData.data.user;
+    }
+  }, [profileData?.data?.user]);
+
+  // Keep targetUser valid during route exit animations to prevent flashing empty states or 404
+  const targetUser = profileData?.data?.user || lastUserRef.current;
   const stats = devData?.data?.stats;
   const usernames = devData?.data?.usernames;
   const alumnexScore = devData?.data?.alumnexScore || 0;
@@ -169,7 +178,13 @@ const UserProfile = () => {
     reportUserMutation.mutate({ reason: reportReason, details: reportDetails });
   };
 
-  if (profileLoading) {
+  // If navigating away, let the cached targetUser finish its exit animation smoothly
+  if (!id && !targetUser) {
+    return null;
+  }
+
+  // Loading state when no cached user exists yet
+  if (profileLoading && !targetUser) {
     return (
       <div className="max-w-4xl mx-auto space-y-6 animate-pulse px-4 sm:px-6 lg:px-8">
         <div className="h-48 rounded-3xl bg-slate-800/60" />
@@ -178,10 +193,26 @@ const UserProfile = () => {
     );
   }
 
-  if (profileError) {
+  // Graceful in-page error handler without flashing the global 404 page
+  if (profileError && !targetUser) {
     if (profileError.response?.status === 404) {
-      const NotFound = require('./NotFound').default;
-      return <NotFound />;
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+          <div className="w-20 h-20 rounded-3xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center mb-5 text-slate-400 shadow-xl">
+            <UserX className="w-10 h-10 text-indigo-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Member Profile Not Found</h2>
+          <p className="text-slate-400 max-w-md mb-6 text-sm">
+            This user profile does not exist, may have been deactivated, or the link is incorrect.
+          </p>
+          <button
+            onClick={() => navigate('/network')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-md text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Network
+          </button>
+        </div>
+      );
     }
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -192,8 +223,12 @@ const UserProfile = () => {
   }
 
   if (!targetUser) {
-    const NotFound = require('./NotFound').default;
-    return <NotFound />;
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 animate-pulse px-4 sm:px-6 lg:px-8">
+        <div className="h-48 rounded-3xl bg-slate-800/60" />
+        <div className="h-64 rounded-3xl bg-slate-800/60" />
+      </div>
+    );
   }
 
   const tabs = [

@@ -20,8 +20,6 @@ import {
   Edit,
   Trash2,
   X,
-  Block,
-  Report,
   MessageSquare,
   ArrowLeft
 } from 'lucide-react';

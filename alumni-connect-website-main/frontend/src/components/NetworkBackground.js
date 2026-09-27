@@ -1,21 +1,63 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect, Component } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+
+class CanvasErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    console.warn('NetworkBackground WebGL Canvas error (falling back to CSS):', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+const isWebGLAvailable = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (!window.WebGLRenderingContext) return false;
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return !!(gl && gl instanceof WebGLRenderingContext);
+  } catch (e) {
+    return false;
+  }
+};
+
+const FallbackBackground = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-indigo-500/15 rounded-full blur-3xl animate-pulse" />
+    <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+    <div className="absolute top-2/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }} />
+  </div>
+);
 
 const Particles = () => {
   const pointsRef = useRef();
 
   // Create points in a sphere
   const [positions, colors] = useMemo(() => {
-    const count = 2500;
+    const count = 1800; // Optimized count for performance across mobile & desktop
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    const color = new THREE.Color();
     
     // Theme colors matching Alumnex Connect
     const color1 = new THREE.Color('#4f46e5'); // Primary 600 (indigo)
     const color2 = new THREE.Color('#0d9488'); // Alumni 600 (teal)
     const color3 = new THREE.Color('#ffffff'); // White for highlights
+    const color = new THREE.Color();
 
     for (let i = 0; i < count; i++) {
       // Random position inside a hollow sphere/torus-like volume
@@ -56,10 +98,9 @@ const Particles = () => {
       pointsRef.current.rotation.y = time * 0.03;
       pointsRef.current.rotation.x = time * 0.015;
       
-      // Slight floating effect on mouse move
-      // Note: mouse coords are normalized (-1 to 1)
-      const targetX = state.pointer.x * 0.5;
-      const targetY = state.pointer.y * 0.5;
+      // Slight floating effect on pointer move
+      const targetX = (state.pointer?.x || 0) * 0.5;
+      const targetY = (state.pointer?.y || 0) * 0.5;
       
       pointsRef.current.position.x += (targetX - pointsRef.current.position.x) * 0.02;
       pointsRef.current.position.y += (targetY - pointsRef.current.position.y) * 0.02;
@@ -94,14 +135,26 @@ const Particles = () => {
 };
 
 const NetworkBackground = () => {
+  const [webGLSupported, setWebGLSupported] = useState(false);
+
+  useEffect(() => {
+    setWebGLSupported(isWebGLAvailable());
+  }, []);
+
+  if (!webGLSupported) {
+    return <FallbackBackground />;
+  }
+
   return (
     <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 4.5], fov: 60 }}>
-        {/* Subtle ambient light if we were using meshes, but Points use basic materials */}
-        {/* The fog helps blend the particles into the background */}
-        {/* The fog color is transparent black, which works for both light and dark modes but we can just use opacity */}
-        <Particles />
-      </Canvas>
+      <CanvasErrorBoundary fallback={<FallbackBackground />}>
+        <Canvas 
+          camera={{ position: [0, 0, 4.5], fov: 60 }}
+          gl={{ powerPreference: 'low-power', antialias: false, failIfMajorPerformanceCaveat: false }}
+        >
+          <Particles />
+        </Canvas>
+      </CanvasErrorBoundary>
     </div>
   );
 };

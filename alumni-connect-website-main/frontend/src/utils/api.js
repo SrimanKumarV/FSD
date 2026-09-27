@@ -4,10 +4,10 @@ import toast from 'react-hot-toast';
 // ─── Capacitor / Mobile Detection ─────────────────────────────────────────────
 // In Capacitor WebView, cookies from cross-origin backends don't work reliably.
 // We use localStorage as a token store for the mobile APK.
-const isCapacitor = typeof window !== 'undefined' && (
+export const isCapacitor = typeof window !== 'undefined' && Boolean(
   window.Capacitor?.isNativePlatform?.() ||
   window.location.protocol === 'capacitor:' ||
-  window.location.hostname === 'localhost' && window.Capacitor
+  (window.location.hostname === 'localhost' && window.Capacitor)
 );
 
 const TOKEN_KEY = 'alumnex_auth_token';
@@ -210,11 +210,6 @@ api.interceptors.response.use(
         
         if (isAuthError) {
           window.dispatchEvent(new Event('auth:logout'));
-          setTimeout(() => {
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login';
-            }
-          }, 100);
         } else {
           // It was a network or server error during refresh, just show a network error toast
           console.warn('Network error during token refresh:', refreshError.message);

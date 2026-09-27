@@ -220,7 +220,7 @@ const Login = () => {
 
   const initiateGithubLogin = async () => {
     if (Capacitor.isNativePlatform()) {
-      const backendUrl = process.env.REACT_APP_API_URL.replace('/api', '');
+      const backendUrl = (process.env.REACT_APP_API_URL || 'https://alumnex-backend-backup.onrender.com/api').replace('/api', '');
       await Browser.open({ url: `${backendUrl}/api/auth/mobile/github` });
     } else {
       const clientId = process.env.REACT_APP_GITHUB_CLIENT_ID;
@@ -231,7 +231,7 @@ const Login = () => {
 
   const handleGoogleClick = async () => {
     if (Capacitor.isNativePlatform()) {
-      const backendUrl = process.env.REACT_APP_API_URL.replace('/api', '');
+      const backendUrl = (process.env.REACT_APP_API_URL || 'https://alumnex-backend-backup.onrender.com/api').replace('/api', '');
       await Browser.open({ url: `${backendUrl}/api/auth/mobile/google` });
     } else {
       googleLogin();

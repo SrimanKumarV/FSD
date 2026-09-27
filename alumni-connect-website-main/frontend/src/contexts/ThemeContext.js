@@ -32,7 +32,6 @@ export const ThemeProvider = ({ children }) => {
 
   // Tracks whether dark mode is being forced (e.g. by the landing page)
   const [isDarkForced, setIsDarkForced] = useState(false);
-  const savedThemeRef = useRef(null);
 
   // The theme value that CSS actually sees (forced override or user choice)
   const activeTheme = isDarkForced ? 'designcode-dark' : theme;
@@ -80,19 +79,14 @@ export const ThemeProvider = ({ children }) => {
     setTheme(newTheme);
   }, []);
 
-  // Force dark mode (used by landing page). Saves the current theme and overrides display.
+  // Force dark mode (used by landing page). Overrides display without mutating user preference.
   const forceDarkMode = useCallback(() => {
-    savedThemeRef.current = theme;
     setIsDarkForced(true);
-  }, [theme]);
+  }, []);
 
-  // Release dark mode override and restore the user's real preference.
+  // Release dark mode override cleanly and restore the active theme naturally.
   const releaseDarkMode = useCallback(() => {
     setIsDarkForced(false);
-    if (savedThemeRef.current) {
-      setTheme(savedThemeRef.current);
-      savedThemeRef.current = null;
-    }
   }, []);
 
   // Helper: is the active theme visually dark?

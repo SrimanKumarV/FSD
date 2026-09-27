@@ -44,6 +44,7 @@ jobs:
           REACT_APP_API_URL: https://alumnex-backend-backup.onrender.com/api
           REACT_APP_BACKUP_API_URL: https://alumnex-backend-backup.onrender.com/api
           REACT_APP_GITHUB_CLIENT_ID: Ov23liziKGoBWdUOVmxJ
+          REACT_APP_GOOGLE_CLIENT_ID: 253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com
 
       - name: Install Mobile Wrapper Dependencies
         working-directory: ./mobile-wrapper

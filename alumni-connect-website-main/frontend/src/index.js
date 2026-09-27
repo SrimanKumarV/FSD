@@ -11,10 +11,14 @@ window.process = process;
 window.Buffer = Buffer;
 window.global = window;
 
+const googleClientId =
+  process.env.REACT_APP_GOOGLE_CLIENT_ID ||
+  '253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>

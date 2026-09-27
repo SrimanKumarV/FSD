@@ -639,35 +639,49 @@ router.post('/notifications', [protect, admin], [
         title,
         content,
         priority,
-        relatedData: { notificationType: type }
+        relatedData: { data: { notificationType: type } }
       }));
 
-      await Notification.createBulkNotifications(notifications);
+      // Batch insert notifications in chunks to avoid large write issues
+      const BATCH_SIZE = 100;
+      for (let i = 0; i < notifications.length; i += BATCH_SIZE) {
+        const batch = notifications.slice(i, i + BATCH_SIZE);
+        await Notification.insertMany(batch, { ordered: false });
+      }
 
-      // Also send as an Inbox Message to every user
-      const messages = targetUsers.map(user => {
-        const conversationId = Message.generateConversationId(req.user.id, user._id);
-        return {
-          sender: req.user.id,
-          receiver: user._id,
-          content: `**${title}**\n\n${content}`,
-          messageType: 'text',
-          conversationId
-        };
-      });
-      
-      // Create the messages
-      await Message.insertMany(messages);
+      // Also send as an Inbox Message to every user (exclude admin themselves)
+      const adminId = req.user.id.toString();
+      const messageRecipients = targetUsers.filter(u => u._id.toString() !== adminId);
+
+      if (messageRecipients.length > 0) {
+        const messages = messageRecipients.map(user => {
+          const conversationId = Message.generateConversationId(req.user.id, user._id);
+          return {
+            sender: req.user.id,
+            receiver: user._id,
+            content: `**${title}**\n\n${content}`,
+            messageType: 'text',
+            conversationId
+          };
+        });
+
+        // Batch insert messages in chunks
+        for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+          const batch = messages.slice(i, i + BATCH_SIZE);
+          await Message.insertMany(batch, { ordered: false });
+        }
+      }
 
       // Send emails asynchronously only for feature updates or announcements
       // Do not send for maintenance (bug fixes) or warnings
       if (type === 'update' || type === 'announcement') {
-        targetUsers.forEach(user => {
+        for (const user of targetUsers) {
           if (user.email) {
-            sendEmail({
-              email: user.email,
-              subject: title,
-              message: `
+            try {
+              await sendEmail({
+                email: user.email,
+                subject: title,
+                message: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
                   <p>Hello ${user.name || 'User'},</p>
@@ -681,9 +695,12 @@ router.post('/notifications', [protect, admin], [
                   <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
                 </div>
               `
-            });
+              });
+            } catch (emailErr) {
+              console.error(`[Broadcast] Failed to email ${user.email}:`, emailErr.message);
+            }
           }
-        });
+        }
       }
     };
 
@@ -708,7 +725,7 @@ router.post('/notifications', [protect, admin], [
     });
   } catch (error) {
     console.error('Error sending system notification:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error while sending broadcast' });
   }
 });
 

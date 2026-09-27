@@ -12,7 +12,7 @@ import { Browser } from '@capacitor/browser';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import CreatableSelect from 'react-select/creatable';
-import api from '../../utils/api';
+import api, { getActiveBackendUrl } from '../../utils/api';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const COUNTRIES = [
@@ -220,7 +220,7 @@ const Login = () => {
 
   const initiateGithubLogin = async () => {
     if (Capacitor.isNativePlatform()) {
-      const backendUrl = (process.env.REACT_APP_API_URL || 'https://alumnex-backend-backup.onrender.com/api').replace('/api', '');
+      const backendUrl = getActiveBackendUrl().replace(/\/api\/?$/, '');
       await Browser.open({ url: `${backendUrl}/api/auth/mobile/github` });
     } else {
       const clientId = process.env.REACT_APP_GITHUB_CLIENT_ID;
@@ -231,7 +231,7 @@ const Login = () => {
 
   const handleGoogleClick = async () => {
     if (Capacitor.isNativePlatform()) {
-      const backendUrl = (process.env.REACT_APP_API_URL || 'https://alumnex-backend-backup.onrender.com/api').replace('/api', '');
+      const backendUrl = getActiveBackendUrl().replace(/\/api\/?$/, '');
       await Browser.open({ url: `${backendUrl}/api/auth/mobile/google` });
     } else {
       googleLogin();

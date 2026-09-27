@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const ContactUs = () => {
@@ -20,15 +20,12 @@ const ContactUs = () => {
     }
     setLoading(true);
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/helpdesk`,
-        {
-          name: `${form.firstName} ${form.lastName}`.trim(),
-          email: form.email,
-          subject: form.subject || 'Contact Form Enquiry',
-          message: form.message,
-        }
-      );
+      await api.post('/helpdesk', {
+        name: `${form.firstName} ${form.lastName}`.trim(),
+        email: form.email,
+        subject: form.subject || 'Contact Form Enquiry',
+        message: form.message,
+      });
       setSent(true);
       toast.success('Message sent! We\'ll get back to you shortly.');
     } catch (err) {

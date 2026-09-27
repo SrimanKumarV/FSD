@@ -158,10 +158,19 @@ app.use('/api/activity', require('./routes/activity'));
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);
 
-// --- ROOT WELCOME ROUTE ---
-// This is now placed ABOVE the 404 handler so it actually works.
+// --- ROOT WELCOME & HEALTH ROUTES ---
+// Placed ABOVE 404 handler for fast probing and monitoring
 app.get('/', (req, res) => {
   res.send('Alumni Portal Server is up and running!');
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Alumnex Connect API is live',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling middleware

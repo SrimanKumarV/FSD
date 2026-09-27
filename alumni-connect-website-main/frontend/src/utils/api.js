@@ -11,75 +11,218 @@ export const isCapacitor = typeof window !== 'undefined' && Boolean(
 );
 
 const TOKEN_KEY = 'alumnex_auth_token';
+const HEALTHY_BACKEND_KEY = 'alumnex_last_healthy_backend';
 
 export const mobileTokenStore = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (token) => { if (token) localStorage.setItem(TOKEN_KEY, token); },
-  clear: () => localStorage.removeItem(TOKEN_KEY),
+  get: () => {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch (e) {
+      return null;
+    }
+  },
+  set: (token) => {
+    if (token) {
+      try {
+        localStorage.setItem(TOKEN_KEY, token);
+      } catch (e) {}
+    }
+  },
+  clear: () => {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch (e) {}
+  },
 };
 
-const getAvailableBackendUrls = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return ['http://localhost:5000/api'];
+// ─── Known Scaled Production Backends ─────────────────────────────────────────
+// Both active and backup instances are registered here to ensure high availability
+// even if build environment variables are missing or misconfigured.
+export const KNOWN_PRODUCTION_BACKENDS = [
+  'https://alumnex-backend-backup.onrender.com/api',
+  'https://alumnex-backend-9y5t.onrender.com/api',
+];
+
+const normalizeUrl = (url) => {
+  if (!url || typeof url !== 'string') return null;
+  let clean = url.trim().replace(/\/+$/, '');
+  if (!clean.endsWith('/api') && !clean.includes('/api/')) {
+    clean = `${clean}/api`;
   }
-  
+  return clean;
+};
+
+export const getAvailableBackendUrls = () => {
+  const isDev = process.env.NODE_ENV === 'development';
   const urls = [];
+
+  // Check for runtime dynamic scaling configured in window or localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      if (Array.isArray(window.ALUMNEX_BACKEND_SERVERS)) {
+        urls.push(...window.ALUMNEX_BACKEND_SERVERS);
+      }
+      const runtimeScaled = localStorage.getItem('alumnex_scaled_backends');
+      if (runtimeScaled) {
+        const parsed = JSON.parse(runtimeScaled);
+        if (Array.isArray(parsed)) urls.push(...parsed);
+      }
+    } catch (e) {}
+  }
+
+  // Environment-configured backends
   if (process.env.REACT_APP_API_URL) urls.push(process.env.REACT_APP_API_URL);
   if (process.env.REACT_APP_BACKUP_API_URL) urls.push(process.env.REACT_APP_BACKUP_API_URL);
   if (process.env.REACT_APP_BACKUP_API_URL_2) urls.push(process.env.REACT_APP_BACKUP_API_URL_2);
-  
-  if (urls.length === 0) {
-    return [`http://${window.location.hostname}:5000/api`];
+  if (process.env.REACT_APP_BACKUP_API_URL_3) urls.push(process.env.REACT_APP_BACKUP_API_URL_3);
+
+  // Default known production servers
+  urls.push(...KNOWN_PRODUCTION_BACKENDS);
+
+  // In development, also include localhost fallback if no env var was set
+  if (isDev && !process.env.REACT_APP_API_URL) {
+    urls.unshift('http://localhost:5000/api');
   }
-  
-  // Basic URL validation/deduplication
-  return [...new Set(urls)].filter(Boolean);
+
+  // Normalize and remove duplicates
+  const candidateUrls = Array.from(
+    new Set(urls.map(normalizeUrl).filter(Boolean))
+  );
+
+  // Prioritize last verified healthy backend if available
+  if (typeof window !== 'undefined') {
+    try {
+      const lastHealthy = localStorage.getItem(HEALTHY_BACKEND_KEY);
+      if (lastHealthy && candidateUrls.includes(lastHealthy)) {
+        const idx = candidateUrls.indexOf(lastHealthy);
+        candidateUrls.splice(idx, 1);
+        candidateUrls.unshift(lastHealthy);
+      }
+    } catch (e) {}
+  }
+
+  if (candidateUrls.length === 0) {
+    return ['https://alumnex-backend-backup.onrender.com/api'];
+  }
+
+  return candidateUrls;
 };
 
-// Global state for failover tracking
+// Global state for failover tracking and load balancing
 let activeBackendUrls = [...getAvailableBackendUrls()];
 
-// Load balancer: pick a random starting URL
-if (activeBackendUrls.length > 1) {
-  const startingIndex = Math.floor(Math.random() * activeBackendUrls.length);
-  const chosenUrl = activeBackendUrls.splice(startingIndex, 1)[0];
-  activeBackendUrls.unshift(chosenUrl);
-}
-
-export const getActiveBackendUrl = () => activeBackendUrls[0];
+export const getActiveBackendUrl = () => activeBackendUrls[0] || 'https://alumnex-backend-backup.onrender.com/api';
 
 export const triggerFailover = (failedUrl) => {
-  if (activeBackendUrls.length > 1 && activeBackendUrls[0] === failedUrl) {
-    activeBackendUrls = activeBackendUrls.filter(url => url !== failedUrl);
-    console.warn(`Load Balancer shifted to next backend: ${activeBackendUrls[0]}`);
-    
-    // Update Axios default if it has been initialized
+  const currentUrl = failedUrl ? normalizeUrl(failedUrl) : activeBackendUrls[0];
+  
+  if (activeBackendUrls.length <= 1) {
+    // If only 1 URL in current active list, restore full pool and put failed one at end
+    const allCandidates = getAvailableBackendUrls();
+    const remaining = allCandidates.filter(u => u !== currentUrl);
+    if (remaining.length > 0) {
+      activeBackendUrls = [...remaining, currentUrl];
+    }
+  } else if (activeBackendUrls[0] === currentUrl) {
+    // Rotate failed URL to the end of the line
+    const failed = activeBackendUrls.shift();
+    activeBackendUrls.push(failed);
+  }
+
+  const nextUrl = activeBackendUrls[0];
+  console.warn(`[Load Balancer] Shifted backend from ${currentUrl} -> ${nextUrl}`);
+
+  try {
+    if (api && api.defaults) {
+      api.defaults.baseURL = nextUrl;
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(HEALTHY_BACKEND_KEY, nextUrl);
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('backend-failover', { detail: nextUrl }));
+  }
+
+  return nextUrl;
+};
+
+// ─── Startup Background Health Probe ──────────────────────────────────────────
+// Quickly tests candidates in the background and promotes the fastest live backend.
+export const probeAndSelectFastestBackend = async () => {
+  if (typeof window === 'undefined' || activeBackendUrls.length <= 1) return;
+
+  const testServer = async (apiUrl) => {
+    const root = apiUrl.replace(/\/api\/?$/, '');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
     try {
-      if (api && api.defaults) {
-        api.defaults.baseURL = activeBackendUrls[0];
+      const res = await fetch(`${root}/api/health`, {
+        method: 'GET',
+        signal: controller.signal,
+        cache: 'no-store'
+      }).catch(() => {
+        return fetch(`${root}/`, {
+          method: 'GET',
+          signal: controller.signal,
+          cache: 'no-store'
+        });
+      });
+      clearTimeout(timer);
+      if (res && res.status >= 200 && res.status < 400) {
+        return apiUrl;
       }
     } catch (e) {
-      // Ignore if api is not yet initialized
+      clearTimeout(timer);
     }
-    
-    window.dispatchEvent(new CustomEvent('backend-failover', { detail: activeBackendUrls[0] }));
+    return null;
+  };
+
+  try {
+    const fastest = await Promise.any(
+      activeBackendUrls.map(url =>
+        testServer(url).then(res => {
+          if (!res) throw new Error('Not reachable');
+          return res;
+        })
+      )
+    );
+
+    if (fastest && activeBackendUrls[0] !== fastest) {
+      console.log(`[Smart Load Balancer] Discovered live responsive backend: ${fastest}`);
+      activeBackendUrls = [fastest, ...activeBackendUrls.filter(u => u !== fastest)];
+      if (api && api.defaults) {
+        api.defaults.baseURL = fastest;
+      }
+      try {
+        localStorage.setItem(HEALTHY_BACKEND_KEY, fastest);
+      } catch (e) {}
+      window.dispatchEvent(new CustomEvent('backend-failover', { detail: fastest }));
+    }
+  } catch (err) {
+    // Probe silent fallback; request interceptor handles on-demand failover
   }
-  return activeBackendUrls[0];
 };
+
+// Initiate non-blocking probe on load
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    probeAndSelectFastestBackend();
+  }, 100);
+}
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: activeBackendUrls[0],
-  timeout: 60000, // Increased to 60s to allow Render free tier to wake up
+  timeout: 25000, // 25s timeout: ample for cold-starts, avoids 60s freeze on mobile
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
 
 // ─── Token Refresh / 401 Deduplication ───────────────────────────────────────
-// Tracks whether a token refresh is already in progress so concurrent 401s
-// don't all trigger simultaneous redirects or refresh attempts.
 let isRefreshing = false;
-let pendingRequests = []; // callbacks waiting for a new token
+let pendingRequests = [];
 
 const onTokenRefreshed = (newToken) => {
   pendingRequests.forEach((cb) => cb(newToken));
@@ -92,25 +235,43 @@ const onRefreshFailed = () => {
 
 let csrfTokenMemory = null;
 
+// ─── Server Unavailability Detector ───────────────────────────────────────────
+// Detects when a backend instance is suspended, down, timed out, or returning gateway errors
+const isServerUnavailable = (error) => {
+  if (!error) return false;
+  // Network connection dropped, ECONNABORTED, timeout, or DNS failure
+  if (!error.response || error.code === 'ECONNABORTED' || error.message?.includes('Network Error')) {
+    return true;
+  }
+  const status = error.response.status;
+  // 502 Bad Gateway, 503 Service Unavailable / Suspended, 504 Gateway Timeout, 520-526 Cloudflare errors
+  if (status === 502 || status === 503 || status === 504 || (status >= 520 && status <= 526)) {
+    return true;
+  }
+  return false;
+};
+
 // ─── Request Interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
+    // Ensure baseURL is aligned with active backend
+    if (!config.baseURL || config.baseURL !== activeBackendUrls[0]) {
+      config.baseURL = activeBackendUrls[0];
+    }
+
     // ── Universal Token Authentication ──
-    // Use Bearer token from localStorage for ALL clients, not just Capacitor.
-    // This fixes "Invalid CSRF" and login issues on Safari, Brave, Edge, and WebViews
-    // which block third-party cookies by default.
     const storedToken = mobileTokenStore.get();
     
     if (storedToken) {
       config.headers['Authorization'] = `Bearer ${storedToken}`;
-      // Tell backend to bypass CSRF because we are using secure Bearer tokens instead of cookies
       config.headers['X-Mobile-App'] = 'capacitor';
     } else {
-      // Fallback to cookie-based CSRF protection if no token is in localStorage yet
-      const xsrfTokenCookie = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('XSRF-TOKEN='))
-        ?.split('=')[1];
+      const xsrfTokenCookie = typeof document !== 'undefined'
+        ? document.cookie
+            .split('; ')
+            .find((row) => row.startsWith('XSRF-TOKEN='))
+            ?.split('=')[1]
+        : null;
 
       const finalToken = xsrfTokenCookie || csrfTokenMemory;
 
@@ -130,44 +291,48 @@ api.interceptors.request.use(
 // ─── Response Interceptor ─────────────────────────────────────────────────────
 api.interceptors.response.use(
   (response) => {
-    if (response.headers['x-csrf-token']) {
+    if (response.headers && response.headers['x-csrf-token']) {
       csrfTokenMemory = response.headers['x-csrf-token'];
     }
+
+    // Mark current backend as successfully verified
+    if (response.config?.baseURL && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(HEALTHY_BACKEND_KEY, response.config.baseURL);
+      } catch (e) {}
+    }
+
     return response;
   },
   async (error) => {
-    if (error.response && error.response.headers['x-csrf-token']) {
+    if (error.response && error.response.headers && error.response.headers['x-csrf-token']) {
       csrfTokenMemory = error.response.headers['x-csrf-token'];
     }
 
     const originalRequest = error.config || {};
 
     // ── Client-Side Failover Logic ──
-    // If the request fails due to network error or timeout (Render sleeping)
-    const isNetworkOrTimeout = !error.response || error.code === 'ECONNABORTED';
-    
-    if (isNetworkOrTimeout && !originalRequest._retryFailover) {
-      // Get the URL that this request actually tried to hit
+    // Triggers on network drop, timeout, or 502/503/504 Bad Gateway / Service Suspended
+    if (isServerUnavailable(error) && !originalRequest._retryFailover) {
+      originalRequest._retryFailover = true;
       const currentFailedUrl = originalRequest.baseURL || activeBackendUrls[0];
+      const nextUrl = triggerFailover(currentFailedUrl);
       
-      if (activeBackendUrls.length > 1) {
-        originalRequest._retryFailover = true;
-        
-        // Trigger global failover (this will shift the array and emit event)
-        const nextUrl = triggerFailover(currentFailedUrl);
-        
-        originalRequest.baseURL = nextUrl;
-        
-        // Retry the request instantly on the backup server
-        return api(originalRequest);
+      console.warn(`[Failover Retrying] Swapping ${currentFailedUrl} -> ${nextUrl} for ${originalRequest.url}`);
+      
+      originalRequest.baseURL = nextUrl;
+      if (originalRequest.url && originalRequest.url.startsWith('http')) {
+        originalRequest.url = originalRequest.url.replace(currentFailedUrl, nextUrl);
       }
+
+      // Re-dispatch request immediately to the healthy scaled backend
+      return api(originalRequest);
     }
 
     // ── 401: Token expired or invalid ──
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // If already refreshing, queue this request to retry once done
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           pendingRequests.push((newToken) => {
@@ -184,18 +349,14 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Attempt silent token refresh via cookie (no auth header needed)
-        
-        // Use the current base URL for refresh, which could be the backup if we failed over
-        const refreshBaseUrl = originalRequest.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        const refreshBaseUrl = getActiveBackendUrl();
         
         await axios.post(
           `${refreshBaseUrl}/auth/refresh`,
           {},
-          { timeout: 10000, withCredentials: true }
+          { timeout: 15000, withCredentials: true }
         );
 
-        // Replay the original request (cookie will be sent automatically)
         onTokenRefreshed('refreshed');
         isRefreshing = false;
 
@@ -204,14 +365,11 @@ api.interceptors.response.use(
         isRefreshing = false;
         onRefreshFailed();
 
-        // Only clear session and redirect if the refresh explicitly failed due to an auth issue (401/403)
-        // If it failed because of a network timeout or 500 error, we shouldn't log the user out!
         const isAuthError = refreshError.response && (refreshError.response.status === 401 || refreshError.response.status === 403);
         
         if (isAuthError) {
           window.dispatchEvent(new Event('auth:logout'));
         } else {
-          // It was a network or server error during refresh, just show a network error toast
           console.warn('Network error during token refresh:', refreshError.message);
           if (!originalRequest._toastShown) {
             toast.error('Network error. Servers are currently unreachable.');
@@ -227,17 +385,14 @@ api.interceptors.response.use(
       console.warn('Access denied:', error.response.data?.message);
     }
 
-    // ── Network / timeout errors (After failover has also failed) ──
-    if (isNetworkOrTimeout) {
-      console.warn('Network error or server unavailable:', error.message);
+    // ── Network / Server unavailable (After failovers have been exhausted) ──
+    if (isServerUnavailable(error)) {
+      console.warn('All backend servers currently unavailable:', error.message);
       if (!originalRequest._toastShown) {
         toast.error('Network error. Servers are currently unreachable.');
         originalRequest._toastShown = true;
       }
-    }
-
-    // ── 5xx: Server errors ──
-    if (error.response?.status >= 500) {
+    } else if (error.response?.status >= 500) {
       console.error('Server error:', error.response.status, error.response.data?.message);
       if (!originalRequest._toastShown) {
         toast.error('Server error. Please try again later.');
@@ -250,8 +405,6 @@ api.interceptors.response.use(
 );
 
 // ─── Parallel Request Helper ──────────────────────────────────────────────────
-// Wrapper around Promise.allSettled so multiple concurrent requests don't crash
-// the whole page if one fails. Returns { data, error } per request.
 export const fetchParallel = async (requests) => {
   const results = await Promise.allSettled(requests.map((fn) => fn()));
   return results.map((result) =>

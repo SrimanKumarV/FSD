@@ -1,9 +1,9 @@
-name: Build Android APK
+name: Build & Release Android APK
 
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -19,12 +19,22 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
-            frontend/package-lock.json
             mobile-wrapper/package-lock.json
+
+      - name: Read App Version Information
+        id: version
+        run: |
+          VERSION_NAME=$(node -p "require('./mobile-wrapper/version.json').versionName")
+          VERSION_CODE=$(node -p "require('./mobile-wrapper/version.json').versionCode")
+          MIN_VERSION_CODE=$(node -p "require('./mobile-wrapper/version.json').minVersionCode || 1")
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "MIN_VERSION_CODE=$MIN_VERSION_CODE" >> $GITHUB_ENV
+          echo "Resolved version: v$VERSION_NAME (code: $VERSION_CODE, minCode: $MIN_VERSION_CODE)"
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Build Frontend
         working-directory: ./frontend
@@ -37,7 +47,7 @@ jobs:
 
       - name: Install Mobile Wrapper Dependencies
         working-directory: ./mobile-wrapper
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Sync Capacitor
         working-directory: ./mobile-wrapper
@@ -55,41 +65,84 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Configure Keystore Signing (if secret provided)
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > mobile-wrapper/android/app/release.keystore
+            echo "Release keystore configured from secret."
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret provided; building with fallback signing config."
+          fi
+
       - name: Make gradlew executable
         working-directory: ./mobile-wrapper/android
         run: chmod +x gradlew
 
-      - name: Build Debug APK
+      - name: Build Release APK
         working-directory: ./mobile-wrapper/android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Package Standardized APK and Calculate SHA-256
+        run: |
+          APK_FOUND=$(find mobile-wrapper/android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$APK_FOUND" ]; then
+            echo "Error: No APK file generated!"
+            exit 1
+          fi
+
+          STANDARDIZED_NAME="AlumnexConnect-v${{ env.VERSION_NAME }}.apk"
+          cp "$APK_FOUND" "$STANDARDIZED_NAME"
+
+          # Generate SHA-256 checksum file
+          sha256sum "$STANDARDIZED_NAME" > "${STANDARDIZED_NAME}.sha256"
+          RAW_HASH=$(cut -d ' ' -f 1 "${STANDARDIZED_NAME}.sha256")
+
+          echo "SHA256_HASH=$RAW_HASH" >> $GITHUB_ENV
+          echo "STANDARDIZED_APK=$STANDARDIZED_NAME" >> $GITHUB_ENV
+          echo "STANDARDIZED_SHA=${STANDARDIZED_NAME}.sha256" >> $GITHUB_ENV
+          echo "APK successfully prepared: $STANDARDIZED_NAME (SHA-256: $RAW_HASH)"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+          name: AlumnexConnect-v${{ env.VERSION_NAME }}
+          path: |
+            ${{ env.STANDARDIZED_APK }}
+            ${{ env.STANDARDIZED_SHA }}
 
-      - name: Generate Release Tag
-        id: tag
-        run: echo "tag=v1.0.0-build.${{ github.run_number }}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release with APK
+      - name: Create GitHub Release with APK & Checksum
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: "Alumnex Connect APK - Build #${{ github.run_number }}"
+          tag_name: "v${{ env.VERSION_NAME }}"
+          name: "Alumnex Connect v${{ env.VERSION_NAME }}"
           body: |
-            ## 📱 Alumnex Connect APK
+            ## 📱 Alumnex Connect v${{ env.VERSION_NAME }} (Build ${{ env.VERSION_CODE }})
 
-            **Build:** #${{ github.run_number }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** ${{ github.sha }}
+            ### 🚀 Download & Install
+            Download **`AlumnexConnect-v${{ env.VERSION_NAME }}.apk`** below to install or update Alumnex Connect on your Android device.
 
-            ### Download
-            Download the APK below and install it on your Android device.
+            ### 🔒 Security Verification
+            - **Application ID:** `com.alumnex.connect`
+            - **Version Name:** `${{ env.VERSION_NAME }}`
+            - **Version Code:** `${{ env.VERSION_CODE }}`
+            - **Minimum Supported Version Code:** `${{ env.MIN_VERSION_CODE }}`
+            - **SHA-256:** `${{ env.SHA256_HASH }}`
 
-            > ⚠️ You may need to enable "Install from Unknown Sources" in your Android settings.
-          files: mobile-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+            ### 📋 What's New
+            - In-app automatic update system with GitHub Releases integration
+            - Real-time download progress bar and SHA-256 checksum verification
+            - Native Android Package Installer handoff with FileProvider support
+            - Settings page update status and manual check functionality
+            - Performance optimizations and ecosystem stability improvements
+
+            <!-- [versionCode: ${{ env.VERSION_CODE }}] [minVersionCode: ${{ env.MIN_VERSION_CODE }}] -->
+          files: |
+            ${{ env.STANDARDIZED_APK }}
+            ${{ env.STANDARDIZED_SHA }}
           draft: false
           prerelease: false
         env:

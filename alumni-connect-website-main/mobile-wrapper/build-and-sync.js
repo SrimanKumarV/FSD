@@ -8,6 +8,14 @@ const mobileWwwDir = path.resolve(__dirname, 'www');
 console.log('--- Alumnex Connect Mobile Sync ---');
 
 try {
+  // Step 0: Sync version file
+  const mobileVersionFile = path.resolve(__dirname, 'version.json');
+  const frontendVersionFile = path.resolve(frontendDir, 'src/version.json');
+  if (fs.existsSync(mobileVersionFile)) {
+    fs.copyFileSync(mobileVersionFile, frontendVersionFile);
+    console.log(`\n0. Synchronized version.json -> frontend/src/version.json`);
+  }
+
   // Step 1: Build the frontend
   console.log(`\n1. Building frontend project located at: ${frontendDir}`);
   console.log('   This may take a minute...');

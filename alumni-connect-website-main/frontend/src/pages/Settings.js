@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Trash2, ShieldAlert, Globe, Sparkles } from 'lucide-react';
+import { 
+  Sun, 
+  Moon, 
+  Trash2, 
+  ShieldAlert, 
+  Globe, 
+  Sparkles,
+  Info,
+  Smartphone,
+  CheckCircle2,
+  RefreshCw,
+  Download
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -9,6 +21,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
 import AnimatedOTP from '../components/AnimatedOTP';
+import { checkForUpdate, getCurrentAppInfo } from '../services/updateService';
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -18,6 +31,62 @@ const Settings = () => {
 
   // Stitch under-development modal
   const [stitchModalOpen, setStitchModalOpen] = useState(false);
+
+  // App Version & Update settings
+  const [appInfo, setAppInfo] = useState({ versionName: '1.0.0', versionCode: 1, platform: 'Android App', isNative: true });
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState(null);
+  const [availableRelease, setAvailableRelease] = useState(null);
+  const [lastCheckedTime, setLastCheckedTime] = useState(() => {
+    const saved = localStorage.getItem('alumnex_last_update_check_timestamp');
+    if (saved) {
+      return new Date(parseInt(saved, 10)).toLocaleString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    getCurrentAppInfo().then(info => setAppInfo(info));
+  }, []);
+
+  const handleManualCheckUpdates = async () => {
+    setIsCheckingUpdate(true);
+    try {
+      const res = await checkForUpdate(true);
+      const nowStr = new Date().toLocaleString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      setLastCheckedTime(nowStr);
+
+      if (res?.hasUpdate && res.latestRelease) {
+        setUpdateStatus('update-available');
+        setAvailableRelease(res.latestRelease);
+        toast.success(`New update available: v${res.latestRelease.versionName}!`);
+        window.dispatchEvent(new CustomEvent('alumnex_open_update_modal', { detail: res }));
+      } else if (res?.error) {
+        toast.error(res.error);
+      } else {
+        setUpdateStatus('up-to-date');
+        toast.success(`You're using the latest version (v${appInfo.versionName}).`, {
+          icon: '✨'
+        });
+      }
+    } catch (err) {
+      toast.error('Failed to check for updates.');
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   // Phone settings
   const [countryCode, setCountryCode] = useState('+91');
@@ -491,6 +560,73 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+          {/* About Alumnex Connect & App Updates */}
+          <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <Smartphone className="w-5 h-5 mr-2 text-primary-500" />
+              About Alumnex Connect
+            </h3>
+            <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-base">Alumnex Connect</h4>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-primary-100 text-primary-700 dark:bg-primary-950 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
+                        v{appInfo.versionName}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Build Code: <span className="font-mono font-medium">{appInfo.versionCode}</span> • Platform: <span className="font-medium">{appInfo.platform}</span>
+                    </p>
+                    {lastCheckedTime && (
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+                        Last checked: {lastCheckedTime}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {updateStatus === 'up-to-date' && (
+                    <div className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1.5 rounded-xl">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Up to date
+                    </div>
+                  )}
+
+                  {updateStatus === 'update-available' && availableRelease && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('alumnex_open_update_modal', { 
+                          detail: { hasUpdate: true, latestRelease: availableRelease, currentApp: appInfo } 
+                        }));
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-primary-600 to-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:from-primary-700 hover:to-indigo-700 flex items-center gap-1.5 transition-all"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Update Available — v{availableRelease.versionName}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleManualCheckUpdates}
+                    disabled={isCheckingUpdate}
+                    className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isCheckingUpdate ? 'animate-spin text-primary-500' : ''}`} />
+                    {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Danger Zone */}
           <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">

@@ -1,4 +1,19 @@
 apply plugin: 'com.android.application'
+import groovy.json.JsonSlurper
+
+def versionFile = file('../../version.json')
+def appVersionCode = 1
+def appVersionName = "1.0.0"
+
+if (versionFile.exists()) {
+    try {
+        def parsed = new JsonSlurper().parseText(versionFile.text)
+        if (parsed.versionCode) appVersionCode = parsed.versionCode.toInteger()
+        if (parsed.versionName) appVersionName = parsed.versionName.toString()
+    } catch (Exception e) {
+        logger.warn("Could not parse version.json: ${e.message}")
+    }
+}
 
 android {
     namespace = "com.alumnex.connect"
@@ -7,8 +22,8 @@ android {
         applicationId "com.alumnex.connect"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +31,30 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
+    signingConfigs {
+        release {
+            def keystoreFile = file("release.keystore")
+            if (keystoreFile.exists() && System.getenv("KEYSTORE_PASSWORD")) {
+                storeFile keystoreFile
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS") ?: "alumnex"
+                keyPassword System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            def keystoreFile = file("release.keystore")
+            if (keystoreFile.exists() && System.getenv("KEYSTORE_PASSWORD")) {
+                signingConfig signingConfigs.release
+            } else {
+                // Graceful fallback to debug signing so release build never fails even if keystore secrets are pending
+                signingConfig signingConfigs.debug
+            }
         }
     }
 }

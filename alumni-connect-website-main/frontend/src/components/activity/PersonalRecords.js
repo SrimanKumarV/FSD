@@ -11,17 +11,17 @@ const PersonalRecords = ({ records }) => {
   ];
 
   return (
-    <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
       <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
         <Trophy className="w-4 h-4 text-amber-500" />
         <span>Personal Records</span>
       </h4>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         {items.map((item, idx) => {
           const Icon = item.icon;
           return (
-            <div key={idx} className="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div key={idx} className={`p-3 sm:p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between ${idx === 4 ? 'col-span-2 sm:col-span-1' : ''}`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{item.label}</span>
                 <div className={`p-1.5 rounded-lg ${item.color}`}>

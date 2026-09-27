@@ -16,11 +16,11 @@ const ConsistencyScoreCard = ({ consistencyData }) => {
         </span>
       </div>
 
-      <div className="flex items-center gap-6 pt-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 pt-1">
         {/* Score Number Display */}
-        <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-4 border-indigo-500/30 flex-shrink-0">
+        <div className="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-4 border-indigo-500/30 flex-shrink-0 mx-auto sm:mx-0">
           <div className="text-center">
-            <span className="text-3xl font-black text-gray-900 dark:text-white">{score}</span>
+            <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">{score}</span>
             <span className="text-[10px] block text-gray-400 font-bold uppercase tracking-widest mt-[-2px]">%</span>
           </div>
         </div>

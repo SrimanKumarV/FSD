@@ -10,7 +10,7 @@ const MilestoneTimeline = ({ milestoneData, currentStreak = 0 }) => {
   const progressToNext = milestoneData?.progressToNext ?? 0;
 
   return (
-    <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-6">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-6">
       {/* Header with next target banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -28,12 +28,15 @@ const MilestoneTimeline = ({ milestoneData, currentStreak = 0 }) => {
         </div>
 
         {next && (
-          <div className="flex items-center gap-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 px-4 py-2.5 rounded-2xl">
-            <Flame className="w-5 h-5 text-amber-500 fill-amber-500 animate-pulse" />
-            <div>
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Remaining</span>
-              <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">{daysRemaining} day{daysRemaining === 1 ? '' : 's'} to go</p>
+          <div className="flex items-center justify-between sm:justify-start gap-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 px-4 py-2.5 rounded-2xl w-full sm:w-auto">
+            <div className="flex items-center gap-3">
+              <Flame className="w-5 h-5 text-amber-500 fill-amber-500 animate-pulse" />
+              <div>
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Remaining</span>
+                <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">{daysRemaining} day{daysRemaining === 1 ? '' : 's'} to go</p>
+              </div>
             </div>
+            <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 sm:hidden">{progressToNext}%</span>
           </div>
         )}
       </div>
@@ -56,8 +59,13 @@ const MilestoneTimeline = ({ milestoneData, currentStreak = 0 }) => {
         </div>
       )}
 
+      {/* Mobile Swipe Hint */}
+      <div className="sm:hidden text-[10px] text-gray-400 text-right">
+        ↔ Swipe track to see all milestones
+      </div>
+
       {/* Milestones Track */}
-      <div className="overflow-x-auto pb-2">
+      <div className="overflow-x-auto pb-2 no-scrollbar">
         <div className="flex items-center justify-between min-w-[580px] gap-2 pt-2">
           {milestones.map((m, idx) => {
             const isAchieved = currentStreak >= m;

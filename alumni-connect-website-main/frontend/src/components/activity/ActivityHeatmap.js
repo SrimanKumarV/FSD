@@ -50,7 +50,7 @@ const ActivityHeatmap = ({ heatmapData }) => {
   const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
       {/* Header & Metrics */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
@@ -74,8 +74,22 @@ const ActivityHeatmap = ({ heatmapData }) => {
         </div>
       </div>
 
+      {/* Mobile Swipe Hint */}
+      <div className="sm:hidden flex items-center justify-between text-[11px] text-gray-400 px-0.5">
+        <span>↔ Swipe horizontally to explore full year</span>
+        {hoveredPoint && (
+          <button
+            type="button"
+            onClick={() => setHoveredPoint(null)}
+            className="text-indigo-500 font-bold"
+          >
+            Clear selection
+          </button>
+        )}
+      </div>
+
       {/* Grid Canvas with Sunday-first Day Labels */}
-      <div className="overflow-x-auto pb-2 relative">
+      <div className="overflow-x-auto pb-2 relative no-scrollbar">
         <div className="flex gap-2 min-w-[720px] justify-start py-2">
           {/* Day of Week Labels (Sunday first) */}
           <div className="flex flex-col gap-1.5 pt-0.5 pr-1 text-[10px] font-semibold text-gray-400 dark:text-gray-500 select-none">
@@ -96,7 +110,8 @@ const ActivityHeatmap = ({ heatmapData }) => {
                       key={day.date}
                       onMouseEnter={() => setHoveredPoint(day)}
                       onMouseLeave={() => setHoveredPoint(null)}
-                      className={`w-3.5 h-3.5 rounded-sm transition-all cursor-pointer hover:scale-125 hover:z-20 ${getColor(day.count)}`}
+                      onClick={() => setHoveredPoint(prev => prev?.date === day.date ? null : day)}
+                      className={`w-3.5 h-3.5 rounded-sm transition-all cursor-pointer hover:scale-125 hover:z-20 ${getColor(day.count)} ${hoveredPoint?.date === day.date ? 'ring-2 ring-indigo-500 ring-offset-1 scale-125 z-20' : ''}`}
                     />
                   ) : (
                     <div key={`empty-${dIdx}`} className="w-3.5 h-3.5 rounded-sm opacity-0 pointer-events-none" />

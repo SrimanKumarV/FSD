@@ -283,10 +283,37 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
         </div>
       </div>
 
+      {/* Mobile Horizontal Category Switcher */}
+      <div className="lg:hidden">
+        <div className="flex gap-2 p-1.5 bg-gray-100 dark:bg-gray-800/80 rounded-2xl overflow-x-auto custom-scrollbar no-scrollbar">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            const isDanger = item.id === 'privacy';
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  isActive
+                    ? isDanger
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Navigation Sidebar */}
-        <div className="lg:col-span-4 space-y-1.5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        {/* Left Navigation Sidebar (Desktop Only) */}
+        <div className="hidden lg:block lg:col-span-4 space-y-1.5">
           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-3 pb-1">
             Settings Categories
           </p>
@@ -319,7 +346,7 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
 
         {/* Right Active Setting Panel */}
         <div className="lg:col-span-8">
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6">
+          <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6">
 
             {/* 1. TIMEZONE & LOCAL CLOCK */}
             {activeSection === 'timezone' && (

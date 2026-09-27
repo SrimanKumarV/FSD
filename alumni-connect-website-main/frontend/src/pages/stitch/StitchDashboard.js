@@ -1,14 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../utils/api';
 
+// Activity Intelligence Components
+import ActivityMomentumBanner from '../../components/activity/ActivityMomentumBanner';
+import DashboardTodayGoals from '../../components/activity/DashboardTodayGoals';
+import DashboardStreaks from '../../components/activity/DashboardStreaks';
+import DashboardWeeklyActivity from '../../components/activity/DashboardWeeklyActivity';
+import DashboardMomentumInsight from '../../components/activity/DashboardMomentumInsight';
+
 const iconMap = {
-  Users: '👥', Briefcase: '💼', Calendar: '📅', MessageSquare: '💬', Info: 'ℹ️'
+  Users: '👥',
+  Briefcase: '💼',
+  Calendar: '📅',
+  MessageSquare: '💬',
+  Info: 'ℹ️'
 };
 
 const StatCard = ({ label, value, icon, color }) => (
-  <div className="glass-card rounded-2xl p-5 flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
+  <div className="glass-card rounded-2xl p-5 flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer border border-white/5 shadow-lg">
     <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${color}`}>
       {icon}
     </div>
@@ -21,17 +32,30 @@ const StatCard = ({ label, value, icon, color }) => (
 
 const StitchDashboard = () => {
   const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState({ stats: [], recentActivities: [], upcomingEvents: [] });
+  const [dashboardData, setDashboardData] = useState({
+    stats: [],
+    recentActivities: [],
+    upcomingEvents: [],
+    activity: null
+  });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api.get('/users/dashboard')
-      .then(r => setDashboardData(r.data))
-      .catch(e => console.error(e))
-      .finally(() => setLoading(false));
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const r = await api.get('/users/dashboard');
+      setDashboardData(r.data);
+    } catch (e) {
+      console.error('Error fetching stitch dashboard:', e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const { stats, recentActivities, upcomingEvents } = dashboardData;
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const { stats, recentActivities, upcomingEvents, activity } = dashboardData;
 
   const quickActions = [
     { name: 'Find Mentor', icon: '🎓', href: '/mentorship', desc: 'Connect with alumni', gradient: 'from-blue-600 to-violet-600' },
@@ -50,43 +74,128 @@ const StitchDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-
-      {/* Hero greeting */}
+      {/* 1. Hero greeting (Existing) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-white">
             Welcome back, <span style={{ background: 'linear-gradient(135deg,#60a5fa,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{user?.name?.split(' ')[0] || 'there'}</span> 👋
           </h1>
-          <p className="mt-1 text-base" style={{ color: 'rgba(241,245,249,0.60)' }}>Here's what's happening in your alumni network today.</p>
+          <p className="mt-1 text-base" style={{ color: 'rgba(241,245,249,0.60)' }}>
+            Here's what's happening in your alumni network and personal momentum today.
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="glass-card rounded-full px-4 py-2.5 flex items-center gap-2">
+          <div className="glass-card rounded-full px-4 py-2.5 flex items-center gap-2 border border-white/10">
             <span className="material-symbols-outlined text-sm" style={{ color: 'rgba(241,245,249,0.45)' }}>search</span>
             <input className="bg-transparent border-none outline-none text-sm w-40 text-white placeholder:text-slate-500" placeholder="Search network..." />
           </div>
-          <button className="glass-card p-2.5 rounded-full relative hover:scale-105 transition-transform">
+          <Link to="/notifications" className="glass-card p-2.5 rounded-full relative hover:scale-105 transition-transform border border-white/10 hover:no-underline flex items-center justify-center">
             <span className="material-symbols-outlined text-white">notifications</span>
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full" />
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Stats grid */}
+      {/* 2. Stats grid (Existing) */}
       {stats && stats.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
             <StatCard
-              key={i}
-              label={stat.label}
+              key={stat.name || stat.label || i}
+              label={stat.label || stat.name}
               value={stat.value}
-              icon={stat.icon || '📊'}
+              icon={stat.icon || iconMap[stat.iconName] || '📊'}
               color={['bg-blue-500/20 text-blue-400','bg-violet-500/20 text-violet-400','bg-emerald-500/20 text-emerald-400','bg-rose-500/20 text-rose-400'][i % 4]}
             />
           ))}
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* 3. Streak At Risk or Momentum Insight (Conditional) */}
+      <DashboardMomentumInsight activity={activity} />
+
+      {/* 4. PRIMARY SECTION: MY MOMENTUM (Activity Intelligence) */}
+      <ActivityMomentumBanner activity={activity} userName={user?.name} />
+
+      {/* 5. Row 1: Recent Activity (Existing) + Today's Goals (Activity Intelligence) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <div className="glass-card rounded-2xl p-6 border border-white/5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-semibold text-white">Recent Activity</h2>
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background:'rgba(59,130,246,0.15)', color:'#60a5fa' }}>Live</span>
+            </div>
+            <div className="space-y-4">
+              {recentActivities && recentActivities.length > 0 ? recentActivities.slice(0, 5).map((act, i) => (
+                <div key={act.id || i} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5" style={{ background:'rgba(255,255,255,0.08)' }}>
+                    {iconMap[act.iconName] || act.icon || '📌'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{act.title || act.description}</p>
+                    <p className="text-xs mt-0.5" style={{ color:'rgba(241,245,249,0.45)' }}>{act.time || act.date}</p>
+                  </div>
+                  {act.status && (
+                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background:'rgba(52,211,153,0.15)', color:'#34d399' }}>
+                      {act.status}
+                    </span>
+                  )}
+                </div>
+              )) : (
+                <p className="text-sm text-center py-8" style={{ color:'rgba(241,245,249,0.40)' }}>No recent activity yet.</p>
+              )}
+            </div>
+          </div>
+          <div className="pt-4 mt-2 border-t border-white/5">
+            <Link to="/notifications" className="block text-center text-xs font-semibold text-blue-400 hover:text-blue-300">
+              View all notifications →
+            </Link>
+          </div>
+        </div>
+
+        {/* Today's Goals */}
+        <DashboardTodayGoals 
+          activity={activity} 
+          onGoalCompleted={() => fetchDashboardData()} 
+        />
+      </div>
+
+      {/* 6. Row 2: Activity This Week + Your Streaks */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardWeeklyActivity activity={activity} />
+        <DashboardStreaks activity={activity} />
+      </div>
+
+      {/* 7. Upcoming Events */}
+      <div className="glass-card rounded-2xl p-6 border border-white/5">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-semibold text-white">Upcoming Events</h2>
+          <Link to="/events" className="text-xs text-blue-400 hover:underline">View all →</Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {upcomingEvents && upcomingEvents.length > 0 ? upcomingEvents.slice(0, 4).map((evt, i) => (
+            <div key={evt.id || i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer border border-white/5">
+              <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-center flex-shrink-0" style={{ background:'linear-gradient(135deg,rgba(37,99,235,0.25),rgba(124,58,237,0.25))' }}>
+                <span className="text-xs font-bold text-blue-400 uppercase leading-none">
+                  {new Date(evt.date).toLocaleString('en', { month: 'short' })}
+                </span>
+                <span className="text-lg font-bold text-white leading-none mt-0.5">
+                  {new Date(evt.date).getDate() || 1}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{evt.title}</p>
+                <p className="text-xs mt-0.5 truncate" style={{ color:'rgba(241,245,249,0.50)' }}>{evt.host || evt.location || evt.platform || 'Online'}</p>
+              </div>
+            </div>
+          )) : (
+            <p className="text-sm text-center py-8 col-span-2" style={{ color:'rgba(241,245,249,0.40)' }}>No upcoming events.</p>
+          )}
+        </div>
+      </div>
+
+      {/* 8. Quick Actions (Existing) */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -94,7 +203,7 @@ const StitchDashboard = () => {
             <Link
               key={action.name}
               to={action.href}
-              className="glass-card rounded-2xl p-5 flex flex-col gap-3 group hover:no-underline"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 group hover:no-underline border border-white/5"
             >
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center text-lg shadow-lg group-hover:scale-110 transition-transform`}>
                 {action.icon}
@@ -105,66 +214,6 @@ const StitchDashboard = () => {
               </div>
             </Link>
           ))}
-        </div>
-      </div>
-
-      {/* Two-column: Activities + Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Recent Activity */}
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-white">Recent Activity</h2>
-            <span className="text-xs px-2 py-1 rounded-full" style={{ background:'rgba(59,130,246,0.15)', color:'#60a5fa' }}>Live</span>
-          </div>
-          <div className="space-y-4">
-            {recentActivities && recentActivities.length > 0 ? recentActivities.slice(0, 5).map((activity, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5" style={{ background:'rgba(255,255,255,0.08)' }}>
-                  {activity.icon || '📌'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{activity.title || activity.description}</p>
-                  <p className="text-xs mt-0.5" style={{ color:'rgba(241,245,249,0.45)' }}>{activity.time || activity.date}</p>
-                </div>
-                {activity.status && (
-                  <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background:'rgba(52,211,153,0.15)', color:'#34d399' }}>
-                    {activity.status}
-                  </span>
-                )}
-              </div>
-            )) : (
-              <p className="text-sm text-center py-8" style={{ color:'rgba(241,245,249,0.40)' }}>No recent activity yet.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming Events */}
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-white">Upcoming Events</h2>
-            <Link to="/events" className="text-xs" style={{ color:'#60a5fa' }}>View all →</Link>
-          </div>
-          <div className="space-y-3">
-            {upcomingEvents && upcomingEvents.length > 0 ? upcomingEvents.slice(0, 4).map((evt, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer">
-                <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-center flex-shrink-0" style={{ background:'linear-gradient(135deg,rgba(37,99,235,0.25),rgba(124,58,237,0.25))' }}>
-                  <span className="text-xs font-bold text-blue-400 uppercase leading-none">
-                    {new Date(evt.date).toLocaleString('en', { month: 'short' })}
-                  </span>
-                  <span className="text-lg font-bold text-white leading-none">
-                    {new Date(evt.date).getDate()}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{evt.title}</p>
-                  <p className="text-xs mt-0.5 truncate" style={{ color:'rgba(241,245,249,0.50)' }}>{evt.location || evt.platform || 'Online'}</p>
-                </div>
-              </div>
-            )) : (
-              <p className="text-sm text-center py-8" style={{ color:'rgba(241,245,249,0.40)' }}>No upcoming events.</p>
-            )}
-          </div>
         </div>
       </div>
     </div>

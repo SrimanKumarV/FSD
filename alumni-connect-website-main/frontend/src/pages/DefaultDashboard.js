@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -17,6 +17,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 import CollegeProfileExtractor from '../components/profile/CollegeProfileExtractor';
 
+// Activity Intelligence Components
+import ActivityMomentumBanner from '../components/activity/ActivityMomentumBanner';
+import DashboardTodayGoals from '../components/activity/DashboardTodayGoals';
+import DashboardStreaks from '../components/activity/DashboardStreaks';
+import DashboardWeeklyActivity from '../components/activity/DashboardWeeklyActivity';
+import DashboardMomentumInsight from '../components/activity/DashboardMomentumInsight';
+
 const iconMap = {
   Users: Users,
   Briefcase: Briefcase,
@@ -30,25 +37,27 @@ const DefaultDashboard = () => {
   const [dashboardData, setDashboardData] = useState({
     stats: [],
     recentActivities: [],
-    upcomingEvents: []
+    upcomingEvents: [],
+    activity: null
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await api.get('/users/dashboard');
-        setDashboardData(response.data);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboardData();
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const response = await api.get('/users/dashboard');
+      setDashboardData(response.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const { stats, recentActivities, upcomingEvents } = dashboardData;
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const { stats, recentActivities, upcomingEvents, activity } = dashboardData;
 
   const quickActions = [
     {
@@ -120,8 +129,8 @@ const DefaultDashboard = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 w-full">
-      {/* Welcome Header */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 w-full pb-12">
+      {/* 1. Welcome Header (Existing) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,12 +144,12 @@ const DefaultDashboard = () => {
             Welcome back, {user?.name}!
           </h1>
           <p className="text-indigo-100 text-lg font-medium" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
-            Here's what's happening in your professional network today.
+            Here's what's happening in your professional network and personal momentum today.
           </p>
         </div>
       </motion.div>
 
-      {/* College Profile Extractor (Only for College Role) */}
+      {/* College Profile Extractor (Only for College Role - Existing) */}
       {user?.role === 'college' && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -151,17 +160,17 @@ const DefaultDashboard = () => {
         </motion.div>
       )}
 
-      {/* Stats Grid */}
+      {/* 2. Stats Grid: Mentorship, Jobs, Events, Forum (Existing) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {(stats || []).map((stat, index) => {
+        {(stats || []).map((stat) => {
           const Icon = iconMap[stat.iconName] || Info;
           return (
-              <motion.div
+            <motion.div
               whileHover={{ y: -5, scale: 1.02 }}
               key={stat.name}
               className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
@@ -181,90 +190,136 @@ const DefaultDashboard = () => {
         })}
       </motion.div>
 
-      {/* Main Content Grid */}
+      {/* 3. Streak At Risk / Momentum Insight Banner (Conditional) */}
+      <DashboardMomentumInsight activity={activity} />
+
+      {/* 4. PRIMARY SECTION: MY MOMENTUM (New Activity Intelligence Bridge) */}
+      <ActivityMomentumBanner activity={activity} userName={user?.name} />
+
+      {/* 5. Row 1: Recent Activity (Existing) + Today's Goals (Activity Intelligence) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
+        {/* Left (2 cols): Existing Recent Activity Platform/Social Feed */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-2 glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+          className="lg:col-span-2 glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col justify-between"
         >
-          <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
-          </div>
-          <div className="p-8">
-            <div className="space-y-6 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-              {(!recentActivities || recentActivities.length === 0) ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p>No recent activity found.</p>
+          <div>
+            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+                  <Activity className="w-5 h-5" />
                 </div>
-              ) : (
-                recentActivities.map((activity) => {
-                  const Icon = iconMap[activity.iconName] || Info;
-                return (
-                  <Link to="/notifications" key={activity.id}>
-                    <motion.div whileHover={{ x: 5 }} className="flex items-start space-x-4 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors cursor-pointer group">
-                      <div className="flex-shrink-0 mt-1">
-                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-inner group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/40 transition-colors">
-                          <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <p className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{activity.title}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{activity.description}</p>
-                        <div className="mt-3 flex items-center space-x-3 w-full">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                            {getStatusIcon(activity.status)}
-                            <span className="ml-1 capitalize">{activity.status}</span>
-                          </span>
-                          <span className="text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{activity.time}</span>
-                          {activity.status === 'pending' && (
-                            <span className="ml-auto text-xs font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded-full transition-colors border border-indigo-600/20">
-                              Review
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  </Link>
-                );
-              }))}
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold">
+                Network & System
+              </span>
             </div>
-            <div className="mt-8">
-              <Link to="/notifications" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-3 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300">
-                View All Activity
-              </Link>
+            <div className="p-6">
+              <div className="space-y-4 max-h-[360px] overflow-y-auto custom-scrollbar pr-2">
+                {(!recentActivities || recentActivities.length === 0) ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                    <p>No recent network activity found.</p>
+                  </div>
+                ) : (
+                  recentActivities.map((activityItem) => {
+                    const Icon = iconMap[activityItem.iconName] || Info;
+                    return (
+                      <Link to="/notifications" key={activityItem.id}>
+                        <motion.div whileHover={{ x: 5 }} className="flex items-start space-x-4 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors cursor-pointer group">
+                          <div className="flex-shrink-0 mt-1">
+                            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-inner group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/40 transition-colors">
+                              <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-indigo-500 transition-colors" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            <p className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{activityItem.title}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{activityItem.description}</p>
+                            <div className="mt-3 flex items-center space-x-3 w-full">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activityItem.status)}`}>
+                                {getStatusIcon(activityItem.status)}
+                                <span className="ml-1 capitalize">{activityItem.status}</span>
+                              </span>
+                              <span className="text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{activityItem.time}</span>
+                              {activityItem.status === 'pending' && (
+                                <span className="ml-auto text-xs font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded-full transition-colors border border-indigo-600/20">
+                                  Review
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
             </div>
+          </div>
+          <div className="p-6 pt-0">
+            <Link to="/notifications" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-2.5 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-600 transition-all duration-300 hover:no-underline">
+              View All Network Activity
+            </Link>
           </div>
         </motion.div>
 
-        {/* Right Sidebar */}
-        <div className="space-y-6">
-          {/* Upcoming Events */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-          >
-            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upcoming Events</h2>
+        {/* Right (1 col): Today's Goals (Activity Intelligence) */}
+        <DashboardTodayGoals 
+          activity={activity} 
+          onGoalCompleted={() => fetchDashboardData()} 
+        />
+      </div>
+
+      {/* 6. Row 2: Activity This Week + Your Streaks */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left (2 cols): Weekly Activity Chart */}
+        <div className="lg:col-span-2">
+          <DashboardWeeklyActivity activity={activity} />
+        </div>
+
+        {/* Right (1 col): Category and Platform Streaks */}
+        <div className="lg:col-span-1">
+          <DashboardStreaks activity={activity} />
+        </div>
+      </div>
+
+      {/* 7. Row 3: Upcoming Events (Existing) + Quick Actions (Existing) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Upcoming Events */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col justify-between"
+        >
+          <div>
+            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upcoming Events</h2>
+              </div>
+              <Link to="/events" className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                View all →
+              </Link>
             </div>
-            <div className="p-8">
-              <div className="space-y-5">
+            <div className="p-6">
+              <div className="space-y-4">
                 {(!upcomingEvents || upcomingEvents.length === 0) ? (
                   <div className="text-center py-6 text-gray-500 dark:text-gray-400">
                     <Calendar className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                    <p className="text-sm font-medium mb-4">No upcoming events right now.</p>
-                    <Link to="/events" className="inline-block px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-lg text-sm font-bold transition-colors">
+                    <p className="text-sm font-medium mb-3">No upcoming events right now.</p>
+                    <Link to="/events" className="inline-block px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-lg text-sm font-bold transition-colors hover:no-underline">
                       Explore Events
                     </Link>
                   </div>
                 ) : (
                   upcomingEvents.map((event) => (
-                    <motion.div whileHover={{ x: 5 }} key={event.id} className="flex items-start space-x-4 p-2 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors">
+                    <motion.div whileHover={{ x: 5 }} key={event.id} className="flex items-start space-x-4 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors">
                       <div className="flex-shrink-0">
                         <div className="w-3 h-3 bg-primary-500 rounded-full mt-1.5 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
                       </div>
@@ -277,45 +332,52 @@ const DefaultDashboard = () => {
                   ))
                 )}
               </div>
-              <div className="mt-6">
-                <Link to="/events" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-3 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 transition-all duration-300">
-                  View All Events
-                </Link>
+            </div>
+          </div>
+          <div className="p-6 pt-0">
+            <Link to="/events" className="block w-full text-center text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-white py-2.5 border border-primary-200 dark:border-primary-800 rounded-xl hover:bg-primary-600 transition-all duration-300 hover:no-underline">
+              View All Events
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col justify-between"
+        >
+          <div>
+            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
               </div>
             </div>
-          </motion.div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="glass-card rounded-2xl overflow-hidden border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-          >
-            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
-            </div>
-            <div className="p-8">
-              <div className="space-y-4">
+            <div className="p-6">
+              <div className="space-y-3">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
                   return (
-                    <motion.div whileHover={{ scale: 1.02 }} key={action.name}>
+                    <motion.div whileHover={{ scale: 1.01 }} key={action.name}>
                       <Link
                         to={action.href}
-                        className="block w-full text-left px-5 py-4 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition-all duration-300 group shadow-sm"
+                        className="block w-full text-left px-4 py-3 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition-all duration-300 group shadow-sm hover:no-underline"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className={`p-3 rounded-xl bg-${action.color}-100 dark:bg-${action.color}-900/30 group-hover:bg-${action.color}-200 dark:group-hover:bg-${action.color}-800/50 transition-colors`}>
-                              <Icon className={`w-6 h-6 text-${action.color}-600 dark:text-${action.color}-400`} />
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2.5 rounded-xl bg-${action.color}-100 dark:bg-${action.color}-900/30 group-hover:bg-${action.color}-200 dark:group-hover:bg-${action.color}-800/50 transition-colors`}>
+                              <Icon className={`w-5 h-5 text-${action.color}-600 dark:text-${action.color}-400`} />
                             </div>
-                            <div className="flex-1 pr-4">
+                            <div className="flex-1 pr-2">
                               <p className="text-sm font-bold text-gray-900 dark:text-white">{action.name}</p>
                               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{action.description}</p>
                             </div>
                           </div>
-                          <ArrowRight className="w-5 h-5 text-gray-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors shrink-0" />
+                          <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors shrink-0" />
                         </div>
                       </Link>
                     </motion.div>
@@ -323,8 +385,8 @@ const DefaultDashboard = () => {
                 })}
               </div>
             </div>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

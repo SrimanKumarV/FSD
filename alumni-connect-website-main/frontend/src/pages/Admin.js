@@ -857,6 +857,7 @@ const SystemSettingsTab = () => {
   const [specificUsers, setSpecificUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
   const [scheduledFor, setScheduledFor] = useState('');
+  const [sendEmailBroadcast, setSendEmailBroadcast] = useState(true);
 
   // Weekly Engagement Digest State
   const { user: currentUser } = useAuth();
@@ -920,8 +921,8 @@ const SystemSettingsTab = () => {
   const sendNotificationMutation = useMutation(
     (data) => api.post('/admin/notifications', data),
     {
-      onSuccess: () => {
-        toast.success('System notification sent successfully!');
+      onSuccess: (res) => {
+        toast.success(res?.data?.message || 'System notification sent successfully!');
         setTitle('');
         setContent('');
         setSpecificUsers([]);
@@ -930,15 +931,26 @@ const SystemSettingsTab = () => {
         queryClient.invalidateQueries(['notifications']);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to send notification');
+        const msg = error.response?.data?.message || 
+          (error.response?.data?.errors?.length ? error.response.data.errors.map(e => e.msg).join(', ') : null) || 
+          'Failed to send broadcast';
+        toast.error(msg);
       }
     }
   );
 
   const handleSendNotification = (e) => {
     e.preventDefault();
-    if (!title || !content) {
+    if (!title || !title.trim() || !content || !content.trim()) {
       toast.error('Title and content are required');
+      return;
+    }
+    if (title.trim().length < 5) {
+      toast.error('Title must be at least 5 characters');
+      return;
+    }
+    if (content.trim().length < 10) {
+      toast.error('Message body must be at least 10 characters');
       return;
     }
     if (recipients === 'specific' && specificUsers.length === 0) {
@@ -946,12 +958,13 @@ const SystemSettingsTab = () => {
       return;
     }
     sendNotificationMutation.mutate({ 
-      title, 
-      content, 
+      title: title.trim(), 
+      content: content.trim(), 
       type, 
       recipients,
       specificUsers: specificUsers.map(u => u._id),
-      scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : null
+      scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : null,
+      sendEmailBroadcast
     });
   };
 
@@ -1098,6 +1111,19 @@ const SystemSettingsTab = () => {
                 className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 transition-all outline-none"
               />
               <p className="text-xs text-gray-500 mt-1">Leave empty to send immediately.</p>
+            </div>
+
+            <div className="flex items-center space-x-3 bg-white/50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+              <input
+                type="checkbox"
+                id="sendEmailBroadcast"
+                checked={sendEmailBroadcast}
+                onChange={(e) => setSendEmailBroadcast(e.target.checked)}
+                className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500 cursor-pointer"
+              />
+              <label htmlFor="sendEmailBroadcast" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                📧 Also dispatch Email Broadcast via Brevo SMTP to all targeted user mailboxes
+              </label>
             </div>
             
             <button

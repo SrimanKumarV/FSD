@@ -583,7 +583,7 @@ router.get('/analytics', [protect, admin], async (req, res) => {
   }
 });
 
-// @desc    Send system notification
+// @desc    Send system notification & broadcast
 // @route   POST /api/admin/notifications
 // @access  Private (Admin only)
 router.post('/notifications', [protect, admin], [
@@ -593,45 +593,102 @@ router.post('/notifications', [protect, admin], [
   body('recipients').isIn(['all', 'alumni', 'students', 'specific']).withMessage('Invalid recipient type'),
   body('specificUsers').optional().isArray().withMessage('Specific users must be an array'),
   body('priority').optional().isIn(['low', 'normal', 'high', 'urgent']).withMessage('Invalid priority level'),
-  body('scheduledFor').optional({ nullable: true }).isISO8601().withMessage('Invalid schedule date')
+  body('scheduledFor').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Invalid schedule date')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ 
+        message: errors.array().map(e => e.msg).join(', '),
+        errors: errors.array() 
+      });
     }
 
     const {
-      title, content, type, recipients, specificUsers, priority = 'normal', scheduledFor
+      title, content, type, recipients, specificUsers, priority = 'normal', scheduledFor, sendEmailBroadcast = true
     } = req.body;
 
     let targetUsers = [];
     const Message = require('../models/Message');
 
+    const activeQuery = { isActive: { $ne: false } };
+
     switch (recipients) {
       case 'all':
-        targetUsers = await User.find({ isActive: true }).select('_id email name');
+        targetUsers = await User.find(activeQuery).select('_id email name');
         break;
       case 'alumni':
-        targetUsers = await User.find({ role: 'alumni', isActive: true }).select('_id email name');
+        targetUsers = await User.find({ ...activeQuery, role: 'alumni' }).select('_id email name');
         break;
       case 'students':
-        targetUsers = await User.find({ role: 'student', isActive: true }).select('_id email name');
+        targetUsers = await User.find({ ...activeQuery, role: 'student' }).select('_id email name');
         break;
       case 'specific':
         if (!specificUsers || specificUsers.length === 0) {
           return res.status(400).json({ message: 'Specific users required when recipient type is specific' });
         }
-        targetUsers = await User.find({ _id: { $in: specificUsers }, isActive: true }).select('_id email name');
+        targetUsers = await User.find({ _id: { $in: specificUsers }, ...activeQuery }).select('_id email name');
         break;
     }
 
     if (targetUsers.length === 0) {
-      return res.status(400).json({ message: 'No target users found' });
+      return res.status(400).json({ message: 'No target users found for the selected audience' });
     }
 
+    // Helper to send emails asynchronously in background chunks so HTTP request is never blocked
+    const dispatchBroadcastEmails = async (users, emailTitle, emailContent) => {
+      const validRecipients = users.filter(u => u.email && u.email.includes('@'));
+      console.log(`[Broadcast] Dispatching background emails to ${validRecipients.length} recipients...`);
+
+      const portalUrl = (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0].trim() : 'https://alumnex-connect.onrender.com');
+      const CHUNK_SIZE = 3;
+
+      for (let i = 0; i < validRecipients.length; i += CHUNK_SIZE) {
+        const chunk = validRecipients.slice(i, i + CHUNK_SIZE);
+        await Promise.allSettled(chunk.map(async (user) => {
+          try {
+            await sendEmail({
+              email: user.email,
+              subject: emailTitle,
+              message: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
+                  <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
+                    <h2 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">Alumnex Connect Notification</h2>
+                  </div>
+                  <div style="background-color: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                    <p style="font-size: 16px; margin-top: 0;">Hello <strong>${user.name || 'Alumnex Member'}</strong>,</p>
+                    <p style="color: #4b5563; font-size: 14px;">We have an important announcement for you:</p>
+                    <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 16px; border-radius: 6px; margin: 20px 0;">
+                      <h3 style="margin-top: 0; color: #1e1b4b; font-size: 18px;">${emailTitle}</h3>
+                      <p style="color: #334155; margin-bottom: 0; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${emailContent}</p>
+                    </div>
+                    <p style="margin-top: 24px; text-align: center;">
+                      <a href="${portalUrl}" 
+                         style="display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                        Open Alumnex Portal
+                      </a>
+                    </p>
+                    <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;" />
+                    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">This is an automated system announcement from Alumnex Connect. Please do not reply directly to this email.</p>
+                  </div>
+                </div>
+              `
+            });
+          } catch (emailErr) {
+            console.error(`[Broadcast] Failed to email ${user.email}:`, emailErr.message);
+          }
+        }));
+
+        // Gentle delay between batches to respect SMTP/API rate limits
+        if (i + CHUNK_SIZE < validRecipients.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+      console.log(`[Broadcast] Finished sending background emails.`);
+    };
+
     const executeBroadcast = async () => {
-      // Create bulk notifications
+      // 1. Create bulk in-app notifications
       const notifications = targetUsers.map(user => ({
         recipient: user._id,
         sender: req.user.id,
@@ -642,14 +699,17 @@ router.post('/notifications', [protect, admin], [
         relatedData: { data: { notificationType: type } }
       }));
 
-      // Batch insert notifications in chunks to avoid large write issues
       const BATCH_SIZE = 100;
       for (let i = 0; i < notifications.length; i += BATCH_SIZE) {
         const batch = notifications.slice(i, i + BATCH_SIZE);
-        await Notification.insertMany(batch, { ordered: false });
+        try {
+          await Notification.insertMany(batch, { ordered: false });
+        } catch (batchErr) {
+          console.warn('[Broadcast] In-app notification batch warning:', batchErr.message);
+        }
       }
 
-      // Also send as an Inbox Message to every user (exclude admin themselves)
+      // 2. Also send as an Inbox Message to every user (exclude admin themselves)
       const adminId = req.user.id.toString();
       const messageRecipients = targetUsers.filter(u => u._id.toString() !== adminId);
 
@@ -665,42 +725,24 @@ router.post('/notifications', [protect, admin], [
           };
         });
 
-        // Batch insert messages in chunks
         for (let i = 0; i < messages.length; i += BATCH_SIZE) {
           const batch = messages.slice(i, i + BATCH_SIZE);
-          await Message.insertMany(batch, { ordered: false });
+          try {
+            await Message.insertMany(batch, { ordered: false });
+          } catch (batchErr) {
+            console.warn('[Broadcast] Inbox message batch warning:', batchErr.message);
+          }
         }
       }
 
-      // Send emails asynchronously only for feature updates or announcements
-      // Do not send for maintenance (bug fixes) or warnings
-      if (type === 'update' || type === 'announcement') {
-        for (const user of targetUsers) {
-          if (user.email) {
-            try {
-              await sendEmail({
-                email: user.email,
-                subject: title,
-                message: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2 style="color: #4f46e5;">Alumnex Connect Notification</h2>
-                  <p>Hello ${user.name || 'User'},</p>
-                  <p>We have a new update for you:</p>
-                  <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h3 style="margin-top: 0; color: #1f2937;">${title}</h3>
-                    <p style="color: #4b5563; margin-bottom: 0; white-space: pre-wrap;">${content}</p>
-                  </div>
-                  <p>Log in to <a href="${(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0].trim() : 'https://alumnex-connect.onrender.com')}">your portal</a> to view more details.</p>
-                  <br/>
-                  <p style="font-size: 12px; color: #9ca3af;">This is an automated message, please do not reply.</p>
-                </div>
-              `
-              });
-            } catch (emailErr) {
-              console.error(`[Broadcast] Failed to email ${user.email}:`, emailErr.message);
-            }
-          }
-        }
+      // 3. Dispatch emails asynchronously in background if requested or announcement/update
+      const shouldEmail = sendEmailBroadcast !== false && (type === 'announcement' || type === 'update' || sendEmailBroadcast === true);
+      if (shouldEmail) {
+        setImmediate(() => {
+          dispatchBroadcastEmails(targetUsers, title, content).catch(err => {
+            console.error('[Broadcast] Background email dispatch error:', err);
+          });
+        });
       }
     };
 
@@ -711,6 +753,7 @@ router.post('/notifications', [protect, admin], [
           executeBroadcast().catch(err => console.error('Error executing scheduled broadcast:', err));
         }, delay);
         return res.json({ 
+          success: true,
           message: `System notification scheduled for ${new Date(scheduledFor).toLocaleString()}`,
           sentCount: targetUsers.length
         });
@@ -719,8 +762,13 @@ router.post('/notifications', [protect, admin], [
 
     await executeBroadcast();
 
+    const emailNote = (sendEmailBroadcast !== false && (type === 'announcement' || type === 'update' || sendEmailBroadcast === true))
+      ? ' and emails queued for delivery'
+      : '';
+
     res.json({ 
-      message: `System notification sent to ${targetUsers.length} users`,
+      success: true,
+      message: `System notification sent to ${targetUsers.length} users${emailNote}!`,
       sentCount: targetUsers.length
     });
   } catch (error) {

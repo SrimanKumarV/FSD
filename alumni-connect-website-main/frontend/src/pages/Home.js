@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import NetworkBackground from '../components/NetworkBackground';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Users, 
   Briefcase, 
@@ -18,6 +19,14 @@ import {
 } from 'lucide-react';
 
 const Home = () => {
+  const { forceDarkMode, releaseDarkMode } = useTheme();
+
+  // Always force dark mode on the landing page
+  useEffect(() => {
+    forceDarkMode();
+    return () => releaseDarkMode();
+  }, [forceDarkMode, releaseDarkMode]);
+
   const features = [
     {
       icon: <Users className="w-8 h-8 text-alumni-500" />,

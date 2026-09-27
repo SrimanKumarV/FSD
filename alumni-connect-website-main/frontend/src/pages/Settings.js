@@ -265,19 +265,39 @@ const Settings = () => {
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 w-full">
+                {/* DC Light — now the default light theme */}
+                <button
+                  onClick={() => changeTheme('designcode-light')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all relative ${theme === 'designcode-light' ? 'border-[#7B61FF] bg-purple-50 dark:bg-purple-900/20 ring-2 ring-[#7B61FF]/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #7B61FF, #C9E4FF)'}}></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Light</span>
+                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#7B61FF] text-white">★</span>
+                </button>
+                {/* DC Dark — now the default dark theme */}
+                <button
+                  onClick={() => changeTheme('designcode-dark')}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all relative ${theme === 'designcode-dark' ? 'border-[#7B61FF] bg-purple-900/20 ring-2 ring-[#7B61FF]/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #2D1B69, #7B61FF)'}}></div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Dark</span>
+                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#7B61FF] text-white">★</span>
+                </button>
+                {/* Classic Light (previously "Default Light") */}
                 <button
                   onClick={() => changeTheme('light')}
                   className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'light' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                 >
                   <Sun className="w-6 h-6 text-yellow-500" />
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Light</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Classic Light</span>
                 </button>
+                {/* Classic Dark (previously "Default Dark") */}
                 <button
                   onClick={() => changeTheme('dark')}
                   className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'dark' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                 >
                   <Moon className="w-6 h-6 text-blue-400" />
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Dark</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Classic Dark</span>
                 </button>
                 <button
                   onClick={() => changeTheme('minimalist-light')}
@@ -313,20 +333,6 @@ const Settings = () => {
                 >
                    <div className="w-6 h-6 border-[3px] border-gray-900 bg-[#006FEE] rounded-2xl shadow-sm"></div>
                   <span className="text-xs font-medium text-gray-900 dark:text-white text-center">HeroUI Dark</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('designcode-light')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'designcode-light' ? 'border-[#7B61FF] bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #7B61FF, #C9E4FF)'}}></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">DC Light</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('designcode-dark')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'designcode-dark' ? 'border-[#7B61FF] bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #2D1B69, #7B61FF)'}}></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">DC Dark</span>
                 </button>
                 <button
                    onClick={() => setStitchModalOpen(true)}

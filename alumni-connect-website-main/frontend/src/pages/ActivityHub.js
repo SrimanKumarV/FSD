@@ -13,11 +13,10 @@ import {
   RefreshCw,
   Plus,
   ChevronRight,
-  Shield,
+  ChevronDown,
   ShieldCheck,
   AlertTriangle,
   Trophy,
-  ExternalLink,
   Edit3,
   Trash2,
   Calendar,
@@ -25,12 +24,11 @@ import {
   Loader2,
   Sparkles,
   ArrowRight,
-  Info,
-  Filter,
   Code,
   BookOpen,
   Globe,
-  TrendingUp
+  TrendingUp,
+  X
 } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,13 +77,15 @@ const ActivityHub = () => {
   const [refreshingPlatform, setRefreshingPlatform] = useState(null);
   const [isSyncingAll, setIsSyncingAll] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState(null);
+  const [showMobileMore, setShowMobileMore] = useState(false);
+  const [tzMismatchDismissed, setTzMismatchDismissed] = useState(false);
 
   // Tab Filtering states
   const [todayFilter, setTodayFilter] = useState('all'); // 'all', 'pending', 'completed'
-  const [goalCategoryFilter, setGoalCategoryFilter] = useState('all');
 
   const handleTabChange = (tabId) => {
     setSearchParams({ tab: tabId });
+    setShowMobileMore(false);
   };
 
   // ─── DATA FETCHING ──────────────────────────────────────────
@@ -254,16 +254,33 @@ const ActivityHub = () => {
 
   // ─── TABS DEFINITION ────────────────────────────────────────
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: Zap },
-    { id: 'today', label: "Today's Plan", icon: CheckCircle2 },
-    { id: 'streaks', label: 'Streaks', icon: Flame },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'goals', label: 'Goals', icon: Target },
-    { id: 'platforms', label: 'Platforms', icon: Link2 },
-    { id: 'timeline', label: 'Timeline', icon: Clock },
-    { id: 'settings', label: 'Settings', icon: Settings },
+  const allTabs = [
+    { id: 'overview', label: 'Overview', icon: Zap, desc: 'Personal momentum briefing and daily rhythm' },
+    { id: 'today', label: "Today's Plan", icon: CheckCircle2, desc: 'Daily focus, priorities and habit completion' },
+    { id: 'streaks', label: 'Streaks', icon: Flame, desc: 'Streak intelligence, milestones and protection' },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, desc: 'Consistency index, habit trends and yearly calendar' },
+    { id: 'goals', label: 'Goals', icon: Target, desc: 'Create and manage habit goals and targets' },
+    { id: 'platforms', label: 'Platforms', icon: Link2, desc: 'Connected accounts and synchronization' },
+    { id: 'timeline', label: 'Timeline', icon: Clock, desc: 'Full audit trail of verified activity events' },
+    { id: 'settings', label: 'Settings', icon: Settings, desc: 'Timezone, reminders, quiet hours and data controls' },
   ];
+
+  const primaryMobileTabs = [
+    { id: 'overview', label: 'Overview', icon: Zap },
+    { id: 'today', label: 'Today', icon: CheckCircle2 },
+    { id: 'streaks', label: 'Streaks', icon: Flame },
+  ];
+
+  const secondaryTabs = [
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, desc: 'Consistency index, habit trends & heatmap' },
+    { id: 'goals', label: 'Goals', icon: Target, desc: 'Create and manage habit goals & targets' },
+    { id: 'platforms', label: 'Platforms', icon: Link2, desc: 'Connected accounts & synchronization' },
+    { id: 'timeline', label: 'Timeline', icon: Clock, desc: 'Full chronological audit trail of verified activity' },
+    { id: 'settings', label: 'Settings', icon: Settings, desc: 'Timezone, reminders, quiet hours & data controls' },
+  ];
+
+  const isSecondaryTabActive = secondaryTabs.some(t => t.id === activeTab);
+  const activeSecondaryTab = secondaryTabs.find(t => t.id === activeTab);
 
   // ─── DERIVED VALUES FOR TODAY'S PLAN ────────────────────────
 
@@ -283,7 +300,7 @@ const ActivityHub = () => {
   const totalTodayCount = todayGoalsList.length;
   const todayProgressPercent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
 
-  // Top Priority Goal for Overview
+  // Top Priority Goal
   const topPriorityGoal = useMemo(() => {
     return todayGoalsList.find(g => !g.completedToday) || todayGoalsList[0] || null;
   }, [todayGoalsList]);
@@ -309,20 +326,173 @@ const ActivityHub = () => {
     }).sort((a, b) => b.current - a.current);
   }, [dashboard]);
 
-  // Current Local Date String
-  const currentDateFormatted = useMemo(() => {
+  // Current Local Date Formats
+  const { currentDateFormatted, currentDateShort } = useMemo(() => {
+    const tz = preferences?.timezone || 'Asia/Kolkata';
     try {
-      const tz = preferences?.timezone || 'Asia/Kolkata';
-      return new Intl.DateTimeFormat('en-US', {
+      const full = new Intl.DateTimeFormat('en-US', {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
         timeZone: tz
       }).format(new Date());
+
+      const short = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        timeZone: tz
+      }).format(new Date());
+
+      return { currentDateFormatted: full, currentDateShort: short };
     } catch {
-      return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      return {
+        currentDateFormatted: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+        currentDateShort: new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      };
     }
   }, [preferences?.timezone]);
+
+  // Timezone Mismatch Detection (Prompt #27)
+  const detectedTz = useMemo(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const showTzMismatchBanner = useMemo(() => {
+    if (tzMismatchDismissed) return false;
+    if (!preferences?.timezone || !detectedTz) return false;
+    return preferences.timezone !== detectedTz;
+  }, [preferences?.timezone, detectedTz, tzMismatchDismissed]);
+
+  // ─── DATA-DRIVEN PERSONALIZATION ENGINE ──────────────────────
+
+  const personalization = useMemo(() => {
+    const firstName = user?.name ? user.name.trim().split(' ')[0] : 'Friend';
+
+    // Local hour calculation for greeting based on user's timezone
+    let hour = new Date().getHours();
+    try {
+      const tz = preferences?.timezone || 'Asia/Kolkata';
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        hour12: false,
+        timeZone: tz
+      });
+      hour = parseInt(formatter.format(new Date()), 10);
+    } catch {
+      hour = new Date().getHours();
+    }
+
+    let greetingTime = 'Good day';
+    let greetingIcon = '👋';
+    if (hour >= 5 && hour < 12) {
+      greetingTime = 'Good morning';
+      greetingIcon = '☀️';
+    } else if (hour >= 12 && hour < 17) {
+      greetingTime = 'Good afternoon';
+      greetingIcon = '👋';
+    } else if (hour >= 17 && hour < 22) {
+      greetingTime = 'Good evening';
+      greetingIcon = '🌙';
+    } else {
+      greetingTime = 'Late night focus';
+      greetingIcon = '✨';
+    }
+    const greeting = `${greetingTime}, ${firstName} ${greetingIcon}`;
+
+    const currentStreak = dashboard?.overallStreak?.current ?? 0;
+    const longestStreak = dashboard?.overallStreak?.longest ?? 0;
+    const isProtectedToday = dashboard?.overallStreak?.activeToday ?? false;
+    const isAtRisk = dashboard?.overallStreak?.atRisk ?? false;
+    const nextMilestone = dashboard?.overallStreak?.milestones?.next || 7;
+
+    const pendingGoals = todayGoalsList.filter(g => !g.completedToday);
+    const completedGoals = todayGoalsList.filter(g => g.completedToday);
+    const allCompleted = todayGoalsList.length > 0 && pendingGoals.length === 0;
+
+    // Contextual Today message (Prompt #11, #13)
+    let todaySentence = '';
+    if (allCompleted) {
+      todaySentence = `You're done for today, ${firstName}. All ${completedGoals.length} goals completed and your streak is protected.`;
+    } else if (isAtRisk || pendingGoals.some(g => g.atRisk)) {
+      todaySentence = `Your ${rankedCategories[0]?.name?.toLowerCase() || 'activity'} streak needs attention before your activity day ends.`;
+    } else if (currentStreak > 0) {
+      if (isProtectedToday) {
+        todaySentence = `You're on a ${currentStreak}-day run, ${firstName}. Momentum is locked in for today.`;
+      } else {
+        todaySentence = `You're on a ${currentStreak}-day run, ${firstName}. One more completed activity keeps it alive.`;
+      }
+    } else if (todayGoalsList.length === 0) {
+      todaySentence = 'Set your first goal or connect a platform to start tracking momentum.';
+    } else {
+      todaySentence = 'Your activity journey starts today. Complete one action to build your streak.';
+    }
+
+    // Dynamic Momentum Insight (Prompt #44)
+    const platforms = dashboard?.integrations?.platforms || [];
+    const topPlatform = [...platforms].sort((a, b) => (b.currentStreak || 0) - (a.currentStreak || 0))[0];
+    const topCategory = rankedCategories.find(c => c.current > 0) || rankedCategories[0];
+
+    let insightText = '';
+    if (dashboard?.insights?.[0]?.message) {
+      insightText = dashboard.insights[0].message;
+    } else if (topPlatform && (topPlatform.currentStreak || 0) > 0) {
+      insightText = `Your ${topPlatform.platform} streak is currently your strongest platform at ${topPlatform.currentStreak} days.`;
+    } else if (topCategory && topCategory.current > 0) {
+      insightText = `${topCategory.name} is currently your strongest activity area. Keep it going to reach your next milestone.`;
+    } else if (dashboard?.weekly?.activeDaysCount > 0) {
+      insightText = `You've been active ${dashboard.weekly.activeDaysCount} of 7 days this week.`;
+    } else {
+      insightText = 'Connecting developer accounts automatically verifies your daily progress without manual logging.';
+    }
+
+    // Next Best Action (Prompt #45)
+    let nextAction = null;
+    if (todayGoalsList.length === 0) {
+      nextAction = {
+        label: 'Create your first goal →',
+        handler: () => {
+          setEditingGoal(null);
+          setShowGoalModal(true);
+        }
+      };
+    } else if (pendingGoals.length > 0) {
+      const priority = pendingGoals[0];
+      nextAction = {
+        label: `Complete ${priority.title} →`,
+        handler: () => handleTabChange('today')
+      };
+    } else {
+      nextAction = {
+        label: `All goals done ✓ Next milestone: ${nextMilestone}-day streak`,
+        handler: () => handleTabChange('streaks')
+      };
+    }
+
+    // Weekly active summary
+    const weeklyDays = dashboard?.weekly?.days || [];
+    const weeklyActiveDays = dashboard?.weekly?.activeDaysCount ?? weeklyDays.filter(d => d.active).length;
+
+    return {
+      firstName,
+      greeting,
+      todaySentence,
+      currentStreak,
+      longestStreak,
+      isProtectedToday,
+      isAtRisk,
+      nextMilestone,
+      allCompleted,
+      insightText,
+      nextAction,
+      weeklyDays,
+      weeklyActiveDays
+    };
+  }, [user?.name, preferences?.timezone, dashboard, todayGoalsList, rankedCategories]);
 
   // ─── LOADING STATE ──────────────────────────────────────────
 
@@ -338,12 +508,49 @@ const ActivityHub = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      {/* ── TOP HEADER / OPERATING SYSTEM SHELL ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200/50 dark:border-gray-800">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-6 space-y-4 sm:space-y-6 pb-32 lg:pb-12 min-w-0">
+      {/* ── MOBILE COMPACT HEADER (sm:hidden) ── */}
+      <div className="sm:hidden flex items-center justify-between gap-2 pb-3 border-b border-gray-200/50 dark:border-gray-800">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 text-gray-900 dark:text-white font-black text-lg">
+            <Zap className="w-5 h-5 text-amber-500 fill-amber-500 flex-shrink-0" />
+            <span className="truncate">Activity Hub</span>
+          </div>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+            Today • {currentDateShort}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={handleSyncAll}
+            disabled={isSyncingAll}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold active:scale-95 transition-all shadow-sm"
+            title="Scan connected accounts"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin text-indigo-500' : ''}`} />
+            <span>{isSyncingAll ? '...' : 'Sync'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setEditingGoal(null);
+              setShowGoalModal(true);
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-600/20"
+            title="Create Goal"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Goal</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── DESKTOP RICH HEADER (hidden sm:flex) ── */}
+      <div className="hidden sm:flex sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/50 dark:border-gray-800">
         <div>
-          <h1 className="text-xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2 sm:gap-2.5">
-            <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500 fill-amber-500 flex-shrink-0" />
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
+            <Zap className="w-7 h-7 text-amber-500 fill-amber-500 flex-shrink-0" />
             <span>Activity Intelligence</span>
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
@@ -351,12 +558,11 @@ const ActivityHub = () => {
           </p>
         </div>
 
-        {/* Action Buttons: 2-column grid on mobile, flex on desktop */}
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={handleSyncAll}
             disabled={isSyncingAll}
-            className="flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all active:scale-95 shadow-sm"
             title="Scan connected accounts for new activity"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin text-indigo-500' : ''}`} />
@@ -368,13 +574,56 @@ const ActivityHub = () => {
               setEditingGoal(null);
               setShowGoalModal(true);
             }}
-            className="flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>New Goal</span>
           </button>
         </div>
       </div>
+
+      {/* ── TIMEZONE MISMATCH BANNER (Prompt #27) ── */}
+      {showTzMismatchBanner && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3.5 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+        >
+          <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+            <Globe className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+            <div className="min-w-0">
+              <span className="font-bold text-gray-900 dark:text-white">Device timezone detected: </span>
+              <span className="text-gray-600 dark:text-gray-300">
+                Your device appears to be in <strong>{detectedTz}</strong>, while Activity Hub uses <strong>{preferences?.timezone}</strong>.
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <button
+              onClick={() => setTzMismatchDismissed(true)}
+              className="px-2.5 py-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-semibold text-xs"
+            >
+              Keep Current
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await api.put('/activity/preferences', { timezone: detectedTz });
+                  toast.success(`Timezone updated to ${detectedTz}`);
+                  fetchPreferences();
+                  fetchDashboard();
+                  setTzMismatchDismissed(true);
+                } catch {
+                  toast.error('Failed to update timezone');
+                }
+              }}
+              className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm"
+            >
+              Update to {detectedTz}
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Sync Feedback Banner (Contextual) */}
       {syncFeedback && (
@@ -398,31 +647,65 @@ const ActivityHub = () => {
         </motion.div>
       )}
 
-      {/* ── MOBILE VIEW: ACTIVE TAB INDICATOR PILL ── */}
-      <div className="sm:hidden flex items-center justify-between px-3.5 py-2 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 text-xs font-bold text-indigo-700 dark:text-indigo-300">
-        <div className="flex items-center gap-2">
-          {React.createElement(tabs.find(t => t.id === activeTab)?.icon || Zap, { className: 'w-4 h-4 text-indigo-600 dark:text-indigo-400' })}
-          <span>Current Tab: {tabs.find(t => t.id === activeTab)?.label || 'Overview'}</span>
-        </div>
-        <span className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wider">Swipe tabs ↔</span>
-      </div>
-
-      {/* ── NAVIGATION RAIL (8 TABS) ── */}
-      <div className="flex gap-1.5 p-1 sm:p-1.5 bg-gray-100 dark:bg-gray-800/60 rounded-2xl overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
-        {tabs.map(t => {
+      {/* ── MOBILE NAVIGATION: 4-TAB BAR (Prompt #7) ── */}
+      <div className="sm:hidden grid grid-cols-4 gap-1 p-1 bg-gray-100 dark:bg-gray-800/70 rounded-2xl">
+        {primaryMobileTabs.map(t => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => handleTabChange(t.id)}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
                 isActive
                   ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Icon className="w-4 h-4 mb-0.5" />
+              <span className="truncate max-w-full">{t.label}</span>
+            </button>
+          );
+        })}
+
+        {/* 4th Tab: "More ▾" */}
+        <button
+          onClick={() => setShowMobileMore(!showMobileMore)}
+          className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
+            isSecondaryTabActive
+              ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-0.5 mb-0.5">
+            {isSecondaryTabActive && activeSecondaryTab ? (
+              React.createElement(activeSecondaryTab.icon, { className: 'w-4 h-4' })
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </div>
+          <span className="truncate max-w-full">
+            {isSecondaryTabActive && activeSecondaryTab ? activeSecondaryTab.label : 'More'} ▾
+          </span>
+        </button>
+      </div>
+
+      {/* ── DESKTOP NAVIGATION: 8-TAB HORIZONTAL RAIL ── */}
+      <div className="hidden sm:flex gap-1.5 p-1.5 bg-gray-100 dark:bg-gray-800/60 rounded-2xl overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
+        {allTabs.map(t => {
+          const Icon = t.icon;
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => handleTabChange(t.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                isActive
+                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
               <span>{t.label}</span>
             </button>
           );
@@ -433,136 +716,204 @@ const ActivityHub = () => {
           TAB 1: OVERVIEW — PERSONAL ACTIVITY CONTROL CENTER
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'overview' && (
-        <div className="space-y-6">
-          {/* Section: Today Hero & Progress */}
-          <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 bg-gradient-to-br from-indigo-900/10 via-purple-900/5 to-transparent">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Personal Activity Pulse</span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
-                  Good day, {user?.name?.split(' ')[0] || 'Friend'} 👋
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl">
-                  {dashboard?.overallStreak?.current > 0
-                    ? `Your activity is on track. ${dashboard?.overallStreak?.current}-day momentum is building.`
-                    : 'Start your daily consistency today. Every verified action builds momentum.'}
-                </p>
+        <div className="space-y-4 sm:space-y-6">
+          {/* ── MOBILE-FIRST OVERVIEW BRIEFING (md:hidden) (Prompt #10, #60) ── */}
+          <div className="md:hidden space-y-4">
+            {/* 1. Identity & Contextual Greeting */}
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold">
+                <Sparkles className="w-3 h-3 text-amber-500" />
+                <span>Activity Intelligence</span>
+              </div>
+              <h2 className="text-xl font-black text-gray-900 dark:text-white">
+                {personalization.greeting}
+              </h2>
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                {personalization.todaySentence}
+              </p>
+            </div>
 
-                <div className="flex items-center gap-3 pt-2">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-black">
-                    <Flame className="w-4 h-4 fill-amber-500" />
-                    <span>{dashboard?.overallStreak?.current || 0} day streak</span>
-                  </div>
-                  <span className="text-xs text-gray-400">
-                    Best: {dashboard?.overallStreak?.longest || 0} days
+            {/* 2. Next Best Action Banner (Prompt #45) */}
+            {personalization.nextAction && (
+              <button
+                onClick={personalization.nextAction.handler}
+                className="w-full p-3 rounded-xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 border border-indigo-500/30 flex items-center justify-between text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:border-indigo-500/50 active:scale-98 transition-all"
+              >
+                <span className="truncate">{personalization.nextAction.label}</span>
+                <ArrowRight className="w-4 h-4 flex-shrink-0 ml-2" />
+              </button>
+            )}
+
+            {/* 3. Current Streak Hero Card */}
+            <div className="p-4 rounded-2xl glass-card border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <Flame className="w-6 h-6 text-amber-500 fill-amber-500 animate-pulse" />
+                  <span className="text-3xl font-black text-gray-900 dark:text-white">
+                    {personalization.currentStreak}
+                  </span>
+                  <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
+                    {personalization.currentStreak === 1 ? 'DAY' : 'DAYS'}
                   </span>
                 </div>
+                <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mt-1">Current streak</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  {personalization.isProtectedToday ? '✓ Protected for today' : 'Keep it alive today.'}
+                </p>
               </div>
 
-              {/* Today's Progress Box */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 w-full lg:w-auto lg:min-w-[260px] space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-600 dark:text-gray-300">Today's Progress</span>
-                  <span className="font-extrabold text-indigo-600 dark:text-indigo-400">
-                    {completedTodayCount} / {totalTodayCount} goals
-                  </span>
-                </div>
-
-                <div className="w-full bg-gray-100 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${todayProgressPercent}%` }}
-                    transition={{ duration: 0.7 }}
-                    className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full"
-                  />
-                </div>
-
-                <button
-                  onClick={() => handleTabChange('today')}
-                  className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95"
-                >
-                  <span>Continue Today's Plan</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+              <div className="text-right">
+                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">All-Time Best</span>
+                <p className="text-base font-black text-gray-900 dark:text-white">
+                  🏆 {personalization.longestStreak}d
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Section: This Week Consistency (Sunday first) */}
-          <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-indigo-500" />
-                  <span>This Week Consistency</span>
+            {/* 4. TODAY'S PROGRESS */}
+            <div className="space-y-3 p-4 rounded-2xl glass-card border border-gray-200/50 dark:border-gray-800">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Today's Progress
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  Daily activity rhythm starting on Sunday
-                </p>
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                  {completedTodayCount} / {totalTodayCount} completed
+                </span>
               </div>
+
+              <div className="w-full bg-gray-100 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
+                <div
+                  style={{ width: `${todayProgressPercent}%` }}
+                  className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-500"
+                />
+              </div>
+
+              {/* Priority Goal Card */}
+              {topPriorityGoal ? (
+                <div className="p-3 rounded-xl bg-white dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        onClick={() => !topPriorityGoal.completedToday && handleCompleteGoal(topPriorityGoal._id || topPriorityGoal.id)}
+                        disabled={topPriorityGoal.completedToday}
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          topPriorityGoal.completedToday
+                            ? 'bg-emerald-500 text-white'
+                            : 'border-2 border-indigo-400 text-transparent hover:text-indigo-600'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </button>
+                      <span className={`text-sm font-bold truncate ${topPriorityGoal.completedToday ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                        {topPriorityGoal.title}
+                      </span>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-shrink-0">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>Verified</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-0.5">
+                    <span>{topPriorityGoal.target || '1 activity'} • {topPriorityGoal.estimatedMinutes || 20}m</span>
+                    {(topPriorityGoal.currentStreak || 0) > 0 && (
+                      <span className="flex items-center gap-1 text-amber-500 font-bold">
+                        <Flame className="w-3 h-3 fill-amber-500" />
+                        {topPriorityGoal.currentStreak}d streak
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40 text-center text-xs text-gray-400">
+                  No active goals scheduled for today.
+                </div>
+              )}
+
               <button
-                onClick={() => handleTabChange('analytics')}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                onClick={() => handleTabChange('today')}
+                className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-all"
               >
-                <span>Full Analytics</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <span>Continue Today's Plan</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <WeeklyActivityChart weeklyData={dashboard?.weekly} onDayClick={() => handleTabChange('analytics')} />
-          </div>
-
-          {/* 2-Column: Current Momentum Areas & Today's Priority */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left: Ranked Momentum Areas */}
-            <div className="lg:col-span-6 glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+            {/* 5. THIS WEEK (Rhythm starting on Sunday) */}
+            <div className="space-y-2.5 p-4 rounded-2xl glass-card border border-gray-200/50 dark:border-gray-800">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-amber-500" />
-                  <span>Current Momentum</span>
-                </h3>
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  This Week
+                </span>
+                <span className="text-xs font-bold text-gray-900 dark:text-white">
+                  {personalization.weeklyActiveDays} of 7 days active
+                </span>
+              </div>
+
+              {/* 7 Day dots starting on Sunday */}
+              <div className="grid grid-cols-7 gap-1 pt-2 text-center">
+                {personalization.weeklyDays.map((d, idx) => (
+                  <div key={d.date || idx} className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] font-bold text-gray-400">
+                      {d.dayName?.slice(0, 3) || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][idx]}
+                    </span>
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                        d.active
+                          ? 'bg-emerald-500 text-white shadow-sm'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
+                      }`}
+                    >
+                      {d.active ? '●' : '○'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 6. YOUR MOMENTUM (Zero-noise formatting! Prompt #30) */}
+            <div className="space-y-2.5 p-4 rounded-2xl glass-card border border-gray-200/50 dark:border-gray-800">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Your Momentum
+                </span>
                 <button
                   onClick={() => handleTabChange('streaks')}
-                  className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                  className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
-                  <span>Streak Center</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  View All
                 </button>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {rankedCategories.map(cat => {
                   const Icon = cat.icon;
+                  const hasStreak = cat.current > 0;
                   return (
                     <div
                       key={cat.key}
-                      className="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between gap-3"
+                      className="p-2.5 rounded-xl bg-gray-50/70 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between"
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2">
                         <div className={`p-1.5 rounded-lg ${cat.color}`}>
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-3.5 h-3.5" />
                         </div>
-                        <div>
-                          <span className="text-xs font-bold text-gray-900 dark:text-white block">
-                            {cat.name}
-                          </span>
-                          <span className="text-[11px] text-gray-400">
-                            {cat.activeToday ? 'Active today' : cat.current > 0 ? 'Pending today' : 'Not started'}
-                          </span>
-                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">
+                          {cat.name}
+                        </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {cat.current > 0 ? (
-                          <span className="flex items-center gap-1 text-xs font-extrabold text-amber-500">
+                      <div>
+                        {hasStreak ? (
+                          <span className="flex items-center gap-1 text-xs font-black text-amber-500">
                             <Flame className="w-3.5 h-3.5 fill-amber-500" />
-                            {cat.current} days
+                            {cat.current} day{cat.current === 1 ? '' : 's'}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400 font-semibold">— 0 days</span>
+                          <span className="text-[11px] text-gray-400 font-semibold">
+                            Not started
+                          </span>
                         )}
                       </div>
                     </div>
@@ -571,111 +922,302 @@ const ActivityHub = () => {
               </div>
             </div>
 
-            {/* Right: Today's Priority & Behavioral Insights */}
-            <div className="lg:col-span-6 space-y-6">
-              {/* Today's Priority Card */}
-              <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-                    <span>Today's Priority</span>
-                  </h3>
+            {/* 7. MOMENTUM INSIGHT (Prompt #44) */}
+            <div className="p-4 rounded-2xl glass-card border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Momentum Insight</span>
+              </div>
+              <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                {personalization.insightText}
+              </p>
+              <button
+                onClick={() => handleTabChange('streaks')}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline pt-1 block"
+              >
+                View Streaks & Milestones →
+              </button>
+            </div>
+
+            {/* 8. RECENT ACTIVITY (Prompt #22) */}
+            <div className="space-y-3 p-4 rounded-2xl glass-card border border-gray-200/50 dark:border-gray-800">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Recent Activity
+                </span>
+                <button
+                  onClick={() => handleTabChange('timeline')}
+                  className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  View Timeline
+                </button>
+              </div>
+
+              {(dashboard?.recentActivity || []).length > 0 ? (
+                <div className="space-y-2.5">
+                  {dashboard.recentActivity.slice(0, 3).map((act, idx) => (
+                    <div key={act.id || idx} className="flex items-start gap-2.5 text-xs">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-bold text-gray-900 dark:text-white block truncate">
+                          {act.title}
+                        </span>
+                        <span className="text-[11px] text-gray-400">
+                          {act.verified ? 'Verified Activity' : 'Platform Event'} • {act.date || 'Today'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">No recent activity detected yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* ── DESKTOP RICH OVERVIEW (hidden md:block) ── */}
+          <div className="hidden md:block space-y-6">
+            {/* Section: Today Hero & Progress */}
+            <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 bg-gradient-to-br from-indigo-900/10 via-purple-900/5 to-transparent">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Personal Activity Pulse</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+                    {personalization.greeting}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl">
+                    {personalization.todaySentence}
+                  </p>
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-black">
+                      <Flame className="w-4 h-4 fill-amber-500" />
+                      <span>{personalization.currentStreak} day streak</span>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      Best: {personalization.longestStreak} days
+                    </span>
+                  </div>
+                </div>
+
+                {/* Today's Progress Box */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 w-full lg:w-auto lg:min-w-[260px] space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-600 dark:text-gray-300">Today's Progress</span>
+                    <span className="font-extrabold text-indigo-600 dark:text-indigo-400">
+                      {completedTodayCount} / {totalTodayCount} goals
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${todayProgressPercent}%` }}
+                      transition={{ duration: 0.7 }}
+                      className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full"
+                    />
+                  </div>
+
                   <button
                     onClick={() => handleTabChange('today')}
+                    className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95"
+                  >
+                    <span>Continue Today's Plan</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Section: This Week Consistency (Sunday first) */}
+            <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-indigo-500" />
+                    <span>This Week Consistency</span>
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Daily activity rhythm starting on Sunday
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleTabChange('analytics')}
+                  className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                >
+                  <span>Full Analytics</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <WeeklyActivityChart weeklyData={dashboard?.weekly} onDayClick={() => handleTabChange('analytics')} />
+            </div>
+
+            {/* 2-Column: Current Momentum Areas & Today's Priority */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left: Ranked Momentum Areas */}
+              <div className="lg:col-span-6 glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-amber-500" />
+                    <span>Current Momentum</span>
+                  </h3>
+                  <button
+                    onClick={() => handleTabChange('streaks')}
                     className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
                   >
-                    <span>View Full Plan</span>
+                    <span>Streak Center</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {topPriorityGoal ? (
-                  <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => !topPriorityGoal.completedToday && handleCompleteGoal(topPriorityGoal._id || topPriorityGoal.id)}
-                        disabled={topPriorityGoal.completedToday}
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
-                          topPriorityGoal.completedToday
-                            ? 'bg-emerald-500 text-white shadow-sm'
-                            : 'border-2 border-indigo-400 text-transparent hover:text-indigo-600 hover:border-indigo-600'
-                        }`}
+                <div className="space-y-2.5">
+                  {rankedCategories.map(cat => {
+                    const Icon = cat.icon;
+                    return (
+                      <div
+                        key={cat.key}
+                        className="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-700/40 flex items-center justify-between gap-3"
                       >
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      </button>
-
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm font-extrabold ${topPriorityGoal.completedToday ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                            {topPriorityGoal.title}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                            <ShieldCheck className="w-3 h-3" />
-                            <span>Verified</span>
-                          </span>
+                        <div className="flex items-center gap-2.5">
+                          <div className={`p-1.5 rounded-lg ${cat.color}`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-gray-900 dark:text-white block">
+                              {cat.name}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {cat.activeToday ? 'Active today' : cat.current > 0 ? 'Pending today' : 'Not started'}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          {topPriorityGoal.target || '1 activity'} • {topPriorityGoal.platform || topPriorityGoal.category}
-                        </p>
-                      </div>
-                    </div>
 
+                        <div className="flex items-center gap-2">
+                          {cat.current > 0 ? (
+                            <span className="flex items-center gap-1 text-xs font-extrabold text-amber-500">
+                              <Flame className="w-3.5 h-3.5 fill-amber-500" />
+                              {cat.current} days
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400 font-semibold">— Not started</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right: Today's Priority & Behavioral Insights */}
+              <div className="lg:col-span-6 space-y-6">
+                {/* Today's Priority Card */}
+                <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+                      <span>Today's Priority</span>
+                    </h3>
                     <button
                       onClick={() => handleTabChange('today')}
-                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
                     >
-                      Open
+                      <span>View Full Plan</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                ) : (
-                  <div className="py-6 text-center text-gray-400 text-xs">
-                    <p>You have no active goals configured for today.</p>
-                    <button
-                      onClick={() => setShowGoalModal(true)}
-                      className="mt-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
-                    >
-                      + Create a Goal
-                    </button>
-                  </div>
-                )}
-              </div>
 
-              {/* Momentum Insight Banner */}
-              <div className="glass-card rounded-2xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Momentum Insight</span>
-                </h4>
-                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                  💡 {dashboard?.insights?.[0]?.message || 'Coding is your strongest area this week. Maintain daily consistency to lock in your next milestone.'}
-                </p>
+                  {topPriorityGoal ? (
+                    <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => !topPriorityGoal.completedToday && handleCompleteGoal(topPriorityGoal._id || topPriorityGoal.id)}
+                          disabled={topPriorityGoal.completedToday}
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+                            topPriorityGoal.completedToday
+                              ? 'bg-emerald-500 text-white shadow-sm'
+                              : 'border-2 border-indigo-400 text-transparent hover:text-indigo-600 hover:border-indigo-600'
+                          }`}
+                        >
+                          <Check className="w-4 h-4 stroke-[3]" />
+                        </button>
+
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-extrabold ${topPriorityGoal.completedToday ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                              {topPriorityGoal.title}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Verified</span>
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {topPriorityGoal.target || '1 activity'} • {topPriorityGoal.platform || topPriorityGoal.category}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleTabChange('today')}
+                        className="px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                      >
+                        Open
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="py-6 text-center text-gray-400 text-xs">
+                      <p>You have no active goals configured for today.</p>
+                      <button
+                        onClick={() => setShowGoalModal(true)}
+                        className="mt-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                      >
+                        + Create a Goal
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Momentum Insight Banner */}
+                <div className="glass-card rounded-2xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Momentum Insight</span>
+                  </h4>
+                  <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                    💡 {personalization.insightText}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Section: Recent Activity Timeline Snippet */}
-          <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-indigo-500" />
-                  <span>Recent Activity Records</span>
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  Verified platform events and habit completions
-                </p>
+            {/* Section: Recent Activity Timeline Snippet */}
+            <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-indigo-500" />
+                    <span>Recent Activity Records</span>
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Verified platform events and habit completions
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => handleTabChange('timeline')}
+                  className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                >
+                  <span>View Full Timeline</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
 
-              <button
-                onClick={() => handleTabChange('timeline')}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
-              >
-                <span>View Full Timeline</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              <ActivityTimeline items={dashboard?.recentActivity || []} isCompact={true} />
             </div>
-
-            <ActivityTimeline items={dashboard?.recentActivity || []} isCompact={true} />
           </div>
         </div>
       )}
@@ -684,10 +1226,10 @@ const ActivityHub = () => {
           TAB 2: TODAY'S PLAN — WHAT SHOULD I DO TODAY?
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'today' && (
-        <div className="space-y-6">
-          <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-5">
             {/* Header: Date & Timezone */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                   {currentDateFormatted}
@@ -713,7 +1255,7 @@ const ActivityHub = () => {
             </div>
 
             {/* Progress Rail */}
-            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 space-y-2">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 space-y-2">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-gray-600 dark:text-gray-300">Today's Progress</span>
                 <span className="text-indigo-600 dark:text-indigo-400">{completedTodayCount} / {totalTodayCount} completed ({todayProgressPercent}%)</span>
@@ -728,7 +1270,7 @@ const ActivityHub = () => {
               </div>
             </div>
 
-            {/* Segmented Filter Controls: full width grid on mobile */}
+            {/* Segmented Filter Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="grid grid-cols-3 sm:flex gap-1.5 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-full sm:w-auto">
                 {[
@@ -767,7 +1309,7 @@ const ActivityHub = () => {
                     <motion.div
                       key={goal._id || goal.id}
                       layout
-                      className={`p-4 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                      className={`p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between gap-3 ${
                         isCompleted
                           ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30'
                           : isAtRisk
@@ -791,7 +1333,7 @@ const ActivityHub = () => {
                         </button>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className={`text-sm font-bold truncate ${isCompleted ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'}`}>
                               {goal.title}
                             </span>
@@ -818,7 +1360,7 @@ const ActivityHub = () => {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1 flex-wrap">
                             {goal.platform && goal.platform !== 'custom' ? (
                               <span className="flex items-center gap-1 capitalize">
                                 <PlatformIcon platform={goal.platform} className="w-3.5 h-3.5" />
@@ -891,10 +1433,10 @@ const ActivityHub = () => {
           TAB 3: STREAKS — STREAK CENTER & CONSISTENCY
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'streaks' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Top: Streak Center Hero */}
           <div className="glass-card rounded-2xl p-4 sm:p-6 border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-transparent to-purple-500/5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
                   Streak Center
@@ -946,7 +1488,7 @@ const ActivityHub = () => {
             currentStreak={dashboard?.overallStreak?.current}
           />
 
-          {/* Ranked Category Streaks (Clean list rather than 5 huge cards) */}
+          {/* Ranked Category Streaks */}
           <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
             <div>
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
@@ -987,8 +1529,14 @@ const ActivityHub = () => {
                       </span>
 
                       <div className="flex items-center gap-1 font-black text-xs sm:text-sm text-gray-900 dark:text-white min-w-[55px] sm:min-w-[70px] justify-end">
-                        <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-500" />
-                        <span>{cat.current}d</span>
+                        {cat.current > 0 ? (
+                          <>
+                            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-500" />
+                            <span>{cat.current}d</span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-gray-400 font-semibold">—</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1042,7 +1590,7 @@ const ActivityHub = () => {
           TAB 4: ANALYTICS — PROFESSIONAL ACTIVITY ANALYTICS
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'analytics' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Header & Range Filters */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -1054,7 +1602,7 @@ const ActivityHub = () => {
               </p>
             </div>
 
-            {/* Range Selector: 7D, 30D, 90D, 1Y */}
+            {/* Range Selector: 7D, 30D, 90D, 6M, 1Y */}
             <div className="grid grid-cols-5 sm:flex gap-1 sm:gap-1.5 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-full sm:w-auto">
               {[
                 { days: 7, label: '7D' },
@@ -1109,7 +1657,7 @@ const ActivityHub = () => {
           TAB 5: GOALS — HABIT GOAL MANAGEMENT
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'goals' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
@@ -1153,7 +1701,7 @@ const ActivityHub = () => {
                 return (
                   <div
                     key={goal._id}
-                    className="glass-card rounded-2xl p-5 border border-gray-200/50 dark:border-gray-800 flex flex-col justify-between gap-4"
+                    className="glass-card rounded-2xl p-4 sm:p-5 border border-gray-200/50 dark:border-gray-800 flex flex-col justify-between gap-4"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
@@ -1252,7 +1800,7 @@ const ActivityHub = () => {
           TAB 6: PLATFORMS — CONNECTED DEVELOPER ACCOUNTS
          ══════════════════════════════════════════════════════════ */}
       {activeTab === 'platforms' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
@@ -1322,7 +1870,92 @@ const ActivityHub = () => {
         />
       )}
 
-      {/* ── GOAL BUILDER MODAL ── */}
+      {/* ── MOBILE "MORE" VIEWS BOTTOM SHEET DRAWER (Prompt #7) ── */}
+      <AnimatePresence>
+        {showMobileMore && (
+          <div className="fixed inset-0 z-50 sm:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileMore(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Bottom Sheet Drawer */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+              className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-t-3xl border-t border-gray-200 dark:border-gray-800 p-5 space-y-4 shadow-2xl"
+            >
+              {/* Drag Handle */}
+              <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto" />
+
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
+                <div>
+                  <h3 className="text-base font-extrabold text-gray-900 dark:text-white">
+                    More Views
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Explore deep activity intelligence features
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowMobileMore(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Options */}
+              <div className="space-y-2">
+                {secondaryTabs.map(tab => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all ${
+                        isActive
+                          ? 'bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-700 dark:text-indigo-300'
+                          : 'bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`p-2 rounded-xl ${
+                          isActive
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm'
+                        }`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-sm font-bold block truncate">
+                            {tab.label}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block truncate">
+                            {tab.desc}
+                          </span>
+                        </div>
+                      </div>
+
+                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── GOAL BUILDER MODAL (Mobile Bottom Sheet) ── */}
       <GoalBuilderModal
         isOpen={showGoalModal}
         onClose={() => {

@@ -17,6 +17,7 @@ import {
   Sparkles,
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   Info
 } from 'lucide-react';
 import api from '../../utils/api';
@@ -48,6 +49,7 @@ const WEEKDAYS = [
 
 const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset, onOpenPlatforms }) => {
   const [activeSection, setActiveSection] = useState('timezone');
+  const [mobileSection, setMobileSection] = useState(null);
   const [preferences, setPreferences] = useState(initialPreferences || {});
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState(null);
@@ -246,111 +248,19 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
   }, [tzSearch]);
 
   const navItems = [
-    { id: 'timezone', label: 'Timezone & Local Time', icon: Globe },
-    { id: 'notifications', label: 'Notification Types', icon: Bell },
-    { id: 'schedule', label: 'Daily Reminder Schedule', icon: Clock },
-    { id: 'quiethours', label: 'Quiet Hours', icon: Moon },
-    { id: 'automation', label: 'Automation Status', icon: Sparkles },
-    { id: 'privacy', label: 'Data & Privacy', icon: ShieldAlert },
+    { id: 'timezone', label: 'Timezone & Local Time', icon: Globe, desc: activeTz },
+    { id: 'notifications', label: 'Notification Types', icon: Bell, desc: 'In-app and email preferences' },
+    { id: 'schedule', label: 'Daily Reminder Schedule', icon: Clock, desc: `${preferences.reminderSchedule?.defaultTime || '20:00'} daily` },
+    { id: 'quiethours', label: 'Quiet Hours', icon: Moon, desc: preferences.quietHours?.enabled ? `${preferences.quietHours.startTime} – ${preferences.quietHours.endTime}` : 'Disabled' },
+    { id: 'automation', label: 'Automation Status', icon: Sparkles, desc: 'Connected accounts & auto-verification' },
+    { id: 'privacy', label: 'Data & Privacy', icon: ShieldAlert, desc: 'Clear history or delete data' },
   ];
 
-  return (
-    <div className="space-y-6">
-      {/* Settings Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/50 dark:border-gray-800">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
-            Activity Preferences Center
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Configure how Alumnex tracks your daily momentum, schedules reminders, and protects your privacy.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {lastSavedTime && (
-            <span className="text-xs text-emerald-500 font-medium flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5" />
-              <span>Saved at {lastSavedTime}</span>
-            </span>
-          )}
-          {isSaving && (
-            <span className="text-xs text-indigo-500 font-medium flex items-center gap-1.5 animate-pulse">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>Saving...</span>
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile Horizontal Category Switcher */}
-      <div className="lg:hidden">
-        <div className="flex gap-2 p-1.5 bg-gray-100 dark:bg-gray-800/80 rounded-2xl overflow-x-auto custom-scrollbar no-scrollbar">
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = activeSection === item.id;
-            const isDanger = item.id === 'privacy';
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveSection(item.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  isActive
-                    ? isDanger
-                      ? 'bg-rose-600 text-white shadow-sm'
-                      : 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-        {/* Left Navigation Sidebar (Desktop Only) */}
-        <div className="hidden lg:block lg:col-span-4 space-y-1.5">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-3 pb-1">
-            Settings Categories
-          </p>
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = activeSection === item.id;
-            const isDanger = item.id === 'privacy';
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveSection(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all text-left ${
-                  isActive
-                    ? isDanger
-                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-sm'
-                      : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/80 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? (isDanger ? 'text-rose-500' : 'text-indigo-500') : 'text-gray-400'}`} />
-                  <span>{item.label}</span>
-                </div>
-                <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'translate-x-0.5 opacity-100' : 'opacity-30'}`} />
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Right Active Setting Panel */}
-        <div className="lg:col-span-8">
-          <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6">
-
-            {/* 1. TIMEZONE & LOCAL CLOCK */}
-            {activeSection === 'timezone' && (
-              <div className="space-y-6">
+  const renderSectionContent = () => (
+    <>
+      {/* 1. TIMEZONE & LOCAL CLOCK */}
+      {activeSection === 'timezone' && (
+        <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
                     <Globe className="w-5 h-5 text-indigo-500" />
@@ -841,19 +751,142 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
                 </div>
               </div>
             )}
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Settings Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/50 dark:border-gray-800">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+            Activity Preferences
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            Configure how Alumnex tracks your daily momentum, schedules reminders, and protects your privacy.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {lastSavedTime && (
+            <span className="text-xs text-emerald-500 font-medium flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5" />
+              <span>Saved at {lastSavedTime}</span>
+            </span>
+          )}
+          {isSaving && (
+            <span className="text-xs text-indigo-500 font-medium flex items-center gap-1.5 animate-pulse">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Saving...</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── MOBILE APPLE/LINEAR-STYLE SETTINGS NAVIGATION (lg:hidden) ── */}
+      <div className="lg:hidden space-y-4">
+        {mobileSection === null ? (
+          <div className="glass-card rounded-2xl border border-gray-200/60 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800/80 overflow-hidden shadow-sm">
+            {navItems.map(item => {
+              const Icon = item.icon;
+              const isDanger = item.id === 'privacy';
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveSection(item.id);
+                    setMobileSection(item.id);
+                  }}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${isDanger ? 'bg-rose-500/10 text-rose-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold ${isDanger ? 'text-rose-600 dark:text-rose-400' : 'text-gray-900 dark:text-white'}`}>
+                        {item.label}
+                      </p>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <button
+              onClick={() => setMobileSection(null)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>All Settings</span>
+            </button>
+            <div className="glass-card rounded-2xl p-4 sm:p-6 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6">
+              {renderSectionContent()}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── DESKTOP TWO-COLUMN LAYOUT (hidden lg:grid) ── */}
+      <div className="hidden lg:grid grid-cols-12 gap-8">
+        {/* Left Navigation Sidebar */}
+        <div className="col-span-4 space-y-1.5">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-3 pb-1">
+            Settings Categories
+          </p>
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            const isDanger = item.id === 'privacy';
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all text-left ${
+                  isActive
+                    ? isDanger
+                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-sm'
+                      : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/80 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-4 h-4 ${isActive ? (isDanger ? 'text-rose-500' : 'text-indigo-500') : 'text-gray-400'}`} />
+                  <div>
+                    <span>{item.label}</span>
+                    <span className="block text-[11px] font-normal text-gray-400">{item.desc}</span>
+                  </div>
+                </div>
+                <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'translate-x-0.5 opacity-100' : 'opacity-30'}`} />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Active Setting Panel */}
+        <div className="col-span-8">
+          <div className="glass-card rounded-3xl p-8 border border-gray-200/60 dark:border-gray-800 shadow-xl space-y-6">
+            {renderSectionContent()}
           </div>
         </div>
       </div>
 
-      {/* ── TIMEZONE SELECTOR MODAL ── */}
+      {/* ── TIMEZONE SELECTOR MODAL (Bottom sheet on mobile) ── */}
       <AnimatePresence>
         {showTzModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[80vh]"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[85vh]"
             >
               <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <div>

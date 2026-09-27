@@ -82,12 +82,12 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-xl rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 40 }}
+        className="w-full max-w-xl rounded-t-3xl sm:rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -96,9 +96,26 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                {initialGoal ? 'Edit Goal' : 'Goal Builder'}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                  {initialGoal ? 'Edit Goal' : 'Goal Builder'}
+                </h3>
+                {/* Step Dots Indicator */}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4].map(s => (
+                    <span
+                      key={s}
+                      className={`h-1.5 rounded-full transition-all ${
+                        s === step
+                          ? 'w-4 bg-indigo-600 dark:bg-indigo-400'
+                          : s < step
+                          ? 'w-1.5 bg-emerald-500'
+                          : 'w-1.5 bg-gray-200 dark:bg-gray-700'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Step {step} of 4 — {step === 1 ? 'Focus Area' : step === 2 ? 'Tracking & Platform' : step === 3 ? 'Target & Schedule' : 'Review & Confirm'}
               </p>

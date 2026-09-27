@@ -1,7 +1,8 @@
-import React from 'react';
-import { Shield, Flame, AlertTriangle, Info, Clock, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Shield, Flame, AlertTriangle, Info, Clock, CheckCircle2, ChevronRight } from 'lucide-react';
 
 const StreakProtectionCard = ({ overallStreak, categoryStreaks, timezone = 'Asia/Kolkata' }) => {
+  const [showExplainer, setShowExplainer] = useState(false);
   const atRiskCount = (overallStreak?.atRisk ? 1 : 0) +
     Object.values(categoryStreaks || {}).filter(s => s.atRisk).length;
 
@@ -50,17 +51,26 @@ const StreakProtectionCard = ({ overallStreak, categoryStreaks, timezone = 'Asia
         </div>
       </div>
 
-      {/* Transparent Rules Explainer */}
-      <div className="p-3.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
-        <p className="font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-          <Info className="w-3.5 h-3.5 text-indigo-500" />
-          <span>How Streaks Work in Alumnex Connect</span>
-        </p>
-        <ul className="list-disc list-inside space-y-1 pl-1 text-[11px] text-gray-500 dark:text-gray-400">
-          <li>An overall active day is recorded whenever at least one verified activity or goal is completed.</li>
-          <li>Dates are strictly computed in your local timezone ({timezone}) without relying on UTC shifts.</li>
-          <li>Streaks do not break during quiet hours; you have until midnight in your local timezone to complete an activity.</li>
-        </ul>
+      {/* Progressive Disclosure: How Streaks Work Accordion */}
+      <div className="rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-950/20 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowExplainer(!showExplainer)}
+          className="w-full p-3 flex items-center justify-between text-xs font-bold text-indigo-900 dark:text-indigo-300 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="w-3.5 h-3.5 text-indigo-500" />
+            <span>How streaks work in Alumnex</span>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-indigo-500 transition-transform ${showExplainer ? 'rotate-90' : ''}`} />
+        </button>
+        {showExplainer && (
+          <div className="px-3.5 pb-3.5 pt-1 border-t border-indigo-100 dark:border-indigo-900/30 text-[11px] text-gray-600 dark:text-gray-400 space-y-1">
+            <p>• An overall active day is recorded whenever at least one verified activity or goal is completed.</p>
+            <p>• Dates are strictly computed in your local timezone ({timezone}) without relying on UTC shifts.</p>
+            <p>• Streaks do not break during quiet hours; you have until midnight in your local timezone to complete an activity.</p>
+          </div>
+        )}
       </div>
     </div>
   );

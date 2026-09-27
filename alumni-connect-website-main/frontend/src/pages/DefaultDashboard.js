@@ -6,15 +6,11 @@ import {
   Briefcase, 
   Calendar, 
   MessageSquare, 
-  Code, 
-  TrendingUp,
-  Clock,
-  Star,
-  ArrowRight,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Activity
+  Clock, 
+  CheckCircle, 
+  AlertCircle, 
+  Info, 
+  Activity 
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
@@ -129,14 +125,15 @@ const DefaultDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-gradient-to-br from-cyan-600 via-emerald-500 to-cyan-700 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden border border-white/10"
+        className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-white/10"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-violet-400/20 rounded-full blur-2xl translate-y-1/2 pointer-events-none"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+          <h1 className="text-3xl font-bold mb-2 tracking-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.25)' }}>
             Welcome back, {user?.name}!
           </h1>
-          <p className="text-cyan-50 text-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+          <p className="text-indigo-100 text-lg font-medium" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
             Here's what's happening in your professional network today.
           </p>
         </div>
@@ -168,14 +165,14 @@ const DefaultDashboard = () => {
               key={stat.name}
               className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-white/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-transparent dark:from-indigo-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#94a3b8]">{stat.name}</p>
                   <p className="text-4xl font-extrabold text-gray-900 dark:text-white mt-1">{stat.value}</p>
                 </div>
-                <div className={`p-4 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 shadow-inner`}>
-                  <Icon className={`w-7 h-7 text-cyan-600 dark:text-cyan-400`} />
+                <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-500/20 shadow-inner">
+                  <Icon className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
                 </div>
               </div>
             </motion.div>
@@ -209,12 +206,12 @@ const DefaultDashboard = () => {
                   <Link to="/notifications" key={activity.id}>
                     <motion.div whileHover={{ x: 5 }} className="flex items-start space-x-4 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 rounded-xl transition-colors cursor-pointer group">
                       <div className="flex-shrink-0 mt-1">
-                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-inner group-hover:bg-cyan-50 dark:group-hover:bg-cyan-900/30 transition-colors">
-                          <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-cyan-500 transition-colors" />
+                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-inner group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/40 transition-colors">
+                          <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-indigo-500 transition-colors" />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <p className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{activity.title}</p>
+                        <p className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{activity.title}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{activity.description}</p>
                         <div className="mt-3 flex items-center space-x-3 w-full">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
@@ -223,7 +220,7 @@ const DefaultDashboard = () => {
                           </span>
                           <span className="text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">{activity.time}</span>
                           {activity.status === 'pending' && (
-                            <span className="ml-auto text-xs font-bold bg-cyan-600/10 text-cyan-600 hover:bg-cyan-600 hover:text-white px-3 py-1.5 rounded-full transition-colors border border-cyan-600/20">
+                            <span className="ml-auto text-xs font-bold bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded-full transition-colors border border-indigo-600/20">
                               Review
                             </span>
                           )}

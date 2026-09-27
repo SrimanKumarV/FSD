@@ -28,7 +28,7 @@ const PlatformActivityCard = ({ platform = {}, onRefresh, isRefreshing = false }
                 {platformName}
               </h5>
               {platform?.connectionType === 'api-verified' && (
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-500" title="API Verified" />
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-500" title="Verified" />
               )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">

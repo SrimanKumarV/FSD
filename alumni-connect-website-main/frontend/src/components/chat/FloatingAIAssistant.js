@@ -115,7 +115,7 @@ const FloatingAIAssistant = () => {
                   <h3 className="font-bold text-sm">Alumnex AI Mentor</h3>
                   <p className="text-xs text-indigo-100 opacity-90 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Online • Groq & Gemini Failover
+                    Online • AI Career Assistant
                   </p>
                 </div>
               </div>

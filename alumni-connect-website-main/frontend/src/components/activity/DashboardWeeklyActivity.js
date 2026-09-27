@@ -81,7 +81,8 @@ const DashboardWeeklyActivity = ({ activity }) => {
                 {days.map((day, idx) => {
                   const count = day.activityCount || (day.active ? 1 : 0);
                   const barHeightPct = count > 0 ? Math.max(Math.round((count / maxCount) * 100), 25) : 8;
-                  const isToday = idx === days.length - 1;
+                  const todayStr = activity?.today?.date || new Date().toISOString().slice(0, 10);
+                  const isToday = day.date === todayStr;
 
                   return (
                     <div

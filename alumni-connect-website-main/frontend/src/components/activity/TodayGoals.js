@@ -154,7 +154,7 @@ const TodayGoals = ({
                             : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
                         }`}>
                           <ShieldCheck className="w-3 h-3" />
-                          {goal.completionType === 'api-verified' ? 'API Verified' : 'Completed'}
+                          {goal.completionType === 'api-verified' ? 'Verified' : 'Completed'}
                         </span>
                       ) : isAuto ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">

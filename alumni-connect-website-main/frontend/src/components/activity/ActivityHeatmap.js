@@ -1,20 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const ActivityHeatmap = ({ heatmapData }) => {
   const points = heatmapData?.points || [];
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
-  // Group points into 7-day columns (weeks)
-  const weeks = [];
-  let currentWeek = [];
-  points.forEach((pt, index) => {
-    currentWeek.push(pt);
-    if (currentWeek.length === 7 || index === points.length - 1) {
-      weeks.push(currentWeek);
-      currentWeek = [];
+  // Group points into 7-day columns (weeks) where Row 0 is Sunday, Row 6 is Saturday
+  const weeks = useMemo(() => {
+    if (!points || points.length === 0) return [];
+    
+    const result = [];
+    let currentWeek = [];
+
+    // Check day of week for the first point to align Sunday as row 0
+    const firstDate = new Date(points[0].date);
+    const startDayOfWeek = isNaN(firstDate.getTime()) ? 0 : firstDate.getDay(); // 0 is Sunday
+
+    // Pad first week with nulls for days before start
+    for (let i = 0; i < startDayOfWeek; i++) {
+      currentWeek.push(null);
     }
-  });
+
+    points.forEach((pt) => {
+      currentWeek.push(pt);
+      if (currentWeek.length === 7) {
+        result.push(currentWeek);
+        currentWeek = [];
+      }
+    });
+
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(null);
+      }
+      result.push(currentWeek);
+    }
+
+    return result;
+  }, [points]);
 
   const getColor = (count) => {
     if (!count || count === 0) return 'bg-gray-100 dark:bg-gray-800/80';
@@ -23,6 +46,8 @@ const ActivityHeatmap = ({ heatmapData }) => {
     if (count <= 5) return 'bg-emerald-500 dark:bg-emerald-600';
     return 'bg-emerald-600 dark:bg-emerald-400';
   };
+
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
     <div className="glass-card rounded-2xl p-6 border border-gray-200/50 dark:border-gray-800 space-y-4">
@@ -49,21 +74,37 @@ const ActivityHeatmap = ({ heatmapData }) => {
         </div>
       </div>
 
-      {/* Grid Canvas */}
+      {/* Grid Canvas with Sunday-first Day Labels */}
       <div className="overflow-x-auto pb-2 relative">
-        <div className="flex gap-1.5 min-w-[700px] justify-start py-2">
-          {weeks.map((week, wIdx) => (
-            <div key={wIdx} className="flex flex-col gap-1.5">
-              {week.map(day => (
-                <div
-                  key={day.date}
-                  onMouseEnter={() => setHoveredPoint(day)}
-                  onMouseLeave={() => setHoveredPoint(null)}
-                  className={`w-3.5 h-3.5 rounded-sm transition-all cursor-pointer hover:scale-125 hover:z-20 ${getColor(day.count)}`}
-                />
-              ))}
-            </div>
-          ))}
+        <div className="flex gap-2 min-w-[720px] justify-start py-2">
+          {/* Day of Week Labels (Sunday first) */}
+          <div className="flex flex-col gap-1.5 pt-0.5 pr-1 text-[10px] font-semibold text-gray-400 dark:text-gray-500 select-none">
+            {dayLabels.map((lbl, idx) => (
+              <span key={lbl} className="h-3.5 leading-[14px]">
+                {idx % 2 === 0 ? lbl : ''}
+              </span>
+            ))}
+          </div>
+
+          {/* Week Columns */}
+          <div className="flex gap-1.5 flex-1">
+            {weeks.map((week, wIdx) => (
+              <div key={wIdx} className="flex flex-col gap-1.5">
+                {week.map((day, dIdx) => (
+                  day ? (
+                    <div
+                      key={day.date}
+                      onMouseEnter={() => setHoveredPoint(day)}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                      className={`w-3.5 h-3.5 rounded-sm transition-all cursor-pointer hover:scale-125 hover:z-20 ${getColor(day.count)}`}
+                    />
+                  ) : (
+                    <div key={`empty-${dIdx}`} className="w-3.5 h-3.5 rounded-sm opacity-0 pointer-events-none" />
+                  )
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Active Tooltip Display */}

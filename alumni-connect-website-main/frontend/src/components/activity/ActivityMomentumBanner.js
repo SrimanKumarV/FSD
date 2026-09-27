@@ -196,7 +196,7 @@ const ActivityMomentumBanner = ({ activity, userName = 'there' }) => {
           </div>
         </div>
 
-        {/* Weekly Mini Activity Dots (Mon -> Sun) */}
+        {/* Weekly Mini Activity Dots (Sun -> Sat) */}
         {weeklyDays.length > 0 && (
           <div className="p-4 rounded-2xl bg-white/[0.03] dark:bg-black/20 border border-white/5">
             <div className="flex items-center justify-between mb-3 text-xs text-gray-500 dark:text-gray-400">
@@ -205,7 +205,8 @@ const ActivityMomentumBanner = ({ activity, userName = 'there' }) => {
             </div>
             <div className="grid grid-cols-7 gap-2">
               {weeklyDays.map((day, idx) => {
-                const isToday = idx === weeklyDays.length - 1;
+                const todayStr = activity?.today?.date || new Date().toISOString().slice(0, 10);
+                const isToday = day.date === todayStr;
                 return (
                   <div key={day.date || idx} className="flex flex-col items-center gap-1.5">
                     <span className={`text-[11px] font-bold ${isToday ? 'text-indigo-400 underline decoration-2' : 'text-gray-500 dark:text-gray-400'}`}>

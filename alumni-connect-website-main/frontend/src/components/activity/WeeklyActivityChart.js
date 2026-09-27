@@ -46,7 +46,8 @@ const WeeklyActivityChart = ({ weeklyData, onDayClick }) => {
           {days.map((day, idx) => {
             const count = day.activityCount || 0;
             const barHeightPct = count > 0 ? Math.max(Math.round((count / maxCount) * 100), 20) : 8;
-            const isToday = idx === days.length - 1;
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const isToday = day.date === todayStr;
 
             return (
               <div

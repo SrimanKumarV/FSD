@@ -470,6 +470,43 @@ router.delete('/data', protect, async (req, res) => {
   }
 });
 
+// @desc    Export user's activity data as JSON
+// @route   GET /api/activity/export
+// @access  Private
+router.get('/export', protect, async (req, res) => {
+  try {
+    const [goals, records, prefs] = await Promise.all([
+      ActivityGoal.find({ userId: req.user._id }).lean(),
+      ActivityRecord.find({ userId: req.user._id }).sort({ date: -1 }).lean(),
+      ReminderPreference.findOne({ userId: req.user._id }).lean()
+    ]);
+    res.json({
+      exportedAt: new Date().toISOString(),
+      user: req.user.email,
+      preferences: prefs,
+      goals,
+      records
+    });
+  } catch (error) {
+    console.error('[Activity] Export error:', error.message);
+    res.status(500).json({ message: 'Failed to export activity data' });
+  }
+});
+
+// @desc    Clear activity records while preserving goals & settings
+// @route   DELETE /api/activity/records
+// @access  Private
+router.delete('/records', protect, async (req, res) => {
+  try {
+    await ActivityRecord.deleteMany({ userId: req.user._id });
+    await cache.del(`activity:dashboard:${req.user._id}`);
+    res.json({ message: 'Activity history cleared' });
+  } catch (error) {
+    console.error('[Activity] Clear records error:', error.message);
+    res.status(500).json({ message: 'Failed to clear activity history' });
+  }
+});
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ADMIN — AGGREGATE ANALYTICS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -288,6 +288,45 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
                     </button>
                   ))}
                 </div>
+
+                {formData.frequency === 'custom' && (
+                  <div className="pt-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                      Select Days (Week Starting on Sunday)
+                    </label>
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {[
+                        { day: 0, label: 'Sun' },
+                        { day: 1, label: 'Mon' },
+                        { day: 2, label: 'Tue' },
+                        { day: 3, label: 'Wed' },
+                        { day: 4, label: 'Thu' },
+                        { day: 5, label: 'Fri' },
+                        { day: 6, label: 'Sat' }
+                      ].map(d => {
+                        const selected = (formData.customDays || [1, 2, 3, 4, 5]).includes(d.day);
+                        return (
+                          <button
+                            key={d.day}
+                            type="button"
+                            onClick={() => {
+                              const cur = formData.customDays || [1, 2, 3, 4, 5];
+                              const next = cur.includes(d.day) ? cur.filter(x => x !== d.day) : [...cur, d.day].sort();
+                              if (next.length > 0) setFormData(prev => ({ ...prev, customDays: next }));
+                            }}
+                            className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                              selected
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                            }`}
+                          >
+                            {d.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

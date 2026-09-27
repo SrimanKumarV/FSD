@@ -641,20 +641,32 @@ async function getTodaysPlan(userId, timezone = 'Asia/Kolkata') {
 
 async function getWeeklyAnalytics(userId, timezone = 'Asia/Kolkata') {
   const today = getTodayInTimezone(timezone);
+  const now = new Date();
+  const dayOfWeek = getDayOfWeekInTimezone(now, timezone); // 0 = Sunday, 1 = Monday, ...
 
-  // Generate last 7 days dates
-  const currentWeekDays = [];
-  let cur = today;
-  for (let i = 0; i < 7; i++) {
-    currentWeekDays.unshift(cur);
-    cur = getPreviousDate(cur);
+  // Generate current week dates starting with Sunday (Sunday as the starting day)
+  let sunday = today;
+  for (let i = 0; i < dayOfWeek; i++) {
+    sunday = getPreviousDate(sunday);
   }
 
-  // Generate previous 7 days dates for comparison
-  const previousWeekDays = [];
+  const currentWeekDays = [];
+  let cur = sunday;
   for (let i = 0; i < 7; i++) {
-    previousWeekDays.unshift(cur);
-    cur = getPreviousDate(cur);
+    currentWeekDays.push(cur);
+    cur = getNextDate(cur);
+  }
+
+  // Generate previous week dates starting with the previous Sunday
+  let prevSunday = sunday;
+  for (let i = 0; i < 7; i++) {
+    prevSunday = getPreviousDate(prevSunday);
+  }
+  const previousWeekDays = [];
+  let pCur = prevSunday;
+  for (let i = 0; i < 7; i++) {
+    previousWeekDays.push(pCur);
+    pCur = getNextDate(pCur);
   }
 
   const allQueryDates = [...previousWeekDays, ...currentWeekDays];

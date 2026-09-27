@@ -1,30 +1,65 @@
-name: Node.js CI (Tests)
+name: CI Pipeline (Tests & Quality)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  test:
+  backend-test:
+    name: Backend Unit Tests & RBAC
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: ./backend/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./backend/package-lock.json
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install Backend Dependencies
+        run: npm ci || npm install
 
-    - name: Run tests
-      run: npm test
+      - name: Run Backend Unit & Integration Tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci_test_jwt_secret_token_12345
+          PORT: 5000
+
+  frontend-build:
+    name: Frontend Production Build Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci || npm install
+
+      - name: Validate Production Build
+        run: npm run build
+        env:
+          CI: false
+          REACT_APP_API_URL: https://alumnex-backend-backup.onrender.com/api
+          REACT_APP_BACKUP_API_URL: https://alumnex-backend-9y5t.onrender.com/api

@@ -23,6 +23,7 @@ import DashboardTodayGoals from '../components/activity/DashboardTodayGoals';
 import DashboardStreaks from '../components/activity/DashboardStreaks';
 import DashboardWeeklyActivity from '../components/activity/DashboardWeeklyActivity';
 import DashboardMomentumInsight from '../components/activity/DashboardMomentumInsight';
+import NextBestAction from '../components/dashboard/NextBestAction';
 
 const iconMap = {
   Users: Users,
@@ -160,7 +161,15 @@ const DefaultDashboard = () => {
         </motion.div>
       )}
 
-      {/* 2. Stats Grid: Mentorship, Jobs, Events, Forum (Existing) */}
+      {/* 2. Intelligent Next Best Action Engine (Personalized Daily Directive) */}
+      <NextBestAction
+        user={user}
+        activity={activity}
+        recentActivities={recentActivities}
+        upcomingEvents={upcomingEvents}
+      />
+
+      {/* 3. Stats Grid: Mentorship, Jobs, Events, Forum (Existing) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

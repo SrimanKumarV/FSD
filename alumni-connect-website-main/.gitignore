@@ -80,3 +80,5 @@ coverage/
 *.seed
 *.exe
 *.apk
+apk_extract/
+match.txt

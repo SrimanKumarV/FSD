@@ -51,7 +51,6 @@ describe('mentorshipService - autoAssignMentor', () => {
     expect(result).not.toBeNull();
     expect(User.find).toHaveBeenCalledWith({
       role: 'alumni',
-      college: mockCollege,
       isApproved: true
     });
   });

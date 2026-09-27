@@ -91,6 +91,5 @@ activityRecordSchema.index(
 );
 
 activityRecordSchema.index({ userId: 1, date: 1 });
-activityRecordSchema.index({ userId: 1, platform: 1, date: 1 });
 
 module.exports = mongoose.model('ActivityRecord', activityRecordSchema);

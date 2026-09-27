@@ -279,15 +279,17 @@ class AuthService {
       userFields.isApproved = false; 
     }
 
-    // Validate email deliverability using Disify
-    try {
-      const emailCheck = await axios.get(`https://www.disify.com/api/email/${email}`);
-      if (emailCheck.data && (emailCheck.data.format === false || emailCheck.data.disposable === true)) {
-        throw { status: 400, message: 'Invalid or disposable email address not allowed' };
+    // Validate email deliverability using Disify (skip during automated test runs)
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const emailCheck = await axios.get(`https://www.disify.com/api/email/${email}`);
+        if (emailCheck.data && (emailCheck.data.format === false || emailCheck.data.disposable === true)) {
+          throw { status: 400, message: 'Invalid or disposable email address not allowed' };
+        }
+      } catch (err) {
+        if (err.status === 400) throw err;
+        console.error('Email validation error:', err.message);
       }
-    } catch (err) {
-      if (err.status === 400) throw err;
-      console.error('Email validation error:', err.message);
     }
 
     const otp = generateOTP();

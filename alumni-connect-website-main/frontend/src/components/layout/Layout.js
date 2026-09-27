@@ -57,10 +57,11 @@ const Layout = ({ children }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({
     'Main': true,
-    'Connect & Community': false,
-    'Opportunities': false,
-    'Engagement': false,
-    'Support': false
+    'Connect': true,
+    'Career': false,
+    'Build': false,
+    'Develop': false,
+    'Support & Admin': false
   });
 
   const toggleGroup = (title) => {
@@ -99,46 +100,48 @@ const Layout = ({ children }) => {
       ]
     },
     {
-      title: 'Connect & Community',
+      title: 'Connect',
       items: [
         { name: 'Network', href: '/network', icon: Globe },
-        { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
         { name: 'Mentorship', href: '/mentorship', icon: Users },
-
-        { name: 'Tech Hub', href: '/tech-hub', icon: Terminal },
-        { name: 'Forum', href: '/forum', icon: MessageSquare },
         { name: 'Chat', href: '/chat', icon: MessageCircle },
+        { name: 'Forum', href: '/forum', icon: MessageSquare },
+        { name: 'Startups & Businesses', href: '/businesses', icon: Building2 },
       ]
     },
     {
-      title: 'Opportunities',
+      title: 'Career',
       items: [
         { name: 'Jobs', href: '/jobs', icon: Briefcase },
         { name: 'Career Board', href: '/career-board', icon: Compass },
-        { name: 'Events', href: '/events', icon: Calendar },
-
-        { name: 'Projects', href: '/projects', icon: Layers },
-        { name: 'Project Collab', href: '/project-collaboration', icon: GitMerge },
         { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },
-
+        { name: 'Events', href: '/events', icon: Calendar },
       ]
     },
     {
-      title: 'Engagement',
+      title: 'Build',
       items: [
-        { name: 'Activity Hub', href: '/activity', icon: Sparkles },
+        { name: 'Projects', href: '/projects', icon: Layers },
+        { name: 'Collaboration', href: '/project-collaboration', icon: GitMerge },
+        { name: 'Tech Hub', href: '/tech-hub', icon: Terminal },
+      ]
+    },
+    {
+      title: 'Develop',
+      items: [
         { name: 'DevPulse', href: '/devpulse', icon: Activity },
+        { name: 'Activity Hub', href: '/activity', icon: Sparkles },
         { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
       ]
     },
     {
-      title: 'Support',
+      title: 'Support & Admin',
       items: [
         { name: 'Feedback', href: '/feedback', icon: Megaphone },
         { name: 'Help Centre', href: '/help-centre', icon: LifeBuoy },
         ...(isAdmin() ? [
-          { name: 'Admin', href: '/admin', icon: Settings },
-          { name: 'Phase 2 Admin', href: '/admin-dashboard', icon: ShieldAlert }
+          { name: 'Admin Portal', href: '/admin', icon: Settings },
+          { name: 'Admin Hub', href: '/admin-dashboard', icon: ShieldAlert }
         ] : [])
       ]
     }

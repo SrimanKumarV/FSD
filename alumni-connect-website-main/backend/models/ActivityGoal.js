@@ -54,6 +54,29 @@ const activityGoalSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  trackingMode: {
+    type: String,
+    enum: ['manual', 'automatic', 'hybrid'],
+    default: 'manual'
+  },
+  priority: {
+    type: String,
+    enum: ['high', 'medium', 'low'],
+    default: 'medium'
+  },
+  targetMetric: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  targetValue: {
+    type: Number,
+    default: 1
+  },
+  estimatedMinutes: {
+    type: Number,
+    default: 20
+  },
   // Streak tracking for this goal
   currentStreak: {
     type: Number,

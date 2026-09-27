@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middleware/auth');
-const { body, param, validationResult } = require('express-validator');
+const { body, param, query, validationResult } = require('express-validator');
 const ActivityGoal = require('../models/ActivityGoal');
 const ActivityRecord = require('../models/ActivityRecord');
 const ReminderPreference = require('../models/ReminderPreference');
@@ -23,7 +23,7 @@ const validate = (req, res) => {
 // DASHBOARD
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// @desc    Get activity hub dashboard summary
+// @desc    Get activity intelligence dashboard summary
 // @route   GET /api/activity/dashboard
 // @access  Private
 router.get('/dashboard', protect, async (req, res) => {
@@ -35,6 +35,140 @@ router.get('/dashboard', protect, async (req, res) => {
   } catch (error) {
     console.error('[Activity] Dashboard error:', error.message);
     res.status(500).json({ message: 'Failed to load dashboard' });
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PLATFORM SYNC
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// @desc    Synchronize all connected platforms
+// @route   POST /api/activity/sync
+// @access  Private
+router.post('/sync', protect, async (req, res) => {
+  try {
+    const prefs = await ReminderPreference.findOne({ userId: req.user._id });
+    const timezone = prefs?.timezone || 'Asia/Kolkata';
+    const result = await activityService.syncUserPlatformActivities(req.user._id, timezone);
+    await cache.del(`activity:dashboard:${req.user._id}`);
+    const summary = await activityService.getDashboardSummary(req.user._id, timezone);
+    res.json({ message: 'Sync complete', ...result, summary });
+  } catch (error) {
+    console.error('[Activity] Sync error:', error.message);
+    res.status(500).json({ message: 'Failed to synchronize activities' });
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TIMELINE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// @desc    Get chronological activity timeline
+// @route   GET /api/activity/timeline
+// @access  Private
+router.get('/timeline', protect, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, category, platform } = req.query;
+    const timeline = await activityService.getActivityTimeline(req.user._id, {
+      page,
+      limit,
+      category,
+      platform
+    });
+    res.json(timeline);
+  } catch (error) {
+    console.error('[Activity] Timeline error:', error.message);
+    res.status(500).json({ message: 'Failed to load timeline' });
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ANALYTICS & HEATMAP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// @desc    Get detailed activity analytics and heatmap
+// @route   GET /api/activity/analytics
+// @access  Private
+router.get('/analytics', protect, async (req, res) => {
+  try {
+    const prefs = await ReminderPreference.findOne({ userId: req.user._id });
+    const timezone = prefs?.timezone || 'Asia/Kolkata';
+    const days = parseInt(req.query.days, 10) || 365;
+
+    const [weekly, heatmap, consistency, categories] = await Promise.all([
+      activityService.getWeeklyAnalytics(req.user._id, timezone),
+      activityService.getHeatmapData(req.user._id, timezone, days),
+      activityService.getConsistencyScore(req.user._id, timezone),
+      activityService.calculateCategoryStreaks(req.user._id, timezone)
+    ]);
+
+    res.json({
+      weekly,
+      heatmap,
+      consistency,
+      consistencyScore: consistency.score,
+      categories
+    });
+  } catch (error) {
+    console.error('[Activity] Analytics error:', error.message);
+    res.status(500).json({ message: 'Failed to load analytics' });
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STREAKS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// @desc    Get all streak metrics (overall, category, goals, milestones)
+// @route   GET /api/activity/streaks
+// @access  Private
+router.get('/streaks', protect, async (req, res) => {
+  try {
+    const prefs = await ReminderPreference.findOne({ userId: req.user._id });
+    const timezone = prefs?.timezone || 'Asia/Kolkata';
+
+    const [overall, categories, goals] = await Promise.all([
+      activityService.calculateOverallStreak(req.user._id, timezone),
+      activityService.calculateCategoryStreaks(req.user._id, timezone),
+      ActivityGoal.find({ userId: req.user._id, enabled: true }).select('title currentStreak longestStreak platform category').lean()
+    ]);
+
+    res.json({
+      overall,
+      categories,
+      goals
+    });
+  } catch (error) {
+    console.error('[Activity] Streaks error:', error.message);
+    res.status(500).json({ message: 'Failed to load streaks' });
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INSIGHTS & RECORDS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// @desc    Get behavioral insights and personal records
+// @route   GET /api/activity/insights
+// @access  Private
+router.get('/insights', protect, async (req, res) => {
+  try {
+    const prefs = await ReminderPreference.findOne({ userId: req.user._id });
+    const timezone = prefs?.timezone || 'Asia/Kolkata';
+
+    const [insights, records] = await Promise.all([
+      activityService.getBehavioralInsights(req.user._id, timezone),
+      activityService.getPersonalRecords(req.user._id, timezone)
+    ]);
+
+    res.json({
+      insights,
+      records,
+      personalRecords: records
+    });
+  } catch (error) {
+    console.error('[Activity] Insights error:', error.message);
+    res.status(500).json({ message: 'Failed to load insights' });
   }
 });
 
@@ -91,7 +225,6 @@ router.get('/goals', protect, async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
     
-    // Get today's completion records
     const prefs = await ReminderPreference.findOne({ userId: req.user._id });
     const timezone = prefs?.timezone || 'Asia/Kolkata';
     const today = activityService.getTodayInTimezone(timezone);
@@ -101,12 +234,19 @@ router.get('/goals', protect, async (req, res) => {
       completed: true
     }).lean();
 
-    const completedGoalIds = new Set(todayRecords.map(r => r.goalId?.toString()));
+    const recordMap = new Map();
+    todayRecords.forEach(r => {
+      if (r.goalId) recordMap.set(r.goalId.toString(), r);
+    });
 
-    const goalsWithStatus = goals.map(g => ({
-      ...g,
-      completedToday: completedGoalIds.has(g._id.toString())
-    }));
+    const goalsWithStatus = goals.map(g => {
+      const rec = recordMap.get(g._id.toString());
+      return {
+        ...g,
+        completedToday: !!rec,
+        completionType: rec?.completionType || g.trackingMode || 'manual'
+      };
+    });
 
     res.json(goalsWithStatus);
   } catch (error) {
@@ -123,13 +263,14 @@ router.post('/goals', protect, [
   body('category').optional().isIn(['coding', 'learning', 'career', 'project', 'custom']),
   body('platform').optional().isIn(['leetcode', 'github', 'duolingo', 'hackerrank', 'codechef', 'codeforces', 'gfg', 'kaggle', 'custom']),
   body('frequency').optional().isIn(['daily', 'weekdays', 'custom']),
+  body('trackingMode').optional().isIn(['manual', 'automatic', 'hybrid']),
+  body('priority').optional().isIn(['high', 'medium', 'low']),
   body('target').optional().isLength({ max: 100 }),
   body('reminderTime').optional().matches(/^\d{2}:\d{2}$/).withMessage('Time must be in HH:mm format'),
 ], async (req, res) => {
   if (!validate(req, res)) return;
 
   try {
-    // Limit goals per user to 20
     const existingCount = await ActivityGoal.countDocuments({ userId: req.user._id });
     if (existingCount >= 20) {
       return res.status(400).json({ message: 'Maximum 20 goals allowed. Delete some goals first.' });
@@ -160,6 +301,8 @@ router.put('/goals/:id', protect, [
   body('title').optional().trim().isLength({ min: 1, max: 100 }),
   body('category').optional().isIn(['coding', 'learning', 'career', 'project', 'custom']),
   body('frequency').optional().isIn(['daily', 'weekdays', 'custom']),
+  body('trackingMode').optional().isIn(['manual', 'automatic', 'hybrid']),
+  body('priority').optional().isIn(['high', 'medium', 'low']),
   body('reminderTime').optional().matches(/^\d{2}:\d{2}$/)
 ], async (req, res) => {
   if (!validate(req, res)) return;
@@ -193,7 +336,6 @@ router.delete('/goals/:id', protect, async (req, res) => {
 
     if (!goal) return res.status(404).json({ message: 'Goal not found' });
 
-    // Clean up records for this goal
     await ActivityRecord.deleteMany({ goalId: req.params.id });
     await cache.del(`activity:dashboard:${req.user._id}`);
 
@@ -222,7 +364,6 @@ router.post('/goals/:id/complete', protect, async (req, res) => {
     const milestones = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
     const streak = result.goal.currentStreak;
     if (milestones.includes(streak)) {
-      // Create milestone notification
       await Notification.createNotification({
         recipient: req.user._id,
         type: 'activity-milestone',
@@ -231,7 +372,7 @@ router.post('/goals/:id/complete', protect, async (req, res) => {
         priority: 'normal',
         metadata: { source: 'system', category: 'activity' },
         actionUrl: '/activity'
-      });
+      }).catch(e => console.error(e));
     }
 
     res.json({ message: 'Goal completed!', ...result });

@@ -1,6 +1,7 @@
 const DevProfile = require('../models/DevProfile');
 const ActivityGoal = require('../models/ActivityGoal');
 const ActivityRecord = require('../models/ActivityRecord');
+const Notification = require('../models/Notification');
 const cache = require('../utils/cache');
 const {
   fetchGitHubStats,
@@ -29,6 +30,7 @@ const PLATFORM_INFO = {
     name: 'GitHub',
     icon: '💻',
     color: '#24292e',
+    category: 'coding',
     connectionType: 'api-verified',
     streakReliable: true,
     profileBaseUrl: 'https://github.com/'
@@ -37,14 +39,16 @@ const PLATFORM_INFO = {
     name: 'LeetCode',
     icon: '🔥',
     color: '#f89f1b',
+    category: 'coding',
     connectionType: 'public-profile',
-    streakReliable: false, // Calendar available but not an official streak
+    streakReliable: false,
     profileBaseUrl: 'https://leetcode.com/'
   },
   hackerrank: {
     name: 'HackerRank',
     icon: '🏅',
     color: '#2ec866',
+    category: 'coding',
     connectionType: 'public-profile',
     streakReliable: false,
     profileBaseUrl: 'https://www.hackerrank.com/profile/'
@@ -53,6 +57,7 @@ const PLATFORM_INFO = {
     name: 'GeeksforGeeks',
     icon: '📗',
     color: '#2f8d46',
+    category: 'coding',
     connectionType: 'public-profile',
     streakReliable: false,
     profileBaseUrl: 'https://www.geeksforgeeks.org/user/'
@@ -61,6 +66,7 @@ const PLATFORM_INFO = {
     name: 'CodeChef',
     icon: '👨‍🍳',
     color: '#5b4638',
+    category: 'coding',
     connectionType: 'public-profile',
     streakReliable: false,
     profileBaseUrl: 'https://www.codechef.com/users/'
@@ -69,6 +75,7 @@ const PLATFORM_INFO = {
     name: 'Codeforces',
     icon: '⚡',
     color: '#1f8acb',
+    category: 'coding',
     connectionType: 'api-verified',
     streakReliable: false,
     profileBaseUrl: 'https://codeforces.com/profile/'
@@ -77,6 +84,7 @@ const PLATFORM_INFO = {
     name: 'Duolingo',
     icon: '🌍',
     color: '#58cc02',
+    category: 'learning',
     connectionType: 'public-profile',
     streakReliable: true,
     profileBaseUrl: 'https://www.duolingo.com/profile/'
@@ -85,15 +93,77 @@ const PLATFORM_INFO = {
     name: 'Kaggle',
     icon: '📊',
     color: '#20beff',
+    category: 'project',
     connectionType: 'manual',
     streakReliable: false,
     profileBaseUrl: 'https://www.kaggle.com/'
   }
 };
 
-/**
- * Normalize raw platform stats into a unified structure
- */
+const MILESTONES = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
+
+// ─── TIMEZONE & DATE UTILITIES ──────────────────────────────────
+
+function getTodayInTimezone(timezone = 'Asia/Kolkata') {
+  try {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).formatToParts(now);
+    const year = parts.find(p => p.type === 'year').value;
+    const month = parts.find(p => p.type === 'month').value;
+    const day = parts.find(p => p.type === 'day').value;
+    return `${year}-${month}-${day}`;
+  } catch {
+    return new Date().toISOString().split('T')[0];
+  }
+}
+
+function formatDateInTimezone(date, timezone = 'Asia/Kolkata') {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).formatToParts(new Date(date));
+    const year = parts.find(p => p.type === 'year').value;
+    const month = parts.find(p => p.type === 'month').value;
+    const day = parts.find(p => p.type === 'day').value;
+    return `${year}-${month}-${day}`;
+  } catch {
+    return new Date(date).toISOString().split('T')[0];
+  }
+}
+
+function getDayOfWeekInTimezone(date, timezone = 'Asia/Kolkata') {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' }).formatToParts(new Date(date));
+    const dayStr = parts.find(p => p.type === 'weekday').value;
+    const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return dayMap[dayStr] ?? new Date(date).getDay();
+  } catch {
+    return new Date(date).getDay();
+  }
+}
+
+function getPreviousDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().split('T')[0];
+}
+
+function getNextDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().split('T')[0];
+}
+
+function isConsecutiveDay(lastDate, timezone = 'Asia/Kolkata') {
+  if (!lastDate) return false;
+  const lastStr = formatDateInTimezone(lastDate, timezone);
+  const todayStr = getTodayInTimezone(timezone);
+  const yesterdayStr = getPreviousDate(todayStr);
+  return lastStr === yesterdayStr || lastStr === todayStr;
+}
+
+// ─── PLATFORM DATA NORMALIZATION ────────────────────────────────
+
 function normalizePlatformData(platform, rawStats, username) {
   if (!rawStats) {
     return {
@@ -131,22 +201,18 @@ function normalizePlatformData(platform, rawStats, username) {
       break;
     }
     case 'leetcode': {
-      // LeetCode calendar is a Unix timestamp -> count map
       if (rawStats.calendar) {
         const todayTs = Math.floor(new Date(today).getTime() / 1000);
-        // Check today's submissions (timestamps are midnight UTC of each day)
         const todayStart = todayTs - (todayTs % 86400);
-        activityToday = rawStats.calendar[todayStart.toString()] > 0;
-        // Compute streak from calendar
+        activityToday = (rawStats.calendar[todayStart.toString()] || 0) > 0;
         const calendarDays = Object.keys(rawStats.calendar)
           .map(Number)
           .filter(ts => rawStats.calendar[ts] > 0)
-          .sort((a, b) => b - a); // descending
+          .sort((a, b) => b - a);
         if (calendarDays.length > 0) {
           lastActivityAt = new Date(calendarDays[0] * 1000);
         }
       }
-      // LeetCode does not expose an official streak — mark as unreliable
       currentStreak = null;
       longestStreak = null;
       break;
@@ -160,7 +226,7 @@ function normalizePlatformData(platform, rawStats, username) {
       break;
     }
     case 'hackerrank': {
-      lastActivityAt = null; // No last-activity info
+      lastActivityAt = null;
       break;
     }
     case 'gfg': {
@@ -199,10 +265,6 @@ function normalizePlatformData(platform, rawStats, username) {
   };
 }
 
-/**
- * Get all integrations for a user with normalized data.
- * Uses DevProfile usernames and cached stats.
- */
 async function getUserIntegrations(userId) {
   const cacheKey = `activity:integrations:${userId}`;
   const cached = await cache.get(cacheKey);
@@ -226,6 +288,7 @@ async function getUserIntegrations(userId) {
           name: info.name,
           icon: info.icon,
           color: info.color,
+          category: info.category,
           streakReliable: info.streakReliable
         }
       });
@@ -238,14 +301,10 @@ async function getUserIntegrations(userId) {
     total: Object.keys(PLATFORM_INFO).length
   };
 
-  // Cache for 10 minutes — stats are refreshed by the cron worker
   await cache.set(cacheKey, result, 600);
   return result;
 }
 
-/**
- * Refresh activity data for a specific platform for a user.
- */
 async function refreshPlatformData(userId, platform) {
   const fetcher = PLATFORM_FETCHERS[platform];
   if (!fetcher) return null;
@@ -259,15 +318,19 @@ async function refreshPlatformData(userId, platform) {
   try {
     const rawStats = await fetcher(username);
     if (rawStats) {
+      if (!devProfile.stats) devProfile.stats = {};
       devProfile.stats[platform] = rawStats;
       devProfile.lastUpdated = new Date();
       devProfile.markModified('stats');
       await devProfile.save();
     }
 
-    // Invalidate cache
+    // Invalidate caches
     await cache.del(`activity:integrations:${userId}`);
     await cache.del(`activity:dashboard:${userId}`);
+
+    // Automatically check and record activity for today if found
+    await syncUserPlatformActivities(userId);
 
     return normalizePlatformData(platform, rawStats, username);
   } catch (error) {
@@ -276,97 +339,706 @@ async function refreshPlatformData(userId, platform) {
   }
 }
 
-/**
- * Get today's date string in a given timezone
- */
-function getTodayInTimezone(timezone = 'Asia/Kolkata') {
-  try {
-    const now = new Date();
-    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).formatToParts(now);
-    const year = parts.find(p => p.type === 'year').value;
-    const month = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
-    return `${year}-${month}-${day}`;
-  } catch {
-    return new Date().toISOString().split('T')[0];
+// ─── AUTOMATED PLATFORM SYNC & GOAL VERIFICATION ────────────────
+
+async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata') {
+  const today = getTodayInTimezone(timezone);
+  const devProfile = await DevProfile.findOne({ user: userId });
+  if (!devProfile || !devProfile.stats) return { synced: 0, activitiesDetected: [] };
+
+  const detectedActivities = [];
+
+  for (const [platform, stats] of Object.entries(devProfile.stats)) {
+    if (!stats || stats.fetchError) continue;
+    const normalized = normalizePlatformData(platform, stats, devProfile.usernames?.[platform]?.username);
+    
+    if (normalized.activityToday) {
+      detectedActivities.push({
+        platform,
+        category: PLATFORM_INFO[platform]?.category || 'coding',
+        title: `${PLATFORM_INFO[platform]?.name || platform} Activity Verified`,
+        completionType: PLATFORM_INFO[platform]?.connectionType === 'api-verified' ? 'api-verified' : 'auto-detected'
+      });
+
+      // 1. Ensure a general activity record exists for this platform today (idempotent)
+      const existingPlatformRecord = await ActivityRecord.findOne({
+        userId,
+        platform,
+        date: today,
+        goalId: null
+      });
+
+      if (!existingPlatformRecord) {
+        await ActivityRecord.create({
+          userId,
+          platform,
+          category: PLATFORM_INFO[platform]?.category || 'coding',
+          title: `${PLATFORM_INFO[platform]?.name || platform} Activity Detected`,
+          sourceTitle: `${PLATFORM_INFO[platform]?.name || platform} platform activity`,
+          sourceId: `${platform}-${today}`,
+          date: today,
+          completed: true,
+          completionType: PLATFORM_INFO[platform]?.connectionType === 'api-verified' ? 'api-verified' : 'auto-detected',
+          metadata: { platform, autoDetected: true }
+        });
+      }
+
+      // 2. Auto-complete any active goals matching this platform or category
+      const matchingGoals = await ActivityGoal.find({
+        userId,
+        enabled: true,
+        $or: [
+          { platform },
+          { category: PLATFORM_INFO[platform]?.category || 'coding', trackingMode: { $in: ['automatic', 'hybrid'] } }
+        ]
+      });
+
+      for (const goal of matchingGoals) {
+        let goalRecord = await ActivityRecord.findOne({ userId, goalId: goal._id, date: today });
+        if (!goalRecord || !goalRecord.completed) {
+          if (!goalRecord) {
+            goalRecord = new ActivityRecord({
+              userId,
+              goalId: goal._id,
+              platform: goal.platform || platform,
+              category: goal.category || 'coding',
+              title: goal.title,
+              sourceTitle: `${PLATFORM_INFO[platform]?.name || platform} Activity Verified`,
+              date: today,
+              completed: true,
+              completionType: 'api-verified'
+            });
+          } else {
+            goalRecord.completed = true;
+            goalRecord.completionType = 'api-verified';
+          }
+          await goalRecord.save();
+
+          // Increment goal streak
+          if (!goal.lastCompletedAt || isConsecutiveDay(goal.lastCompletedAt, timezone)) {
+            goal.currentStreak = (goal.currentStreak || 0) + 1;
+          } else {
+            goal.currentStreak = 1;
+          }
+          goal.longestStreak = Math.max(goal.longestStreak || 0, goal.currentStreak);
+          goal.lastCompletedAt = new Date();
+          goal.totalCompletions = (goal.totalCompletions || 0) + 1;
+          await goal.save();
+
+          // Check milestone for goal
+          if (MILESTONES.includes(goal.currentStreak)) {
+            await Notification.createNotification({
+              recipient: userId,
+              type: 'activity-milestone',
+              title: `🏆 ${goal.currentStreak}-Day Streak Milestone!`,
+              content: `Incredible! "${goal.title}" auto-completed for a ${goal.currentStreak}-day streak.`,
+              priority: 'normal',
+              metadata: { source: 'system', category: 'activity' },
+              actionUrl: '/activity'
+            }).catch(e => console.error(e));
+          }
+        }
+      }
+    }
   }
+
+  // Invalidate cache
+  await cache.del(`activity:dashboard:${userId}`);
+  return { synced: Object.keys(devProfile.stats).length, activitiesDetected: detectedActivities };
 }
 
-/**
- * Get the dashboard summary for a user
- */
+// ─── STREAK ENGINE (OVERALL, CATEGORY, GOAL) ────────────────────
+
+async function calculateOverallStreak(userId, timezone = 'Asia/Kolkata') {
+  const today = getTodayInTimezone(timezone);
+  const yesterday = getPreviousDate(today);
+
+  // Query all distinct dates with completed activities
+  const records = await ActivityRecord.find({ userId, completed: true }).select('date').lean();
+  const dateSet = new Set(records.map(r => r.date));
+
+  const activeToday = dateSet.has(today);
+  const activeYesterday = dateSet.has(yesterday);
+
+  let currentStreak = 0;
+  let startDate = null;
+
+  if (activeToday) {
+    let d = today;
+    while (dateSet.has(d)) {
+      currentStreak++;
+      startDate = d;
+      d = getPreviousDate(d);
+    }
+  } else if (activeYesterday) {
+    let d = yesterday;
+    while (dateSet.has(d)) {
+      currentStreak++;
+      startDate = d;
+      d = getPreviousDate(d);
+    }
+  }
+
+  // Longest streak across all recorded history
+  const allDates = Array.from(dateSet).sort();
+  let longestStreak = 0;
+  let running = 0;
+
+  for (let i = 0; i < allDates.length; i++) {
+    if (i === 0) {
+      running = 1;
+    } else {
+      const prev = allDates[i - 1];
+      if (allDates[i] === getNextDate(prev)) {
+        running++;
+      } else {
+        running = 1;
+      }
+    }
+    if (running > longestStreak) longestStreak = running;
+  }
+  longestStreak = Math.max(longestStreak, currentStreak);
+
+  // Milestone intelligence
+  const achieved = MILESTONES.filter(m => m <= currentStreak);
+  const next = MILESTONES.find(m => m > currentStreak) || null;
+  const daysRemaining = next ? next - currentStreak : 0;
+  const prevMilestone = achieved.length > 0 ? achieved[achieved.length - 1] : 0;
+  const progressToNext = next ? Math.round(((currentStreak - prevMilestone) / (next - prevMilestone)) * 100) : 100;
+
+  // At risk if streak is active (>0) but no activity has been completed today
+  const atRisk = currentStreak > 0 && !activeToday;
+
+  return {
+    current: currentStreak,
+    longest: longestStreak,
+    activeToday,
+    atRisk,
+    startDate,
+    lastActiveDate: activeToday ? today : (activeYesterday ? yesterday : (allDates.length > 0 ? allDates[allDates.length - 1] : null)),
+    totalActiveDays: dateSet.size,
+    milestones: {
+      achieved,
+      next,
+      daysRemaining,
+      progressToNext,
+      all: MILESTONES
+    }
+  };
+}
+
+async function calculateCategoryStreaks(userId, timezone = 'Asia/Kolkata') {
+  const today = getTodayInTimezone(timezone);
+  const yesterday = getPreviousDate(today);
+
+  const categories = ['coding', 'learning', 'project', 'career'];
+  const results = {};
+
+  const records = await ActivityRecord.find({ userId, completed: true }).select('date category platform').lean();
+
+  for (const cat of categories) {
+    const catDates = new Set(
+      records
+        .filter(r => r.category === cat || (cat === 'coding' && ['github','leetcode','hackerrank','codechef','codeforces','gfg'].includes(r.platform)))
+        .map(r => r.date)
+    );
+
+    const activeToday = catDates.has(today);
+    let streak = 0;
+
+    if (activeToday) {
+      let d = today;
+      while (catDates.has(d)) {
+        streak++;
+        d = getPreviousDate(d);
+      }
+    } else if (catDates.has(yesterday)) {
+      let d = yesterday;
+      while (catDates.has(d)) {
+        streak++;
+        d = getPreviousDate(d);
+      }
+    }
+
+    results[cat] = {
+      category: cat,
+      current: streak,
+      activeToday,
+      atRisk: streak > 0 && !activeToday,
+      totalDays: catDates.size
+    };
+  }
+
+  return results;
+}
+
+// ─── TODAY'S PLAN & PRIORITY ENGINE ─────────────────────────────
+
+async function getTodaysPlan(userId, timezone = 'Asia/Kolkata') {
+  const today = getTodayInTimezone(timezone);
+  const dayOfWeek = getDayOfWeekInTimezone(new Date(), timezone);
+
+  const goals = await ActivityGoal.find({ userId, enabled: true }).lean();
+  const todayRecords = await ActivityRecord.find({ userId, date: today, completed: true }).lean();
+
+  const recordMap = new Map();
+  for (const r of todayRecords) {
+    if (r.goalId) {
+      recordMap.set(r.goalId.toString(), r);
+    }
+  }
+
+  // Filter goals that are scheduled for today
+  const scheduledGoals = goals.filter(g => {
+    if (g.frequency === 'daily') return true;
+    if (g.frequency === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
+    if (g.frequency === 'custom') return (g.customDays || []).includes(dayOfWeek);
+    return true;
+  });
+
+  const formattedGoals = scheduledGoals.map(goal => {
+    const record = recordMap.get(goal._id.toString());
+    const isCompleted = !!record;
+    
+    // Priority calculation: high priority if streak is at risk (streak >= 3), or explicitly set to high
+    let priority = goal.priority || 'medium';
+    if (!isCompleted && (goal.currentStreak || 0) >= 3) {
+      priority = 'high';
+    }
+
+    return {
+      ...goal,
+      completedToday: isCompleted,
+      completionType: record?.completionType || goal.trackingMode || 'manual',
+      completedAt: record?.createdAt || null,
+      priority,
+      target: goal.target || (goal.targetValue ? `${goal.targetValue} ${goal.targetMetric || 'items'}` : '')
+    };
+  });
+
+  // Sort: High priority incomplete first, then Medium, Low, then Completed at the bottom
+  const priorityWeight = { high: 3, medium: 2, low: 1 };
+  formattedGoals.sort((a, b) => {
+    if (a.completedToday !== b.completedToday) return a.completedToday ? 1 : -1;
+    return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
+  });
+
+  const total = formattedGoals.length;
+  const completed = formattedGoals.filter(g => g.completedToday).length;
+  const remaining = total - completed;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return {
+    goals: formattedGoals,
+    total,
+    completed,
+    remaining,
+    percentage
+  };
+}
+
+// ─── WEEKLY ANALYTICS & HEATMAP ─────────────────────────────────
+
+async function getWeeklyAnalytics(userId, timezone = 'Asia/Kolkata') {
+  const today = getTodayInTimezone(timezone);
+
+  // Generate last 7 days dates
+  const currentWeekDays = [];
+  let cur = today;
+  for (let i = 0; i < 7; i++) {
+    currentWeekDays.unshift(cur);
+    cur = getPreviousDate(cur);
+  }
+
+  // Generate previous 7 days dates for comparison
+  const previousWeekDays = [];
+  for (let i = 0; i < 7; i++) {
+    previousWeekDays.unshift(cur);
+    cur = getPreviousDate(cur);
+  }
+
+  const allQueryDates = [...previousWeekDays, ...currentWeekDays];
+  const records = await ActivityRecord.find({
+    userId,
+    date: { $in: allQueryDates },
+    completed: true
+  }).lean();
+
+  const recordByDate = {};
+  for (const r of records) {
+    if (!recordByDate[r.date]) {
+      recordByDate[r.date] = { count: 0, categories: { coding: 0, learning: 0, project: 0, career: 0 } };
+    }
+    recordByDate[r.date].count++;
+    const cat = r.category || 'coding';
+    if (recordByDate[r.date].categories[cat] !== undefined) {
+      recordByDate[r.date].categories[cat]++;
+    }
+  }
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const days = currentWeekDays.map(dateStr => {
+    const d = new Date(dateStr + 'T12:00:00Z');
+    const dayName = dayNames[d.getUTCDay()];
+    const entry = recordByDate[dateStr] || { count: 0, categories: { coding: 0, learning: 0, project: 0, career: 0 } };
+    return {
+      date: dateStr,
+      dayName,
+      active: entry.count > 0,
+      activityCount: entry.count,
+      categories: entry.categories
+    };
+  });
+
+  const activeDaysCount = days.filter(d => d.active).length;
+  const totalActivitiesThisWeek = days.reduce((sum, d) => sum + d.activityCount, 0);
+
+  // Previous week metrics for comparison
+  const prevActiveDaysCount = previousWeekDays.filter(d => (recordByDate[d]?.count || 0) > 0).length;
+  const prevTotalActivities = previousWeekDays.reduce((sum, d) => sum + (recordByDate[d]?.count || 0), 0);
+
+  let comparison = null;
+  if (prevTotalActivities > 0 || prevActiveDaysCount > 0) {
+    const activeDaysDiff = activeDaysCount - prevActiveDaysCount;
+    const activitiesDiff = totalActivitiesThisWeek - prevTotalActivities;
+    const percentChange = prevTotalActivities > 0
+      ? Math.round((activitiesDiff / prevTotalActivities) * 100)
+      : null;
+
+    comparison = {
+      activeDaysDiff,
+      activitiesDiff,
+      percentChange: percentChange !== null ? (percentChange >= 0 ? `+${percentChange}%` : `${percentChange}%`) : null
+    };
+  }
+
+  return {
+    days,
+    activeDaysCount,
+    totalActivities: totalActivitiesThisWeek,
+    period: { start: currentWeekDays[0], end: currentWeekDays[currentWeekDays.length - 1] },
+    comparison
+  };
+}
+
+async function getHeatmapData(userId, timezone = 'Asia/Kolkata', daysCount = 365) {
+  const today = getTodayInTimezone(timezone);
+  const dates = [];
+  let cur = today;
+  for (let i = 0; i < daysCount; i++) {
+    dates.unshift(cur);
+    cur = getPreviousDate(cur);
+  }
+
+  const records = await ActivityRecord.find({
+    userId,
+    date: { $gte: dates[0], $lte: today },
+    completed: true
+  }).select('date category').lean();
+
+  const countMap = {};
+  for (const r of records) {
+    if (!countMap[r.date]) {
+      countMap[r.date] = { count: 0, coding: 0, learning: 0, project: 0, career: 0 };
+    }
+    countMap[r.date].count++;
+    const cat = r.category || 'coding';
+    if (countMap[r.date][cat] !== undefined) {
+      countMap[r.date][cat]++;
+    }
+  }
+
+  const points = dates.map(date => ({
+    date,
+    count: countMap[date]?.count || 0,
+    categories: countMap[date] ? {
+      coding: countMap[date].coding,
+      learning: countMap[date].learning,
+      project: countMap[date].project,
+      career: countMap[date].career
+    } : { coding: 0, learning: 0, project: 0, career: 0 }
+  }));
+
+  return {
+    points,
+    totalDays: daysCount,
+    activeDays: Object.keys(countMap).length,
+    totalActivities: records.length
+  };
+}
+
+// ─── CHRONOLOGICAL ACTIVITY TIMELINE ────────────────────────────
+
+async function getActivityTimeline(userId, options = {}) {
+  const page = parseInt(options.page, 10) || 1;
+  const limit = parseInt(options.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+
+  const query = { userId, completed: true };
+  if (options.category && options.category !== 'all') {
+    query.category = options.category;
+  }
+  if (options.platform && options.platform !== 'all') {
+    query.platform = options.platform;
+  }
+
+  const [records, total] = await Promise.all([
+    ActivityRecord.find(query)
+      .sort({ date: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('goalId', 'title category platform trackingMode')
+      .lean(),
+    ActivityRecord.countDocuments(query)
+  ]);
+
+  const items = records.map(r => ({
+    id: r._id,
+    title: r.sourceTitle || r.title || r.goalId?.title || `${r.platform} Activity`,
+    date: r.date,
+    platform: r.platform,
+    category: r.category || r.goalId?.category || 'coding',
+    completionType: r.completionType || 'manual', // 'api-verified', 'auto-detected', 'manual'
+    source: r.completionType || 'manual',
+    createdAt: r.createdAt || r.detectedAt,
+    notes: r.notes || '',
+    goalTitle: r.goalId?.title || null
+  }));
+
+  return {
+    timeline: items,
+    items,
+    total,
+    page,
+    pages: Math.ceil(total / limit)
+  };
+}
+
+// ─── BEHAVIORAL INSIGHTS & PERSONAL RECORDS ─────────────────────
+
+async function getBehavioralInsights(userId, timezone = 'Asia/Kolkata') {
+  const today = getTodayInTimezone(timezone);
+  const overall = await calculateOverallStreak(userId, timezone);
+  const weekly = await getWeeklyAnalytics(userId, timezone);
+  const categoryStreaks = await calculateCategoryStreaks(userId, timezone);
+
+  const insights = [];
+
+  // 1. Streak at risk insight (high urgency)
+  if (overall.atRisk && overall.current >= 2) {
+    insights.push({
+      type: 'warning',
+      category: 'streak',
+      title: 'Streak at Risk Today',
+      description: `Your ${overall.current}-day activity streak needs an activity today to stay alive!`,
+      actionUrl: '/activity'
+    });
+  }
+
+  // 2. Consistency momentum insight
+  if (weekly.activeDaysCount >= 5) {
+    insights.push({
+      type: 'success',
+      category: 'consistency',
+      title: 'Strong Weekly Momentum',
+      description: `You've been active on ${weekly.activeDaysCount} of the last 7 days. Consistency is compounding!`,
+      actionUrl: '/activity'
+    });
+  } else if (weekly.activeDaysCount >= 3) {
+    insights.push({
+      type: 'info',
+      category: 'consistency',
+      title: 'Building Momentum',
+      description: `You have ${weekly.activeDaysCount} active days this week. Complete today's plan to push it higher.`,
+      actionUrl: '/activity'
+    });
+  }
+
+  // 3. Top category insight
+  const catEntries = Object.values(categoryStreaks);
+  catEntries.sort((a, b) => b.totalDays - a.totalDays);
+  if (catEntries.length > 0 && catEntries[0].totalDays > 0) {
+    const top = catEntries[0];
+    const catName = top.category.charAt(0).toUpperCase() + top.category.slice(1);
+    insights.push({
+      type: 'highlight',
+      category: top.category,
+      title: `${catName} is Your Strongest Area`,
+      description: `You have recorded ${top.totalDays} active days in ${catName}. Keep up the great work!`,
+      actionUrl: '/activity'
+    });
+  }
+
+  // 4. Milestone proximity
+  if (overall.milestones.next && overall.milestones.daysRemaining <= 3 && overall.milestones.daysRemaining > 0) {
+    insights.push({
+      type: 'milestone',
+      category: 'achievement',
+      title: `Upcoming ${overall.milestones.next}-Day Milestone!`,
+      description: `You are only ${overall.milestones.daysRemaining} day${overall.milestones.daysRemaining === 1 ? '' : 's'} away from hitting a ${overall.milestones.next}-day milestone!`,
+      actionUrl: '/activity'
+    });
+  }
+
+  return insights;
+}
+
+async function getPersonalRecords(userId, timezone = 'Asia/Kolkata') {
+  const records = await ActivityRecord.find({ userId, completed: true }).select('date platform category').lean();
+  const overall = await calculateOverallStreak(userId, timezone);
+
+  // Most active day of week
+  const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  for (const r of records) {
+    const d = new Date(r.date + 'T12:00:00Z');
+    dayCounts[d.getUTCDay()]++;
+  }
+
+  let maxDayIdx = 0;
+  for (let i = 1; i < 7; i++) {
+    if (dayCounts[i] > dayCounts[maxDayIdx]) maxDayIdx = i;
+  }
+
+  // Most active platform
+  const platformCounts = {};
+  for (const r of records) {
+    if (r.platform && r.platform !== 'custom') {
+      platformCounts[r.platform] = (platformCounts[r.platform] || 0) + 1;
+    }
+  }
+
+  let mostConsistentPlatform = null;
+  let maxPlatCount = 0;
+  for (const [p, c] of Object.entries(platformCounts)) {
+    if (c > maxPlatCount) {
+      maxPlatCount = c;
+      mostConsistentPlatform = PLATFORM_INFO[p]?.name || p;
+    }
+  }
+
+  return {
+    longestOverallStreak: overall.longest,
+    currentOverallStreak: overall.current,
+    totalActivities: records.length,
+    totalActiveDays: overall.totalActiveDays,
+    mostActiveDayOfWeek: records.length > 0 ? dayNames[maxDayIdx] : '—',
+    mostConsistentPlatform: mostConsistentPlatform || '—'
+  };
+}
+
+// ─── CONSISTENCY SCORE (0–100) ──────────────────────────────────
+
+async function getConsistencyScore(userId, timezone = 'Asia/Kolkata') {
+  const weekly = await getWeeklyAnalytics(userId, timezone);
+  const overall = await calculateOverallStreak(userId, timezone);
+  const plan = await getTodaysPlan(userId, timezone);
+
+  // 1. Active days factor (up to 50 pts)
+  const activeDaysScore = Math.round((weekly.activeDaysCount / 7) * 50);
+
+  // 2. Goal completion factor (up to 30 pts)
+  const goalScore = plan.total > 0
+    ? Math.round((plan.completed / plan.total) * 30)
+    : 20; // default baseline if no goals configured
+
+  // 3. Streak momentum factor (up to 20 pts)
+  const streakScore = Math.min(Math.round((overall.current / 21) * 20), 20);
+
+  const totalScore = Math.min(activeDaysScore + goalScore + streakScore, 100);
+
+  return {
+    score: totalScore,
+    grade: totalScore >= 85 ? 'Exceptional' : totalScore >= 70 ? 'Consistent' : totalScore >= 50 ? 'Developing' : 'Starting',
+    breakdown: [
+      { label: 'Weekly Active Days', value: `${weekly.activeDaysCount}/7 days`, points: activeDaysScore, max: 50 },
+      { label: 'Today\'s Goal Execution', value: `${plan.completed}/${plan.total} completed`, points: goalScore, max: 30 },
+      { label: 'Active Streak Momentum', value: `${overall.current} days`, points: streakScore, max: 20 }
+    ]
+  };
+}
+
+// ─── MASTER DASHBOARD SUMMARY ───────────────────────────────────
+
 async function getDashboardSummary(userId, timezone = 'Asia/Kolkata') {
   const cacheKey = `activity:dashboard:${userId}`;
   const cached = await cache.get(cacheKey);
   if (cached) return cached;
 
   const today = getTodayInTimezone(timezone);
+  const dayOfWeek = getDayOfWeekInTimezone(new Date(), timezone);
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  // Fetch goals and today's records in parallel
-  const [goals, todayRecords, integrations] = await Promise.all([
-    ActivityGoal.find({ userId, enabled: true }).lean(),
-    ActivityRecord.find({ userId, date: today }).lean(),
-    getUserIntegrations(userId)
+  // Run platform auto-sync in the background if needed
+  syncUserPlatformActivities(userId, timezone).catch(err =>
+    console.error('[Activity] Auto-sync error:', err.message)
+  );
+
+  const [
+    overallStreak,
+    categoryStreaks,
+    todaysPlan,
+    weekly,
+    timeline,
+    insights,
+    consistency,
+    integrations,
+    records
+  ] = await Promise.all([
+    calculateOverallStreak(userId, timezone),
+    calculateCategoryStreaks(userId, timezone),
+    getTodaysPlan(userId, timezone),
+    getWeeklyAnalytics(userId, timezone),
+    getActivityTimeline(userId, { limit: 6 }),
+    getBehavioralInsights(userId, timezone),
+    getConsistencyScore(userId, timezone),
+    getUserIntegrations(userId),
+    getPersonalRecords(userId, timezone)
   ]);
 
-  // Compute completion status per goal
-  const completedGoalIds = new Set(
-    todayRecords.filter(r => r.completed).map(r => r.goalId?.toString())
-  );
-
-  const todaysGoals = goals.map(goal => ({
-    ...goal,
-    completedToday: completedGoalIds.has(goal._id.toString())
-  }));
-
-  const completedCount = todaysGoals.filter(g => g.completedToday).length;
-
-  // Compute overall streak (max of all goal streaks)
-  const maxStreak = goals.reduce((max, g) => Math.max(max, g.currentStreak || 0), 0);
-  const longestStreak = goals.reduce((max, g) => Math.max(max, g.longestStreak || 0), 0);
-
-  // Compute coding vs learning breakdown
-  const codingGoals = todaysGoals.filter(g =>
-    g.category === 'coding' || ['leetcode', 'github', 'hackerrank', 'codechef', 'codeforces', 'gfg'].includes(g.platform)
-  );
-  const learningGoals = todaysGoals.filter(g =>
-    g.category === 'learning' || ['duolingo'].includes(g.platform)
-  );
-
   const summary = {
-    today,
-    currentStreak: maxStreak,
-    longestStreak,
+    today: {
+      date: today,
+      dayName: dayNames[dayOfWeek],
+      totalGoals: todaysPlan.total,
+      completedGoals: todaysPlan.completed,
+      remainingGoals: todaysPlan.remaining,
+      percentage: todaysPlan.percentage
+    },
+    // Backwards compatibility for existing dashboard callers and tests:
     todaysGoals: {
-      total: todaysGoals.length,
-      completed: completedCount,
-      goals: todaysGoals
+      total: todaysPlan.total,
+      completed: todaysPlan.completed,
+      pending: todaysPlan.remaining,
+      goals: todaysPlan.goals || []
     },
-    coding: {
-      total: codingGoals.length,
-      completed: codingGoals.filter(g => g.completedToday).length
-    },
-    learning: {
-      total: learningGoals.length,
-      completed: learningGoals.filter(g => g.completedToday).length
-    },
-    integrations
+    currentStreak: overallStreak.current,
+    longestStreak: overallStreak.longest,
+    overallStreak,
+    categoryStreaks,
+    todaysPlan,
+    weekly,
+    recentActivity: timeline.items,
+    insights,
+    consistency,
+    integrations,
+    personalRecords: records
   };
 
-  // Cache for 5 minutes
-  await cache.set(cacheKey, summary, 300);
+  // Cache for 3 minutes for high responsiveness
+  await cache.set(cacheKey, summary, 180);
   return summary;
 }
 
-/**
- * Mark a goal as completed for today and update streak
- */
+// ─── MANUAL GOAL COMPLETION ─────────────────────────────────────
+
 async function completeGoal(userId, goalId, timezone = 'Asia/Kolkata') {
   const today = getTodayInTimezone(timezone);
   const goal = await ActivityGoal.findOne({ _id: goalId, userId });
   if (!goal) throw new Error('Goal not found');
 
-  // Create or update the record
   let record = await ActivityRecord.findOne({ userId, goalId, date: today });
   if (record && record.completed) {
     return { alreadyCompleted: true, record, goal };
@@ -377,6 +1049,9 @@ async function completeGoal(userId, goalId, timezone = 'Asia/Kolkata') {
       userId,
       goalId,
       platform: goal.platform,
+      category: goal.category,
+      title: goal.title,
+      sourceTitle: goal.title,
       date: today,
       completed: true,
       completionType: 'manual'
@@ -384,23 +1059,15 @@ async function completeGoal(userId, goalId, timezone = 'Asia/Kolkata') {
   } else {
     record.completed = true;
     record.completionType = 'manual';
+    if (!record.title) record.title = goal.title;
   }
   await record.save();
 
   // Update streak
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = getTodayInTimezone(timezone);
-
-  const lastCompletedDate = goal.lastCompletedAt
-    ? getTodayInTimezone(timezone) // Simplified: just check if it was yesterday
-    : null;
-
-  // If the user completed yesterday (or this is their first), increment streak
   if (!goal.lastCompletedAt || isConsecutiveDay(goal.lastCompletedAt, timezone)) {
     goal.currentStreak = (goal.currentStreak || 0) + 1;
   } else {
-    goal.currentStreak = 1; // Reset streak
+    goal.currentStreak = 1;
   }
 
   goal.longestStreak = Math.max(goal.longestStreak || 0, goal.currentStreak);
@@ -414,95 +1081,32 @@ async function completeGoal(userId, goalId, timezone = 'Asia/Kolkata') {
   return { alreadyCompleted: false, record, goal };
 }
 
-/**
- * Check if the last completion was yesterday (consecutive day)
- */
-function isConsecutiveDay(lastDate, timezone = 'Asia/Kolkata') {
-  if (!lastDate) return false;
-  const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const lastStr = formatDateInTimezone(lastDate, timezone);
-  const todayStr = getTodayInTimezone(timezone);
-  const yesterdayStr = formatDateInTimezone(yesterday, timezone);
-
-  return lastStr === yesterdayStr || lastStr === todayStr;
-}
-
-function formatDateInTimezone(date, timezone = 'Asia/Kolkata') {
-  try {
-    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).formatToParts(new Date(date));
-    const year = parts.find(p => p.type === 'year').value;
-    const month = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
-    return `${year}-${month}-${day}`;
-  } catch {
-    return new Date(date).toISOString().split('T')[0];
-  }
-}
-
-/**
- * Get weekly summary data for a user
- */
 async function getWeeklySummary(userId, timezone = 'Asia/Kolkata') {
-  const today = new Date();
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
-  const dates = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    dates.push(formatDateInTimezone(d, timezone));
-  }
-
-  const [records, goals] = await Promise.all([
-    ActivityRecord.find({
-      userId,
-      date: { $in: dates },
-      completed: true
-    }).lean(),
-    ActivityGoal.find({ userId, enabled: true }).lean()
-  ]);
-
-  // Days with any coding activity
-  const codingDays = new Set(
-    records
-      .filter(r => {
-        const goal = goals.find(g => g._id.toString() === r.goalId?.toString());
-        return goal && (goal.category === 'coding' || ['leetcode', 'github', 'hackerrank', 'codechef', 'codeforces', 'gfg'].includes(goal.platform));
-      })
-      .map(r => r.date)
-  );
-
-  const learningDays = new Set(
-    records
-      .filter(r => {
-        const goal = goals.find(g => g._id.toString() === r.goalId?.toString());
-        return goal && (goal.category === 'learning' || ['duolingo'].includes(goal.platform));
-      })
-      .map(r => r.date)
-  );
-
-  return {
-    period: { start: dates[0], end: dates[dates.length - 1] },
-    coding: { activeDays: codingDays.size, totalDays: 7 },
-    learning: { activeDays: learningDays.size, totalDays: 7 },
-    goalsCompleted: records.length,
-    longestStreak: goals.reduce((max, g) => Math.max(max, g.longestStreak || 0), 0)
-  };
+  return getWeeklyAnalytics(userId, timezone);
 }
 
 module.exports = {
   PLATFORM_INFO,
   PLATFORM_FETCHERS,
+  MILESTONES,
   getUserIntegrations,
   refreshPlatformData,
+  syncUserPlatformActivities,
+  calculateOverallStreak,
+  calculateCategoryStreaks,
+  getTodaysPlan,
+  getWeeklyAnalytics,
+  getHeatmapData,
+  getActivityTimeline,
+  getBehavioralInsights,
+  getPersonalRecords,
+  getConsistencyScore,
   getDashboardSummary,
   completeGoal,
   getWeeklySummary,
   getTodayInTimezone,
   formatDateInTimezone,
+  getPreviousDate,
+  getNextDate,
   normalizePlatformData
 };

@@ -88,7 +88,18 @@ router.get('/dashboard', protect, async (req, res) => {
       type: ev.eventType
     }));
 
-    res.json({ stats, recentActivities, upcomingEvents });
+    let activity = null;
+    try {
+      const ReminderPreference = require('../models/ReminderPreference');
+      const activityService = require('../services/activityService');
+      const prefs = await ReminderPreference.findOne({ userId });
+      const timezone = prefs?.timezone || 'Asia/Kolkata';
+      activity = await activityService.getDashboardSummary(userId, timezone);
+    } catch (actErr) {
+      console.warn('[Users] Error attaching activity to dashboard:', actErr.message);
+    }
+
+    res.json({ stats, recentActivities, upcomingEvents, activity });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     res.status(500).json({ message: 'Server error' });

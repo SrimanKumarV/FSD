@@ -374,3 +374,104 @@ describe('Activity Hub - Admin', () => {
     expect(res.statusCode).toBe(403);
   });
 });
+
+// ─── ACTIVITY INTELLIGENCE 2.0 TESTS ─────────────────────────────
+
+describe('Activity Intelligence 2.0 - Streaks, Timeline, Analytics, Sync', () => {
+  test('Get streaks returns overall streak and category breakdown', async () => {
+    const res = await request(app)
+      .get('/api/activity/streaks')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('overall');
+    expect(res.body).toHaveProperty('categories');
+    expect(res.body.overall).toHaveProperty('current');
+    expect(res.body.overall).toHaveProperty('longest');
+    expect(res.body.overall).toHaveProperty('activeToday');
+  });
+
+  test('Get timeline returns paginated activity records with trust sources', async () => {
+    // Seed records
+    await ActivityRecord.create([
+      {
+        userId: testUser._id,
+        date: '2026-09-26',
+        category: 'coding',
+        title: 'GitHub Commit',
+        completionType: 'api-verified',
+        completed: true
+      },
+      {
+        userId: testUser._id,
+        date: '2026-09-27',
+        category: 'learning',
+        title: 'DBMS Revision',
+        completionType: 'manual',
+        completed: true
+      }
+    ]);
+
+    const res = await request(app)
+      .get('/api/activity/timeline')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('timeline');
+    expect(res.body.timeline.length).toBe(2);
+    expect(res.body.timeline[0]).toHaveProperty('source');
+  });
+
+  test('Get analytics returns weekly, category breakdown, consistency score', async () => {
+    const res = await request(app)
+      .get('/api/activity/analytics')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('weekly');
+    expect(res.body).toHaveProperty('categories');
+    expect(res.body).toHaveProperty('consistencyScore');
+    expect(res.body).toHaveProperty('heatmap');
+  });
+
+  test('Get insights returns behavioral patterns', async () => {
+    const res = await request(app)
+      .get('/api/activity/insights')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('insights');
+    expect(res.body).toHaveProperty('personalRecords');
+  });
+
+  test('POST /api/activity/sync executes idempotently', async () => {
+    const res1 = await request(app)
+      .post('/api/activity/sync')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(res1.statusCode).toBe(200);
+    expect(res1.body).toHaveProperty('synced');
+
+    const res2 = await request(app)
+      .post('/api/activity/sync')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(res2.statusCode).toBe(200);
+  });
+
+  test('Creates goal with trackingMode, priority, and targetMetric', async () => {
+    const res = await request(app)
+      .post('/api/activity/goals')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        title: 'Solve 2 LeetCode problems',
+        category: 'coding',
+        platform: 'leetcode',
+        frequency: 'daily',
+        trackingMode: 'automatic',
+        priority: 'high',
+        targetMetric: 'problems',
+        targetValue: 2,
+        estimatedMinutes: 30
+      });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.trackingMode).toBe('automatic');
+    expect(res.body.priority).toBe('high');
+    expect(res.body.targetMetric).toBe('problems');
+  });
+});
+

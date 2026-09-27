@@ -18,6 +18,27 @@ const activityRecordSchema = new mongoose.Schema({
     enum: ['leetcode', 'github', 'duolingo', 'hackerrank', 'codechef', 'codeforces', 'gfg', 'kaggle', 'custom'],
     default: 'custom'
   },
+  category: {
+    type: String,
+    enum: ['coding', 'learning', 'career', 'project', 'custom'],
+    default: 'custom'
+  },
+  title: {
+    type: String,
+    trim: true,
+    maxlength: [150, 'Title cannot exceed 150 characters'],
+    default: ''
+  },
+  sourceTitle: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  sourceId: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   // The date this record is for (YYYY-MM-DD in user's timezone)
   date: {
     type: String,
@@ -32,6 +53,10 @@ const activityRecordSchema = new mongoose.Schema({
     type: String,
     enum: ['manual', 'auto-detected', 'api-verified'],
     default: 'manual'
+  },
+  detectedAt: {
+    type: Date,
+    default: Date.now
   },
   notes: {
     type: String,

@@ -11,7 +11,7 @@ const {
   getStreakWarningTemplate,
   getWeeklyActivitySummaryTemplate
 } = require('../utils/activityEmailTemplates');
-const { getWeeklySummary, getTodayInTimezone } = require('../services/activityService');
+const { getWeeklySummary, getTodayInTimezone, syncUserPlatformActivities } = require('../services/activityService');
 
 /**
  * Check if the current time is within quiet hours for a user
@@ -142,6 +142,15 @@ const runDailyReminders = async () => {
           continue;
         }
 
+        // Auto-sync platform activity first to detect external actions made today
+        try {
+          if (typeof syncUserPlatformActivities === 'function') {
+            await syncUserPlatformActivities(userId);
+          }
+        } catch (syncErr) {
+          // Non-blocking sync check
+        }
+
         // Get user's goals and today's completions
         const goals = await ActivityGoal.find({ userId, enabled: true }).lean();
         const todayRecords = await ActivityRecord.find({ userId, date: today, completed: true }).lean();
@@ -166,14 +175,25 @@ const runDailyReminders = async () => {
         // Calculate max streak for context
         const maxStreak = goals.reduce((max, g) => Math.max(max, g.currentStreak || 0), 0);
 
+        // Smart reminder content
+        let reminderTitle = '🔔 Daily Activity Reminder';
+        let reminderContent = '';
+        if (pendingGoals.length === 1) {
+          const single = pendingGoals[0];
+          reminderTitle = `🔥 Keep your streak alive!`;
+          reminderContent = `Your ${maxStreak > 0 ? `${maxStreak}-day ` : ''}streak is active today. 1 goal left: "${single.title}"${single.estimatedMinutes ? ` (~${single.estimatedMinutes} min)` : ''}.`;
+        } else {
+          reminderContent = `You have ${pendingGoals.length} goals remaining today. ${maxStreak > 0 ? `Protect your ${maxStreak}-day streak!` : 'Build your momentum!'}`;
+        }
+
         // Create in-app notification
         if (!prefs || prefs.inAppEnabled !== false) {
           await Notification.createNotification({
             recipient: userId,
             type: 'activity-reminder',
-            title: '🔔 Daily Activity Reminder',
-            content: `You have ${pendingGoals.length} goal${pendingGoals.length !== 1 ? 's' : ''} remaining today. ${maxStreak > 0 ? `Your streak: ${maxStreak} days.` : ''}`,
-            priority: 'normal',
+            title: reminderTitle,
+            content: reminderContent,
+            priority: maxStreak >= 7 ? 'high' : 'normal',
             metadata: { source: 'system', category: 'activity' },
             actionUrl: '/activity'
           });

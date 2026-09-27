@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Plus,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   ShieldCheck,
   AlertTriangle,
@@ -77,15 +78,35 @@ const ActivityHub = () => {
   const [refreshingPlatform, setRefreshingPlatform] = useState(null);
   const [isSyncingAll, setIsSyncingAll] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState(null);
-  const [showMobileMore, setShowMobileMore] = useState(false);
   const [tzMismatchDismissed, setTzMismatchDismissed] = useState(false);
 
   // Tab Filtering states
   const [todayFilter, setTodayFilter] = useState('all'); // 'all', 'pending', 'completed'
 
+  // Horizontal Roller Navigation State & Auto-centering
+  const tabsContainerRef = useRef(null);
+  const activeTabRef = useRef(null);
+
   const handleTabChange = (tabId) => {
     setSearchParams({ tab: tabId });
-    setShowMobileMore(false);
+  };
+
+  // Smoothly center the active tab in the horizontal roller when it changes
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, [activeTab]);
+
+  const scrollTabs = (direction) => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      tabsContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
   };
 
   // ─── DATA FETCHING ──────────────────────────────────────────
@@ -264,23 +285,6 @@ const ActivityHub = () => {
     { id: 'timeline', label: 'Timeline', icon: Clock, desc: 'Full audit trail of verified activity events' },
     { id: 'settings', label: 'Settings', icon: Settings, desc: 'Timezone, reminders, quiet hours and data controls' },
   ];
-
-  const primaryMobileTabs = [
-    { id: 'overview', label: 'Overview', icon: Zap },
-    { id: 'today', label: 'Today', icon: CheckCircle2 },
-    { id: 'streaks', label: 'Streaks', icon: Flame },
-  ];
-
-  const secondaryTabs = [
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, desc: 'Consistency index, habit trends & heatmap' },
-    { id: 'goals', label: 'Goals', icon: Target, desc: 'Create and manage habit goals & targets' },
-    { id: 'platforms', label: 'Platforms', icon: Link2, desc: 'Connected accounts & synchronization' },
-    { id: 'timeline', label: 'Timeline', icon: Clock, desc: 'Full chronological audit trail of verified activity' },
-    { id: 'settings', label: 'Settings', icon: Settings, desc: 'Timezone, reminders, quiet hours & data controls' },
-  ];
-
-  const isSecondaryTabActive = secondaryTabs.some(t => t.id === activeTab);
-  const activeSecondaryTab = secondaryTabs.find(t => t.id === activeTab);
 
   // ─── DERIVED VALUES FOR TODAY'S PLAN ────────────────────────
 
@@ -647,69 +651,72 @@ const ActivityHub = () => {
         </motion.div>
       )}
 
-      {/* ── MOBILE NAVIGATION: 4-TAB BAR (Prompt #7) ── */}
-      <div className="sm:hidden grid grid-cols-4 gap-1 p-1 bg-gray-100 dark:bg-gray-800/70 rounded-2xl">
-        {primaryMobileTabs.map(t => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => handleTabChange(t.id)}
-              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
-                isActive
-                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Icon className="w-4 h-4 mb-0.5" />
-              <span className="truncate max-w-full">{t.label}</span>
-            </button>
-          );
-        })}
-
-        {/* 4th Tab: "More ▾" */}
+      {/* ── UNIFIED HORIZONTAL ROLLER NAVIGATION (All 8 Activity Hub Sections) ── */}
+      <div className="relative w-full min-w-0 group/roller">
+        {/* Left Arrow Button (Desktop / Tablet) */}
         <button
-          onClick={() => setShowMobileMore(!showMobileMore)}
-          className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
-            isSecondaryTabActive
-              ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-          }`}
+          type="button"
+          onClick={() => scrollTabs('left')}
+          className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700 shadow-md items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 opacity-0 group-hover/roller:opacity-100 focus:opacity-100 transition-opacity"
+          aria-label="Scroll navigation left"
         >
-          <div className="flex items-center gap-0.5 mb-0.5">
-            {isSecondaryTabActive && activeSecondaryTab ? (
-              React.createElement(activeSecondaryTab.icon, { className: 'w-4 h-4' })
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </div>
-          <span className="truncate max-w-full">
-            {isSecondaryTabActive && activeSecondaryTab ? activeSecondaryTab.label : 'More'} ▾
-          </span>
+          <ChevronLeft className="w-4 h-4 shrink-0" />
         </button>
-      </div>
 
-      {/* ── DESKTOP NAVIGATION: 8-TAB HORIZONTAL RAIL (DevPulse pattern) ── */}
-      <div className="hidden sm:flex gap-1.5 p-1.5 bg-gray-100 dark:bg-gray-800/60 rounded-2xl w-full overflow-x-auto touch-pan-x custom-scrollbar min-w-0">
-        {allTabs.map(t => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => handleTabChange(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
-                isActive
-                  ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
+        {/* Scrollable Horizontal Track */}
+        <div
+          ref={tabsContainerRef}
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-pan-x custom-scrollbar py-1 px-1 scroll-smooth select-none min-w-0"
+        >
+          {allTabs.map(t => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                ref={isActive ? activeTabRef : null}
+                onClick={() => handleTabChange(t.id)}
+                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all shrink-0 active:scale-95 border ${
+                  isActive
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25 ring-2 ring-indigo-500/20'
+                    : 'bg-white dark:bg-gray-800/80 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-gray-200/80 dark:border-gray-700/80 hover:border-indigo-300 dark:hover:border-indigo-700/60 shadow-sm'
+                }`}
+              >
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-indigo-500 dark:text-indigo-400'}`} />
+                <span>{t.label}</span>
+                {t.id === 'streaks' && (dashboard?.overallStreak?.current || 0) > 0 && (
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {dashboard.overallStreak.current}d
+                  </span>
+                )}
+                {t.id === 'today' && totalTodayCount > 0 && (
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                  }`}>
+                    {completedTodayCount}/{totalTodayCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Arrow Button (Desktop / Tablet) */}
+        <button
+          type="button"
+          onClick={() => scrollTabs('right')}
+          className="hidden sm:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700 shadow-md items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 opacity-0 group-hover/roller:opacity-100 focus:opacity-100 transition-opacity"
+          aria-label="Scroll navigation right"
+        >
+          <ChevronRight className="w-4 h-4 shrink-0" />
+        </button>
       </div>
 
       {/* ══════════════════════════════════════════════════════════
@@ -1877,91 +1884,6 @@ const ActivityHub = () => {
           />
         </div>
       )}
-
-      {/* ── MOBILE "MORE" VIEWS BOTTOM SHEET DRAWER (Prompt #7) ── */}
-      <AnimatePresence>
-        {showMobileMore && (
-          <div className="fixed inset-0 z-50 sm:hidden">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMobileMore(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-
-            {/* Bottom Sheet Drawer */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-              className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-t-3xl border-t border-gray-200 dark:border-gray-800 p-5 space-y-4 shadow-2xl"
-            >
-              {/* Drag Handle */}
-              <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto" />
-
-              <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
-                <div>
-                  <h3 className="text-base font-extrabold text-gray-900 dark:text-white">
-                    More Views
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Explore deep activity intelligence features
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowMobileMore(false)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Navigation Options */}
-              <div className="space-y-2">
-                {secondaryTabs.map(tab => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => handleTabChange(tab.id)}
-                      className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all ${
-                        isActive
-                          ? 'bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-indigo-700 dark:text-indigo-300'
-                          : 'bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent text-gray-900 dark:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`p-2 rounded-xl ${
-                          isActive
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm'
-                        }`}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-sm font-bold block truncate">
-                            {tab.label}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 block truncate">
-                            {tab.desc}
-                          </span>
-                        </div>
-                      </div>
-
-                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* ── GOAL BUILDER MODAL (Mobile Bottom Sheet) ── */}
       <GoalBuilderModal

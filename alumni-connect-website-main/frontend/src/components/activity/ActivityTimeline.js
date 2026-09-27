@@ -13,8 +13,15 @@ const categoryIcons = {
   custom: Target
 };
 
-const ActivityTimeline = ({ items = [], isCompact = false }) => {
-  if (items.length === 0) {
+const ActivityTimeline = ({ items, timeline, isCompact = false, compact = false }) => {
+  const raw = items || timeline;
+  const recordList = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.items)
+    ? raw.items
+    : [];
+
+  if (recordList.length === 0) {
     return (
       <div className="py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
         <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -36,7 +43,7 @@ const ActivityTimeline = ({ items = [], isCompact = false }) => {
 
   return (
     <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200 dark:before:bg-gray-800">
-      {items.map((item, idx) => {
+      {recordList.map((item, idx) => {
         const CategoryIcon = categoryIcons[item.category] || Target;
         const isApiVerified = item.completionType === 'api-verified';
         const isAuto = item.completionType === 'auto-detected';

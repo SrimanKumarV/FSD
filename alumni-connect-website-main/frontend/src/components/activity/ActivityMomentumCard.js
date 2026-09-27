@@ -3,16 +3,25 @@ import { motion } from 'framer-motion';
 import { Flame, ArrowRight, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const ActivityMomentumCard = ({ activityData, userName = 'there', onContinuePlan, isCompact = false }) => {
-  const overallStreak = activityData?.overallStreak?.current ?? 0;
-  const longestStreak = activityData?.overallStreak?.longest ?? 0;
-  const isAtRisk = activityData?.overallStreak?.atRisk ?? false;
-  const activeToday = activityData?.overallStreak?.activeToday ?? false;
+const ActivityMomentumCard = ({ 
+  activityData, 
+  streakData, 
+  todayData, 
+  userName = 'there', 
+  onContinuePlan, 
+  onOpenPlan, 
+  isCompact = false 
+}) => {
+  const overallStreak = streakData?.current ?? activityData?.overallStreak?.current ?? 0;
+  const longestStreak = streakData?.longest ?? activityData?.overallStreak?.longest ?? 0;
+  const isAtRisk = streakData?.atRisk ?? activityData?.overallStreak?.atRisk ?? false;
+  const activeToday = streakData?.activeToday ?? activityData?.overallStreak?.activeToday ?? false;
 
-  const totalGoals = activityData?.todaysPlan?.total ?? activityData?.today?.totalGoals ?? 0;
-  const completedGoals = activityData?.todaysPlan?.completed ?? activityData?.today?.completedGoals ?? 0;
+  const totalGoals = todayData?.totalGoalsCount ?? todayData?.totalGoals ?? activityData?.todaysPlan?.total ?? activityData?.today?.totalGoals ?? 0;
+  const completedGoals = todayData?.completedGoalsCount ?? todayData?.completedGoals ?? activityData?.todaysPlan?.completed ?? activityData?.today?.completedGoals ?? 0;
   const remainingGoals = Math.max(totalGoals - completedGoals, 0);
   const percentage = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+  const handlePlan = onOpenPlan || onContinuePlan;
 
   return (
     <motion.div
@@ -105,9 +114,9 @@ const ActivityMomentumCard = ({ activityData, userName = 'there', onContinuePlan
           </div>
 
           {/* CTA */}
-          {onContinuePlan ? (
+          {handlePlan ? (
             <button
-              onClick={onContinuePlan}
+              onClick={handlePlan}
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white text-indigo-900 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-indigo-50 active:scale-95 transition-all shadow-md"
             >
               <span>Continue Today's Plan</span>

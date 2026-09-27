@@ -88,13 +88,34 @@ const StitchDashboard = () => {
   }
 
   const overallStreak = activity?.overallStreak || { current: 0, longest: 0, activeToday: false };
-  const todayData = activity?.today || { completedGoalsCount: 0, totalGoalsCount: 0, remainingCount: 0 };
-  const todaysPlan = activity?.todaysPlan || [];
-  const streaksData = activity?.streaks || { overall: overallStreak, categories: {}, platforms: {} };
+  const todayData = {
+    completedGoalsCount: activity?.today?.completedGoalsCount ?? activity?.today?.completedGoals ?? 0,
+    totalGoalsCount: activity?.today?.totalGoalsCount ?? activity?.today?.totalGoals ?? 0,
+    remainingCount: activity?.today?.remainingCount ?? activity?.today?.remainingGoals ?? 0
+  };
+  const rawPlan = activity?.todaysPlan;
+  const todaysGoals = Array.isArray(rawPlan)
+    ? rawPlan
+    : Array.isArray(rawPlan?.goals)
+    ? rawPlan.goals
+    : [];
+  const streaksData = activity?.streaks || { 
+    overall: overallStreak, 
+    categories: activity?.categoryStreaks || {}, 
+    platforms: activity?.integrations?.platforms || [] 
+  };
   const weeklyData = activity?.weekly || { totalActivities: 0, activeDays: 0, days: [], comparisonVsLastWeek: null };
-  const insights = activity?.insights || [];
-  const activityTimeline = activity?.recentActivity || [];
-  const platforms = activity?.platforms || [];
+  const insights = Array.isArray(activity?.insights) ? activity.insights : [];
+  const activityTimeline = Array.isArray(activity?.recentActivity) 
+    ? activity.recentActivity 
+    : Array.isArray(activity?.recentActivity?.items) 
+    ? activity.recentActivity.items 
+    : [];
+  const platforms = Array.isArray(activity?.platforms) 
+    ? activity.platforms 
+    : Array.isArray(activity?.integrations?.platforms) 
+    ? activity.integrations.platforms 
+    : [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
@@ -130,6 +151,7 @@ const StitchDashboard = () => {
 
       {/* LEVEL 1: MY MOMENTUM HERO CARD */}
       <ActivityMomentumCard
+        activityData={activity}
         streakData={overallStreak}
         todayData={todayData}
         userName={user?.name}
@@ -195,7 +217,7 @@ const StitchDashboard = () => {
         {/* Left Column (2 cols): Today's Plan & Charts */}
         <div id="stitch-todays-plan" className="lg:col-span-2 space-y-6">
           <TodayGoals
-            goals={todaysPlan}
+            goals={todaysGoals}
             onToggleGoal={handleToggleGoal}
             onOpenHub={() => window.location.href = '/activity?tab=goals'}
             compact={true}

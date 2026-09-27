@@ -3,13 +3,18 @@ import { motion } from 'framer-motion';
 import { TrendingUp, Calendar, CheckCircle2 } from 'lucide-react';
 
 const WeeklyActivityChart = ({ weeklyData, onDayClick }) => {
-  const days = weeklyData?.days || [];
-  const comparison = weeklyData?.comparison;
-  const activeDaysCount = weeklyData?.activeDaysCount ?? 0;
+  const days = Array.isArray(weeklyData?.days) ? weeklyData.days : [];
+  const comparison = weeklyData?.comparison || (
+    weeklyData?.comparisonVsLastWeek !== undefined && weeklyData?.comparisonVsLastWeek !== null
+      ? { percentChange: `${weeklyData.comparisonVsLastWeek >= 0 ? '+' : ''}${weeklyData.comparisonVsLastWeek}%` }
+      : null
+  );
+  const activeDaysCount = weeklyData?.activeDaysCount ?? weeklyData?.activeDays ?? 0;
   const totalActivities = weeklyData?.totalActivities ?? 0;
 
   // Find max count for scaling height (minimum 4 for visual appeal)
-  const maxCount = Math.max(...days.map(d => d.activityCount || 0), 4);
+  const counts = days.map(d => d.activityCount || d.count || 0);
+  const maxCount = counts.length > 0 ? Math.max(...counts, 4) : 4;
 
   return (
     <div className="glass-card rounded-2xl p-5 border border-gray-200/50 dark:border-gray-800 space-y-4">

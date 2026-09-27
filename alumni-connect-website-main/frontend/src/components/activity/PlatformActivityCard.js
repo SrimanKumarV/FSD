@@ -2,9 +2,11 @@ import React from 'react';
 import { ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck, Flame } from 'lucide-react';
 import PlatformIcon from '../PlatformIcon';
 
-const PlatformActivityCard = ({ platform, onRefresh, isRefreshing = false }) => {
-  const isConnected = platform.connected && platform.status === 'connected';
-  const hasActivityToday = platform.activityToday;
+const PlatformActivityCard = ({ platform = {}, onRefresh, isRefreshing = false }) => {
+  const isConnected = platform?.connected && (platform?.status === 'connected' || platform?.status === undefined);
+  const hasActivityToday = !!platform?.activityToday;
+  const platformKey = platform?.platform || platform?.id || '';
+  const platformName = platform?.info?.name || platform?.name || platformKey;
 
   return (
     <div className={`glass-card rounded-2xl p-5 border transition-all ${
@@ -18,19 +20,19 @@ const PlatformActivityCard = ({ platform, onRefresh, isRefreshing = false }) => 
         {/* Platform Info */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-            <PlatformIcon platform={platform.platform} className="w-5 h-5" />
+            <PlatformIcon platform={platformKey} className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <h5 className="text-sm font-bold text-gray-900 dark:text-white">
-                {platform.info?.name || platform.platform}
+                {platformName}
               </h5>
-              {platform.connectionType === 'api-verified' && (
+              {platform?.connectionType === 'api-verified' && (
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-500" title="API Verified" />
               )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {platform.username ? `@${platform.username}` : 'Not connected'}
+              {platform?.username ? `@${platform.username}` : 'Not connected'}
             </p>
           </div>
         </div>
@@ -38,7 +40,7 @@ const PlatformActivityCard = ({ platform, onRefresh, isRefreshing = false }) => 
         {/* Sync Button */}
         {isConnected && onRefresh && (
           <button
-            onClick={() => onRefresh(platform.platform)}
+            onClick={() => onRefresh(platformKey)}
             disabled={isRefreshing}
             title="Refresh Platform Data"
             className="p-2 rounded-xl text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors"

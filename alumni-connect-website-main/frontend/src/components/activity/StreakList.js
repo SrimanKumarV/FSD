@@ -2,7 +2,18 @@ import React from 'react';
 import { Flame, Code, BookOpen, Globe, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import PlatformIcon from '../PlatformIcon';
 
-const StreakList = ({ overallStreak, categoryStreaks, integrations, isCompact = false }) => {
+const StreakList = ({ 
+  streaks, 
+  overallStreak, 
+  categoryStreaks, 
+  integrations, 
+  isCompact = false, 
+  compact = false 
+}) => {
+  const overall = overallStreak || streaks?.overall || {};
+  const catStreaks = categoryStreaks || streaks?.categories || streaks || {};
+  const isSmall = isCompact || compact;
+
   const categories = [
     { key: 'coding', name: 'Coding', icon: Code, color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
     { key: 'learning', name: 'Learning', icon: BookOpen, color: 'text-violet-500 bg-violet-500/10 border-violet-500/20' },
@@ -10,41 +21,41 @@ const StreakList = ({ overallStreak, categoryStreaks, integrations, isCompact = 
     { key: 'career', name: 'Career', icon: TrendingUp, color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' },
   ];
 
-  const platforms = integrations?.platforms || [];
+  const platforms = integrations?.platforms || streaks?.platforms || [];
 
   return (
     <div className="space-y-4">
       {/* Top Level Cards */}
-      <div className={`grid ${isCompact ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'} gap-3`}>
+      <div className={`grid ${isSmall ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'} gap-3`}>
         {/* Overall Streak Card */}
         <div className="glass-card rounded-2xl p-4 flex flex-col justify-between border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Overall</span>
-            <Flame className={`w-4 h-4 ${overallStreak?.current > 0 ? 'text-amber-500 fill-amber-500 animate-pulse' : 'text-gray-400'}`} />
+            <Flame className={`w-4 h-4 ${overall?.current > 0 ? 'text-amber-500 fill-amber-500 animate-pulse' : 'text-gray-400'}`} />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-gray-900 dark:text-white">{overallStreak?.current ?? 0}</span>
+            <span className="text-2xl font-black text-gray-900 dark:text-white">{overall?.current ?? 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">days</span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[11px]">
-            {overallStreak?.activeToday ? (
+            {overall?.activeToday ? (
               <span className="text-emerald-500 flex items-center gap-1 font-medium">
                 <CheckCircle2 className="w-3 h-3" /> Active today
               </span>
-            ) : overallStreak?.atRisk ? (
+            ) : overall?.atRisk ? (
               <span className="text-amber-500 flex items-center gap-1 font-medium">
                 <AlertTriangle className="w-3 h-3" /> At risk
               </span>
             ) : (
               <span className="text-gray-400">Not active</span>
             )}
-            <span className="text-gray-400 font-medium">Best {overallStreak?.longest ?? 0}d</span>
+            <span className="text-gray-400 font-medium">Best {overall?.longest ?? 0}d</span>
           </div>
         </div>
 
         {/* Category Cards */}
         {categories.map(({ key, name, icon: Icon, color }) => {
-          const streakData = categoryStreaks?.[key];
+          const streakData = catStreaks?.[key];
           const current = streakData?.current ?? 0;
           const activeToday = streakData?.activeToday ?? false;
           const atRisk = streakData?.atRisk ?? false;

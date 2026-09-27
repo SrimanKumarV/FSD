@@ -17,21 +17,32 @@ const categoryIcons = {
 const TodayGoals = ({
   goals = [],
   onCompleteGoal,
+  onToggleGoal,
   onOpenCreateGoal,
+  onOpenHub,
   maxDisplay = null,
-  showFilters = false
+  showFilters = false,
+  compact = false
 }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'pending', 'completed'
+  const handleAction = onToggleGoal || onCompleteGoal;
 
-  const filteredGoals = goals.filter(g => {
-    if (filter === 'pending') return !g.completedToday;
-    if (filter === 'completed') return g.completedToday;
+  const goalList = Array.isArray(goals)
+    ? goals
+    : Array.isArray(goals?.goals)
+    ? goals.goals
+    : [];
+
+  const filteredGoals = goalList.filter(g => {
+    if (filter === 'pending') return !g?.completedToday;
+    if (filter === 'completed') return g?.completedToday;
     return true;
   });
 
-  const displayGoals = maxDisplay ? filteredGoals.slice(0, maxDisplay) : filteredGoals;
+  const displayLimit = compact ? 4 : maxDisplay;
+  const displayGoals = displayLimit ? filteredGoals.slice(0, displayLimit) : filteredGoals;
 
-  if (goals.length === 0) {
+  if (goalList.length === 0) {
     return (
       <div className="glass-card rounded-2xl p-8 text-center border border-dashed border-gray-300 dark:border-gray-700">
         <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center mx-auto mb-3">
@@ -117,7 +128,7 @@ const TodayGoals = ({
                 {/* Left: Check Button & Info */}
                 <div className="flex items-center gap-3 min-w-0">
                   <button
-                    onClick={() => !isCompleted && onCompleteGoal && onCompleteGoal(goal._id || goal.id)}
+                    onClick={() => !isCompleted && handleAction && handleAction(goal._id || goal.id, isCompleted)}
                     disabled={isCompleted}
                     title={isCompleted ? 'Completed' : 'Click to complete'}
                     className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${

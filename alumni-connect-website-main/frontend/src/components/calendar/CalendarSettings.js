@@ -18,10 +18,16 @@ export const CalendarSettings = ({
 
   useEffect(() => {
     if (status) {
-      setSelectedIds(status.selectedCalendarIds || (status.primaryCalendarId ? [status.primaryCalendarId] : []));
+      if (status.selectedCalendarIds && status.selectedCalendarIds.length > 0) {
+        setSelectedIds(status.selectedCalendarIds);
+      } else if (calendars.length > 0) {
+        setSelectedIds(calendars.map(c => c.id));
+      } else if (status.primaryCalendarId) {
+        setSelectedIds([status.primaryCalendarId]);
+      }
       setSyncEnabled(status.syncEnabled !== false);
     }
-  }, [status]);
+  }, [status, calendars]);
 
   if (!isOpen) return null;
 
@@ -139,11 +145,29 @@ export const CalendarSettings = ({
 
             {/* Calendars Selector */}
             <div className="space-y-2.5">
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm">Calendars to Display</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Select which calendars Alumnex should import and display.
-                </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm">Calendars to Display</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Select which calendars Alumnex should import and display.
+                  </p>
+                </div>
+                {calendars.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedIds.length === calendars.length) {
+                        const primary = calendars.find(c => c.primary)?.id || calendars[0]?.id;
+                        setSelectedIds(primary ? [primary] : []);
+                      } else {
+                        setSelectedIds(calendars.map(c => c.id));
+                      }
+                    }}
+                    className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                  >
+                    {selectedIds.length === calendars.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                )}
               </div>
 
               {loadingCalendars ? (

@@ -604,9 +604,16 @@ class GoogleCalendarService {
     const start = isAllDay
       ? new Date(item.start.date + 'T00:00:00Z')
       : new Date(item.start?.dateTime || item.start?.date);
-    const end = isAllDay
-      ? new Date(item.end.date + 'T23:59:59Z')
-      : new Date(item.end?.dateTime || item.end?.date || start);
+    let end;
+    if (isAllDay && item.end?.date) {
+      // In Google Calendar API, end.date for all-day events is exclusive.
+      // E.g. A 1-day event on 2026-10-06 has start.date="2026-10-06" and end.date="2026-10-07".
+      // End is set to the final moment of the actual event day.
+      const endDateExclusive = new Date(item.end.date + 'T00:00:00Z');
+      end = new Date(endDateExclusive.getTime() - 1);
+    } else {
+      end = new Date(item.end?.dateTime || item.end?.date || start);
+    }
 
     let meetUrl = null;
     if (item.conferenceData?.entryPoints) {

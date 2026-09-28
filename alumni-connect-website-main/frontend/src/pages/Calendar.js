@@ -120,8 +120,10 @@ const Calendar = () => {
     }
   };
 
-  // Filter and search events
+  // Filter, deduplicate, and search events
   const filteredEvents = useMemo(() => {
+    const seenEventKeys = new Set();
+
     return rawEvents.filter(evt => {
       // 1. Source / Type filter
       if (activeFilter === 'google' && evt.source !== 'google' && evt.eventType !== 'google') return false;
@@ -137,6 +139,14 @@ const Calendar = () => {
         const locMatch = evt.location?.toLowerCase().includes(query);
         if (!titleMatch && !descMatch && !locMatch) return false;
       }
+
+      // 3. Deduplicate identical events occurring on the same date (e.g. from multiple holiday subscriptions)
+      const startDateStr = evt.start ? new Date(evt.start).toISOString().split('T')[0] : '';
+      const dedupeKey = `${(evt.summary || '').trim().toLowerCase()}_${startDateStr}`;
+      if (seenEventKeys.has(dedupeKey)) {
+        return false;
+      }
+      seenEventKeys.add(dedupeKey);
 
       return true;
     });

@@ -42,9 +42,26 @@ class CalendarSyncService {
       await connection.save().catch(() => {});
 
       // Determine which calendars to sync
-      const selectedCalendars = (connection.selectedCalendarIds && connection.selectedCalendarIds.length > 0)
+      // Auto-discover and select all user calendars if none or only 'primary' was previously configured
+      let selectedCalendars = (connection.selectedCalendarIds && connection.selectedCalendarIds.length > 0)
         ? connection.selectedCalendarIds
         : [connection.primaryCalendarId || 'primary'];
+
+      if (!connection.selectedCalendarIds || connection.selectedCalendarIds.length === 0 || (connection.selectedCalendarIds.length === 1 && (connection.selectedCalendarIds[0] === 'primary' || connection.selectedCalendarIds[0] === connection.primaryCalendarId))) {
+        try {
+          const allCals = await googleCalendarService.getCalendars(connection);
+          if (Array.isArray(allCals) && allCals.length > 0) {
+            const allIds = allCals.map(c => c.id).filter(Boolean);
+            if (allIds.length > 0) {
+              connection.selectedCalendarIds = allIds;
+              selectedCalendars = allIds;
+              await connection.save().catch(() => {});
+            }
+          }
+        } catch (calListErr) {
+          console.warn('[CalendarSyncService] Auto-discovering calendars warning:', calListErr.message);
+        }
+      }
 
       const calendarsToSync = (options.calendarIds && options.calendarIds.length > 0)
         ? options.calendarIds
@@ -55,25 +72,45 @@ class CalendarSyncService {
 
       for (const calId of calendarsToSync) {
         try {
-          const syncToken = connection.syncTokens?.get?.(calId);
-          // If no sync token, pull 30 days backward and 90 days forward
+          // If force sync requested, bypass existing sync token to perform full date-window synchronization
+          let syncToken = options.force ? undefined : connection.syncTokens?.get?.(calId);
+          // Pull 365 days backward (1 year) and 730 days forward (2 years) by default
           const now = new Date();
-          const timeMin = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          const timeMax = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+          const timeMin = options.timeMin || new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          const timeMax = options.timeMax || new Date(now.getTime() + 730 * 24 * 60 * 60 * 1000);
 
           let pageToken = undefined;
           let fetchedItems = [];
           let newSyncToken = undefined;
 
           do {
-            const res = await googleCalendarService.getEvents(connection, {
-              calendarId: calId,
-              timeMin: syncToken ? undefined : timeMin,
-              timeMax: syncToken ? undefined : timeMax,
-              syncToken: syncToken,
-              pageToken: pageToken,
-              maxResults: 250
-            });
+            let res;
+            try {
+              res = await googleCalendarService.getEvents(connection, {
+                calendarId: calId,
+                timeMin: syncToken ? undefined : timeMin,
+                timeMax: syncToken ? undefined : timeMax,
+                syncToken: syncToken,
+                pageToken: pageToken,
+                maxResults: 250
+              });
+            } catch (fetchErr) {
+              // If syncToken was invalidated/expired (HTTP 410 Gone), reset syncToken and retry full sync
+              if (syncToken && (fetchErr.status === 410 || fetchErr.code === 410 || fetchErr.message?.includes('410') || fetchErr.message?.includes('Sync token is no longer valid'))) {
+                console.log(`[CalendarSyncService] Sync token invalidated for ${calId}, performing full resync`);
+                syncToken = undefined;
+                if (connection.syncTokens) connection.syncTokens.delete(calId);
+                res = await googleCalendarService.getEvents(connection, {
+                  calendarId: calId,
+                  timeMin: timeMin,
+                  timeMax: timeMax,
+                  pageToken: pageToken,
+                  maxResults: 250
+                });
+              } else {
+                throw fetchErr;
+              }
+            }
 
             fetchedItems.push(...(res.items || []));
             pageToken = res.nextPageToken;
@@ -85,29 +122,39 @@ class CalendarSyncService {
             connection.timezone = fetchedItems[0].start.timeZone;
           }
 
-          // Process and upsert normalized events
+          // Process and bulk-upsert normalized events for high performance
+          const bulkOps = [];
           for (const item of fetchedItems) {
             if (item.status === 'cancelled') {
-              // Delete or mark cancelled
-              await GoogleCalendarEvent.deleteOne({
-                userId,
-                googleCalendarId: calId,
-                googleEventId: item.id
+              bulkOps.push({
+                deleteOne: {
+                  filter: {
+                    userId,
+                    googleCalendarId: calId,
+                    googleEventId: item.id
+                  }
+                }
               });
               totalDeleted++;
             } else {
               const normalized = googleCalendarService.normalizeGoogleEvent(item, calId, userId);
-              await GoogleCalendarEvent.findOneAndUpdate(
-                {
-                  userId,
-                  googleCalendarId: calId,
-                  googleEventId: item.id
-                },
-                { $set: normalized },
-                { upsert: true, new: true, setDefaultsOnInsert: true }
-              );
+              bulkOps.push({
+                updateOne: {
+                  filter: {
+                    userId,
+                    googleCalendarId: calId,
+                    googleEventId: item.id
+                  },
+                  update: { $set: normalized },
+                  upsert: true
+                }
+              });
               totalSynced++;
             }
+          }
+
+          if (bulkOps.length > 0) {
+            await GoogleCalendarEvent.bulkWrite(bulkOps, { ordered: false });
           }
 
           if (newSyncToken) {

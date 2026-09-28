@@ -39,12 +39,14 @@ export const GoogleCalendarSettingsCard = () => {
   const [selectedIds, setSelectedIds] = useState([]);
 
   React.useEffect(() => {
-    if (status?.selectedCalendarIds) {
+    if (status?.selectedCalendarIds && status.selectedCalendarIds.length > 0) {
       setSelectedIds(status.selectedCalendarIds);
+    } else if (calendars.length > 0) {
+      setSelectedIds(calendars.map(c => c.id));
     } else if (status?.primaryCalendarId) {
       setSelectedIds([status.primaryCalendarId]);
     }
-  }, [status]);
+  }, [status, calendars]);
 
   const handleConnect = async () => {
     try {
@@ -216,9 +218,30 @@ export const GoogleCalendarSettingsCard = () => {
             {/* Expandable Calendar Selector */}
             {showCalendarSelector && (
               <div className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 space-y-2.5">
-                <p className="font-semibold text-xs text-gray-900 dark:text-white">
-                  Select Calendars to Import & Display:
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-xs text-gray-900 dark:text-white">
+                    Select Calendars to Import & Display:
+                  </p>
+                  {calendars.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        let newIds;
+                        if (selectedIds.length === calendars.length) {
+                          const primary = calendars.find(c => c.primary)?.id || calendars[0]?.id;
+                          newIds = primary ? [primary] : [];
+                        } else {
+                          newIds = calendars.map(c => c.id);
+                        }
+                        setSelectedIds(newIds);
+                        await updateSettingsMutation.mutateAsync({ selectedCalendarIds: newIds });
+                      }}
+                      className="text-[11px] font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-colors cursor-pointer"
+                    >
+                      {selectedIds.length === calendars.length ? 'Deselect All' : 'Select All'}
+                    </button>
+                  )}
+                </div>
 
                 {loadingCalendars ? (
                   <p className="text-xs text-gray-400">Loading calendars...</p>

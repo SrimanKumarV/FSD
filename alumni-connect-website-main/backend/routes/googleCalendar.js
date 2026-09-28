@@ -253,6 +253,19 @@ router.get('/callback', async (req, res) => {
       console.warn('[Google Calendar] Primary calendar fetch warning:', e.message);
     }
 
+    // Retrieve all calendars to auto-select and sync all available schedules, holidays, and classrooms
+    try {
+      const allCals = await googleCalendarService.getCalendars(connection);
+      if (Array.isArray(allCals) && allCals.length > 0) {
+        const allIds = allCals.map(c => c.id).filter(Boolean);
+        if (allIds.length > 0) {
+          connection.selectedCalendarIds = allIds;
+        }
+      }
+    } catch (calListErr) {
+      console.warn('[Google Calendar] Calendars auto-discovery on connect warning:', calListErr.message);
+    }
+
     if (!connection.selectedCalendarIds || connection.selectedCalendarIds.length === 0) {
       connection.selectedCalendarIds = [connection.primaryCalendarId || 'primary'];
     }

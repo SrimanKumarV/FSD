@@ -23,6 +23,7 @@ import {
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { requestPushPermission, sendTestStreakNotification } from '../../utils/streakPushNotification';
+import { webPushManager } from '../../utils/webPushManager';
 
 const POPULAR_TIMEZONES = [
   { region: 'India', tz: 'Asia/Kolkata', label: 'India Standard Time (IST, UTC+5:30)' },
@@ -53,6 +54,7 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
   const [mobileSection, setMobileSection] = useState(null);
   const [preferences, setPreferences] = useState(initialPreferences || {});
   const [isSaving, setIsSaving] = useState(false);
+  const [isTogglingWebPush, setIsTogglingWebPush] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState(null);
 
   // Timezone Detection & Modal State
@@ -127,25 +129,106 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
     setIsSaving(true);
     try {
       const res = await api.put('/activity/preferences', payload);
-      setPreferences(res.data);
+      const savedData = res.data?.preferences || res.data || {};
+      setPreferences(prev => ({ ...prev, ...savedData }));
       setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       toast.success('Preferences saved');
       if (onPreferencesSaved) {
-        onPreferencesSaved(res.data);
+        onPreferencesSaved(savedData);
       }
+      return savedData;
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save preferences');
+      throw err;
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Toggle helper
-  const handleToggle = (key) => {
-    const nextVal = !preferences[key];
+  // Toggle helper with safe rollback
+  const handleToggle = async (key) => {
+    const prevVal = preferences[key];
+    const nextVal = prevVal === false ? true : !prevVal;
     const updated = { ...preferences, [key]: nextVal };
     setPreferences(updated);
-    savePreferences(updated);
+    try {
+      await savePreferences(updated);
+    } catch (err) {
+      setPreferences(prev => ({ ...prev, [key]: prevVal }));
+    }
+  };
+
+  // Dedicated Web Push toggle with permission check, VAPID subscription, and rollback
+  const handleToggleWebPush = async () => {
+    if (isTogglingWebPush) return;
+    setIsTogglingWebPush(true);
+    const targetState = !preferences.webPushEnabled;
+
+    if (targetState) {
+      if (!webPushManager.isSupported()) {
+        toast.error('Web Push is not supported in this browser.');
+        setIsTogglingWebPush(false);
+        return;
+      }
+
+      if (Notification.permission === 'denied') {
+        toast.error('Browser notifications are blocked. Please enable them in browser site settings.');
+        setIsTogglingWebPush(false);
+        return;
+      }
+
+      try {
+        await webPushManager.subscribe();
+        const updated = { ...preferences, webPushEnabled: true };
+        setPreferences(updated);
+        await savePreferences(updated);
+        toast.success('Web Push & Streak alerts enabled!');
+      } catch (err) {
+        console.error('Failed to enable Web Push:', err);
+        toast.error(err.message || 'Could not subscribe to Web Push.');
+        setPreferences(prev => ({ ...prev, webPushEnabled: false }));
+      } finally {
+        setIsTogglingWebPush(false);
+      }
+    } else {
+      try {
+        const updated = { ...preferences, webPushEnabled: false };
+        setPreferences(updated);
+        await savePreferences(updated);
+        await webPushManager.unsubscribe().catch(() => {});
+        toast.success('Web Push notifications turned off');
+      } catch (err) {
+        console.error('Failed to disable Web Push:', err);
+        toast.error('Could not update notification preference.');
+        setPreferences(prev => ({ ...prev, webPushEnabled: true }));
+      } finally {
+        setIsTogglingWebPush(false);
+      }
+    }
+  };
+
+  // Test Streak Alert runner
+  const handleTestStreakAlert = async () => {
+    try {
+      const res = await api.post('/notifications/test', { channel: 'web' });
+      if (res.data?.success) {
+        toast.success(res.data.message || 'Web Push streak alert dispatched!');
+      } else {
+        const sent = await sendTestStreakNotification();
+        if (sent) {
+          toast.success('Test notification dispatched via Service Worker!');
+        } else {
+          toast.error(res.data?.message || 'Could not send test alert');
+        }
+      }
+    } catch (err) {
+      const sent = await sendTestStreakNotification();
+      if (sent) {
+        toast.success('Test notification dispatched via Service Worker!');
+      } else {
+        toast.error('Could not send test alert');
+      }
+    }
   };
 
   // Day selection toggle (Sunday = 0, Monday = 1, ...)
@@ -407,10 +490,7 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
                       </p>
                       <button
                         type="button"
-                        onClick={async () => {
-                          const sent = await sendTestStreakNotification();
-                          if (sent) toast.success('Test streak notification dispatched via Service Worker!');
-                        }}
+                        onClick={handleTestStreakAlert}
                         className="mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
                       >
                         <span>🔔 Send Test Streak Alert</span>
@@ -418,26 +498,19 @@ const ActivitySettings = ({ initialPreferences, onPreferencesSaved, onDataReset,
                     </div>
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (!preferences.webPushEnabled) {
-                          const perm = await requestPushPermission();
-                          if (perm === 'granted') {
-                            handleToggle('webPushEnabled');
-                            toast.success('Web Push streak alerts enabled!');
-                          } else {
-                            toast.error('Browser push permission was not granted.');
-                          }
-                        } else {
-                          handleToggle('webPushEnabled');
-                        }
-                      }}
-                      className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 flex-shrink-0 ${
+                      disabled={isTogglingWebPush}
+                      onClick={handleToggleWebPush}
+                      className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 flex-shrink-0 disabled:opacity-60 ${
                         preferences.webPushEnabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-700'
                       }`}
                     >
-                      <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                        preferences.webPushEnabled ? 'translate-x-6' : 'translate-x-0'
-                      }`} />
+                      {isTogglingWebPush ? (
+                        <RefreshCw className="w-3.5 h-3.5 text-white animate-spin mx-auto" />
+                      ) : (
+                        <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                          preferences.webPushEnabled ? 'translate-x-6' : 'translate-x-0'
+                        }`} />
+                      )}
                     </button>
                   </div>
                 </div>

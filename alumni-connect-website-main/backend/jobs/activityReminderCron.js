@@ -12,6 +12,7 @@ const {
   getWeeklyActivitySummaryTemplate
 } = require('../utils/activityEmailTemplates');
 const { getWeeklySummary, getTodayInTimezone, syncUserPlatformActivities } = require('../services/activityService');
+const { notificationDispatcher, NOTIFICATION_TYPES } = require('../services/notificationDispatcher');
 
 /**
  * Check if the current time is within quiet hours for a user
@@ -186,32 +187,17 @@ const runDailyReminders = async () => {
           reminderContent = `You have ${pendingGoals.length} goals remaining today. ${maxStreak > 0 ? `Protect your ${maxStreak}-day streak!` : 'Build your momentum!'}`;
         }
 
-        // Create in-app notification
-        if (!prefs || prefs.inAppEnabled !== false) {
-          await Notification.createNotification({
-            recipient: userId,
-            type: 'activity-reminder',
-            title: reminderTitle,
-            content: reminderContent,
-            priority: maxStreak >= 7 ? 'high' : 'normal',
-            metadata: { source: 'system', category: 'activity' },
-            actionUrl: '/activity'
-          });
-        }
-
-        // Send email if enabled
-        if (!prefs || prefs.emailEnabled !== false) {
-          try {
-            const html = getDailyReminderTemplate(user, pendingGoals, { currentStreak: maxStreak });
-            await sendEmail({
-              email: user.email,
-              subject: '🔔 Your Alumnex Daily Activity Reminder',
-              message: html
-            });
-          } catch (emailErr) {
-            console.warn(`[Activity Cron] Email failed for ${user.email}:`, emailErr.message);
-          }
-        }
+        // Dispatch via Unified Multi-Channel Notification Engine
+        await notificationDispatcher.dispatch({
+          type: NOTIFICATION_TYPES.GOAL_REMINDER,
+          userId,
+          title: reminderTitle,
+          body: reminderContent,
+          priority: maxStreak >= 7 ? 'high' : 'normal',
+          deepLink: '/activity?tab=today',
+          data: { pendingCount: pendingGoals.length, maxStreak },
+          dedupKey: `daily-reminder:${userId}:${today}`
+        });
 
         await markAsSent(userId, 'daily', today);
         results.sent++;
@@ -269,18 +255,17 @@ async function processStreakWarnings(results) {
       const user = await User.findById(goal.userId).select('name email').lean();
       if (!user) continue;
 
-      // In-app notification
-      if (!prefs || prefs.inAppEnabled !== false) {
-        await Notification.createNotification({
-          recipient: goal.userId,
-          type: 'activity-streak-warning',
-          title: `⚠️ ${goal.currentStreak}-day streak at risk!`,
-          content: `Your "${goal.title}" streak hasn't been completed today. Complete it to keep going!`,
-          priority: 'high',
-          metadata: { source: 'system', category: 'activity' },
-          actionUrl: '/activity'
-        });
-      }
+      // Dispatch streak-at-risk warning via Unified Multi-Channel Engine
+      await notificationDispatcher.dispatch({
+        type: NOTIFICATION_TYPES.STREAK_AT_RISK,
+        userId: goal.userId,
+        title: `🔥 ${goal.currentStreak}-Day Streak at Risk!`,
+        body: `Your "${goal.title}" goal hasn't been completed today. Complete it before midnight to maintain your streak!`,
+        priority: 'high',
+        deepLink: '/activity?tab=today',
+        data: { goalId: goal._id.toString(), streak: goal.currentStreak },
+        dedupKey: `streak-risk:${goal.userId}:${goal._id}:${today}`
+      });
 
       await markAsSent(goal.userId, `streak-warn-${goal._id}`, today);
     }

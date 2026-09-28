@@ -23,6 +23,7 @@ import DevProfileSettings from '../components/profile/DevProfileSettings';
 import AnimatedOTP from '../components/AnimatedOTP';
 import { isAndroidApp, checkForUpdate, getCurrentAppInfo } from '../services/updateService';
 import GoogleCalendarSettingsCard from '../components/settings/GoogleCalendarSettingsCard';
+import NotificationSettingsCard from '../components/settings/NotificationSettingsCard';
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -564,6 +565,9 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+          {/* Unified Notification Settings */}
+          <NotificationSettingsCard />
 
           {/* Google Calendar Integration */}
           <GoogleCalendarSettingsCard />

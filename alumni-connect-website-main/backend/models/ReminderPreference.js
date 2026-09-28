@@ -8,7 +8,7 @@ const reminderPreferenceSchema = new mongoose.Schema({
     unique: true,
     index: true
   },
-  // Master switches
+  // Master channel switches
   emailEnabled: {
     type: Boolean,
     default: true
@@ -17,8 +17,21 @@ const reminderPreferenceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  webPushEnabled: {
+    type: Boolean,
+    default: true
+  },
+  mobileAppEnabled: {
+    type: Boolean,
+    default: true
+  },
+  emailMode: {
+    type: String,
+    enum: ['important_only', 'all', 'none'],
+    default: 'important_only'
+  },
 
-  // Notification types
+  // Activity & Streak category
   dailyReminder: {
     type: Boolean,
     default: true
@@ -31,6 +44,10 @@ const reminderPreferenceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  goalCompletion: {
+    type: Boolean,
+    default: false
+  },
   weeklySummary: {
     type: Boolean,
     default: true
@@ -38,6 +55,44 @@ const reminderPreferenceSchema = new mongoose.Schema({
   platformUpdates: {
     type: Boolean,
     default: false
+  },
+
+  // Career category
+  interviewReminder: {
+    type: Boolean,
+    default: true
+  },
+  mentorshipReminder: {
+    type: Boolean,
+    default: true
+  },
+  jobAlerts: {
+    type: Boolean,
+    default: false
+  },
+
+  // Social & Messaging category
+  chatMessages: {
+    type: Boolean,
+    default: true
+  },
+  connectionRequests: {
+    type: Boolean,
+    default: true
+  },
+  socialReactions: {
+    type: Boolean,
+    default: false
+  },
+
+  // System category
+  securityAlerts: {
+    type: Boolean,
+    default: true
+  },
+  systemAnnouncements: {
+    type: Boolean,
+    default: true
   },
 
   // Schedule

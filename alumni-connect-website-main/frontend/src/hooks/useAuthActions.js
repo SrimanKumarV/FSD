@@ -146,6 +146,10 @@ export const useAuthActions = (dispatch) => {
 
   const logout = async () => {
     try {
+      const deviceId = localStorage.getItem('alumnex_device_id');
+      if (deviceId) {
+        await api.post('/notifications/devices/unregister', { deviceId }).catch(() => {});
+      }
       await api.post('/auth/logout');
     } catch (error) {
       console.error('Logout API failed:', error);

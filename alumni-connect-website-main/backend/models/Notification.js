@@ -234,7 +234,7 @@ notificationSchema.methods.expire = function() {
 };
 
 // Static method to create notification
-notificationSchema.statics.createNotification = function(data) {
+notificationSchema.statics.createNotification = async function(data) {
   const notification = new this(data);
   
   // Set default expiration (30 days from now)
@@ -242,7 +242,19 @@ notificationSchema.statics.createNotification = function(data) {
     notification.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   }
   
-  return notification.save();
+  const saved = await notification.save();
+
+  // Asynchronously dispatch to Web Push & Mobile devices without blocking
+  try {
+    const { notificationDispatcher } = require('../services/notificationDispatcher');
+    notificationDispatcher.dispatchFromNotification(saved).catch(err => {
+      console.warn('[Notification] Dispatcher relay error:', err.message);
+    });
+  } catch (e) {
+    // Non-blocking
+  }
+
+  return saved;
 };
 
 // Static method to find unread notifications for user

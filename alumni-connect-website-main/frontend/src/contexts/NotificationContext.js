@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
+import { webPushManager } from '../utils/webPushManager';
+import { mobilePushManager } from '../utils/mobilePushManager';
 
 const NotificationContext = createContext();
 
@@ -21,6 +23,19 @@ export const NotificationProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Auto-sync Web Push and Android FCM endpoints on authentication
+  useEffect(() => {
+    if (!user?._id) return;
+
+    if (webPushManager.isSupported()) {
+      webPushManager.syncSubscription().catch(() => {});
+    }
+
+    if (mobilePushManager.isSupported()) {
+      mobilePushManager.syncRegistration().catch(() => {});
+    }
+  }, [user?._id]);
 
   // Fetch notifications
   const { data: notificationsData, isLoading } = useQuery(

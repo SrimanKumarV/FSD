@@ -162,6 +162,39 @@ export const webPushManager = {
   },
 
   /**
+   * Syncs existing subscription with backend or auto-subscribes if permission was previously granted
+   */
+  async syncSubscription() {
+    if (!this.isSupported()) return null;
+    if (Notification.permission !== 'granted') return null;
+
+    try {
+      let sub = await this.getExistingSubscription();
+      if (!sub) {
+        sub = await this.subscribe().catch(err => {
+          console.warn('[WebPushManager] Auto-subscribe error:', err.message);
+          return null;
+        });
+        return sub;
+      }
+
+      const deviceId = getOrCreateDeviceId();
+      const { browser, deviceName } = getDeviceDetails();
+
+      await api.post('/notifications/web-push/subscribe', {
+        subscription: sub.toJSON(),
+        deviceId,
+        deviceName,
+        browser
+      });
+      return sub;
+    } catch (err) {
+      console.warn('[WebPushManager] Sync subscription error:', err.message);
+      return null;
+    }
+  },
+
+  /**
    * Send a test notification through the backend dispatcher
    */
   async sendTest(channel = 'web') {

@@ -332,12 +332,19 @@ api.interceptors.response.use(
 
     // ── 401: Token expired or invalid ──
     if (error.response?.status === 401 && !originalRequest._retry) {
+      const reqUrl = originalRequest.url || '';
+      // Do not attempt refresh on auth endpoints to prevent loops
+      if (reqUrl.includes('/auth/login') || reqUrl.includes('/auth/refresh') || reqUrl.includes('/auth/register')) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           pendingRequests.push((newToken) => {
             if (newToken) {
+              originalRequest.headers = originalRequest.headers || {};
               originalRequest.headers.Authorization = `Bearer ${newToken}`;
               resolve(api(originalRequest));
             } else {
@@ -351,14 +358,31 @@ api.interceptors.response.use(
 
       try {
         const refreshBaseUrl = getActiveBackendUrl();
+        const currentToken = mobileTokenStore.get();
 
-        await axios.post(
+        const refreshRes = await axios.post(
           `${refreshBaseUrl}/auth/refresh`,
-          {},
-          { timeout: 15000, withCredentials: true }
+          { token: currentToken },
+          {
+            timeout: 15000,
+            withCredentials: true,
+            headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {}
+          }
         );
 
-        onTokenRefreshed('refreshed');
+        const newToken = refreshRes.data?.token;
+        if (newToken) {
+          mobileTokenStore.set(newToken);
+          if (refreshRes.data.user) {
+            try {
+              localStorage.setItem('alumnex_auth_user', JSON.stringify(refreshRes.data.user));
+            } catch (e) {}
+          }
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        }
+
+        onTokenRefreshed(newToken);
         isRefreshing = false;
 
         return api(originalRequest);
@@ -369,6 +393,10 @@ api.interceptors.response.use(
         const isAuthError = refreshError.response && (refreshError.response.status === 401 || refreshError.response.status === 403);
 
         if (isAuthError) {
+          mobileTokenStore.clear();
+          try {
+            localStorage.removeItem('alumnex_auth_user');
+          } catch (e) {}
           window.dispatchEvent(new Event('auth:logout'));
         } else {
           console.warn('Network error during token refresh:', refreshError.message);

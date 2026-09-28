@@ -150,19 +150,19 @@ router.get('/me', protect, async (req, res) => {
 
 router.post('/refresh', async (req, res) => {
   try {
-    let token;
-    if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
-    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    let token = req.body?.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (!token && req.cookies && req.cookies.token) {
+      token = req.cookies.token;
     }
 
-    const newToken = await authService.refreshToken(token);
+    const { token: newToken, user } = await authService.refreshToken(token);
     setTokenCookie(res, newToken);
-    res.json({ success: true, token: newToken });
+    res.json({ success: true, token: newToken, user });
   } catch (error) {
-    console.error('Token refresh error:', error);
-    res.status(error.status || 500).json({ message: error.message || 'Server error' });
+    console.error('Token refresh error:', error.message || error);
+    res.status(error.status || 401).json({ message: error.message || 'Session expired', code: 'REFRESH_FAILED' });
   }
 });
 

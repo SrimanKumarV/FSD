@@ -120,9 +120,17 @@ class WebPushService {
       const res = await this.sendPushNotification(device.subscription, payload);
       if (res.success) {
         summary.sent++;
+        await NotificationDevice.updateOne(
+          { _id: device._id },
+          { $set: { lastDeliveryAt: new Date(), lastDeliveryStatus: 'success', lastError: null } }
+        ).catch(() => {});
       } else {
         summary.failed++;
         if (res.expired) summary.expired++;
+        await NotificationDevice.updateOne(
+          { _id: device._id },
+          { $set: { lastDeliveryAt: new Date(), lastDeliveryStatus: res.expired ? 'expired' : 'failed', lastError: res.error || 'Delivery failed' } }
+        ).catch(() => {});
       }
     });
 

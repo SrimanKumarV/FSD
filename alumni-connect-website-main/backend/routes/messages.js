@@ -251,38 +251,20 @@ router.post('/', [protect, verified], [
     await message.populate('sender', 'name photo role');
     await message.populate('receiver', 'name photo role');
 
-    // Create notification for receiver
+    // Create notification for receiver (Web Push + Android FCM + In-App, NO routine email)
     await Notification.createNotification({
       recipient: receiver,
       sender: req.user.id,
       type: 'message-received',
-      title: 'New Message',
-      content: `You have a new message from ${req.user.name}`,
-      relatedData: { messageId: message._id }
-    });
-
-    // Send email notification to receiver
-    await sendEmail({
-      email: receiverUser.email,
-      subject: `New Message from ${req.user.name} on Alumnex Connect`,
-      message: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-          <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-            <h2 style="margin: 0; color: #1f2937;">Alumnex Connect</h2>
-          </div>
-          <div style="padding: 20px;">
-            <p style="color: #374151; font-size: 16px;">Hi <strong>${receiverUser.name}</strong>,</p>
-            <p style="color: #374151; font-size: 16px;">You have received a new message from <strong>${req.user.name}</strong>.</p>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">For your privacy and security, the content of this message is not included in this email.</p>
-            <div style="text-align: center; margin-top: 30px;">
-              <a href="${(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0].trim() : 'https://alumnex-connect.onrender.com')}/chat?startChat=${req.user.email}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reply to Message</a>
-            </div>
-          </div>
-          <div style="background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
-            <p style="margin: 0;">This email was sent by Alumnex Connect.</p>
-          </div>
-        </div>
-      `
+      title: '💬 New Message',
+      content: content ? `${req.user.name}: ${content.length > 50 ? content.substring(0, 50) + '...' : content}` : `${req.user.name} sent you an attachment`,
+      actionUrl: `/chat?startChat=${encodeURIComponent(req.user.email)}`,
+      priority: 'normal',
+      relatedData: {
+        messageId: message._id,
+        conversationId,
+        senderId: req.user.id
+      }
     });
 
     res.status(201).json({ message });

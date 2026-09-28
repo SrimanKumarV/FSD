@@ -222,8 +222,8 @@ module.exports = (io) => {
         await message.save();
 
         // Populate sender and receiver info
-        await message.populate('sender', 'name photo role');
-        await message.populate('receiver', 'name photo role');
+        await message.populate('sender', 'name email photo role');
+        await message.populate('receiver', 'name email photo role');
 
         // Emit to sender (confirmation) - in case they have multiple tabs open
         io.to(userId).emit('message:sent', {
@@ -237,15 +237,22 @@ module.exports = (io) => {
               timestamp: new Date()
             });
 
+        const senderName = message.sender?.name || userName || 'Someone';
+        const senderEmail = message.sender?.email;
+        const chatUrl = senderEmail ? `/chat?startChat=${encodeURIComponent(senderEmail)}` : `/chat?startChat=${userId}`;
+
         // Create notification for receiver
         await Notification.createNotification({
           recipient: receiverId,
           sender: userId,
           type: 'message-received',
-          title: `New message from ${userName}`,
-          content: content.length > 50 ? content.substring(0, 50) + '...' : content,
+          title: '💬 New Message',
+          content: content ? `${senderName}: ${content.length > 50 ? content.substring(0, 50) + '...' : content}` : `${senderName} sent you an attachment`,
+          actionUrl: chatUrl,
           relatedData: {
-            messageId: message._id
+            messageId: message._id,
+            conversationId: message.conversationId,
+            senderId: userId
           },
           priority: 'normal',
           requiresAction: false

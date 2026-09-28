@@ -89,8 +89,16 @@ class FCMService {
       const res = await this.sendToDevice(dev.pushToken, payload);
       if (res.success) {
         summary.sent++;
+        await NotificationDevice.updateOne(
+          { _id: dev._id },
+          { $set: { lastDeliveryAt: new Date(), lastDeliveryStatus: res.simulated ? 'simulated' : 'success', lastError: null } }
+        ).catch(() => {});
       } else {
         summary.failed++;
+        await NotificationDevice.updateOne(
+          { _id: dev._id },
+          { $set: { lastDeliveryAt: new Date(), lastDeliveryStatus: 'failed', lastError: String(res.error || 'FCM Delivery Failed') } }
+        ).catch(() => {});
       }
     }
 

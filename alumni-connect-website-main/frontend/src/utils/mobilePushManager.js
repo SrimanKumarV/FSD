@@ -123,6 +123,21 @@ export const mobilePushManager = {
     } catch (err) {
       console.warn('[MobilePush] Could not attach listeners:', err.message);
     }
+  },
+
+  /**
+   * Automatically re-registers FCM token with Alumnex backend on login/app start if permission is granted
+   */
+  async syncRegistration() {
+    if (!this.isSupported()) return;
+    try {
+      const perm = await this.checkPermission();
+      if (perm === 'granted') {
+        await this.requestPermissionAndRegister();
+      }
+    } catch (err) {
+      console.warn('[MobilePush] Sync registration error:', err.message);
+    }
   }
 };
 

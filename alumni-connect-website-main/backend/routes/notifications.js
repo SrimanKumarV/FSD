@@ -355,7 +355,7 @@ router.get('/devices', protect, async (req, res) => {
     const devices = await NotificationDevice.find({
       userId: req.user._id,
       enabled: true
-    }).select('platform pushProvider deviceId deviceName browser appVersion lastSeenAt createdAt').lean();
+    }).select('platform pushProvider deviceId deviceName browser appVersion lastSeenAt lastDeliveryAt lastDeliveryStatus lastError permission enabled createdAt').lean();
 
     res.json({
       success: true,
@@ -487,14 +487,16 @@ router.post('/test', protect, async (req, res) => {
       });
 
       return res.json({
-        success: fcmResult.sent > 0 || fcmResult.total > 0,
+        success: fcmResult.sent > 0,
         channel: 'android',
         deliveredCount: fcmResult.sent,
         totalDevices: fcmResult.total,
         details: fcmResult,
-        message: fcmResult.total > 0
-          ? `Dispatched to ${fcmResult.total} registered Android device(s)!`
-          : 'No registered Android devices found. Open the Alumnex APK on your Android device to register.'
+        message: fcmResult.sent > 0
+          ? `Dispatched to ${fcmResult.sent} registered Android device(s)!`
+          : (fcmResult.total === 0
+              ? 'No registered Android devices found. Open the Alumnex APK on your Android device to register.'
+              : 'Failed to deliver FCM push notification to registered Android device.')
       });
     }
 

@@ -52,9 +52,26 @@ const notificationDeviceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  permission: {
+    type: String,
+    enum: ['granted', 'denied', 'default', 'prompt', 'unknown'],
+    default: 'granted'
+  },
   lastSeenAt: {
     type: Date,
     default: Date.now
+  },
+  lastDeliveryAt: {
+    type: Date
+  },
+  lastDeliveryStatus: {
+    type: String,
+    enum: ['success', 'failed', 'simulated', 'expired', 'none'],
+    default: 'none'
+  },
+  lastError: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true

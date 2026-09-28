@@ -111,8 +111,22 @@ class NotificationDispatcher {
    * Normalizes any raw notification trigger into a canonical event schema
    */
   normalizeEvent(raw = {}) {
-    const rawType = (raw.type || 'SYSTEM_ANNOUNCEMENT').toUpperCase();
-    const type = NOTIFICATION_TYPES[rawType] || NOTIFICATION_TYPES.SYSTEM_ANNOUNCEMENT;
+    let type = NOTIFICATION_TYPES.SYSTEM_ANNOUNCEMENT;
+    const typeStr = (raw.type || '').toUpperCase().replace(/-/g, '_');
+
+    if (NOTIFICATION_TYPES[typeStr]) {
+      type = NOTIFICATION_TYPES[typeStr];
+    } else if (typeStr.includes('STREAK')) {
+      type = NOTIFICATION_TYPES.STREAK_AT_RISK;
+    } else if (typeStr.includes('MENTORSHIP')) {
+      type = NOTIFICATION_TYPES.MENTORSHIP_REMINDER;
+    } else if (typeStr.includes('MESSAGE')) {
+      type = NOTIFICATION_TYPES.CHAT_MESSAGE;
+    } else if (typeStr.includes('EVENT')) {
+      type = NOTIFICATION_TYPES.EVENT_REMINDER;
+    } else if (typeStr.includes('JOB')) {
+      type = NOTIFICATION_TYPES.JOB_ALERT;
+    }
 
     return {
       id: raw.id || `evt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -338,6 +352,16 @@ class NotificationDispatcher {
       }
     }
 
+    // Structured server delivery log (Phase 12)
+    const userStr = String(userId);
+    const maskedUser = userStr.length > 8 ? `${userStr.substring(0, 4)}...${userStr.slice(-4)}` : userStr;
+    const inAppStatus = results.inApp.success ? 'success' : results.inApp.attempted ? 'failed' : 'skipped';
+    const webStatus = results.webPush.success ? 'success' : results.webPush.attempted ? 'failed' : 'skipped';
+    const fcmStatus = results.androidPush.success ? 'success' : results.androidPush.attempted ? 'failed' : 'skipped';
+    const emailStatus = results.email.success ? 'success' : results.email.attempted ? 'failed' : 'skipped';
+
+    console.log(`[NOTIFICATION] type=${type} recipient=${maskedUser} inApp=${inAppStatus} webEndpoints=${results.webPush.summary?.total || 0} webPush=${webStatus} fcmEndpoints=${results.androidPush.summary?.total || 0} fcm=${fcmStatus} email=${emailStatus}`);
+
     return {
       success: true,
       results
@@ -369,31 +393,67 @@ class NotificationDispatcher {
       normalizedType = NOTIFICATION_TYPES.JOB_ALERT;
     }
 
-    // Only dispatch push/email if not already handled
+    // Fetch user preferences with sensible defaults
     const prefs = await ReminderPreference.findOne({ userId: notif.recipient }).lean();
-    if (!prefs) return;
+    const effectivePrefs = prefs || {
+      webPushEnabled: true,
+      mobileAppEnabled: true,
+      chatMessages: true,
+      emailEnabled: false
+    };
 
-    // Send Web Push if enabled
-    if (prefs.webPushEnabled !== false) {
-      await webPushService.sendToUser(notif.recipient, {
-        title: notif.title,
-        body: notif.content,
-        deepLink: notif.actionUrl || '/notifications',
-        type: normalizedType,
-        priority: notif.priority
-      }).catch(() => {});
+    // Category filter
+    const categoryKey = TYPE_TO_CATEGORY_PREF[normalizedType];
+    if (categoryKey && effectivePrefs[categoryKey] === false) {
+      console.log(`[NotificationDispatcher] Category ${categoryKey} disabled for user ${notif.recipient}`);
+      return;
     }
 
-    // Send Android FCM if enabled
-    if (prefs.mobileAppEnabled !== false) {
-      await fcmService.sendToUser(notif.recipient, {
-        title: notif.title,
-        body: notif.content,
-        deepLink: notif.actionUrl || '/notifications',
-        type: normalizedType,
-        priority: notif.priority
-      }).catch(() => {});
+    const inQuietHours = notif.priority !== 'urgent' && notif.priority !== 'high' && this.isQuietHours(effectivePrefs);
+    const deepLink = notif.actionUrl || '/notifications';
+
+    let webResult = { sent: 0, failed: 0, total: 0 };
+    let fcmResult = { sent: 0, failed: 0, total: 0 };
+
+    // Send Web Push if enabled and not in quiet hours
+    if (effectivePrefs.webPushEnabled !== false && !inQuietHours) {
+      try {
+        webResult = await webPushService.sendToUser(notif.recipient, {
+          title: notif.title,
+          body: notif.content,
+          deepLink,
+          type: normalizedType,
+          priority: notif.priority,
+          data: notif.relatedData || {}
+        });
+      } catch (webErr) {
+        console.warn('[NotificationDispatcher] Web Push error in dispatchFromNotification:', webErr.message);
+      }
     }
+
+    // Send Android FCM if enabled and not in quiet hours
+    if (effectivePrefs.mobileAppEnabled !== false && !inQuietHours) {
+      try {
+        fcmResult = await fcmService.sendToUser(notif.recipient, {
+          title: notif.title,
+          body: notif.content,
+          deepLink,
+          type: normalizedType,
+          priority: notif.priority,
+          data: notif.relatedData || {}
+        });
+      } catch (fcmErr) {
+        console.warn('[NotificationDispatcher] FCM error in dispatchFromNotification:', fcmErr.message);
+      }
+    }
+
+    // Structured server delivery log (Phase 12)
+    const recipientStr = String(notif.recipient);
+    const maskedRecipient = recipientStr.length > 8 ? `${recipientStr.substring(0, 4)}...${recipientStr.slice(-4)}` : recipientStr;
+    const webStatus = webResult.sent > 0 ? 'success' : webResult.total === 0 ? 'no_endpoints' : 'failed';
+    const fcmStatus = fcmResult.sent > 0 ? 'success' : fcmResult.total === 0 ? 'no_endpoints' : 'failed';
+
+    console.log(`[NOTIFICATION] type=${normalizedType} recipient=${maskedRecipient} inApp=success webEndpoints=${webResult.total} webPush=${webStatus} fcmEndpoints=${fcmResult.total} fcm=${fcmStatus} email=skipped`);
   }
 }
 

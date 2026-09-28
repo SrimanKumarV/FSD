@@ -3,45 +3,47 @@ const User = require('../models/User');
 
 // Middleware to protect routes
 const protect = async (req, res, next) => {
-  let token;
+  // Collect candidate tokens: prefer Authorization Bearer header, fallback to cookie
+  const headerToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer')
+    ? req.headers.authorization.split(' ')[1]
+    : null;
+  const cookieToken = req.cookies?.token || null;
 
-  // Check for token in cookies first, then fallback to headers
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    // Get token from header
-    token = req.headers.authorization.split(' ')[1];
+  const candidateTokens = [headerToken, cookieToken].filter(Boolean);
+
+  if (candidateTokens.length === 0) {
+    return res.status(401).json({ message: 'Not authorized, no token provided', code: 'NO_TOKEN' });
   }
 
-  if (token) {
+  let lastError = null;
+
+  for (const token of candidateTokens) {
     try {
-      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id).select('-password');
 
-      // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({ message: 'User not found' });
+      if (!user) {
+        return res.status(401).json({ message: 'User not found', code: 'USER_NOT_FOUND' });
       }
 
-      if (!req.user.isActive) {
-        return res.status(401).json({ message: 'User account is deactivated' });
+      if (!user.isActive) {
+        return res.status(401).json({ message: 'User account is deactivated', code: 'ACCOUNT_DEACTIVATED' });
       }
 
-      // Update last active — fire and forget, never block the request
-      req.user.updateLastActive().catch(() => {});
-
-      next();
-    } catch (error) {
-      console.error('Token verification error:', error);
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      req.user = user;
+      // Update last active in background
+      user.updateLastActive().catch(() => {});
+      return next();
+    } catch (err) {
+      lastError = err;
     }
   }
 
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  const isExpired = lastError?.name === 'TokenExpiredError';
+  return res.status(401).json({
+    message: isExpired ? 'Session expired, please refresh' : 'Not authorized, token failed',
+    code: isExpired ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN'
+  });
 };
 
 // Middleware to check if user is admin

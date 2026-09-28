@@ -421,27 +421,28 @@ class AuthService {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
-        // Allow refresh only if token expired within the last 24 hours
+        // Allow session restoration within 30 days of token expiration
         decoded = jwt.decode(token);
-        if (!decoded || !decoded.exp) {
-          throw { status: 401, message: 'Invalid token' };
+        if (!decoded || !decoded.id) {
+          throw { status: 401, message: 'Invalid token structure' };
         }
-        const expiredAt = decoded.exp * 1000; // convert to ms
-        const maxRefreshWindow = 24 * 60 * 60 * 1000; // 24 hours
+        const expiredAt = (decoded.exp || 0) * 1000;
+        const maxRefreshWindow = 30 * 24 * 60 * 60 * 1000; // 30 days
         if (Date.now() - expiredAt > maxRefreshWindow) {
-          throw { status: 401, message: 'Token expired too long ago. Please login again.' };
+          throw { status: 401, message: 'Session expired. Please log in again.' };
         }
       } else {
-        throw { status: 401, message: 'Invalid token' };
+        throw { status: 401, message: 'Invalid authentication token' };
       }
     }
 
     const user = await User.findById(decoded.id);
     if (!user || !user.isActive) {
-      throw { status: 401, message: 'User not found or deactivated' };
+      throw { status: 401, message: 'User not found or account deactivated' };
     }
 
-    return generateToken(user._id);
+    const newToken = generateToken(user._id);
+    return { token: newToken, user: user.getPublicProfile() };
   }
 
   async changePassword(userId, currentPassword, newPassword) {

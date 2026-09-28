@@ -36,6 +36,23 @@ export const NotificationSettingsCard = () => {
   const [testingChannel, setTestingChannel] = useState(null);
   const [testResult, setTestResult] = useState(null);
 
+  // Device Diagnostics state (Phase 11)
+  const [devices, setDevices] = useState([]);
+  const [loadingDevices, setLoadingDevices] = useState(false);
+
+  // Load registered push devices from backend
+  const fetchDevices = async () => {
+    try {
+      setLoadingDevices(true);
+      const res = await api.get('/notifications/devices');
+      setDevices(res.data?.devices || []);
+    } catch (err) {
+      console.warn('[NotificationSettingsCard] Could not load devices:', err.message);
+    } finally {
+      setLoadingDevices(false);
+    }
+  };
+
   // Load preferences from backend
   const fetchPreferences = async () => {
     try {
@@ -61,6 +78,7 @@ export const NotificationSettingsCard = () => {
   useEffect(() => {
     fetchPreferences();
     checkWebSubscription();
+    fetchDevices();
   }, []);
 
   // Update a single preference with optimistic UI, error handling, and rollback
@@ -108,6 +126,7 @@ export const NotificationSettingsCard = () => {
         await checkWebSubscription();
       } finally {
         setSavingKey(null);
+        fetchDevices();
       }
     } else {
       // Turn OFF
@@ -120,6 +139,7 @@ export const NotificationSettingsCard = () => {
         toast.error('Could not disable Web Push');
       } finally {
         setSavingKey(null);
+        fetchDevices();
       }
     }
   };
@@ -144,12 +164,14 @@ export const NotificationSettingsCard = () => {
       } else {
         toast.error(res.message || `${channel.toUpperCase()} test failed`);
       }
+      fetchDevices();
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Test failed';
       setTestResult({ channel, success: false, message: msg });
       toast.error(msg);
     } finally {
       setTestingChannel(null);
+      fetchDevices();
     }
   };
 
@@ -530,6 +552,104 @@ export const NotificationSettingsCard = () => {
               <span>{testResult.channel.toUpperCase()} Dispatch Report: {testResult.success ? 'Delivered' : 'Action Required'}</span>
             </div>
             <p className="text-[11px] opacity-90">{testResult.message}</p>
+          </div>
+        )}
+      </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          4. NOTIFICATION DEVICE DIAGNOSTICS (PHASE 11)
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Registered Notification Devices & Endpoints</span>
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Live status of endpoints authorized for offline Web Push and native Android FCM delivery.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={fetchDevices}
+            disabled={loadingDevices}
+            className="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+            title="Refresh devices"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingDevices ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {devices.length === 0 ? (
+          <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+              🔴 No active push endpoint
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Enable Web Push above or open the Alumnex APK to register this device for offline notifications.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {devices.map((dev) => {
+              const isAndroid = dev.platform === 'android';
+              const lastSeen = dev.lastSeenAt ? new Date(dev.lastSeenAt).toLocaleString() : 'Recently';
+              const lastDeliv = dev.lastDeliveryAt ? new Date(dev.lastDeliveryAt).toLocaleTimeString() : 'None yet';
+
+              return (
+                <div
+                  key={dev._id || dev.deviceId}
+                  className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 mt-0.5">
+                      {isAndroid ? <Smartphone className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {dev.deviceName || (isAndroid ? 'Android Device' : 'Web Browser')}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          🟢 Active
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 space-x-2">
+                        <span>Platform: <b className="capitalize text-slate-700 dark:text-slate-300">{dev.platform}</b></span>
+                        <span>•</span>
+                        <span>Provider: <b className="uppercase text-slate-700 dark:text-slate-300">{dev.pushProvider}</b></span>
+                        {dev.browser && (
+                          <>
+                            <span>•</span>
+                            <span>Browser: <b className="text-slate-700 dark:text-slate-300">{dev.browser}</b></span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="sm:text-right text-[11px] text-slate-500 dark:text-slate-400 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-700">
+                    <div>Permission: <span className="font-semibold text-emerald-600 dark:text-emerald-400 capitalize">{dev.permission || 'Granted'}</span></div>
+                    <div>Last seen: <span className="text-slate-700 dark:text-slate-300">{lastSeen}</span></div>
+                    {dev.lastDeliveryStatus && dev.lastDeliveryStatus !== 'none' && (
+                      <div className="mt-0.5">
+                        Last delivery: <span className={`font-semibold ${dev.lastDeliveryStatus === 'success' || dev.lastDeliveryStatus === 'simulated' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          {dev.lastDeliveryStatus} ({lastDeliv})
+                        </span>
+                      </div>
+                    )}
+                    {dev.lastError && (
+                      <div className="text-rose-500 text-[10px] max-w-xs truncate" title={dev.lastError}>
+                        Error: {dev.lastError}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

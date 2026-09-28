@@ -19,10 +19,13 @@ const MobileBottomNav = ({ onMenuClick, unreadChatCount }) => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe lg:hidden">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden pointer-events-none"
+      style={{ paddingBottom: 'var(--alumnex-safe-bottom)' }}
+    >
       {/* Floating Pill Container */}
-      <div className="mx-4 mb-4">
-        <div className="flex items-center justify-around h-[4.25rem] px-2 rounded-3xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative">
+      <div className="mx-4 mb-3 pointer-events-auto">
+        <div className="flex items-center justify-around h-[4.25rem] px-2 rounded-3xl bg-white/85 dark:bg-gray-900/85 backdrop-blur-xl border border-gray-200/60 dark:border-gray-800/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = isActiveRoute(item.href);

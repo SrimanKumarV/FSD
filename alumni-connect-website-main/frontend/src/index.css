@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,6 +16,11 @@
   --color-primary-700: 29 78 216;
   --color-primary-800: 30 64 175;
   --color-primary-900: 30 58 138;
+  
+  /* Mobile Navigation and Floating Element Spacing Tokens */
+  --alumnex-mobile-nav-height: 5.25rem;
+  --alumnex-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --alumnex-safe-top: env(safe-area-inset-top, 0px);
 }
 
 

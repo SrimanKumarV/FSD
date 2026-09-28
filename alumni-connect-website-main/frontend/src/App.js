@@ -13,6 +13,7 @@ import { CallProvider } from './contexts/CallContext';
 import GlobalCallOverlay from './components/chat/VideoCallOverlay';
 import FloatingAIAssistant from './components/chat/FloatingAIAssistant';
 import AppUpdateManager from './components/update/AppUpdateManager';
+import MobileAppInstallBanner from './components/update/MobileAppInstallBanner';
 import { WifiOff } from 'lucide-react';
 
 // Components
@@ -124,6 +125,7 @@ function App() {
                     <GlobalCallOverlay />
                     <FloatingAIAssistant />
                     <AppUpdateManager />
+                    <MobileAppInstallBanner />
                     <div className="animated-bg"></div>
 
                   <ErrorBoundary>

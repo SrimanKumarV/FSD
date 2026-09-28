@@ -73,6 +73,25 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
     }
   }, [initialGoal, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    // Prevent body background scrolling underneath modal
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    // Escape key listener
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
@@ -82,22 +101,30 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
+    <div 
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm touch-none"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="goal-builder-title"
+    >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-xl rounded-t-3xl sm:rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-xl rounded-t-3xl sm:rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] touch-auto"
       >
-        {/* Header */}
-        <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        {/* Header (Sticky / Flex-shrink-0) */}
+        <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold flex-shrink-0">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                <h3 id="goal-builder-title" className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                   {initialGoal ? 'Edit Goal' : 'Goal Builder'}
                 </h3>
                 {/* Step Dots Indicator */}
@@ -124,7 +151,8 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Close Goal Builder"
+            className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
@@ -138,7 +166,7 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 What area of your career momentum do you want to build?
               </p>
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 gap-2 sm:gap-2.5">
                 {categories.map(cat => {
                   const Icon = cat.icon;
                   const isSelected = formData.category === cat.id;
@@ -147,20 +175,20 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
                     <div
                       key={cat.id}
                       onClick={() => setFormData(prev => ({ ...prev, category: cat.id }))}
-                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3.5 ${
+                      className={`p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-2.5 sm:gap-3.5 ${
                         isSelected
                           ? 'border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/40 ring-2 ring-indigo-500/30'
                           : 'border-gray-200 dark:border-gray-800 hover:border-indigo-300 dark:hover:border-gray-700'
                       }`}
                     >
-                      <div className={`p-2.5 rounded-xl ${isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
-                        <Icon className="w-5 h-5" />
+                      <div className={`p-2 sm:p-2.5 rounded-xl shrink-0 ${isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
+                        <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-gray-900 dark:text-white">{cat.name}</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{cat.desc}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate sm:whitespace-normal">{cat.name}</h4>
+                        <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1 sm:line-clamp-none">{cat.desc}</p>
                       </div>
-                      {isSelected && <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />}
+                      {isSelected && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 shrink-0 ml-auto" />}
                     </div>
                   );
                 })}
@@ -412,13 +440,16 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
           )}
         </div>
 
-        {/* Footer Navigation */}
-        <div className="p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex items-center justify-between">
+        {/* Footer Navigation (Sticky / Always Visible Above Safe Area) */}
+        <div 
+          className="flex-shrink-0 px-4 sm:px-6 py-3.5 sm:py-5 border-t border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md flex items-center justify-between z-10"
+          style={{ paddingBottom: 'max(1rem, var(--alumnex-safe-bottom, 0px))' }}
+        >
           {step > 1 ? (
             <button
               type="button"
               onClick={() => setStep(prev => prev - 1)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors min-h-[44px]"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Back</span>
@@ -437,7 +468,7 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
                 }
                 setStep(prev => prev + 1);
               }}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all active:scale-95 min-h-[44px]"
             >
               <span>Next Step</span>
               <ChevronRight className="w-4 h-4" />
@@ -446,7 +477,7 @@ const GoalBuilderModal = ({ isOpen, onClose, onSave, initialGoal = null }) => {
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all active:scale-95 min-h-[44px]"
             >
               <Check className="w-4 h-4" />
               <span>{initialGoal ? 'Update Goal' : 'Save Goal'}</span>

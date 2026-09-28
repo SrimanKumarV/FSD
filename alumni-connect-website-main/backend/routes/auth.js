@@ -341,6 +341,27 @@ router.get('/mobile/github/callback', (req, res) => {
   `);
 });
 
+const resolveGoogleCredentials = () => {
+  let clientId = (process.env.MOBILE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '').trim();
+  let clientSecret = (process.env.MOBILE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '').trim();
+
+  // Guard against swapped or misconfigured credentials
+  if (clientId.startsWith('GOCSPX-')) {
+    if (clientSecret && clientSecret.endsWith('.apps.googleusercontent.com')) {
+      const temp = clientId;
+      clientId = clientSecret;
+      clientSecret = temp;
+    } else {
+      if (!clientSecret) clientSecret = clientId;
+      if (process.env.REACT_APP_GOOGLE_CLIENT_ID && process.env.REACT_APP_GOOGLE_CLIENT_ID.endsWith('.apps.googleusercontent.com')) {
+        clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID.trim();
+      }
+    }
+  }
+
+  return { clientId, clientSecret };
+};
+
 const getGoogleRedirectUri = (req) => {
   if (process.env.MOBILE_GOOGLE_REDIRECT_URI) {
     return process.env.MOBILE_GOOGLE_REDIRECT_URI.trim();
@@ -354,11 +375,10 @@ const getGoogleRedirectUri = (req) => {
 };
 
 router.get('/mobile/google', (req, res) => {
-  const clientId = process.env.MOBILE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-  if (!clientId) {
-    return res.status(500).json({ message: 'Google OAuth not configured' });
+  const { clientId, clientSecret } = resolveGoogleCredentials();
+  if (!clientId || clientId.startsWith('GOCSPX-')) {
+    return res.status(500).json({ message: 'Google OAuth client ID not properly configured' });
   }
-  const clientSecret = process.env.MOBILE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri = getGoogleRedirectUri(req);
 
   // Generate secure CSRF state token signed with JWT_SECRET (15-minute expiration)
@@ -504,8 +524,7 @@ router.get('/mobile/google/callback', async (req, res) => {
       return res.status(403).send(renderMobileHandoff(deepLinkUrl, 'Session Expired', 'Your sign-in request expired. Please return to the app and try again.', true));
     }
 
-    const clientId = process.env.MOBILE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.MOBILE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+    const { clientId, clientSecret } = resolveGoogleCredentials();
     const redirectUri = getGoogleRedirectUri(req);
 
     if (!clientSecret) {

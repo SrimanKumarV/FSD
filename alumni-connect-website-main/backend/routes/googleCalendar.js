@@ -19,6 +19,16 @@ const checkValidation = (req, res) => {
   return true;
 };
 
+// Safe diagnostic logging helper (masks client ID to first 8 and last 20 chars; NEVER logs secrets)
+const maskClientId = (id) => {
+  if (!id) return '(none)';
+  const str = String(id).trim();
+  if (str.length <= 28) {
+    return str.length > 8 ? `${str.substring(0, 4)}...${str.substring(str.length - 4)}` : '***';
+  }
+  return `${str.substring(0, 8)}...${str.substring(str.length - 20)}`;
+};
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 1. OAUTH AUTHORIZATION INITIATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -32,12 +42,27 @@ router.get('/connect', protect, (req, res) => {
   try {
     const mode = req.query.mode === 'mobile' ? 'mobile' : 'web';
     const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/google-calendar/callback`;
+    const rawClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
 
     const { url, state } = googleCalendarService.generateAuthorizationUrl({
       userId: req.user._id,
       mode,
       redirectUri
     });
+
+    const parsedAuthUrl = new URL(url);
+    const generatedClientId = parsedAuthUrl.searchParams.get('client_id');
+
+    // Safe diagnostic logging (NEVER logs client secret, tokens, cookies, or JWTs)
+    console.log('[Google Calendar OAuth]');
+    console.log(`clientId: ${maskClientId(rawClientId)}`);
+    console.log(`clientIdLength: ${rawClientId.length}`);
+    console.log(`redirectUri: ${redirectUri}`);
+    console.log(`environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`requestHost: ${req.get('host')}`);
+    console.log(`requestProtocol: ${req.protocol}`);
+    console.log(`generatedAuthorizationHost: ${parsedAuthUrl.host}`);
+    console.log(`generatedClientId: ${maskClientId(generatedClientId)}`);
 
     res.cookie('gcal_oauth_state', state, {
       httpOnly: true,
@@ -64,6 +89,19 @@ router.get('/connect', protect, (req, res) => {
  */
 router.get('/callback', async (req, res) => {
   const { code, state, error: oauthError, error_description } = req.query;
+  const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/google-calendar/callback`;
+  const rawClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+
+  // Safe diagnostic logging (NEVER logs client secret, tokens, cookies, or JWTs)
+  console.log('[Google Calendar OAuth Callback]');
+  console.log(`clientId: ${maskClientId(rawClientId)}`);
+  console.log(`clientIdLength: ${rawClientId.length}`);
+  console.log(`redirectUri: ${redirectUri}`);
+  console.log(`environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`requestHost: ${req.get('host')}`);
+  console.log(`requestProtocol: ${req.protocol}`);
+  console.log(`hasAuthorizationCode: ${Boolean(code)}`);
+  console.log(`oauthError: ${oauthError || 'none'}`);
 
   const renderMobileResult = (deepLinkUrl, title, message, isError = false) => `
     <!DOCTYPE html>

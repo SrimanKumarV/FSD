@@ -18,9 +18,32 @@ class GoogleCalendarService {
    * @returns {OAuth2Client}
    */
   getOAuthClient(redirectUri) {
-    const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
-    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    let clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+    let clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
     const activeRedirectUri = (redirectUri || process.env.GOOGLE_CALENDAR_REDIRECT_URI || '').trim();
+
+    // Guard against accidental swap or misplacement:
+    // Google Client Secrets start with 'GOCSPX-', while Client IDs end with '.apps.googleusercontent.com'
+    if (clientId.startsWith('GOCSPX-')) {
+      if (clientSecret && clientSecret.endsWith('.apps.googleusercontent.com')) {
+        console.warn('[GoogleCalendarService] Detected swapped GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment. Auto-aligning.');
+        const temp = clientId;
+        clientId = clientSecret;
+        clientSecret = temp;
+      } else {
+        // Client secret was set in GOOGLE_CLIENT_ID. Preserve secret if empty
+        if (!clientSecret) {
+          clientSecret = clientId;
+        }
+        // Check if a valid web client ID is present in REACT_APP_GOOGLE_CLIENT_ID
+        if (process.env.REACT_APP_GOOGLE_CLIENT_ID && process.env.REACT_APP_GOOGLE_CLIENT_ID.endsWith('.apps.googleusercontent.com')) {
+          console.warn('[GoogleCalendarService] Recovered valid client ID from REACT_APP_GOOGLE_CLIENT_ID');
+          clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID.trim();
+        } else {
+          throw new Error('GOOGLE_CLIENT_ID is misconfigured: received client secret (starts with GOCSPX-). Expected OAuth client ID ending in .apps.googleusercontent.com. Please update GOOGLE_CLIENT_ID in your Render environment variables.');
+        }
+      }
+    }
 
     if (!clientId || !clientSecret) {
       throw new Error('Google OAuth credentials (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) are not configured');

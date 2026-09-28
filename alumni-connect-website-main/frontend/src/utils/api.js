@@ -25,13 +25,13 @@ export const mobileTokenStore = {
     if (token) {
       try {
         localStorage.setItem(TOKEN_KEY, token);
-      } catch (e) {}
+      } catch (e) { }
     }
   },
   clear: () => {
     try {
       localStorage.removeItem(TOKEN_KEY);
-    } catch (e) {}
+    } catch (e) { }
   },
 };
 
@@ -40,7 +40,8 @@ export const mobileTokenStore = {
 // even if build environment variables are missing or misconfigured.
 export const KNOWN_PRODUCTION_BACKENDS = [
   'https://alumnex-backend-backup.onrender.com/api',
-  'https://alumnex-backend-9y5t.onrender.com/api',
+  'https://alumnex-backend-2.onrender.com/api',
+  'https://alumnex-backend-9y5t.onrender.com/api'
 ];
 
 const normalizeUrl = (url) => {
@@ -67,7 +68,7 @@ export const getAvailableBackendUrls = () => {
         const parsed = JSON.parse(runtimeScaled);
         if (Array.isArray(parsed)) urls.push(...parsed);
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Environment-configured backends
@@ -98,7 +99,7 @@ export const getAvailableBackendUrls = () => {
         candidateUrls.splice(idx, 1);
         candidateUrls.unshift(lastHealthy);
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   if (candidateUrls.length === 0) {
@@ -115,7 +116,7 @@ export const getActiveBackendUrl = () => activeBackendUrls[0] || 'https://alumne
 
 export const triggerFailover = (failedUrl) => {
   const currentUrl = failedUrl ? normalizeUrl(failedUrl) : activeBackendUrls[0];
-  
+
   if (activeBackendUrls.length <= 1) {
     // If only 1 URL in current active list, restore full pool and put failed one at end
     const allCandidates = getAvailableBackendUrls();
@@ -139,7 +140,7 @@ export const triggerFailover = (failedUrl) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(HEALTHY_BACKEND_KEY, nextUrl);
     }
-  } catch (e) {}
+  } catch (e) { }
 
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('backend-failover', { detail: nextUrl }));
@@ -197,7 +198,7 @@ export const probeAndSelectFastestBackend = async () => {
       }
       try {
         localStorage.setItem(HEALTHY_BACKEND_KEY, fastest);
-      } catch (e) {}
+      } catch (e) { }
       window.dispatchEvent(new CustomEvent('backend-failover', { detail: fastest }));
     }
   } catch (err) {
@@ -261,16 +262,16 @@ api.interceptors.request.use(
 
     // ── Universal Token Authentication ──
     const storedToken = mobileTokenStore.get();
-    
+
     if (storedToken) {
       config.headers['Authorization'] = `Bearer ${storedToken}`;
       config.headers['X-Mobile-App'] = 'capacitor';
     } else {
       const xsrfTokenCookie = typeof document !== 'undefined'
         ? document.cookie
-            .split('; ')
-            .find((row) => row.startsWith('XSRF-TOKEN='))
-            ?.split('=')[1]
+          .split('; ')
+          .find((row) => row.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1]
         : null;
 
       const finalToken = xsrfTokenCookie || csrfTokenMemory;
@@ -279,7 +280,7 @@ api.interceptors.request.use(
         config.headers['X-XSRF-TOKEN'] = finalToken;
       }
     }
-    
+
     // Bypass ngrok warning screen for local development
     config.headers['ngrok-skip-browser-warning'] = 'true';
 
@@ -299,7 +300,7 @@ api.interceptors.response.use(
     if (response.config?.baseURL && typeof window !== 'undefined') {
       try {
         localStorage.setItem(HEALTHY_BACKEND_KEY, response.config.baseURL);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     return response;
@@ -317,9 +318,9 @@ api.interceptors.response.use(
       originalRequest._retryFailover = true;
       const currentFailedUrl = originalRequest.baseURL || activeBackendUrls[0];
       const nextUrl = triggerFailover(currentFailedUrl);
-      
+
       console.warn(`[Failover Retrying] Swapping ${currentFailedUrl} -> ${nextUrl} for ${originalRequest.url}`);
-      
+
       originalRequest.baseURL = nextUrl;
       if (originalRequest.url && originalRequest.url.startsWith('http')) {
         originalRequest.url = originalRequest.url.replace(currentFailedUrl, nextUrl);
@@ -350,7 +351,7 @@ api.interceptors.response.use(
 
       try {
         const refreshBaseUrl = getActiveBackendUrl();
-        
+
         await axios.post(
           `${refreshBaseUrl}/auth/refresh`,
           {},
@@ -366,7 +367,7 @@ api.interceptors.response.use(
         onRefreshFailed();
 
         const isAuthError = refreshError.response && (refreshError.response.status === 401 || refreshError.response.status === 403);
-        
+
         if (isAuthError) {
           window.dispatchEvent(new Event('auth:logout'));
         } else {

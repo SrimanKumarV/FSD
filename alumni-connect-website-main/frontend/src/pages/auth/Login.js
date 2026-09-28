@@ -167,14 +167,24 @@ const Login = () => {
     if (Capacitor.isNativePlatform()) {
       App.addListener('appUrlOpen', async (event) => {
         try {
-          const url = new URL(event.url);
-          if (url.protocol === 'com.alumnex.connect:') {
+          if (!event?.url) return;
+          console.log('[Mobile DeepLink] Received event.url:', event.url);
+          
+          try {
             await Browser.close();
-            
-            if (url.pathname.includes('/oauth/github')) {
+          } catch (e) {}
+
+          const rawUrl = event.url;
+          if (rawUrl.startsWith('com.alumnex.connect:')) {
+            const url = new URL(rawUrl);
+            const path = (url.pathname || '') + (url.host ? `/${url.host}` : '');
+            const isGoogle = rawUrl.includes('/oauth/google') || url.host === 'oauth';
+            const isGithub = rawUrl.includes('/oauth/github');
+
+            if (isGithub) {
               const mobileCode = url.searchParams.get('code');
               if (mobileCode) handleGithubCallback(mobileCode);
-            } else if (url.pathname.includes('/oauth/google')) {
+            } else if (isGoogle) {
               const token = url.searchParams.get('token');
               const credential = url.searchParams.get('credential');
               const requiresRoleSelection = url.searchParams.get('requiresRoleSelection') === 'true';
@@ -193,7 +203,7 @@ const Login = () => {
               } else if (token) {
                 const res = await loginWithToken(token);
                 if (res.success) {
-                  navigate(from, { replace: true });
+                  window.location.replace('/dashboard');
                 }
               } else if (credential) {
                 handleGoogleLoginSuccess({ credential });

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import NetworkBackground from '../components/NetworkBackground';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Users, 
   Briefcase, 
@@ -20,10 +21,15 @@ import {
 
 const Home = () => {
   const { forceDarkMode, releaseDarkMode } = useTheme();
+  const { isAuthenticated } = useAuth();
 
-  // Always force dark mode on the landing page
+  // Always force dark mode on the landing page & mark device visited
   useEffect(() => {
     forceDarkMode();
+    try {
+      localStorage.setItem('alumnex_device_visited', 'true');
+      sessionStorage.setItem('alumnex_session_active', 'true');
+    } catch (e) {}
     return () => releaseDarkMode();
   }, [forceDarkMode, releaseDarkMode]);
 
@@ -108,15 +114,21 @@ const Home = () => {
                 </h1>
               </div>
             </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-xl text-sm font-bold transition-colors">
-                  Login
+            <div className="flex items-center space-x-3">
+              {isAuthenticated ? (
+                <Link to="/dashboard" className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                  Dashboard
                 </Link>
-                <Link to="/register" className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-                  Get Started
-                </Link>
-              </div>
+              ) : (
+                <>
+                  <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-xl text-sm font-bold transition-colors">
+                    Login
+                  </Link>
+                  <Link to="/register" className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -159,18 +171,20 @@ const Home = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Link 
-                to="/register"
+                to={isAuthenticated ? "/dashboard" : "/register"}
                 className="inline-flex items-center px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-primary-500/30"
               >
-                Start Your Journey
+                {isAuthenticated ? "Go to Dashboard" : "Start Your Journey"}
                 <ArrowRight className="ml-2 w-6 h-6" />
               </Link>
-              <Link 
-                to="/login"
-                className="inline-flex items-center px-8 py-4 glass-card bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 text-gray-900 dark:text-white font-bold rounded-xl text-lg transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg"
-              >
-                Sign In
-              </Link>
+              {!isAuthenticated && (
+                <Link 
+                  to="/login"
+                  className="inline-flex items-center px-8 py-4 glass-card bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 text-gray-900 dark:text-white font-bold rounded-xl text-lg transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg"
+                >
+                  Sign In
+                </Link>
+              )}
             </motion.div>
           </div>
         </div>
@@ -339,10 +353,10 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <Link 
-              to="/register"
+              to={isAuthenticated ? "/dashboard" : "/register"}
               className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-primary-600 to-alumni-600 hover:from-primary-500 hover:to-alumni-500 text-white font-bold rounded-xl text-xl transition-all duration-300 transform hover:-translate-y-1 shadow-xl hover:shadow-2xl shadow-primary-500/20"
             >
-              Get Started Today
+              {isAuthenticated ? "Go to Dashboard" : "Get Started Today"}
               <ArrowRight className="ml-3 w-6 h-6" />
             </Link>
           </motion.div>

@@ -47,9 +47,28 @@ const COUNTRIES = [
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, isAuthenticated, isLoading: authLoading } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // If already authenticated, redirect to dashboard immediately
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    // On cold app launch, if device has visited before and user is not authenticated,
+    // don't leave user stranded on signup; direct them to sign in.
+    const isColdLaunch = !sessionStorage.getItem('alumnex_session_active');
+    const hasVisited = localStorage.getItem('alumnex_device_visited') === 'true';
+    if (isColdLaunch) {
+      sessionStorage.setItem('alumnex_session_active', 'true');
+      if (hasVisited && !authLoading && !isAuthenticated) {
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   // Shared dark-mode aware styles for react-select
   const selectStyles = {

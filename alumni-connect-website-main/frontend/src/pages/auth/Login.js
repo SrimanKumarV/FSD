@@ -50,7 +50,7 @@ const Login = () => {
     interests: []
   });
   const [departments, setDepartments] = useState([]);
-  const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin, loginWithToken } = useAuth();
+  const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin, loginWithToken, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
@@ -271,6 +271,13 @@ const Login = () => {
 
   // Get the intended destination from location state or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // If already authenticated, redirect to destination immediately
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate, from]);
 
   const {
     register,

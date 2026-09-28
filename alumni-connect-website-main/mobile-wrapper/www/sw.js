@@ -18,17 +18,24 @@ self.addEventListener('push', (event) => {
     data = { title: 'Alumnex Connect', body: event.data ? event.data.text() : '' };
   }
 
-  const title = data.title || '🔥 Alumnex Streak Alert';
+  const title = data.title || '🔥 Alumnex Notification';
+  const targetUrl = data.url || data.deepLink || '/activity';
+
   const options = {
-    body: data.body || 'Your daily activity streak is at risk of resetting!',
+    body: data.body || 'You have a new update in Alumnex Connect.',
     icon: data.icon || '/logo.png',
     badge: data.badge || '/logo.png',
-    tag: data.tag || 'streak-alert',
+    tag: data.tag || (data.type ? `alumnex-${data.type.toLowerCase()}` : 'alumnex-notification'),
     renotify: true,
-    requireInteraction: true,
+    requireInteraction: data.requireInteraction !== undefined ? data.requireInteraction : true,
     data: {
-      url: data.url || '/activity'
-    }
+      url: targetUrl,
+      type: data.type,
+      id: data.id || data._id
+    },
+    actions: data.actions || [
+      { action: 'open', title: 'Open Alumnex' }
+    ]
   };
 
   event.waitUntil(
@@ -36,9 +43,13 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Notification click handler: opens or focuses the Alumnex Activity Hub
+// Notification click handler: opens or focuses the Alumnex application and routes
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+
+  if (event.action === 'dismiss') {
+    return;
+  }
 
   const targetUrl = event.notification.data?.url || '/activity';
 
@@ -46,8 +57,10 @@ self.addEventListener('notificationclick', (event) => {
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // If a window is already open, focus it and navigate
       for (const client of clientList) {
-        if (client.url && 'focus' in client) {
-          client.navigate(targetUrl);
+        if ('focus' in client) {
+          if ('navigate' in client) {
+            client.navigate(targetUrl);
+          }
           return client.focus();
         }
       }

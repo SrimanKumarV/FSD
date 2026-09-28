@@ -1,10 +1,10 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 
 // Context Providers
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -155,6 +155,79 @@ const MobileDeepLinkHandler = () => {
   return null;
 };
 
+// Controls first-time device visit vs returning user routing
+const RootRoute = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const forceLanding = searchParams.get('landing') === 'true';
+
+  if (forceLanding) {
+    return <Home />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  // If already logged in, go straight to dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Check if device has visited before
+  const hasVisited = (() => {
+    try {
+      return localStorage.getItem('alumnex_device_visited') === 'true';
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  // If new device, show the landing page
+  if (!hasVisited) {
+    return <Home />;
+  }
+
+  // Returning unauthenticated user goes to sign in page
+  return <Navigate to="/login" replace />;
+};
+
+// Handles cold-start session recovery in app and browser
+const AppStartupHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    const isColdStartup = !sessionStorage.getItem('alumnex_session_active');
+    if (isColdStartup) {
+      sessionStorage.setItem('alumnex_session_active', 'true');
+      const hasVisited = (() => {
+        try {
+          return localStorage.getItem('alumnex_device_visited') === 'true';
+        } catch (e) {
+          return false;
+        }
+      })();
+
+      if (!isLoading) {
+        if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/')) {
+          navigate('/dashboard', { replace: true });
+        } else if (!isAuthenticated && hasVisited && location.pathname === '/register') {
+          // If app was reopened and user is not logged in, take them to sign in page instead of signup
+          navigate('/login', { replace: true });
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated, location.pathname, navigate]);
+
+  return null;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -165,6 +238,7 @@ function App() {
               <NotificationProvider>
               <Router>
                 <MobileDeepLinkHandler />
+                <AppStartupHandler />
                 <CallProvider>
                   <div className="App min-h-screen relative">
                     <OfflineBanner />
@@ -182,7 +256,8 @@ function App() {
                     }>
                       <Routes>
                     {/* Public Routes */}
-                  <Route path="/" element={<Home />} />
+                  <Route path="/" element={<RootRoute />} />
+                  <Route path="/landing" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />

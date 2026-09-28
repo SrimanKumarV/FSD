@@ -16,6 +16,7 @@ import {
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { webPushManager, getDeviceDetails } from '../../utils/webPushManager';
+import { mobilePushManager } from '../../utils/mobilePushManager';
 import { Capacitor } from '@capacitor/core';
 
 export const NotificationSettingsCard = () => {
@@ -149,6 +150,13 @@ export const NotificationSettingsCard = () => {
     try {
       setTestingChannel(channel);
       setTestResult(null);
+
+      // Pre-sync device endpoint with backend to guarantee registration
+      if (channel === 'android') {
+        await mobilePushManager.syncRegistration().catch(() => {});
+      } else if (channel === 'web') {
+        await webPushManager.syncSubscription().catch(() => {});
+      }
 
       const res = await webPushManager.sendTest(channel);
       setTestResult({

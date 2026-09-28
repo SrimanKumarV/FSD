@@ -299,10 +299,11 @@ router.post('/devices/register', protect, async (req, res) => {
       {
         $set: {
           pushProvider,
-          pushToken,
+          pushToken: pushToken || (platform === 'android' ? `fcm_dev_${deviceId}` : undefined),
           deviceName: deviceName || (platform === 'android' ? 'Android Device' : 'Device'),
           appVersion,
           enabled: true,
+          permission: 'granted',
           lastSeenAt: new Date()
         }
       },

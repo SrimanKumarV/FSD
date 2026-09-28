@@ -19,6 +19,7 @@ import CalendarSettings from '../components/calendar/CalendarSettings';
 import UpcomingEvents from '../components/calendar/UpcomingEvents';
 import toast from 'react-hot-toast';
 import { addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
+import { AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
 
 const Calendar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -152,6 +153,50 @@ const Calendar = () => {
             refetchEvents();
           }}
         />
+      )}
+
+      {/* 1b. Google Calendar API Not Enabled Warning Banner */}
+      {isConnected && (statusData?.lastError?.message?.includes('disabled') || statusData?.lastError?.message?.includes('not been used')) && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-500 flex-shrink-0 mt-0.5">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                Google Calendar API Activation Required
+              </h4>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 leading-relaxed max-w-2xl">
+                Your account is connected, but the <strong>Google Calendar API</strong> is currently disabled in Google Cloud project <code>253683997850</code>. Enable it once in Google Cloud Console, then click "Sync Now" below to pull your events.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            <a
+              href="https://console.developers.google.com/apis/api/calendar-json.googleapis.com/overview?project=253683997850"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 transition-all active:scale-95"
+            >
+              <span>Enable in Google Cloud</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <button
+              type="button"
+              onClick={() => syncMutation.mutate()}
+              disabled={syncMutation.isLoading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncMutation.isLoading ? 'animate-spin text-primary-500' : ''}`} />
+              <span>{syncMutation.isLoading ? 'Syncing...' : 'Sync Now'}</span>
+            </button>
+          </div>
+        </motion.div>
       )}
 
       {/* 2. Calendar Header */}

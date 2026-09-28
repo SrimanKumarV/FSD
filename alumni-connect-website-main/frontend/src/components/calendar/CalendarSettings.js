@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Trash2, Calendar, Settings as SettingsIcon, AlertCircle } from 'lucide-react';
+import { X, Check, Trash2, Calendar, Settings as SettingsIcon, AlertCircle, ExternalLink } from 'lucide-react';
 import { useGoogleCalendars, useUpdateGoogleCalendarSettings, useDisconnectGoogleCalendar } from '../../hooks/useGoogleCalendar';
 import toast from 'react-hot-toast';
 
@@ -9,7 +9,7 @@ export const CalendarSettings = ({
   onClose,
   status
 }) => {
-  const { data: calendars = [], isLoading: loadingCalendars } = useGoogleCalendars(isOpen && Boolean(status?.connected));
+  const { data: calendars = [], isLoading: loadingCalendars, error: calendarsError } = useGoogleCalendars(isOpen && Boolean(status?.connected));
   const updateSettingsMutation = useUpdateGoogleCalendarSettings();
   const disconnectMutation = useDisconnectGoogleCalendar();
 
@@ -93,6 +93,30 @@ export const CalendarSettings = ({
                 <span>Connected & Authorized</span>
               </div>
             </div>
+
+            {/* API Disabled / Sync Error Banner */}
+            {(calendarsError || status?.lastError?.message?.includes('disabled') || status?.lastError?.message?.includes('not been used')) && (
+              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2.5">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-sm">Google Calendar API Needs to be Enabled</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
+                      Google Calendar API has not been activated yet in Google Cloud project <strong>253683997850</strong>. Events cannot be fetched until you enable it.
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="https://console.developers.google.com/apis/api/calendar-json.googleapis.com/overview?project=253683997850"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
+                >
+                  <span>Enable Google Calendar API in Google Cloud</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
 
             {/* Sync Switch */}
             <div className="flex items-center justify-between">

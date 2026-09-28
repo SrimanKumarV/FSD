@@ -375,7 +375,17 @@ router.get('/calendars', protect, async (req, res) => {
     res.json({ calendars });
   } catch (error) {
     console.error('[Google Calendar] Calendars fetch error:', error.message);
-    res.status(500).json({ message: error.message || 'Failed to fetch Google calendars' });
+    const googleMsg = error.response?.data?.error?.message;
+    const isApiDisabled = error.response?.status === 403 && (googleMsg?.includes('not been used') || googleMsg?.includes('disabled'));
+    if (isApiDisabled) {
+      return res.status(403).json({
+        message: 'Google Calendar API is not enabled in Google Cloud project 253683997850. Please enable it in Google Cloud Console.',
+        enableUrl: 'https://console.developers.google.com/apis/api/calendar-json.googleapis.com/overview?project=253683997850',
+        apiDisabled: true
+      });
+    }
+    const status = error.response?.status && error.response.status < 500 ? error.response.status : 500;
+    res.status(status).json({ message: googleMsg || error.message || 'Failed to fetch Google calendars' });
   }
 });
 

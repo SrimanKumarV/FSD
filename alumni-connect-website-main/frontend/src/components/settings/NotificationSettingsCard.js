@@ -8,7 +8,10 @@ import {
   RefreshCw, 
   Send, 
   ShieldCheck, 
-  CheckCircle2
+  CheckCircle2,
+  Flame,
+  Briefcase,
+  Users
 } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';

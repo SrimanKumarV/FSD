@@ -13,6 +13,14 @@ node_modules/
 .env.test
 .env.production
 **/.env
+*.env
+**/*.env
+*.env*
+**/*.env*
+!*.env.example
+!**/*.env.example
+!env.example
+!**/env.example
 
 # ------------------------------
 # Logs

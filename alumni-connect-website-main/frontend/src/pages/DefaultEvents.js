@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../utils/api';
 import PlatformIcon from '../components/PlatformIcon';
 import { useAuth } from '../contexts/AuthContext';
+import { useGoogleCalendarStatus, useExportAlumnexEvent } from '../hooks/useGoogleCalendar';
 import toast from 'react-hot-toast';
 
 const getPlatformColor = (platform) => {
@@ -30,6 +31,10 @@ const getGoogleCalendarUrl = (event) => {
 
 const DefaultEvents = () => {
   const { user } = useAuth();
+  const { data: calendarStatus } = useGoogleCalendarStatus();
+  const exportAlumnexEventMutation = useExportAlumnexEvent();
+  const isCalendarConnected = Boolean(calendarStatus?.connected);
+
   const [search, setSearch] = useState('');
   const [platformFilter, setPlatformFilter] = useState('All');
   const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
@@ -256,10 +261,21 @@ const DefaultEvents = () => {
                             <h4 className="font-semibold text-slate-800 dark:text-slate-200 leading-tight group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">{c.title}</h4>
                           </div>
                           <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700/50">
-                            <a href={getGoogleCalendarUrl(c)} target="_blank" rel="noreferrer" className="flex items-center text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors">
-                              <MapPin className="w-3.5 h-3.5 mr-1.5" />
-                              Add to Calendar
-                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (c.isEvent && c._id && isCalendarConnected) {
+                                  exportAlumnexEventMutation.mutate({ eventId: c._id });
+                                } else {
+                                  window.open(getGoogleCalendarUrl(c), '_blank', 'noreferrer');
+                                }
+                              }}
+                              disabled={exportAlumnexEventMutation.isLoading}
+                              className="flex items-center text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors disabled:opacity-50"
+                            >
+                              <CalendarIcon className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
+                              <span>{c.isEvent && isCalendarConnected ? 'Add to Google Calendar' : 'Add to Calendar'}</span>
+                            </button>
                             {c.externalLink && (
                               <a href={c.externalLink} target="_blank" rel="noreferrer" className="text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                                 <ExternalLink className="w-4 h-4" />

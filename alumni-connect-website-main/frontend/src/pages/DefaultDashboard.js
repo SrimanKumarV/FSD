@@ -24,6 +24,7 @@ import DashboardStreaks from '../components/activity/DashboardStreaks';
 import DashboardWeeklyActivity from '../components/activity/DashboardWeeklyActivity';
 import DashboardMomentumInsight from '../components/activity/DashboardMomentumInsight';
 import NextBestAction from '../components/dashboard/NextBestAction';
+import TodayScheduleWidget from '../components/dashboard/TodayScheduleWidget';
 import { checkAndTriggerStreakPushNotification } from '../utils/streakPushNotification';
 
 const iconMap = {
@@ -172,6 +173,9 @@ const DefaultDashboard = () => {
         recentActivities={recentActivities}
         upcomingEvents={upcomingEvents}
       />
+
+      {/* Today's Schedule Context & Calendar Bridge */}
+      <TodayScheduleWidget />
 
       {/* 3. Stats Grid: Mentorship, Jobs, Events, Forum (Existing) */}
       <motion.div

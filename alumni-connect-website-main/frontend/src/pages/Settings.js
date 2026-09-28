@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import DevProfileSettings from '../components/profile/DevProfileSettings';
 import AnimatedOTP from '../components/AnimatedOTP';
 import { isAndroidApp, checkForUpdate, getCurrentAppInfo } from '../services/updateService';
+import GoogleCalendarSettingsCard from '../components/settings/GoogleCalendarSettingsCard';
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -563,6 +564,9 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+          {/* Google Calendar Integration */}
+          <GoogleCalendarSettingsCard />
 
           {/* About Alumnex Connect & App Updates */}
           {/* About Alumnex Connect & App Updates */}

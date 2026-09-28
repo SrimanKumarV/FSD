@@ -3,6 +3,7 @@ const ActivityGoal = require('../models/ActivityGoal');
 const ActivityRecord = require('../models/ActivityRecord');
 const Notification = require('../models/Notification');
 const cache = require('../utils/cache');
+const calendarSyncService = require('./calendarSyncService');
 const {
   fetchGitHubStats,
   fetchLeetCodeStats,
@@ -1044,7 +1045,8 @@ async function getDashboardSummary(userId, timezone = 'Asia/Kolkata') {
     insights,
     consistency,
     integrations,
-    records
+    records,
+    scheduleContext
   ] = await Promise.all([
     calculateOverallStreak(userId, timezone),
     calculateCategoryStreaks(userId, timezone),
@@ -1054,8 +1056,30 @@ async function getDashboardSummary(userId, timezone = 'Asia/Kolkata') {
     getBehavioralInsights(userId, timezone),
     getConsistencyScore(userId, timezone),
     getUserIntegrations(userId),
-    getPersonalRecords(userId, timezone)
+    getPersonalRecords(userId, timezone),
+    calendarSyncService.getScheduleContext(userId, timezone).catch(() => ({
+      eventsCount: 0,
+      events: [],
+      freeWindows: [],
+      totalFreeMinutes: 0,
+      nextEvent: null
+    }))
   ]);
+
+  // Schedule Intelligence: If user has a free time window today and remaining goals, inject Next Best Action insight
+  if (scheduleContext?.freeWindows?.length > 0 && todaysPlan?.remaining > 0) {
+    const bestWindow = scheduleContext.freeWindows[0];
+    const pending = todaysPlan.goals?.find(g => !g.completed);
+    if (pending) {
+      insights.unshift({
+        type: 'action',
+        category: 'schedule',
+        title: `${bestWindow.durationMinutes} Minutes Available Today`,
+        description: `You have ${bestWindow.durationMinutes} mins free${scheduleContext.nextEvent ? ` before "${scheduleContext.nextEvent.title}"` : ''}. Suggested: ${pending.title}.`,
+        actionUrl: '/activity'
+      });
+    }
+  }
 
   const summary = {
     today: {
@@ -1065,6 +1089,13 @@ async function getDashboardSummary(userId, timezone = 'Asia/Kolkata') {
       completedGoals: todaysPlan.completed,
       remainingGoals: todaysPlan.remaining,
       percentage: todaysPlan.percentage
+    },
+    scheduleContext: {
+      eventsCount: scheduleContext?.eventsCount || 0,
+      totalFreeMinutes: scheduleContext?.totalFreeMinutes || 0,
+      freeWindows: scheduleContext?.freeWindows || [],
+      nextEvent: scheduleContext?.nextEvent || null,
+      events: scheduleContext?.events || []
     },
     // Backwards compatibility for existing dashboard callers and tests:
     todaysGoals: {

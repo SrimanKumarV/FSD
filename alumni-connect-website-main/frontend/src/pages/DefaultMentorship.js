@@ -22,8 +22,10 @@ import {
   Target,
   BookOpen,
   CalendarPlus,
+  Video,
   X
 } from 'lucide-react';
+import { useGoogleCalendarStatus, useExportMentorshipSession } from '../hooks/useGoogleCalendar';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 import DefaultAvatar from '../components/DefaultAvatar';
@@ -61,6 +63,10 @@ const DefaultMentorship = () => {
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [syncWithGoogleCalendar, setSyncWithGoogleCalendar] = useState(true);
+
+  const { data: calendarStatus } = useGoogleCalendarStatus();
+  const exportMentorshipSessionMutation = useExportMentorshipSession();
 
   // AI Mentorship Request State
   const [isDrafting, setIsDrafting] = useState(false);
@@ -148,11 +154,19 @@ const DefaultMentorship = () => {
     
     try {
       setLoading(true);
-      await api.post('/mentorship/sessions', {
+      const res = await api.post('/mentorship/sessions', {
         mentorId: selectedMentor._id || selectedMentor.id,
         date: selectedDate,
         time: selectedTime
       });
+
+      if (syncWithGoogleCalendar && calendarStatus?.connected && res.data?.session?._id) {
+        await exportMentorshipSessionMutation.mutateAsync({
+          sessionId: res.data.session._id,
+          createMeet: true
+        }).catch(err => console.warn('[Mentorship] Google Calendar export warning:', err));
+      }
+
       toast.success(`1:1 Mentorship Session booked with ${selectedMentor?.name} for ${selectedDate} at ${selectedTime}!`);
       setShowBookingModal(false);
       setSelectedDate('');
@@ -993,6 +1007,27 @@ const DefaultMentorship = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Google Calendar & Meet Toggle */}
+              {calendarStatus?.connected && (
+                <label className="flex items-center gap-3 p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/40 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={syncWithGoogleCalendar}
+                    onChange={(e) => setSyncWithGoogleCalendar(e.target.checked)}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                  />
+                  <div className="text-xs">
+                    <p className="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                      <Video className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Add to Google Calendar + Google Meet</span>
+                    </p>
+                    <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-0.5">
+                      Creates event with Google Meet link and sends invitations to both participants.
+                    </p>
+                  </div>
+                </label>
+              )}
             </div>
 
             <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex gap-4">

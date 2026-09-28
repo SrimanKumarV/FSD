@@ -39,10 +39,31 @@ export const NextBestAction = ({ user, activity, recentActivities = [], upcoming
       });
     }
 
-    // Rule 2: Unfinished Daily Goals
+    // Rule 2: Unfinished Daily Goals & Schedule Focus Windows
     const todayGoals = activity?.todaysPlan?.goals || [];
     const pendingGoals = todayGoals.filter(g => !g.completed);
-    if (pendingGoals.length > 0) {
+
+    // Rule 1.5: Free Time Focus Window from Calendar Schedule Context
+    const freeWindows = activity?.scheduleContext?.freeWindows || [];
+    const nextEvent = activity?.scheduleContext?.nextEvent;
+    if (freeWindows.length > 0 && pendingGoals.length > 0) {
+      const bestWindow = freeWindows[0];
+      const targetGoal = pendingGoals[0];
+      list.push({
+        id: 'schedule_focus_window',
+        priority: 92,
+        type: 'action',
+        icon: Sparkles,
+        badge: 'Schedule Focus',
+        title: `You have ${bestWindow.durationMinutes} minutes available ${nextEvent ? `before "${nextEvent.title}"` : 'today'}`,
+        description: `Suggested action: Complete your "${targetGoal.title || targetGoal.name}" goal. ${currentStreak > 0 ? `Current streak: ${currentStreak} days.` : 'Start compounding your streak!'}`,
+        actionLabel: 'Focus on Goal',
+        actionUrl: '/activity',
+        accentColor: 'indigo'
+      });
+    }
+
+    if (pendingGoals.length > 0 && freeWindows.length === 0) {
       const firstPending = pendingGoals[0];
       list.push({
         id: 'unfinished_goal',

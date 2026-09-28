@@ -116,6 +116,7 @@ const Layout = ({ children }) => {
         { name: 'Career Board', href: '/career-board', icon: Compass },
         { name: 'AI Resume Analyzer', href: '/resume', icon: FileSearch },
         { name: 'Events', href: '/events', icon: Calendar },
+        { name: 'Calendar', href: '/calendar', icon: Calendar },
       ]
     },
     {

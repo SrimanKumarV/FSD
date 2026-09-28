@@ -156,6 +156,7 @@ app.use('/api/ai', require('./routes/ai'));
 app.use('/api/tech-hub', require('./routes/tech-hub'));
 app.use('/api/business', require('./routes/business'));
 app.use('/api/activity', require('./routes/activity'));
+app.use('/api/google-calendar', require('./routes/googleCalendar'));
 
 // Socket.IO connection handling
 require('./socket/socketHandler')(io);
@@ -223,6 +224,7 @@ if (process.env.NODE_ENV !== 'test') {
   // Initialize cron jobs
   require('./jobs/engagementCron')();
   require('./jobs/activityReminderCron')();
+  require('./jobs/calendarWatchRenewalCron')();
   
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);

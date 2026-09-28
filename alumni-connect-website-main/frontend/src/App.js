@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 
@@ -15,6 +15,10 @@ import FloatingAIAssistant from './components/chat/FloatingAIAssistant';
 import AppUpdateManager from './components/update/AppUpdateManager';
 import MobileAppInstallBanner from './components/update/MobileAppInstallBanner';
 import { WifiOff } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import toast from 'react-hot-toast';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -50,6 +54,7 @@ const ProjectShowcase = lazy(() => import('./pages/ProjectShowcase'));
 const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer'));
 const BusinessDirectory = lazy(() => import('./pages/BusinessDirectory'));
 const ActivityHub = lazy(() => import('./pages/ActivityHub'));
+const Calendar = lazy(() => import('./pages/Calendar'));
 
 
 const TechHub = lazy(() => import('./pages/tech-hub/TechHub'));
@@ -110,6 +115,46 @@ const OfflineBanner = () => {
   );
 };
 
+const MobileDeepLinkHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let listener = null;
+    if (Capacitor.isNativePlatform()) {
+      CapApp.addListener('appUrlOpen', async (event) => {
+        try {
+          if (!event?.url) return;
+          try {
+            await Browser.close();
+          } catch (e) {}
+
+          const rawUrl = event.url;
+          if (rawUrl.includes('/oauth/google-calendar')) {
+            const url = new URL(rawUrl);
+            const status = url.searchParams.get('status');
+            const error = url.searchParams.get('error');
+
+            if (error) {
+              toast.error(decodeURIComponent(error));
+            } else if (status === 'success') {
+              toast.success('Google Calendar connected successfully!', { icon: '📅' });
+              navigate('/calendar');
+            }
+          }
+        } catch (err) {
+          console.error('[MobileDeepLinkHandler] Error:', err);
+        }
+      }).then(l => { listener = l; });
+    }
+
+    return () => {
+      if (listener) listener.remove();
+    };
+  }, [navigate]);
+
+  return null;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -119,6 +164,7 @@ function App() {
             <SocketProvider>
               <NotificationProvider>
               <Router>
+                <MobileDeepLinkHandler />
                 <CallProvider>
                   <div className="App min-h-screen relative">
                     <OfflineBanner />
@@ -247,7 +293,14 @@ function App() {
                       </Layout>
                     </ProtectedRoute>
                   } />
-                  
+
+                  <Route path="/calendar" element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Calendar />
+                      </Layout>
+                    </ProtectedRoute>
+                  } />
 
                   
                   <Route path="/jobs" element={

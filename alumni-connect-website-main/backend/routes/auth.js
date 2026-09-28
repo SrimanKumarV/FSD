@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const { body, validationResult } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const authService = require('../services/authService');
@@ -338,41 +341,294 @@ router.get('/mobile/github/callback', (req, res) => {
   `);
 });
 
+const getGoogleRedirectUri = (req) => {
+  if (process.env.MOBILE_GOOGLE_REDIRECT_URI) {
+    return process.env.MOBILE_GOOGLE_REDIRECT_URI.trim();
+  }
+  if (process.env.GOOGLE_REDIRECT_URI) {
+    return process.env.GOOGLE_REDIRECT_URI.trim();
+  }
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const host = req.get('host');
+  return `${proto}://${host}/api/auth/mobile/google/callback`;
+};
+
 router.get('/mobile/google', (req, res) => {
-  const backendUrl = req.protocol + '://' + req.get('host');
-  const redirectUri = `${backendUrl}/api/auth/mobile/google/callback`;
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = process.env.MOBILE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
     return res.status(500).json({ message: 'Google OAuth not configured' });
   }
-  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email profile`);
+  const clientSecret = process.env.MOBILE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = getGoogleRedirectUri(req);
+
+  // Generate secure CSRF state token signed with JWT_SECRET (15-minute expiration)
+  const stateNonce = crypto.randomBytes(24).toString('hex');
+  const stateToken = jwt.sign(
+    { nonce: stateNonce, type: 'mobile_google_oauth', iat: Math.floor(Date.now() / 1000) },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  res.cookie('oauth_state', stateToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    maxAge: 15 * 60 * 1000
+  });
+
+  // Prefer standard Authorization Code flow if client secret is configured; fallback to token flow
+  const responseType = clientSecret ? 'code' : 'token';
+  const scope = clientSecret ? 'openid email profile' : 'email profile';
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: responseType,
+    scope: scope,
+    state: stateToken,
+    prompt: 'select_account'
+  });
+
+  if (clientSecret) {
+    params.append('access_type', 'offline');
+  }
+
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
 });
 
-router.get('/mobile/google/callback', (req, res) => {
-  res.send(`
-    <html>
+router.get('/mobile/google/callback', async (req, res) => {
+  const renderMobileHandoff = (deepLinkUrl, title, message, isError = false) => `
+    <!DOCTYPE html>
+    <html lang="en">
       <head>
-        <title>Authenticating...</title>
+        <meta charset="UTF-8">
+        <title>${title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-          body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: white; margin: 0; }
-          a { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            box-sizing: border-box;
+            text-align: center;
+          }
+          .card {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 36px 28px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+          }
+          .icon {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 16px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: ${isError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(56, 189, 248, 0.2)'};
+            color: ${isError ? '#ef4444' : '#38bdf8'};
+            font-size: 24px;
+            font-weight: bold;
+          }
+          h2 { margin: 0 0 12px; font-size: 22px; color: ${isError ? '#f87171' : '#ffffff'}; }
+          p { margin: 0 0 24px; font-size: 14px; color: #94a3b8; line-height: 1.5; }
+          .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            border-radius: 12px;
+            box-sizing: border-box;
+            transition: opacity 0.2s;
+          }
+          .btn:active { opacity: 0.85; }
         </style>
       </head>
       <body>
-        <h3>Authentication Successful!</h3>
-        <p>Returning to app...</p>
-        <a id="return-link" href="#">Click here if not redirected automatically</a>
+        <div class="card">
+          <div class="icon">${isError ? '!' : '✓'}</div>
+          <h2>${title}</h2>
+          <p>${message}</p>
+          <a class="btn" id="return-btn" href="${deepLinkUrl}">Return to Alumnex Connect</a>
+        </div>
         <script>
-          const hash = window.location.hash.substring(1);
-          const params = new URLSearchParams(hash);
-          const token = params.get('access_token');
-          if (token) {
-            const redirectUrl = 'com.alumnex.connect://oauth/google?credential=' + token;
-            document.getElementById('return-link').href = redirectUrl;
-            window.location.href = redirectUrl;
-          } else {
-            document.body.innerHTML = 'Authentication failed. Please return to the app.';
+          setTimeout(function() {
+            window.location.href = ${JSON.stringify(deepLinkUrl)};
+          }, 150);
+        </script>
+      </body>
+    </html>
+  `;
+
+  // 1. Check for OAuth error / cancellation in query parameters
+  if (req.query.error) {
+    const errorDesc = req.query.error_description || req.query.error;
+    console.warn('[Mobile Google OAuth] Error received from Google:', errorDesc);
+    const deepLinkUrl = `com.alumnex.connect://oauth/google?error=${encodeURIComponent(errorDesc)}`;
+    return res.status(400).send(renderMobileHandoff(deepLinkUrl, 'Sign In Cancelled', 'Google sign-in was not completed. Please return to the app to try again.', true));
+  }
+
+  // 2. Authorization Code Flow (Server-side token exchange)
+  if (req.query.code) {
+    const { code, state } = req.query;
+
+    // Validate CSRF state
+    if (!state) {
+      console.warn('[Mobile Google OAuth] Missing state in callback');
+      const deepLinkUrl = `com.alumnex.connect://oauth/google?error=${encodeURIComponent('Missing OAuth security state')}`;
+      return res.status(403).send(renderMobileHandoff(deepLinkUrl, 'Security Verification Failed', 'Missing OAuth state token. Please retry logging in.', true));
+    }
+
+    try {
+      const decoded = jwt.verify(state, process.env.JWT_SECRET);
+      if (decoded.type !== 'mobile_google_oauth') {
+        throw new Error('Invalid state type');
+      }
+    } catch (stateErr) {
+      console.warn('[Mobile Google OAuth] State verification failed:', stateErr.message);
+      const deepLinkUrl = `com.alumnex.connect://oauth/google?error=${encodeURIComponent('Expired or invalid OAuth state')}`;
+      return res.status(403).send(renderMobileHandoff(deepLinkUrl, 'Session Expired', 'Your sign-in request expired. Please return to the app and try again.', true));
+    }
+
+    const clientId = process.env.MOBILE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.MOBILE_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = getGoogleRedirectUri(req);
+
+    if (!clientSecret) {
+      console.error('[Mobile Google OAuth] GOOGLE_CLIENT_SECRET not configured on server');
+      const deepLinkUrl = `com.alumnex.connect://oauth/google?error=${encodeURIComponent('GOOGLE_CLIENT_SECRET not configured on backend')}`;
+      return res.status(500).send(renderMobileHandoff(deepLinkUrl, 'Server Setup Required', 'GOOGLE_CLIENT_SECRET must be configured on the backend server for authorization code flow.', true));
+    }
+
+    try {
+      // Exchange authorization code for tokens securely at Google token endpoint
+      const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code'
+      });
+
+      const { access_token, id_token } = tokenResponse.data;
+      const credential = access_token || id_token;
+
+      // Authenticate / create the Alumnex user
+      const result = await authService.processGoogleLogin(credential);
+
+      if (result.requiresRoleSelection) {
+        const deepLinkUrl = `com.alumnex.connect://oauth/google?requiresRoleSelection=true&tempToken=${encodeURIComponent(result.tempToken)}`;
+        return res.send(renderMobileHandoff(deepLinkUrl, 'Welcome to Alumnex!', 'Finalizing account setup. Redirecting to select your role...'));
+      }
+
+      // Establish session cookie
+      setTokenCookie(res, result.token);
+
+      const deepLinkUrl = `com.alumnex.connect://oauth/google?token=${encodeURIComponent(result.token)}`;
+      return res.send(renderMobileHandoff(deepLinkUrl, 'Authentication Successful!', 'Returning to Alumnex Connect...'));
+    } catch (err) {
+      console.error('[Mobile Google OAuth] Code exchange error:', err.response?.data || err.message);
+      const errMsg = err.response?.data?.error_description || err.message || 'Google token exchange failed';
+      const deepLinkUrl = `com.alumnex.connect://oauth/google?error=${encodeURIComponent(errMsg)}`;
+      return res.status(500).send(renderMobileHandoff(deepLinkUrl, 'Sign In Error', errMsg, true));
+    }
+  }
+
+  // 3. Fallback for client-side hash fragment (Implicit token grant)
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Authenticating...</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            box-sizing: border-box;
+            text-align: center;
+          }
+          .card {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 36px 28px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+          }
+          h2 { margin: 0 0 12px; font-size: 22px; color: #ffffff; }
+          p { margin: 0 0 24px; font-size: 14px; color: #94a3b8; line-height: 1.5; }
+          .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            border-radius: 12px;
+            box-sizing: border-box;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h2 id="status-title">Authenticating...</h2>
+          <p id="status-desc">Transferring session to Alumnex Connect app...</p>
+          <a class="btn" id="return-link" href="#" style="display:none;">Return to App</a>
+        </div>
+        <script>
+          try {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const token = params.get('access_token');
+            const error = params.get('error') || params.get('error_description');
+
+            if (token) {
+              const redirectUrl = 'com.alumnex.connect://oauth/google?credential=' + encodeURIComponent(token);
+              document.getElementById('return-link').href = redirectUrl;
+              document.getElementById('return-link').style.display = 'inline-block';
+              window.location.href = redirectUrl;
+            } else if (error) {
+              document.getElementById('status-title').innerText = 'Authentication Failed';
+              document.getElementById('status-desc').innerText = error;
+              const redirectUrl = 'com.alumnex.connect://oauth/google?error=' + encodeURIComponent(error);
+              document.getElementById('return-link').href = redirectUrl;
+              document.getElementById('return-link').style.display = 'inline-block';
+              window.location.href = redirectUrl;
+            } else {
+              document.getElementById('status-title').innerText = 'No Credentials Received';
+              document.getElementById('status-desc').innerText = 'No authorization details received from Google. Please return to the app and retry.';
+              document.getElementById('return-link').href = 'com.alumnex.connect://';
+              document.getElementById('return-link').style.display = 'inline-block';
+            }
+          } catch (e) {
+            document.getElementById('status-title').innerText = 'Processing Error';
+            document.getElementById('status-desc').innerText = e.message;
           }
         </script>
       </body>

@@ -43,15 +43,34 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 class AuthService {
   async processGoogleLogin(credential) {
-    const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-      headers: { Authorization: `Bearer ${credential}` }
-    });
-    
-    if (!googleResponse.ok) {
+    let payload = null;
+
+    // 1. Try resolving user info via Google userinfo endpoint (for access tokens)
+    try {
+      const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+        headers: { Authorization: `Bearer ${credential}` }
+      });
+      if (googleResponse.ok) {
+        payload = await googleResponse.json();
+      }
+    } catch (e) {
+      // Fall through to JWT ID token decoding
+    }
+
+    // 2. If userinfo didn't resolve and credential is an ID token (JWT format), decode payload
+    if (!payload && typeof credential === 'string' && credential.includes('.')) {
+      try {
+        const decoded = jwt.decode(credential);
+        if (decoded && decoded.email) {
+          payload = decoded;
+        }
+      } catch (e) {}
+    }
+
+    if (!payload || !payload.email) {
       throw { status: 401, message: 'Failed to fetch user info from Google' };
     }
-    
-    const payload = await googleResponse.json();
+
     const { email, name, picture, sub } = payload;
     
     let user = await User.findOne({ email });

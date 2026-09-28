@@ -50,7 +50,7 @@ const Login = () => {
     interests: []
   });
   const [departments, setDepartments] = useState([]);
-  const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin } = useAuth();
+  const { login, loginWithGoogle, loginWithGithub, completeOAuthLogin, loginWithToken } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
@@ -175,8 +175,29 @@ const Login = () => {
               const mobileCode = url.searchParams.get('code');
               if (mobileCode) handleGithubCallback(mobileCode);
             } else if (url.pathname.includes('/oauth/google')) {
+              const token = url.searchParams.get('token');
               const credential = url.searchParams.get('credential');
-              if (credential) handleGoogleLoginSuccess({ credential });
+              const requiresRoleSelection = url.searchParams.get('requiresRoleSelection') === 'true';
+              const tempToken = url.searchParams.get('tempToken');
+              const requires2FA = url.searchParams.get('requires2FA') === 'true';
+              const email = url.searchParams.get('email');
+              const error = url.searchParams.get('error');
+
+              if (error) {
+                toast.error(decodeURIComponent(error));
+              } else if (requiresRoleSelection && tempToken) {
+                setOauthTempToken(tempToken);
+                setShowRoleModal(true);
+              } else if (requires2FA && email) {
+                navigate('/verify-2fa', { state: { email } });
+              } else if (token) {
+                const res = await loginWithToken(token);
+                if (res.success) {
+                  navigate(from, { replace: true });
+                }
+              } else if (credential) {
+                handleGoogleLoginSuccess({ credential });
+              }
             }
           }
         } catch (err) {

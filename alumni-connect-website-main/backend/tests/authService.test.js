@@ -89,4 +89,68 @@ describe('authService', () => {
       expect(result.message).toContain('Registration successful');
     });
   });
+
+  describe('processGoogleLogin', () => {
+    it('should return requiresRoleSelection and tempToken for a new Google user', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          email: 'newuser@google.com',
+          name: 'New Google User',
+          picture: 'https://example.com/photo.jpg',
+          sub: 'google_123456'
+        })
+      });
+
+      User.findOne = jest.fn().mockResolvedValue(null);
+
+      const result = await authService.processGoogleLogin('valid_google_token');
+
+      expect(result.requiresRoleSelection).toBe(true);
+      expect(result).toHaveProperty('tempToken');
+      expect(result.message).toContain('Please select your role');
+    });
+
+    it('should authenticate an existing Google user and issue token', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          email: 'existing@google.com',
+          name: 'Existing Google User',
+          picture: 'https://example.com/photo.jpg',
+          sub: 'google_789'
+        })
+      });
+
+      const mockUser = {
+        _id: 'user_existing_id',
+        email: 'existing@google.com',
+        name: 'Existing Google User',
+        isVerified: true,
+        photo: 'https://example.com/photo.jpg',
+        getPublicProfile: jest.fn().mockReturnValue({ id: 'user_existing_id', email: 'existing@google.com' }),
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      User.findOne = jest.fn().mockResolvedValue(mockUser);
+
+      const result = await authService.processGoogleLogin('valid_google_token');
+
+      expect(result).toHaveProperty('token');
+      expect(result).toHaveProperty('user');
+      expect(result.message).toBe('Login successful');
+    });
+
+    it('should throw an error if Google userinfo call fails', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 401
+      });
+
+      await expect(authService.processGoogleLogin('bad_token')).rejects.toEqual({
+        status: 401,
+        message: 'Failed to fetch user info from Google'
+      });
+    });
+  });
 });

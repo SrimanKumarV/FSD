@@ -1,4 +1,4 @@
-import api from '../utils/api';
+import api, { mobileTokenStore } from '../utils/api';
 import toast from 'react-hot-toast';
 
 export const AUTH_ACTIONS = {
@@ -242,6 +242,26 @@ export const useAuthActions = (dispatch) => {
     }
   };
 
+  const loginWithToken = async (token) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      mobileTokenStore.set(token);
+      const response = await api.get('/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const user = response.data.user;
+      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { user, token } });
+      toast.success('Google Login successful!');
+      return { success: true, user };
+    } catch (error) {
+      mobileTokenStore.clear();
+      const message = error.response?.data?.message || 'Authentication failed';
+      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: message });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
   const setAuthUser = (user) => {
     dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: user });
   };
@@ -255,6 +275,7 @@ export const useAuthActions = (dispatch) => {
     loginWithGoogle,
     loginWithGithub,
     completeOAuthLogin,
+    loginWithToken,
     register,
     logout,
     changePassword,

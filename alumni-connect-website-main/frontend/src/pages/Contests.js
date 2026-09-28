@@ -293,11 +293,11 @@ const Contests = () => {
                           className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white dark:bg-slate-800/80 hover:bg-slate-700 border border-gray-200 dark:border-gray-200 dark:border-slate-700/50 shadow-sm transition-colors"
                         >
                           <PlatformIcon platform={c.platform} className="w-3 h-3 shrink-0" />
-                          <span className="text-[10px] text-gray-800 dark:text-slate-300 truncate font-semibold">{c.title}</span>
+                          <span className="text-xs text-gray-800 dark:text-slate-300 truncate font-semibold">{c.title}</span>
                         </a>
                       ))}
                       {dayContests.length > 4 && (
-                        <div className="text-[10px] text-gray-500 dark:text-slate-500 font-bold px-2 py-0.5">
+                        <div className="text-xs text-gray-500 dark:text-slate-500 font-bold px-2 py-0.5">
                           +{dayContests.length - 4} more
                         </div>
                       )}

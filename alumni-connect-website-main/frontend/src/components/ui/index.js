@@ -8,6 +8,8 @@ export * from './Skeleton';
 export * from './EmptyState';
 export * from './StatCard';
 export * from './SectionHeader';
+export * from './PageHeader';
+export * from './BottomSheet';
 export * from './LoadingState';
 export * from './ErrorState';
 export * from './ChartContainer';

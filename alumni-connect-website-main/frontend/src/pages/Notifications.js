@@ -43,6 +43,7 @@ const Notifications = () => {
         return true;
     }
   }) || [];
+
   const handleNotificationClick = (notification) => {
     if (!notification.isRead) markAsRead(notification._id);
     
@@ -79,45 +80,60 @@ const Notifications = () => {
       case 'contest-result':
         navigate('/contests');
         break;
+      case 'activity-reminder':
+      case 'activity-milestone':
+      case 'activity-streak-warning':
+      case 'activity-weekly-summary':
+        navigate('/activity');
+        break;
       default:
         break;
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto space-y-5 px-4 sm:px-6 lg:px-8 w-full pb-10 min-w-0">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl overflow-hidden"
+        className="glass-card rounded-2xl overflow-hidden border border-gray-200/70 dark:border-gray-800 shadow-xs"
       >
-        <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Bell className="w-6 h-6 mr-3 text-primary-600 dark:text-primary-400" />
-            All Notifications
-          </h2>
+        <div className="p-4 sm:p-5 border-b border-gray-200/60 dark:border-gray-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
+              <Bell className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                Notifications
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
+              </p>
+            </div>
+          </div>
           {unreadCount > 0 && (
             <button
               onClick={() => markAllAsRead()}
-              className="px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 dark:text-primary-400 rounded-xl transition-colors flex items-center"
+              className="px-3 py-1.5 text-xs font-semibold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/40 dark:text-primary-400 rounded-xl transition-colors flex items-center gap-1.5 border border-primary-200/60 dark:border-primary-800/40"
             >
-              <Check className="w-4 h-4 mr-2" />
-              Mark all as read
+              <Check className="w-3.5 h-3.5" />
+              <span>Mark all read</span>
             </button>
           )}
         </div>
 
         {/* Categories Tab Switcher */}
-        <div className="px-6 py-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/20">
-          <div className="flex space-x-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
+        <div className="px-4 sm:px-5 py-2.5 border-b border-gray-200/60 dark:border-gray-800 bg-gray-50/40 dark:bg-gray-900/30">
+          <div className="flex space-x-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-primary-600 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-primary-600 text-white shadow-xs'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200/60 dark:hover:bg-gray-800'
                 }`}
               >
                 {tab.label}
@@ -126,48 +142,46 @@ const Notifications = () => {
           </div>
         </div>
 
-        <div className="p-0">
+        <div>
           {filteredNotifications.length === 0 ? (
-            <div className="py-16 text-center flex flex-col items-center">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <Bell className="w-8 h-8 text-gray-500 dark:text-gray-500" />
+            <div className="py-12 px-4 text-center flex flex-col items-center">
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-3 text-gray-400">
+                <Bell className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Notifications Yet</h3>
-              <p className="text-gray-500 dark:text-gray-400">When you get notifications, they'll show up here.</p>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-1">No notifications</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Updates and alerts will appear here.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800/80">
               {filteredNotifications.map((notification) => (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                <div 
                   key={notification._id}
-                  className={`p-6 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
-                    !notification.isRead ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''
+                  className={`px-4 sm:px-5 py-3 sm:py-3.5 transition-colors cursor-pointer hover:bg-gray-50/70 dark:hover:bg-gray-800/40 ${
+                    !notification.isRead ? 'bg-primary-50/30 dark:bg-primary-950/20' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="flex gap-4">
+                  <div className="flex gap-3 items-start">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className={`text-base text-gray-900 dark:text-white ${!notification.isRead ? 'font-bold' : 'font-medium'}`}>
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <p className={`text-xs sm:text-sm text-gray-900 dark:text-white truncate ${!notification.isRead ? 'font-bold' : 'font-medium'}`}>
                           {notification.title}
                         </p>
-                        <p className="text-sm text-gray-500 whitespace-nowrap ml-4">
+                        <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
                           {formatNotificationTime(notification.createdAt)}
-                        </p>
+                        </span>
                       </div>
-                      <p className={`text-sm text-gray-600 dark:text-gray-300 mt-1 ${!notification.isRead ? 'font-medium' : ''}`}>
+                      <p className={`text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed ${!notification.isRead ? 'font-medium' : ''}`}>
                         {notification.content}
                       </p>
                     </div>
                     {!notification.isRead && (
                       <div className="flex-shrink-0 self-center">
-                        <span className="w-3 h-3 bg-primary-500 rounded-full inline-block shadow-sm"></span>
+                        <span className="w-2 h-2 bg-primary-500 rounded-full inline-block"></span>
                       </div>
                     )}
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}

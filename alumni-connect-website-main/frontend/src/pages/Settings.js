@@ -338,85 +338,47 @@ const Settings = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">Choose a style that suits you best.</p>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 w-full">
-                {/* DC Light — now the default light theme */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 w-full">
+                {/* Alumnex Light */}
                 <button
-                  onClick={() => changeTheme('designcode-light')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all relative ${theme === 'designcode-light' ? 'border-[#7B61FF] bg-purple-50 dark:bg-purple-900/20 ring-2 ring-[#7B61FF]/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                  onClick={() => changeTheme('alumnex-light')}
+                  className={`p-4 rounded-xl border flex items-center space-x-3.5 transition-all text-left ${theme === 'alumnex-light' ? 'border-primary-500 bg-primary-50/60 dark:bg-primary-900/20 ring-2 ring-primary-500/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
                 >
-                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #7B61FF, #C9E4FF)'}}></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Light</span>
-                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#7B61FF] text-white">★</span>
+                  <div className="w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center shrink-0">
+                    <Sun className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Alumnex Light</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Clean daylight mode</span>
+                  </div>
                 </button>
-                {/* DC Dark — now the default dark theme */}
+
+                {/* Alumnex Dark */}
                 <button
-                  onClick={() => changeTheme('designcode-dark')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all relative ${theme === 'designcode-dark' ? 'border-[#7B61FF] bg-purple-900/20 ring-2 ring-[#7B61FF]/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                  onClick={() => changeTheme('alumnex-dark')}
+                  className={`p-4 rounded-xl border flex items-center space-x-3.5 transition-all text-left ${theme === 'alumnex-dark' ? 'border-primary-500 bg-primary-50/60 dark:bg-primary-900/20 ring-2 ring-primary-500/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
                 >
-                   <div className="w-6 h-6 rounded-full shadow-sm" style={{background: 'linear-gradient(135deg, #2D1B69, #7B61FF)'}}></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Default Dark</span>
-                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#7B61FF] text-white">★</span>
+                  <div className="w-9 h-9 rounded-xl bg-gray-900 border border-gray-700 shadow-sm flex items-center justify-center shrink-0">
+                    <Moon className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Alumnex Dark</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Midnight dark mode</span>
+                  </div>
                 </button>
-                {/* Classic Light (previously "Default Light") */}
+
+                {/* Stitch Navy */}
                 <button
-                  onClick={() => changeTheme('light')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'light' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                  onClick={() => changeTheme('stitch')}
+                  className={`p-4 rounded-xl border flex items-center space-x-3.5 transition-all text-left ${theme === 'stitch' ? 'border-purple-500 bg-purple-50/60 dark:bg-purple-900/20 ring-2 ring-purple-500/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
                 >
-                  <Sun className="w-6 h-6 text-yellow-500" />
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Classic Light</span>
-                </button>
-                {/* Classic Dark (previously "Default Dark") */}
-                <button
-                  onClick={() => changeTheme('dark')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'dark' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                  <Moon className="w-6 h-6 text-blue-400" />
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Classic Dark</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('minimalist-light')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'minimalist-light' ? 'border-gray-900 bg-gray-100 dark:border-white dark:bg-gray-800' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                  <div className="w-6 h-6 border-2 border-black bg-white rounded-full"></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Minimal Light</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('minimalist-dark')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'minimalist-dark' ? 'border-primary-500 bg-gray-800' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                   <div className="w-6 h-6 border-2 border-white bg-black rounded-full"></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Minimal Dark</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('cyber-neon')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'cyber-neon' ? 'border-fuchsia-500 bg-fuchsia-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                   <div className="w-6 h-6 border-2 border-cyan-400 bg-fuchsia-600 rounded-full shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Cyber Neon</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('heroui-light')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'heroui-light' ? 'border-[#006FEE] bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                   <div className="w-6 h-6 border-[3px] border-white bg-[#006FEE] rounded-2xl shadow-sm"></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">HeroUI Light</span>
-                </button>
-                <button
-                  onClick={() => changeTheme('heroui-dark')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-2 transition-all ${theme === 'heroui-dark' ? 'border-[#006FEE] bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                >
-                   <div className="w-6 h-6 border-[3px] border-gray-900 bg-[#006FEE] rounded-2xl shadow-sm"></div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">HeroUI Dark</span>
-                </button>
-                <button
-                   onClick={() => setStitchModalOpen(true)}
-                  className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex flex-col items-center justify-center space-y-2 transition-all relative group"
-                >
-                   <div className="w-6 h-6 rounded-full shadow-sm flex items-center justify-center" style={{background: 'linear-gradient(135deg, #F59E0B, #EC4899, #8B5CF6)'}}>
-                      <Sparkles className="w-3.5 h-3.5 text-white" />
-                   </div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white text-center">Stitch</span>
-                  <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white" style={{background:'linear-gradient(135deg,#f59e0b,#ec4899)'}}>SOON</span>
+                  <div className="w-9 h-9 rounded-xl shadow-sm flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}>
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white block">Stitch Navy</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">High-contrast cyber</span>
+                  </div>
                 </button>
               </div>
 

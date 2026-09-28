@@ -946,7 +946,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           {message.sender?.photo && message.sender?.photo !== 'default-avatar.png' ? (
              <img src={message.sender.photo} alt="avatar" className="w-7 h-7 rounded-full object-cover shadow-sm" />
           ) : (
-             <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-gray-300 shadow-sm">
+             <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300 shadow-sm">
                {message.sender?.name?.charAt(0)?.toUpperCase() || 'U'}
              </div>
           )}
@@ -974,7 +974,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           }`}
         >
           {!isOwn && (
-             <div className="text-[11px] font-bold text-primary-600 dark:text-primary-400 mb-0.5">
+             <div className="text-xs font-bold text-primary-600 dark:text-primary-400 mb-0.5">
                {message.sender?.name || 'User'}
              </div>
           )}
@@ -1009,7 +1009,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
               </div>
             </div>
           ) : (
-            message.content && <p className="text-[14.5px] leading-snug whitespace-pre-wrap inline-block mr-14">
+            message.content && <p className="text-sm leading-snug whitespace-pre-wrap inline-block mr-14">
               {message.content.split(/(https?:\/\/[^\s]+)/g).map((part, i) => 
                 part.match(/^https?:\/\//) ? (
                   <a key={i} href={part} target="_blank" rel="noopener noreferrer" className={`hover:underline break-all ${isOwn ? 'text-primary-100' : 'text-blue-500'}`}>
@@ -1021,7 +1021,7 @@ const MessageBubble = ({ message, isOwn, user, isLastMessage, onReply, onReact, 
           )}
 
           {/* Timestamp - float right bottom */}
-          <div className={`float-right -mt-2 -mr-1 ml-2 text-[10px] flex items-center space-x-0.5 ${isOwn ? 'text-primary-100/80 dark:text-primary-100/80' : 'text-gray-500/80 dark:text-gray-400/80'}`}>
+          <div className={`float-right -mt-2 -mr-1 ml-2 text-xs flex items-center space-x-0.5 ${isOwn ? 'text-primary-100/80 dark:text-primary-100/80' : 'text-gray-500/80 dark:text-gray-400/80'}`}>
             <span className="mt-2">{getMessageTime(message.createdAt)}</span>
             {isOwn && !message._id.toString().startsWith('temp_') && (
               <span className="ml-0.5 mt-2">

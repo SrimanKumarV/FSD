@@ -548,22 +548,22 @@ const DefaultMentorship = () => {
                     key={mentor.id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] transition-all duration-300 border border-gray-100 dark:border-gray-800"
+                    className="glass-card rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-800"
                   >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-400/20 to-transparent dark:from-primary-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
                     <div 
-                      className="relative z-10 flex items-start space-x-4 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+                      className="relative z-10 flex items-start space-x-3.5 mb-3 cursor-pointer hover:opacity-85 transition-opacity"
                       onClick={() => navigate(`/users/${mentor._id || mentor.id}`)}
                     >
-                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm">
-                          <UserAvatar src={mentor.photo} name={mentor.name} className="w-16 h-16" />
-                        </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{mentor.name}</h3>
-                        <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white dark:border-gray-700 shadow-xs shrink-0">
+                        <UserAvatar src={mentor.photo} name={mentor.name} className="w-12 h-12 sm:w-14 sm:h-14" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors truncate">{mentor.name}</h3>
+                        <p className="text-xs sm:text-sm font-semibold text-primary-600 dark:text-primary-400 truncate">
                           {user.role === 'alumni' ? mentor.studentInfo?.course : mentor.alumniInfo?.position}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {user.role === 'alumni' ? mentor.studentInfo?.university : mentor.alumniInfo?.company}
                         </p>
                       </div>

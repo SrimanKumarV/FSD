@@ -344,11 +344,11 @@ const DefaultEvents = () => {
                           ) : (
                              <PlatformIcon platform={c.platform} className="w-3 h-3 shrink-0" />
                           )}
-                          <span className="text-[10px] text-slate-600 dark:text-slate-300 truncate font-semibold">{c.title}</span>
+                          <span className="text-xs text-slate-600 dark:text-slate-300 truncate font-semibold">{c.title}</span>
                         </a>
                       ))}
                       {dayItems.length > 4 && (
-                        <div className="text-[10px] text-slate-500 font-bold px-2 py-0.5">
+                        <div className="text-xs text-slate-500 font-bold px-2 py-0.5">
                           +{dayItems.length - 4} more
                         </div>
                       )}

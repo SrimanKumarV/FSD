@@ -152,21 +152,21 @@ export const GoogleCalendarSettingsCard = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               <div className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                <span className="text-gray-400 uppercase font-bold text-[10px]">Google Account</span>
+                <span className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider">Google Account</span>
                 <p className="font-semibold text-gray-900 dark:text-white truncate mt-0.5">
                   {status?.googleAccountEmail || 'Connected'}
                 </p>
               </div>
 
               <div className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                <span className="text-gray-400 uppercase font-bold text-[10px]">Primary Calendar</span>
+                <span className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider">Primary Calendar</span>
                 <p className="font-semibold text-gray-900 dark:text-white truncate mt-0.5">
                   {status?.primaryCalendarId === 'primary' ? 'Personal Calendar' : (status?.primaryCalendarId || 'Personal')}
                 </p>
               </div>
 
               <div className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                <span className="text-gray-400 uppercase font-bold text-[10px]">Sync Status</span>
+                <span className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider">Sync Status</span>
                 <p className="font-semibold text-gray-900 dark:text-white mt-0.5 flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${status?.syncEnabled !== false ? 'bg-emerald-500' : 'bg-gray-400'}`} />
                   <span>{status?.syncEnabled !== false ? 'Enabled' : 'Paused'}</span>
@@ -174,7 +174,7 @@ export const GoogleCalendarSettingsCard = () => {
               </div>
 
               <div className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                <span className="text-gray-400 uppercase font-bold text-[10px]">Last Synchronized</span>
+                <span className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider">Last Synchronized</span>
                 <p className="font-semibold text-gray-900 dark:text-white mt-0.5">
                   {formatLastSynced()}
                 </p>

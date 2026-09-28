@@ -433,15 +433,15 @@ const DefaultNetwork = () => {
                   onClick={() => navigate(`/users/${user._id}`)}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
-                  <div className="flex items-start space-x-4 mb-4 relative z-10">
+                  <div className="flex items-start space-x-3.5 mb-3.5 relative z-10">
                     <div className="relative">
-                      <UserAvatar src={user.photo} name={user.name} className="w-16 h-16 flex-shrink-0" />
+                      <UserAvatar src={user.photo} name={user.name} className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0" />
                       {onlineUsersMap?.has(user._id) && (
-                        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">
                         {user.name}
                       </h3>
                       <p className="text-sm font-medium text-primary-600 dark:text-primary-400 capitalize mb-1">

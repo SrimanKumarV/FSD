@@ -105,4 +105,5 @@ export const StatCard = ({
   );
 };
 
+export const MetricCard = StatCard;
 export default StatCard;

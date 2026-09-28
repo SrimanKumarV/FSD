@@ -35,7 +35,7 @@ export const TodayScheduleWidget = () => {
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Schedule Context
               </span>
               <h3 className="font-bold text-sm text-gray-900 dark:text-white">

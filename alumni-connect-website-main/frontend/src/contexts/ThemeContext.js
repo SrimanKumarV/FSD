@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
@@ -10,12 +10,47 @@ export const useTheme = () => {
   return context;
 };
 
-// Migrate legacy 'light'/'dark' values to the new DC defaults
+// Migrate legacy theme values to consolidated Alumnex design tokens
 const migrateTheme = (saved) => {
-  if (saved === 'light') return 'designcode-light';
-  if (saved === 'dark') return 'designcode-dark';
-  return saved;
+  if (!saved) return 'alumnex-light';
+  if (
+    saved === 'light' || 
+    saved === 'alumnex-light' || 
+    saved === 'designcode-light' || 
+    saved === 'minimalist-light' || 
+    saved === 'heroui-light'
+  ) {
+    return 'alumnex-light';
+  }
+  if (
+    saved === 'dark' || 
+    saved === 'alumnex-dark' || 
+    saved === 'designcode-dark' || 
+    saved === 'minimalist-dark' || 
+    saved === 'heroui-dark' || 
+    saved === 'cyber-neon'
+  ) {
+    return 'alumnex-dark';
+  }
+  if (saved === 'stitch') {
+    return 'stitch';
+  }
+  return 'alumnex-light';
 };
+
+const LEGACY_THEME_CLASSES = [
+  'dark',
+  'theme-minimalist-light',
+  'theme-minimalist-dark',
+  'theme-cyber-neon',
+  'theme-heroui-light',
+  'theme-heroui-dark',
+  'theme-designcode-light',
+  'theme-designcode-dark',
+  'theme-stitch',
+  'theme-alumnex-light',
+  'theme-alumnex-dark'
+];
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
@@ -25,72 +60,60 @@ export const ThemeProvider = ({ children }) => {
       return migrateTheme(savedTheme);
     }
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'designcode-dark';
+      return 'alumnex-dark';
     }
-    return 'designcode-light';
+    return 'alumnex-light';
   });
 
-  // Tracks whether dark mode is being forced (e.g. by the landing page)
+  // Tracks whether dark mode is being forced (e.g. by landing page or high-contrast overlay)
   const [isDarkForced, setIsDarkForced] = useState(false);
 
-  // The theme value that CSS actually sees (forced override or user choice)
-  const activeTheme = isDarkForced ? 'designcode-dark' : theme;
+  // The theme value that CSS actually sees
+  const activeTheme = isDarkForced ? 'alumnex-dark' : theme;
 
   useEffect(() => {
-    // Persist the user's real preference (not the forced override)
+    // Persist user preference
     if (!isDarkForced) {
       localStorage.setItem('theme', theme);
     }
 
-    const applied = isDarkForced ? 'designcode-dark' : theme;
+    const applied = isDarkForced ? 'alumnex-dark' : theme;
 
-    // Remove previous theme classes
-    document.documentElement.classList.remove('dark', 'theme-minimalist-light', 'theme-minimalist-dark', 'theme-cyber-neon', 'theme-heroui-light', 'theme-heroui-dark', 'theme-designcode-light', 'theme-designcode-dark', 'theme-stitch');
+    // Remove obsolete theme classes
+    document.documentElement.classList.remove(...LEGACY_THEME_CLASSES);
 
-    // Apply appropriate classes based on the active theme
-    if (applied === 'designcode-light') {
-      document.documentElement.classList.add('theme-designcode-light');
-    } else if (applied === 'designcode-dark') {
-      document.documentElement.classList.add('theme-designcode-dark');
-      document.documentElement.classList.add('dark');
-    } else if (applied === 'light') {
-      // Classic light — no extra classes needed (Tailwind default)
-    } else if (applied === 'dark') {
-      document.documentElement.classList.add('dark');
+    // Apply clean Alumnex theme classes
+    if (applied === 'alumnex-dark') {
+      document.documentElement.classList.add('dark', 'theme-alumnex-dark');
+    } else if (applied === 'stitch') {
+      document.documentElement.classList.add('dark', 'theme-stitch');
     } else {
-      document.documentElement.classList.add(`theme-${applied}`);
-      // For dark variants, also add 'dark' so that Tailwind dark utilities still apply
-      if (applied.includes('dark') || applied === 'cyber-neon') {
-        document.documentElement.classList.add('dark');
-      }
+      document.documentElement.classList.add('theme-alumnex-light');
     }
   }, [theme, isDarkForced]);
 
-  // Toggle between the two DC default themes
+  // Toggle between Alumnex Light and Alumnex Dark
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
-      // If user has a non-DC theme, toggle to the opposite DC variant
-      const isDark = prev.includes('dark') || prev === 'cyber-neon';
-      return isDark ? 'designcode-light' : 'designcode-dark';
+      const isCurrentlyDark = prev === 'alumnex-dark' || prev === 'stitch' || prev.includes('dark');
+      return isCurrentlyDark ? 'alumnex-light' : 'alumnex-dark';
     });
   }, []);
 
   const changeTheme = useCallback((newTheme) => {
-    setTheme(newTheme);
+    setTheme(migrateTheme(newTheme));
   }, []);
 
-  // Force dark mode (used by landing page). Overrides display without mutating user preference.
   const forceDarkMode = useCallback(() => {
     setIsDarkForced(true);
   }, []);
 
-  // Release dark mode override cleanly and restore the active theme naturally.
   const releaseDarkMode = useCallback(() => {
     setIsDarkForced(false);
   }, []);
 
   // Helper: is the active theme visually dark?
-  const isDark = activeTheme.includes('dark') || activeTheme === 'cyber-neon';
+  const isDark = activeTheme === 'alumnex-dark' || activeTheme === 'stitch' || activeTheme.includes('dark');
 
   return (
     <ThemeContext.Provider value={{ theme: activeTheme, isDark, toggleTheme, changeTheme, forceDarkMode, releaseDarkMode }}>
@@ -98,3 +121,5 @@ export const ThemeProvider = ({ children }) => {
     </ThemeContext.Provider>
   );
 };
+
+export default ThemeContext;

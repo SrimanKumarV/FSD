@@ -640,10 +640,10 @@ const DefaultJobs = () => {
                         <span className="truncate">{job.company}</span>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${getJobTypeColor(job.jobType || 'full-time')}`}>
+                        <span className={`px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider ${getJobTypeColor(job.jobType || 'full-time')}`}>
                           {(job.jobType || 'full-time').replace('-', ' ')}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${getDeadlineColor(job.createdAt)}`}>
+                        <span className={`px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider ${getDeadlineColor(job.createdAt)}`}>
                           {job.createdAt && (Date.now() - new Date(job.createdAt).getTime()) / (1000 * 3600 * 24) <= 3 ? 'New' : 
                            job.createdAt && (Date.now() - new Date(job.createdAt).getTime()) / (1000 * 3600 * 24) >= 14 ? 'Expiring' : 'Ongoing'}
                         </span>
@@ -861,19 +861,19 @@ const DefaultJobs = () => {
                     
                     <div className="grid grid-cols-2 gap-3 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
                       <div>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Location</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Location</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center"><MapPin className="w-3 h-3 mr-1 text-primary-500" />{selectedJob.location}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Salary</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Salary</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center"><DollarSign className="w-3 h-3 mr-1 text-green-500" />{selectedJob.salary?.min ? `$${selectedJob.salary.min.toLocaleString()}` : 'Not listed'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Experience</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Experience</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">{selectedJob.experience || 'Any'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Type</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Type</p>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">{(selectedJob.jobType || 'full-time').replace('-', ' ')}</p>
                       </div>
                     </div>

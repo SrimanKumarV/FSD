@@ -690,14 +690,14 @@ const ActivityHub = () => {
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-indigo-500 dark:text-indigo-400'}`} />
                 <span>{t.label}</span>
                 {t.id === 'streaks' && (dashboard?.overallStreak?.current || 0) > 0 && (
-                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                     isActive ? 'bg-white/20 text-white' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                   }`}>
                     {dashboard.overallStreak.current}d
                   </span>
                 )}
                 {t.id === 'today' && totalTodayCount > 0 && (
-                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                     isActive ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
                   }`}>
                     {completedTodayCount}/{totalTodayCount}
@@ -728,7 +728,7 @@ const ActivityHub = () => {
           <div className="md:hidden space-y-4">
             {/* 1. Identity & Contextual Greeting */}
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
                 <Sparkles className="w-3 h-3 text-amber-500" />
                 <span>Activity Intelligence</span>
               </div>
@@ -770,7 +770,7 @@ const ActivityHub = () => {
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">All-Time Best</span>
+                <span className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider">All-Time Best</span>
                 <p className="text-base font-black text-gray-900 dark:text-white">
                   🏆 {personalization.longestStreak}d
                 </p>
@@ -816,8 +816,8 @@ const ActivityHub = () => {
                       </span>
                     </div>
 
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-shrink-0">
-                      <ShieldCheck className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-shrink-0">
+                      <ShieldCheck className="w-3.5 h-3.5" />
                       <span>Verified</span>
                     </span>
                   </div>
@@ -862,7 +862,7 @@ const ActivityHub = () => {
               <div className="grid grid-cols-7 gap-1 pt-2 text-center">
                 {personalization.weeklyDays.map((d, idx) => (
                   <div key={d.date || idx} className="flex flex-col items-center gap-1">
-                    <span className="text-[10px] font-bold text-gray-400">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                       {d.dayName?.slice(0, 3) || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][idx]}
                     </span>
                     <div
@@ -1157,8 +1157,8 @@ const ActivityHub = () => {
                             <span className={`text-sm font-extrabold truncate ${topPriorityGoal.completedToday ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                               {topPriorityGoal.title}
                             </span>
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                              <ShieldCheck className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                              <ShieldCheck className="w-3.5 h-3.5" />
                               <span>Verified</span>
                             </span>
                           </div>
@@ -1347,21 +1347,21 @@ const ActivityHub = () => {
 
                             {/* Trust Badge */}
                             {isCompleted ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                <ShieldCheck className="w-3 h-3" />
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                <ShieldCheck className="w-3.5 h-3.5" />
                                 <span>Verified</span>
                               </span>
                             ) : goal.trackingMode === 'automatic' ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                                <Zap className="w-2.5 h-2.5 text-amber-500" />
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                                <Zap className="w-3 h-3 text-amber-500" />
                                 <span>Auto Track</span>
                               </span>
                             ) : null}
 
                             {/* Streak at Risk Indicator */}
                             {!isCompleted && isAtRisk && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                <AlertTriangle className="w-3 h-3" />
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                <AlertTriangle className="w-3.5 h-3.5" />
                                 <span>Streak at Risk</span>
                               </span>
                             )}
@@ -1467,13 +1467,13 @@ const ActivityHub = () => {
 
               <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:min-w-[240px] shrink-0">
                 <div className="p-3.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60 text-center sm:text-left min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Best Streak</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Best Streak</span>
                   <p className="text-lg font-black text-gray-900 dark:text-white mt-0.5 truncate">
                     {dashboard?.overallStreak?.longest ?? 0} days
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60 text-center sm:text-left min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Today's State</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Today's State</span>
                   <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center justify-center sm:justify-start gap-1 truncate">
                     {dashboard?.overallStreak?.activeToday ? 'Protected' : 'Pending'}
                   </p>
@@ -1646,17 +1646,6 @@ const ActivityHub = () => {
           {/* Dedicated Full-Width Personal Records Row */}
           <div className="w-full min-w-0">
             <PersonalRecords records={dashboard?.personalRecords} />
-          </div>
-
-          {/* Consistency Index Breakdown Callout Banner */}
-          <div className="glass-card rounded-2xl p-5 border border-indigo-500/20 bg-indigo-500/5 dark:bg-indigo-500/10 space-y-2 min-w-0">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span>Consistency Index Breakdown</span>
-            </h4>
-            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-              Your consistency index factors <strong>Active Days (50%)</strong>, <strong>Goal Completion (30%)</strong>, and <strong>Streak Length (20%)</strong> over the active evaluation window.
-            </p>
           </div>
 
           {/* Full Activity Heatmap with Sunday-first day labels */}

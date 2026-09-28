@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Default Blue */
+  /* Alumnex Design System Primary Palette */
   --color-primary-50: 239 246 255;
   --color-primary-100: 219 234 254;
   --color-primary-200: 191 219 254;
@@ -17,95 +17,188 @@
   --color-primary-800: 30 64 175;
   --color-primary-900: 30 58 138;
   
-  /* Mobile Navigation and Floating Element Spacing Tokens */
-  --alumnex-mobile-nav-height: 5.25rem;
+  /* Alumnex Semantic Color Tokens (Light) */
+  --alumnex-bg: #f8fafc;
+  --alumnex-surface: #ffffff;
+  --alumnex-surface-elevated: #ffffff;
+  --alumnex-border: rgba(226, 232, 240, 0.8);
+  --alumnex-border-subtle: rgba(241, 245, 249, 0.9);
+  --alumnex-text-primary: #0f172a;
+  --alumnex-text-secondary: #475569;
+  --alumnex-text-muted: #94a3b8;
+
+  /* Mobile Navigation and Android APK Safe Area Tokens */
+  --alumnex-mobile-nav-height: 4.5rem;
   --alumnex-safe-bottom: env(safe-area-inset-bottom, 0px);
   --alumnex-safe-top: env(safe-area-inset-top, 0px);
+  --alumnex-safe-left: env(safe-area-inset-left, 0px);
+  --alumnex-safe-right: env(safe-area-inset-right, 0px);
 }
 
-
+.dark {
+  /* Alumnex Semantic Color Tokens (Dark) */
+  --alumnex-bg: #0b0f19;
+  --alumnex-surface: #111827;
+  --alumnex-surface-elevated: #1f2937;
+  --alumnex-border: rgba(55, 65, 81, 0.65);
+  --alumnex-border-subtle: rgba(31, 41, 55, 0.65);
+  --alumnex-text-primary: #f9fafb;
+  --alumnex-text-secondary: #cbd5e1;
+  --alumnex-text-muted: #64748b;
+}
 
 @layer base {
   html {
-    /* Fluid base font-size so all 'rem' values (padding, margin, fonts) scale dynamically with screen size */
-    font-size: clamp(12px, 0.8vw + 8px, 18px);
+    /* Stable standard 16px base font size to eliminate arbitrary scaling bugs across devices */
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    box-sizing: border-box;
+  }
+
+  *, *::before, *::after {
+    box-sizing: inherit;
   }
 
   body {
-    @apply font-sans text-gray-900 bg-gray-50 transition-colors duration-300;
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    overflow-x: hidden;
+    @apply font-sans text-gray-900 bg-gray-50 transition-colors duration-200 antialiased;
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
-  }
-  
-  /* Custom text selection color */
-  ::selection {
-    @apply bg-primary-500/30 text-primary-900;
-  }
-  .dark ::selection {
-    @apply bg-primary-500/40 text-primary-100;
-  }
-
-  /* Scrollbar */
-  *::-webkit-scrollbar {
-    display: none;
-  }
-  * {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .dark body {
-    @apply text-gray-100 bg-gray-900;
+    @apply text-gray-100 bg-gray-950;
+  }
+  
+  /* Text selection */
+  ::selection {
+    @apply bg-primary-500/25 text-primary-900;
+  }
+  .dark ::selection {
+    @apply bg-primary-500/35 text-primary-100;
   }
 
-  /* Animated Mesh Gradient Background for Light and Dark */
+  /* Scrollbars */
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+  }
+  .dark *::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.45);
+  }
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.7);
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  }
+
+  /* Subtle Alumnex Background Gradients */
   .animated-bg {
-    @apply fixed inset-0 z-[-1] transition-colors duration-500 pointer-events-none;
-    background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.1), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(192, 38, 211, 0.1), transparent 25%);
+    @apply fixed inset-0 z-[-1] transition-opacity duration-500 pointer-events-none;
+    background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 45%);
   }
 
   .dark .animated-bg {
-    background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(192, 38, 211, 0.15), transparent 25%),
-                linear-gradient(to bottom right, #0f172a, #1e1b4b);
+    background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.07) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.07) 0%, transparent 50%),
+                linear-gradient(to bottom right, #090d16, #0e1322);
   }
 }
 
 @layer components {
-  /* Premium Glassmorphism Cards */
+  /* Unified Alumnex Glass Card */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/50 shadow-soft transition-all duration-300;
+    background-color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .dark .glass-card {
-    @apply bg-gray-800/60 backdrop-blur-md border border-gray-700/50 shadow-none;
+    background-color: rgba(17, 24, 39, 0.75);
+    border: 1px solid rgba(55, 65, 81, 0.55);
+    box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
   }
 
   /* Glassmorphism Navigation */
   .glass-nav {
-    @apply bg-white/70 backdrop-blur-lg border-b border-white/50 transition-all duration-300;
+    background-color: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
   .dark .glass-nav {
-    @apply bg-gray-900/70 backdrop-blur-lg border-b border-gray-800/50;
+    background-color: rgba(15, 23, 42, 0.88);
+    border-bottom: 1px solid rgba(30, 41, 59, 0.8);
   }
 
-  /* Inputs */
+  /* Form Inputs */
   .glass-input {
-    @apply bg-white/50 border border-gray-200 text-gray-900 focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    color: #0f172a;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .glass-input:focus {
+    outline: none;
+    border-color: rgb(59, 130, 246);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
 
   .dark .glass-input {
-    @apply bg-gray-800/50 border-gray-700 text-white focus:bg-gray-800 focus:ring-2 focus:ring-primary-500 placeholder-gray-400;
+    background-color: rgba(17, 24, 39, 0.85);
+    border: 1px solid rgba(55, 65, 81, 0.8);
+    color: #f9fafb;
   }
 
-  /* Universal dark-mode input fix: catch any input/select/textarea that doesn't use glass-input */
+  .dark .glass-input:focus {
+    border-color: rgb(96, 165, 250);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  /* Touch Targets for Android APK & Mobile Web (44-48px min hit area) */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Safe Area Utilities */
+  .safe-pb {
+    padding-bottom: max(1rem, var(--alumnex-safe-bottom));
+  }
+  .safe-pt {
+    padding-top: max(1rem, var(--alumnex-safe-top));
+  }
+
+  /* Universal dark-mode input catch */
   .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   .dark select,
   .dark textarea {
-    @apply text-white bg-gray-800 border-gray-600;
+    @apply text-white bg-gray-800/90 border-gray-700;
   }
   
   .dark input::placeholder,
@@ -116,23 +209,10 @@
   .dark select option {
     @apply bg-gray-800 text-white;
   }
-  
-  /* Fix error/success notification boxes in dark mode */
-  .dark .bg-red-50 {
-    background-color: rgba(127, 29, 29, 0.3);
-    border-color: rgba(220, 38, 38, 0.4);
-  }
-  .dark .bg-green-50 {
-    background-color: rgba(6, 78, 59, 0.3);
-    border-color: rgba(34, 197, 94, 0.3);
-  }
-  .dark .border-red-200 {
-    border-color: rgba(220, 38, 38, 0.4);
-  }
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-family: 'JetBrains Mono', source-code-pro, Menlo, Monaco, Consolas, monospace;
 }
 
 /* Hide Google Translate UI Aggressively */
@@ -172,382 +252,16 @@ input, textarea, [contenteditable="true"] {
   -webkit-user-select: text;
 }
 
-/* ========================================= */
-/* Custom Themes (Premium & Elegant) */
-/* ========================================= */
-
-/* 1. Minimalist Light (Apple-esque, Clean, Soft) */
-html.theme-minimalist-light body {
-  background-color: #fafafa !important;
-  color: #1a1a1a !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
-html.theme-minimalist-light .animated-bg {
-  display: none !important;
-}
-html.theme-minimalist-light .glass-card, 
-html.theme-minimalist-light .glass-nav,
-html.theme-minimalist-light .glass-input {
-  background: #ffffff !important;
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
-  backdrop-filter: blur(20px) !important;
-  border-radius: 16px !important;
-}
-html.theme-minimalist-light button.bg-primary-600 {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border-radius: 12px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
-  transition: all 0.3s ease !important;
-}
-html.theme-minimalist-light button.bg-primary-600:hover {
-  background-color: #333333 !important;
-  transform: translateY(-1px) !important;
-}
-html.theme-minimalist-light .text-primary-600,
-html.theme-minimalist-light .text-primary-500,
-html.theme-minimalist-light .text-primary-700 {
-  color: #333333 !important;
-}
-
-/* 2. Minimalist Dark (Sleek Charcoal, Premium) */
-html.theme-minimalist-dark body {
-  background-color: #121212 !important;
-  color: #e0e0e0 !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
-html.theme-minimalist-dark .animated-bg {
-  display: none !important;
-}
-html.theme-minimalist-dark .glass-card, 
-html.theme-minimalist-dark .glass-nav,
-html.theme-minimalist-dark .glass-input {
-  background: #1e1e1e !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
-  backdrop-filter: blur(20px) !important;
-  border-radius: 16px !important;
-}
-html.theme-minimalist-dark button.bg-primary-600 {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  border-radius: 12px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1) !important;
-  transition: all 0.3s ease !important;
-}
-html.theme-minimalist-dark button.bg-primary-600:hover {
-  background-color: #e0e0e0 !important;
-  transform: translateY(-1px) !important;
-}
-html.theme-minimalist-dark .text-primary-600,
-html.theme-minimalist-dark .text-primary-500,
-html.theme-minimalist-dark .text-primary-700 {
-  color: #e0e0e0 !important;
-}
-
-/* 3. Cyber Neon (Refined Glassmorphism & Subtle Glow) */
-html.theme-cyber-neon body {
-  background-color: #0a0514 !important;
-  color: #f8f8ff !important;
-}
-html.theme-cyber-neon .animated-bg {
-  background: radial-gradient(circle at 10% 20%, rgba(192, 38, 211, 0.15) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 40%) !important;
-}
-html.theme-cyber-neon .glass-card,
-html.theme-cyber-neon .glass-nav {
-  background: rgba(20, 10, 35, 0.6) !important;
-  border: 1px solid rgba(192, 38, 211, 0.3) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(192, 38, 211, 0.1) !important;
-  border-radius: 20px !important;
-  backdrop-filter: blur(16px) !important;
-}
-html.theme-cyber-neon .glass-input {
-  background: rgba(0, 0, 0, 0.4) !important;
-  border: 1px solid rgba(14, 165, 233, 0.4) !important;
-  color: #38bdf8 !important;
-  border-radius: 12px !important;
-}
-html.theme-cyber-neon .glass-input:focus {
-  border-color: rgba(192, 38, 211, 0.8) !important;
-  box-shadow: 0 0 12px rgba(192, 38, 211, 0.3) !important;
-}
-html.theme-cyber-neon button.bg-primary-600 {
-  background: linear-gradient(135deg, #c026d3, #3b82f6) !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 15px rgba(192, 38, 211, 0.4) !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-}
-html.theme-cyber-neon button.bg-primary-600:hover {
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6) !important;
-  transform: translateY(-2px) !important;
-}
-html.theme-cyber-neon .text-primary-600,
-html.theme-cyber-neon .text-primary-500,
-html.theme-cyber-neon .text-primary-700 {
-  color: #38bdf8 !important;
-  text-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
-}
-
-/* 4. HeroUI Light (NextUI style - High contrast, rounded, blue primary) */
-html.theme-heroui-light body {
-  background-color: #ffffff !important;
-  color: #11181C !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
-html.theme-heroui-light .animated-bg {
-  display: none !important;
-}
-html.theme-heroui-light .glass-card, 
-html.theme-heroui-light .glass-nav {
-  background: #ffffff !important;
-  border: 1px solid #E4E4E7 !important;
-  box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.05), 0px 4px 6px -2px rgba(0,0,0,0.025) !important;
-  border-radius: 24px !important;
-  backdrop-filter: none !important;
-}
-html.theme-heroui-light .glass-input {
-  background: #F4F4F5 !important;
-  border: 2px solid transparent !important;
-  border-radius: 14px !important;
-  color: #11181C !important;
-  box-shadow: none !important;
-  transition: background-color 0.25s ease, border-color 0.25s ease !important;
-}
-html.theme-heroui-light .glass-input:focus {
-  background: #ffffff !important;
-  border-color: #006FEE !important;
-  box-shadow: none !important;
-}
-html.theme-heroui-light button.bg-primary-600 {
-  background-color: #006FEE !important;
-  color: #ffffff !important;
-  border-radius: 16px !important;
-  font-weight: 600 !important;
-  box-shadow: 0px 4px 14px 0px rgba(0, 111, 238, 0.4) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease !important;
-}
-html.theme-heroui-light button.bg-primary-600:hover {
-  opacity: 0.9 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0px 6px 20px 0px rgba(0, 111, 238, 0.5) !important;
-}
-html.theme-heroui-light .text-primary-600,
-html.theme-heroui-light .text-primary-500,
-html.theme-heroui-light .text-primary-700 {
-  color: #006FEE !important;
-}
-
-/* 5. HeroUI Dark (NextUI style - Sleek, distinct rounded corners) */
-html.theme-heroui-dark body {
-  background-color: #000000 !important;
-  color: #ECEDEE !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
-html.theme-heroui-dark .animated-bg {
-  display: none !important;
-}
-html.theme-heroui-dark .glass-card, 
-html.theme-heroui-dark .glass-nav {
-  background: #18181B !important;
-  border: 1px solid #27272A !important;
-  box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.3), 0px 4px 6px -2px rgba(0,0,0,0.15) !important;
-  border-radius: 24px !important;
-  backdrop-filter: none !important;
-}
-html.theme-heroui-dark .glass-input {
-  background: #27272A !important;
-  border: 2px solid transparent !important;
-  border-radius: 14px !important;
-  color: #ECEDEE !important;
-  box-shadow: none !important;
-  transition: background-color 0.25s ease, border-color 0.25s ease !important;
-}
-html.theme-heroui-dark .glass-input:focus {
-  background: #18181B !important;
-  border-color: #006FEE !important;
-  box-shadow: none !important;
-}
-html.theme-heroui-dark button.bg-primary-600 {
-  background-color: #006FEE !important;
-  color: #ffffff !important;
-  border-radius: 16px !important;
-  font-weight: 600 !important;
-  box-shadow: 0px 4px 14px 0px rgba(0, 111, 238, 0.3) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease !important;
-}
-html.theme-heroui-dark button.bg-primary-600:hover {
-  opacity: 0.9 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0px 6px 20px 0px rgba(0, 111, 238, 0.45) !important;
-}
-html.theme-heroui-dark .text-primary-600,
-html.theme-heroui-dark .text-primary-500,
-html.theme-heroui-dark .text-primary-700 {
-  color: #006FEE !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════ */
-/* 6. DesignCode UI Light — Glassmorphism, Violet accent, Soft gradients     */
-/* ═══════════════════════════════════════════════════════════════════════════ */
-html.theme-designcode-light body {
-  background-color: #F2F2F7 !important;
-  color: #1C1C1E !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif !important;
-}
-html.theme-designcode-light .animated-bg {
-  background: linear-gradient(135deg, #E8DEFF 0%, #C9E4FF 50%, #FFDDE4 100%) !important;
-  opacity: 0.4 !important;
-}
-html.theme-designcode-light .glass-card {
-  background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  box-shadow:
-    0px 20px 40px -8px rgba(0, 0, 0, 0.08),
-    0px 8px 16px -4px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-  border-radius: 20px !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-}
-html.theme-designcode-light .glass-nav {
-  background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.06) !important;
-  border-radius: 20px !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-}
-html.theme-designcode-light .glass-input {
-  background: rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
-  border-radius: 12px !important;
-  color: #1C1C1E !important;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  backdrop-filter: blur(20px) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-html.theme-designcode-light .glass-input:focus {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border-color: #7B61FF !important;
-  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.02) !important;
-}
-html.theme-designcode-light button.bg-primary-600 {
-  background: linear-gradient(135deg, #7B61FF 0%, #6E4AFF 100%) !important;
-  color: #ffffff !important;
-  border-radius: 14px !important;
-  font-weight: 600 !important;
-  box-shadow: 0px 6px 20px -4px rgba(123, 97, 255, 0.45) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border: none !important;
-}
-html.theme-designcode-light button.bg-primary-600:hover {
-  transform: translateY(-2px) scale(1.01) !important;
-  box-shadow: 0px 10px 30px -4px rgba(123, 97, 255, 0.55) !important;
-}
-html.theme-designcode-light .text-primary-600,
-html.theme-designcode-light .text-primary-500,
-html.theme-designcode-light .text-primary-700 {
-  color: #7B61FF !important;
-}
-html.theme-designcode-light .bg-primary-600 {
-  background: linear-gradient(135deg, #7B61FF 0%, #6E4AFF 100%) !important;
-}
-html.theme-designcode-light ::selection {
-  background: rgba(123, 97, 255, 0.2) !important;
-  color: #3A1FBF !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════ */
-/* 7. DesignCode UI Dark — Deep Glassmorphism, Violet glow, Angular grads    */
-/* ═══════════════════════════════════════════════════════════════════════════ */
-html.theme-designcode-dark body {
-  background-color: #000000 !important;
-  color: #F5F5F7 !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif !important;
-}
-html.theme-designcode-dark .animated-bg {
-  background: linear-gradient(135deg, #2D1B69 0%, #1a0a3e 40%, #0D0D2B 70%, #0a1628 100%) !important;
-  opacity: 0.6 !important;
-}
-html.theme-designcode-dark .glass-card {
-  background: rgba(29, 29, 31, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow:
-    0px 20px 40px -8px rgba(0, 0, 0, 0.5),
-    0px 8px 16px -4px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  border-radius: 20px !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-}
-html.theme-designcode-dark .glass-nav {
-  background: rgba(29, 29, 31, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.25) !important;
-  border-radius: 20px !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-}
-html.theme-designcode-dark .glass-input {
-  background: rgba(44, 44, 46, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 12px !important;
-  color: #F5F5F7 !important;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(20px) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-html.theme-designcode-dark .glass-input:focus {
-  background: rgba(44, 44, 46, 0.85) !important;
-  border-color: #7B61FF !important;
-  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-}
-html.theme-designcode-dark button.bg-primary-600 {
-  background: linear-gradient(135deg, #7B61FF 0%, #9B7DFF 100%) !important;
-  color: #ffffff !important;
-  border-radius: 14px !important;
-  font-weight: 600 !important;
-  box-shadow: 0px 6px 20px -4px rgba(123, 97, 255, 0.35) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border: none !important;
-}
-html.theme-designcode-dark button.bg-primary-600:hover {
-  transform: translateY(-2px) scale(1.01) !important;
-  box-shadow: 0px 10px 30px -4px rgba(123, 97, 255, 0.5),
-    0px 0px 40px -8px rgba(123, 97, 255, 0.2) !important;
-}
-html.theme-designcode-dark .text-primary-600,
-html.theme-designcode-dark .text-primary-500,
-html.theme-designcode-dark .text-primary-700 {
-  color: #9B7DFF !important;
-}
-html.theme-designcode-dark .bg-primary-600 {
-  background: linear-gradient(135deg, #7B61FF 0%, #9B7DFF 100%) !important;
-}
-html.theme-designcode-dark ::selection {
-  background: rgba(123, 97, 255, 0.3) !important;
-  color: #E8DEFF !important;
-}
-
 /* ══════════════════════════════════════════════════════════════════════════ */
-/* 7. Stitch Premium UI — Dark Navy Glass Theme (Alumnex Connect)             */
+/* Stitch Premium UI — Optional Dark Navy Mode (Alumnex Connect)              */
 /* ══════════════════════════════════════════════════════════════════════════ */
 html.theme-stitch body {
   background-color: #0b0d18 !important;
   background-image:
-    radial-gradient(ellipse at 0% 0%, rgba(37,99,235,0.28) 0%, transparent 55%),
-    radial-gradient(ellipse at 100% 0%, rgba(124,58,237,0.22) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.08) 0%, transparent 60%) !important;
+    radial-gradient(ellipse at 0% 0%, rgba(37,99,235,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(124,58,237,0.20) 0%, transparent 55%) !important;
   background-attachment: fixed !important;
   color: #f1f5f9 !important;
-  font-family: 'Outfit', 'Inter', sans-serif !important;
 }
 html.theme-stitch .animated-bg { display: none !important; }
 html.theme-stitch .glass-card {
@@ -556,22 +270,13 @@ html.theme-stitch .glass-card {
   -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
   border: 1px solid rgba(255,255,255,0.10) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35) !important;
   color: #f1f5f9 !important;
-  transition: all 0.25s ease !important;
-}
-html.theme-stitch .glass-card:hover {
-  background: rgba(255,255,255,0.09) !important;
-  border-color: rgba(255,255,255,0.18) !important;
-  transform: translateY(-3px) !important;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.10) !important;
 }
 html.theme-stitch .glass-nav {
   background: rgba(9,11,20,0.92) !important;
   backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
   border-right: 1px solid rgba(255,255,255,0.07) !important;
-  box-shadow: 4px 0 30px rgba(0,0,0,0.5) !important;
   color: #f1f5f9 !important;
 }
 html.theme-stitch .glass-input {
@@ -579,61 +284,8 @@ html.theme-stitch .glass-input {
   border: 1px solid rgba(255,255,255,0.14) !important;
   border-radius: 10px !important;
   color: #f1f5f9 !important;
-  transition: all 0.25s ease !important;
 }
-html.theme-stitch .glass-input::placeholder { color: rgba(241,245,249,0.38) !important; }
-html.theme-stitch .glass-input:focus {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.22) !important;
-  background: rgba(255,255,255,0.11) !important;
-  outline: none !important;
-}
-html.theme-stitch input, html.theme-stitch select, html.theme-stitch textarea { color: #f1f5f9 !important; }
-html.theme-stitch button.bg-primary-600, html.theme-stitch .stitch-btn-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
-  color: #ffffff !important; border-radius: 10px !important; font-weight: 600 !important;
-  box-shadow: 0 4px 20px rgba(37,99,235,0.35) !important; transition: all 0.25s ease !important; border: none !important;
-}
-html.theme-stitch button.bg-primary-600:hover, html.theme-stitch .stitch-btn-primary:hover {
-  transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 10px 30px rgba(37,99,235,0.5) !important;
-}
-html.theme-stitch .text-primary-600, html.theme-stitch .text-primary-500, html.theme-stitch .text-primary-700 { color: #60a5fa !important; }
-html.theme-stitch .bg-primary-600 { background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%) !important; }
-html.theme-stitch ::selection { background: rgba(59,130,246,0.38) !important; color: #fff !important; }
-html.theme-stitch .text-on-surface            { color: #f1f5f9 !important; }
-html.theme-stitch .text-on-surface-variant    { color: rgba(241,245,249,0.60) !important; }
-html.theme-stitch .text-outline               { color: rgba(241,245,249,0.42) !important; }
-html.theme-stitch .border-outline-variant     { border-color: rgba(255,255,255,0.09) !important; }
-html.theme-stitch .border-surface-variant     { border-color: rgba(255,255,255,0.09) !important; }
-html.theme-stitch .bg-surface-container-high  { background: rgba(255,255,255,0.06) !important; color: #f1f5f9 !important; }
-html.theme-stitch .bg-surface-container       { background: rgba(255,255,255,0.04) !important; color: #f1f5f9 !important; }
-html.theme-stitch .bg-surface-container-lowest { background: rgba(255,255,255,0.03) !important; }
-html.theme-stitch .bg-alumni-magenta\/10      { background: rgba(236,72,153,0.12) !important; }
-html.theme-stitch .text-alumni-magenta        { color: #f472b6 !important; }
-html.theme-stitch .border-alumni-magenta\/20  { border-color: rgba(236,72,153,0.20) !important; }
-html.theme-stitch .bg-student-cyan\/10        { background: rgba(6,182,212,0.12) !important; }
-html.theme-stitch .text-student-cyan          { color: #22d3ee !important; }
-html.theme-stitch .bg-secondary-container     { background: rgba(124,58,237,0.15) !important; }
-html.theme-stitch .text-on-secondary-container { color: #c4b5fd !important; }
-html.theme-stitch .text-stitch-primary        { color: #60a5fa !important; }
-html.theme-stitch .text-stitch-success        { color: #34d399 !important; }
-html.theme-stitch .text-stitch-warning        { color: #fbbf24 !important; }
-html.theme-stitch .text-stitch-error          { color: #f87171 !important; }
-html.theme-stitch .text-on-primary            { color: #ffffff !important; }
-html.theme-stitch .bg-primary-container       { background: rgba(59,130,246,0.12) !important; }
-html.theme-stitch .text-on-primary-container  { color: #bfdbfe !important; }
-html.theme-stitch .bg-primary-fixed           { background: rgba(59,130,246,0.18) !important; }
-html.theme-stitch .text-on-primary-fixed      { color: #bfdbfe !important; }
-html.theme-stitch .bg-stitch-primary          { background: linear-gradient(135deg,#2563eb,#7c3aed) !important; }
-html.theme-stitch .shadow-stitch-primary\/30  { box-shadow: 0 4px 20px rgba(37,99,235,0.30) !important; }
 html.theme-stitch h1, html.theme-stitch h2, html.theme-stitch h3,
-html.theme-stitch h4, html.theme-stitch h5, html.theme-stitch h6 { color: #f1f5f9 !important; }
-html.theme-stitch .dashboard-grid {
-  display: grid !important; grid-template-columns: repeat(12,1fr) !important; gap: 1.5rem !important;
+html.theme-stitch h4, html.theme-stitch h5, html.theme-stitch h6 { 
+  color: #f1f5f9 !important; 
 }
-html.theme-stitch code { background: rgba(255,255,255,0.08) !important; color: #93c5fd !important; }
-html.theme-stitch ::-webkit-scrollbar { width: 5px; }
-html.theme-stitch ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-html.theme-stitch ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
-html.theme-stitch ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }

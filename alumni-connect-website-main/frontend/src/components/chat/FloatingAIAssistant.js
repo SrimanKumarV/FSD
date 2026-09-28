@@ -20,11 +20,12 @@ const FloatingAIAssistant = () => {
   const [history, setHistory] = useState([
     {
       role: 'model',
-      text: "👋 Hi! I'm your **Alumnex Connect AI Career Mentor & Platform Navigator**.\n\nAsk me about [Resume ATS Reviews](/resume), [Alumni Mentors](/mentorship), [DevPulse Analytics](/devpulse), [Job Openings](/jobs), or exploring any service on Alumnex Connect!"
+      text: "👋 Hi! I'm your **Alumnex AI Career Mentor & Navigator**.\n\nAsk about [Resume Reviews](/resume), [Alumni Mentors](/mentorship), [DevPulse Stats](/devpulse), [Job Openings](/jobs), or finding resources across the platform!"
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
   const { user } = useAuth();
   const location = useLocation();
 
@@ -35,6 +36,7 @@ const FloatingAIAssistant = () => {
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      inputRef.current?.focus();
       const handleKeyDown = (e) => {
         if (e.key === 'Escape') setIsOpen(false);
       };
@@ -83,7 +85,7 @@ const FloatingAIAssistant = () => {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Action Button */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button
@@ -94,176 +96,182 @@ const FloatingAIAssistant = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsOpen(true)}
             aria-label="Open Alumnex AI Assistant"
-            className="fixed z-60 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow-2xl flex items-center justify-center text-white cursor-pointer group hover:shadow-indigo-500/50 transition-shadow focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900 right-4 sm:right-6"
-            style={{
-              bottom: 'calc(var(--alumnex-mobile-nav-height, 5.25rem) + var(--alumnex-safe-bottom, 0px) + 0.75rem)'
-            }}
+            className="fixed z-40 touch-target w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-r from-primary-600 to-indigo-600 shadow-xl flex items-center justify-center text-white cursor-pointer group hover:shadow-primary-500/40 transition-shadow focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 right-4 sm:right-6 bottom-[calc(var(--alumnex-mobile-nav-height,4.5rem)+var(--alumnex-safe-bottom,0px)+0.85rem)] lg:bottom-6"
           >
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform" />
+            <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Chat Window */}
+      {/* Chat Interface (Mobile Bottom Sheet / Desktop Floating Window) */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            role="dialog"
-            aria-label="Alumnex AI Mentor Chat"
-            className="fixed z-60 w-[calc(100%-2rem)] sm:w-96 left-4 sm:left-auto right-4 sm:right-6 flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700/50"
-            style={{
-              bottom: 'calc(var(--alumnex-mobile-nav-height, 5.25rem) + var(--alumnex-safe-bottom, 0px) + 0.75rem)',
-              height: 'calc(100dvh - var(--alumnex-mobile-nav-height, 5.25rem) - var(--alumnex-safe-bottom, 0px) - 6rem)',
-              maxHeight: '34rem'
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 sm:py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                  <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm">Alumnex AI Mentor</h3>
-                  <p className="text-xs text-indigo-100 opacity-90 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Online • AI Career Assistant
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                aria-label="Close AI Assistant"
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+          <div className="fixed inset-0 z-50 pointer-events-auto flex flex-col justify-end sm:block sm:inset-auto sm:right-6 sm:bottom-6">
+            {/* Backdrop overlay on mobile */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-xs sm:hidden"
+              aria-hidden="true"
+            />
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar bg-slate-50 dark:bg-slate-900/50">
-              {history.map((msg, index) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  key={index}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            {/* Chat Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.97 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+              role="dialog"
+              aria-label="Alumnex AI Career Mentor Chat"
+              className="relative z-10 w-full sm:w-[390px] h-[85dvh] sm:h-[540px] max-h-[90dvh] flex flex-col bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden border border-gray-200/80 dark:border-gray-800"
+            >
+              {/* Mobile grab handle */}
+              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 text-white shrink-0 mt-1 sm:mt-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm leading-tight">Alumnex AI Mentor</h3>
+                    <p className="text-xs text-primary-100 flex items-center gap-1.5 opacity-90">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      Online • Ready to assist
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Close AI Assistant"
+                  className="touch-target p-1.5 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white"
                 >
-                  <div
-                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-indigo-600 text-white rounded-br-sm shadow-md'
-                        : msg.isError
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-bl-sm'
-                        : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm border border-slate-100 dark:border-slate-700/50 rounded-bl-sm prose prose-sm dark:prose-invert max-w-full'
-                    }`}
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 custom-scrollbar bg-gray-50/60 dark:bg-gray-950/60 min-h-0">
+                {history.map((msg, index) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={index}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    {msg.role === 'model' ? (
-                      <ReactMarkdown
-                        components={{
-                          p: ({node, children, ...props}) => <p className="mb-2 last:mb-0" {...props}>{children}</p>,
-                          a: ({node, href, children, ...props}) => {
-                            const isInternal = href && (href.startsWith('/') || href.startsWith('#'));
-                            if (isInternal) {
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-primary-600 text-white rounded-br-xs shadow-xs'
+                          : msg.isError
+                          ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 rounded-bl-xs border border-rose-200/50'
+                          : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 shadow-xs border border-gray-200/60 dark:border-gray-700/60 rounded-bl-xs'
+                      }`}
+                    >
+                      {msg.role === 'model' ? (
+                        <ReactMarkdown
+                          components={{
+                            p: ({node, children, ...props}) => <p className="mb-2 last:mb-0" {...props}>{children}</p>,
+                            a: ({node, href, children, ...props}) => {
+                              const isInternal = href && (href.startsWith('/') || href.startsWith('#'));
+                              if (isInternal) {
+                                return (
+                                  <Link 
+                                    to={href}
+                                    onClick={() => setIsOpen(false)}
+                                    className="font-semibold text-primary-600 dark:text-primary-400 underline hover:text-primary-800 dark:hover:text-primary-300"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </Link>
+                                );
+                              }
                               return (
-                                <Link 
-                                  to={href}
-                                  className="font-semibold text-indigo-600 dark:text-indigo-400 underline decoration-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                                <a 
+                                  href={href} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="font-semibold text-primary-600 dark:text-primary-400 underline hover:text-primary-800"
                                   {...props}
                                 >
                                   {children}
-                                </Link>
+                                </a>
                               );
-                            }
-                            return (
-                              <a 
-                                href={href} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="font-semibold text-indigo-600 dark:text-indigo-400 underline hover:text-indigo-800 transition-colors"
-                                {...props}
-                              >
-                                {children}
-                              </a>
-                            );
-                          },
-                          ul: ({node, children, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props}>{children}</ul>,
-                          ol: ({node, children, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props}>{children}</ol>,
-                          li: ({node, children, ...props}) => <li className="mb-0.5" {...props}>{children}</li>,
-                          h3: ({node, children, ...props}) => <h3 className="font-bold text-base mt-2 mb-1 text-slate-900 dark:text-white" {...props}>{children}</h3>,
-                          h4: ({node, children, ...props}) => <h4 className="font-semibold text-sm mt-1.5 mb-1 text-slate-800 dark:text-slate-200" {...props}>{children}</h4>,
-                        }}
-                      >
-                        {msg.text}
-                      </ReactMarkdown>
-                    ) : (
-                      <p>{msg.text}</p>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                            },
+                            ul: ({node, children, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props}>{children}</ul>,
+                            ol: ({node, children, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props}>{children}</ol>,
+                            li: ({node, children, ...props}) => <li className="mb-0.5" {...props}>{children}</li>,
+                          }}
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
+                      ) : (
+                        <p>{msg.text}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
 
-              {/* Quick Prompt Suggestion Chips (Shown initially) */}
-              {history.length === 1 && !isLoading && (
-                <div className="pt-2">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-2">
-                    <Compass className="w-3.5 h-3.5" />
-                    <span>Quick Navigation & Advice</span>
+                {/* Quick Prompts */}
+                {history.length === 1 && !isLoading && (
+                  <div className="pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2">
+                      <Compass className="w-3.5 h-3.5" />
+                      <span>Suggested topics</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {QUICK_PROMPTS.map((prompt, i) => (
+                        <button
+                          key={i}
+                          onClick={() => sendQuery(prompt.query)}
+                          className="text-left text-xs bg-white dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 border border-gray-200/80 dark:border-gray-700/80 rounded-xl px-2.5 py-1.5 transition-colors shadow-xs"
+                        >
+                          {prompt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {QUICK_PROMPTS.map((prompt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => sendQuery(prompt.query)}
-                        className="text-xs bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1.5 transition-all text-left shadow-2xs hover:border-indigo-300 dark:hover:border-indigo-500"
-                      >
-                        {prompt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center gap-2 text-xs text-slate-500">
-                    <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />
-                    <span>Consulting Alumnex AI...</span>
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/80 rounded-2xl rounded-bl-xs px-3.5 py-2.5 flex items-center gap-2 shadow-xs">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Generating advice...</span>
+                    </div>
                   </div>
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
 
-            {/* Input Area */}
-            <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-              <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              {/* Composer */}
+              <form 
+                onSubmit={handleSubmit}
+                className="p-3 sm:p-3.5 border-t border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center gap-2 shrink-0 pb-[max(0.75rem,var(--alumnex-safe-bottom,0px))]"
+              >
                 <input
+                  ref={inputRef}
                   type="text"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask for advice or any website page..."
-                  className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder-slate-500"
+                  placeholder="Ask a question..."
                   disabled={isLoading}
+                  className="flex-1 glass-input rounded-xl px-3.5 py-2 text-xs sm:text-sm focus:outline-none min-h-[40px]"
                 />
                 <button
                   type="submit"
                   disabled={!message.trim() || isLoading}
-                  className="w-10 h-10 flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 rounded-full flex items-center justify-center text-white transition-colors cursor-pointer"
+                  aria-label="Send message"
+                  className="touch-target w-10 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors shadow-xs shrink-0"
                 >
-                  <Send className="w-4 h-4 ml-0.5" />
+                  <Send className="w-4 h-4" />
                 </button>
               </form>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

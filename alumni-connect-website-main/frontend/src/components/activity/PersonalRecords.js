@@ -41,9 +41,9 @@ export const PersonalRecords = ({ records }) => {
   ];
 
   return (
-    <div className="glass-card rounded-2xl p-5 sm:p-6 border border-gray-200/60 dark:border-gray-800 space-y-4 min-w-0 w-full shadow-sm">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h4 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <div className="glass-card rounded-2xl p-4 sm:p-5 border border-gray-200/70 dark:border-gray-800 space-y-4 min-w-0 w-full shadow-xs">
+      <div className="flex items-center justify-between gap-2 flex-wrap min-w-0">
+        <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
           <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
           <span>Personal Records</span>
         </h4>
@@ -51,35 +51,35 @@ export const PersonalRecords = ({ records }) => {
       </div>
 
       {/* 
-        Responsive Grid:
+        Responsive Grid engineered specifically for 1366px laptop & mobile:
         - 1 col on mobile (<640px)
-        - 2 cols on tablet (sm: 640px - 1023px)
-        - 3 cols on laptop/desktop (lg: 1024px - 1535px) - ample room (~300px+ per card)
-        - 5 cols on ultra-wide screens (2xl: >= 1536px)
+        - 2 cols on tablet (640px-1023px)
+        - 3 cols on 1024px-1279px
+        - 5 cols on 1280px+ (full breadth with dedicated card width)
       */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3.5 sm:gap-4 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 min-w-0">
         {items.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div 
               key={idx} 
-              className="p-4 sm:p-4.5 rounded-xl bg-white/70 dark:bg-gray-800/40 border border-gray-200/60 dark:border-gray-700/50 flex flex-col justify-between min-w-0 transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm"
+              className="p-3.5 sm:p-4 rounded-xl bg-white/70 dark:bg-gray-800/40 border border-gray-200/70 dark:border-gray-700/60 flex flex-col justify-between min-w-0 transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-xs"
             >
-              <div className="flex items-start justify-between gap-3 mb-3 min-w-0">
-                <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider leading-snug line-clamp-1">
+              <div className="flex items-start justify-between gap-2.5 mb-2.5 min-w-0">
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider leading-snug">
                   {item.label}
                 </span>
-                <div className={`p-2 rounded-lg border ${item.color} shrink-0 flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-lg border ${item.color} shrink-0 flex items-center justify-center`}>
                   <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                 </div>
               </div>
 
-              <div className="mt-1 min-w-0">
-                <p className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight break-words">
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight break-words">
                   {item.value}
                 </p>
                 {item.subtitle && (
-                  <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate mt-1 font-medium">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5 font-medium">
                     {item.subtitle}
                   </p>
                 )}

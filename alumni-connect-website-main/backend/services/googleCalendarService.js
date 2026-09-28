@@ -18,9 +18,9 @@ class GoogleCalendarService {
    * @returns {OAuth2Client}
    */
   getOAuthClient(redirectUri) {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const activeRedirectUri = redirectUri || process.env.GOOGLE_CALENDAR_REDIRECT_URI;
+    const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    const activeRedirectUri = (redirectUri || process.env.GOOGLE_CALENDAR_REDIRECT_URI || '').trim();
 
     if (!clientId || !clientSecret) {
       throw new Error('Google OAuth credentials (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) are not configured');

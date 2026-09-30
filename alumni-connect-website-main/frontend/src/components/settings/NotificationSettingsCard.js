@@ -559,7 +559,7 @@ export const NotificationSettingsCard = () => {
               {testResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-amber-600" />}
               <span>{testResult.channel.toUpperCase()} Dispatch Report: {testResult.success ? 'Delivered' : 'Action Required'}</span>
             </div>
-            <p className="text-[11px] opacity-90">{testResult.message}</p>
+            <p className="text-[11px] opacity-90 whitespace-pre-line font-mono">{testResult.message}</p>
           </div>
         )}
       </div>

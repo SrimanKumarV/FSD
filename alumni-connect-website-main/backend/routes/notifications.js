@@ -6,6 +6,7 @@ const ReminderPreference = require('../models/ReminderPreference');
 const NotificationDevice = require('../models/NotificationDevice');
 const webPushService = require('../services/webPushService');
 const fcmService = require('../services/fcmService');
+const firebaseAdmin = require('../services/firebaseAdmin');
 const { notificationDispatcher, NOTIFICATION_TYPES } = require('../services/notificationDispatcher');
 
 // @desc    Get all notifications for current user
@@ -287,7 +288,24 @@ router.post('/devices/register', protect, async (req, res) => {
     } = req.body;
 
     if (!deviceId) {
-      return res.status(400).json({ message: 'deviceId is required' });
+      return res.status(400).json({ success: false, message: 'deviceId is required' });
+    }
+
+    if (platform === 'android') {
+      if (!pushToken || typeof pushToken !== 'string' || !pushToken.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'FCM registration failed: A valid native push registration token is required.'
+        });
+      }
+
+      const trimmedToken = pushToken.trim();
+      if (trimmedToken.startsWith('fcm_dev_') || trimmedToken.length < 20) {
+        return res.status(400).json({
+          success: false,
+          message: 'FCM registration failed: Fake or mock development tokens (fcm_dev_*) are rejected.'
+        });
+      }
     }
 
     const device = await NotificationDevice.findOneAndUpdate(
@@ -298,13 +316,16 @@ router.post('/devices/register', protect, async (req, res) => {
       },
       {
         $set: {
-          pushProvider,
-          pushToken: pushToken || (platform === 'android' ? `fcm_dev_${deviceId}` : undefined),
-          deviceName: deviceName || (platform === 'android' ? 'Android Device' : 'Device'),
-          appVersion,
+          pushProvider: platform === 'android' ? 'fcm' : pushProvider,
+          pushToken: pushToken ? pushToken.trim() : undefined,
+          deviceName: deviceName || (platform === 'android' ? 'Samsung Galaxy (Alumnex APK)' : 'Device'),
+          appVersion: appVersion || '1.0.0',
           enabled: true,
           permission: 'granted',
-          lastSeenAt: new Date()
+          tokenUpdatedAt: new Date(),
+          lastSeenAt: new Date(),
+          lastRegistrationError: null,
+          firebaseProjectId: firebaseAdmin.getProjectId() || undefined
         }
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -321,8 +342,8 @@ router.post('/devices/register', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Device registered successfully',
-      device
+      message: 'Native Android FCM device registered successfully',
+      deviceId: device.deviceId
     });
   } catch (error) {
     console.error('[Notifications] Device register error:', error.message);
@@ -480,12 +501,31 @@ router.post('/test', protect, async (req, res) => {
 
     if (channel === 'android') {
       const fcmResult = await fcmService.sendToUser(req.user._id, {
-        title: testEvent.title,
-        body: testEvent.body,
-        deepLink: testEvent.deepLink,
-        type: testEvent.type,
-        data: testEvent.data
+        title: testEvent.title || 'Alumnex Connect Test',
+        body: testEvent.body || 'This is a test notification from Alumnex Connect.',
+        deepLink: testEvent.deepLink || '/activity',
+        type: testEvent.type || 'SYSTEM_ANNOUNCEMENT',
+        data: testEvent.data || {}
       });
+
+      let diagnosticMessage = '';
+      if (fcmResult.sent > 0) {
+        diagnosticMessage = `Dispatched to ${fcmResult.sent} registered Android device(s)!`;
+      } else if (fcmResult.total === 0) {
+        diagnosticMessage = 'No registered Android devices found. Open the Alumnex APK on your Android device to register with FCM.';
+      } else {
+        const firstFailed = fcmResult.details?.find(d => !d.success) || {};
+        const deviceName = firstFailed.deviceName || 'Android Device';
+        if (firstFailed.status === 'unregistered') {
+          diagnosticMessage = `Android notification delivery failed.\nDevice: ${deviceName}\nStatus: Unregistered\nReason: FCM registration token is expired or no longer registered.\nAction: Invalid registration removed. Reopen the Alumnex APK to register again.`;
+        } else if (firstFailed.status === 'temporary-failure') {
+          diagnosticMessage = `Android notification delivery temporarily unavailable.\nDevice: ${deviceName}\nStatus: Temporary Failure\nReason: Firebase service or network error.\nAction: The device registration was retained.`;
+        } else if (firstFailed.status === 'invalid-token') {
+          diagnosticMessage = `Android notification delivery failed.\nDevice: ${deviceName}\nStatus: Invalid Token\nReason: Registered token is invalid or a development mock token.\nAction: Invalid token removed. Open the native APK to register a real FCM token.`;
+        } else {
+          diagnosticMessage = `Android notification delivery failed.\nDevice: ${deviceName}\nStatus: Failed\nReason: ${firstFailed.error || 'Failed to deliver FCM push notification.'}`;
+        }
+      }
 
       return res.json({
         success: fcmResult.sent > 0,
@@ -493,11 +533,7 @@ router.post('/test', protect, async (req, res) => {
         deliveredCount: fcmResult.sent,
         totalDevices: fcmResult.total,
         details: fcmResult,
-        message: fcmResult.sent > 0
-          ? `Dispatched to ${fcmResult.sent} registered Android device(s)!`
-          : (fcmResult.total === 0
-              ? 'No registered Android devices found. Open the Alumnex APK on your Android device to register.'
-              : 'Failed to deliver FCM push notification to registered Android device.')
+        message: diagnosticMessage
       });
     }
 
@@ -656,6 +692,84 @@ router.get('/actionable', protect, async (req, res) => {
   } catch (error) {
     console.error('Error fetching actionable notifications:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get FCM configuration diagnostics (No sensitive secrets exposed)
+// @route   GET /api/notifications/fcm-status
+// @access  Private
+router.get('/fcm-status', protect, async (req, res) => {
+  try {
+    const diagnostic = firebaseAdmin.getDiagnosticInfo();
+    const registeredDevicesCount = await NotificationDevice.countDocuments({
+      userId: req.user._id,
+      platform: 'android',
+      enabled: true
+    });
+
+    res.json({
+      success: true,
+      ...diagnostic,
+      userRegisteredDevices: registeredDevicesCount
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Direct test FCM send to a specific device or user's registered devices
+// @route   POST /api/notifications/test-fcm
+// @access  Private
+router.post('/test-fcm', protect, async (req, res) => {
+  try {
+    const { deviceId, token, title, body, deepLink } = req.body;
+
+    let targetToken = token;
+    let targetDevice = null;
+
+    if (deviceId) {
+      targetDevice = await NotificationDevice.findOne({
+        userId: req.user._id,
+        deviceId,
+        platform: 'android'
+      });
+      if (!targetDevice) {
+        return res.status(404).json({
+          success: false,
+          message: `Registered Android device with ID "${deviceId}" not found for this user.`
+        });
+      }
+      targetToken = targetDevice.pushToken;
+    }
+
+    if (!targetToken && !deviceId) {
+      // Send to all user's registered Android devices
+      const summary = await fcmService.sendToUser(req.user._id, {
+        title: title || 'Alumnex FCM Diagnostic Test',
+        body: body || 'Real-time FCM delivery verification test.',
+        deepLink: deepLink || '/activity',
+        type: 'SYSTEM_ANNOUNCEMENT'
+      });
+      return res.json({
+        success: summary.sent > 0,
+        summary
+      });
+    }
+
+    const result = await fcmService.sendToDevice(targetToken, {
+      title: title || 'Alumnex FCM Diagnostic Test',
+      body: body || 'Real-time FCM delivery verification test.',
+      deepLink: deepLink || '/activity',
+      type: 'SYSTEM_ANNOUNCEMENT'
+    }, { deviceDoc: targetDevice });
+
+    res.json({
+      success: result.success,
+      result
+    });
+  } catch (error) {
+    console.error('[Notifications] Direct FCM test error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

@@ -129,7 +129,27 @@ if (process.env.NODE_ENV !== 'test') {
     useUnifiedTopology: true,
     family: 4, // Force IPv4
   })
-    .then(() => console.log('Connected to MongoDB'))
+    .then(async () => {
+      console.log('Connected to MongoDB');
+
+      // Firebase Admin Diagnostics (Section 44)
+      const firebaseAdmin = require('./services/firebaseAdmin');
+      firebaseAdmin.logDiagnostics();
+
+      // Database Cleanup: Purge legacy fake fcm_dev_* tokens (Section 48)
+      try {
+        const NotificationDevice = require('./models/NotificationDevice');
+        const cleaned = await NotificationDevice.deleteMany({
+          platform: 'android',
+          pushToken: { $regex: /^fcm_dev_/ }
+        });
+        if (cleaned.deletedCount > 0) {
+          console.log(`[NotificationDevice] Database cleanup: Removed ${cleaned.deletedCount} legacy mock token(s).`);
+        }
+      } catch (cleanErr) {
+        console.warn('[NotificationDevice] Startup cleanup note:', cleanErr.message);
+      }
+    })
     .catch(err => console.error('MongoDB connection error:', err));
 }
 

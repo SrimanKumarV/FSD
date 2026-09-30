@@ -90,3 +90,11 @@ coverage/
 *.apk
 apk_extract/
 match.txt
+
+# ------------------------------
+# Firebase credentials (CRITICAL SECURITY)
+# ------------------------------
+*-firebase-adminsdk-*.json
+service-account*.json
+google-services.json
+**/google-services.json

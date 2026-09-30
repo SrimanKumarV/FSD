@@ -64,12 +64,27 @@ const notificationDeviceSchema = new mongoose.Schema({
   lastDeliveryAt: {
     type: Date
   },
+  lastSuccessfulDeliveryAt: {
+    type: Date
+  },
+  tokenUpdatedAt: {
+    type: Date,
+    default: Date.now
+  },
   lastDeliveryStatus: {
     type: String,
-    enum: ['success', 'failed', 'simulated', 'expired', 'none'],
+    enum: ['pending', 'success', 'failed', 'invalid-token', 'unregistered', 'temporary-failure', 'permission-denied', 'expired', 'simulated', 'none'],
     default: 'none'
   },
   lastError: {
+    type: String,
+    trim: true
+  },
+  lastRegistrationError: {
+    type: String,
+    trim: true
+  },
+  firebaseProjectId: {
     type: String,
     trim: true
   }

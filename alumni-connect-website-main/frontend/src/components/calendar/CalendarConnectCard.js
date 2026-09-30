@@ -14,7 +14,10 @@ export const CalendarConnectCard = ({ isReauth = false, onConnectSuccess }) => {
       setLoading(true);
       const isMobile = Capacitor.isNativePlatform();
       const response = await api.get('/google-calendar/connect', {
-        params: { mode: isMobile ? 'mobile' : 'web' }
+        params: {
+          mode: isMobile ? 'mobile' : 'web',
+          frontendUrl: typeof window !== 'undefined' ? window.location.origin : undefined
+        }
       });
 
       const authUrl = response.data?.authorizationUrl || response.authorizationUrl;

@@ -53,7 +53,10 @@ export const GoogleCalendarSettingsCard = () => {
       setConnecting(true);
       const isMobile = Capacitor.isNativePlatform();
       const res = await api.get('/google-calendar/connect', {
-        params: { mode: isMobile ? 'mobile' : 'web' }
+        params: {
+          mode: isMobile ? 'mobile' : 'web',
+          frontendUrl: typeof window !== 'undefined' ? window.location.origin : undefined
+        }
       });
 
       const authUrl = res.data?.authorizationUrl || res.authorizationUrl;

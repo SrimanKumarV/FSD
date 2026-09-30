@@ -19,6 +19,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import toast from 'react-hot-toast';
+import { initCsrfToken } from './utils/api';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -203,6 +204,9 @@ const AppStartupHandler = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    // Proactively initialize CSRF token on startup
+    initCsrfToken().catch(() => {});
+
     const isColdStartup = !sessionStorage.getItem('alumnex_session_active');
     if (isColdStartup) {
       sessionStorage.setItem('alumnex_session_active', 'true');

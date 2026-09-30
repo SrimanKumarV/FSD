@@ -655,4 +655,14 @@ router.get('/mobile/google/callback', async (req, res) => {
   `);
 });
 
+/**
+ * @route   GET /api/auth/csrf-token
+ * @desc    Retrieve or initialize a CSRF token for the frontend client
+ * @access  Public
+ */
+router.get('/csrf-token', (req, res) => {
+  const token = req.cookies['XSRF-TOKEN'] || res.getHeader('X-CSRF-Token');
+  res.json({ success: true, csrfToken: token });
+});
+
 module.exports = router;

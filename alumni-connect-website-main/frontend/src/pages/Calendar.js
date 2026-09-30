@@ -34,7 +34,12 @@ const Calendar = () => {
     }
     const err = searchParams.get('error');
     if (err) {
-      toast.error(decodeURIComponent(err));
+      const decodedErr = decodeURIComponent(err);
+      if (decodedErr.includes('redirect_uri_mismatch') || decodedErr.includes('400')) {
+        toast.error('Google OAuth Error (400): Redirect URI mismatch. Please verify Authorized Redirect URIs in Google Cloud Console.', { duration: 6000 });
+      } else {
+        toast.error(decodedErr, { duration: 5000 });
+      }
       searchParams.delete('error');
       setSearchParams(searchParams, { replace: true });
     }

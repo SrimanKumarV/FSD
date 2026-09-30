@@ -58,20 +58,27 @@ class GoogleCalendarService {
    * @param {string} options.userId
    * @param {string} [options.mode] 'web' | 'mobile'
    * @param {string} [options.redirectUri]
-   * @returns {{ url: string, state: string }}
+   * @param {string} [options.frontendUrl]
+   * @returns {{ url: string, state: string, redirectUri: string, frontendUrl?: string }}
    */
-  generateAuthorizationUrl({ userId, mode = 'web', redirectUri }) {
+  generateAuthorizationUrl({ userId, mode = 'web', redirectUri, frontendUrl }) {
     const client = this.getOAuthClient(redirectUri);
 
     const nonce = crypto.randomBytes(24).toString('hex');
+    const statePayload = {
+      userId: userId.toString(),
+      mode,
+      nonce,
+      redirectUri,
+      type: 'google_calendar_oauth',
+      iat: Math.floor(Date.now() / 1000)
+    };
+    if (frontendUrl) {
+      statePayload.frontendUrl = frontendUrl;
+    }
+
     const stateToken = jwt.sign(
-      {
-        userId: userId.toString(),
-        mode,
-        nonce,
-        type: 'google_calendar_oauth',
-        iat: Math.floor(Date.now() / 1000)
-      },
+      statePayload,
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
@@ -84,7 +91,7 @@ class GoogleCalendarService {
       state: stateToken
     });
 
-    return { url, state: stateToken };
+    return { url, state: stateToken, redirectUri, frontendUrl };
   }
 
   /**

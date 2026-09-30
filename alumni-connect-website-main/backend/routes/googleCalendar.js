@@ -29,6 +29,66 @@ const maskClientId = (id) => {
   return `${str.substring(0, 8)}...${str.substring(str.length - 20)}`;
 };
 
+// Helper to resolve clean primary frontend URL (supporting comma-separated FRONTEND_URL)
+const getPrimaryFrontendUrl = (req, candidate) => {
+  if (candidate && typeof candidate === 'string' && candidate.startsWith('http')) {
+    return candidate.replace(/\/+$/, '');
+  }
+
+  // Check Origin or Referer if valid
+  const origin = req ? (req.get('origin') || req.get('referer')) : null;
+  if (origin) {
+    try {
+      const parsed = new URL(origin);
+      const originUrl = `${parsed.protocol}//${parsed.host}`.replace(/\/+$/, '');
+      if (originUrl.includes('localhost') || originUrl.includes('127.0.0.1') || originUrl.includes('onrender.com') || originUrl.includes('vercel.app')) {
+        return originUrl;
+      }
+    } catch (e) { }
+  }
+
+  if (process.env.FRONTEND_URL) {
+    const firstUrl = process.env.FRONTEND_URL.split(',')[0].trim();
+    if (firstUrl) return firstUrl.replace(/\/+$/, '');
+  }
+
+  return process.env.NODE_ENV === 'production'
+    ? 'https://alumnex-connect.onrender.com'
+    : 'http://localhost:3000';
+};
+
+// Helper to determine the exact, valid OAuth redirect URI
+const resolveCalendarRedirectUri = (req) => {
+  const configuredUri = (process.env.GOOGLE_CALENDAR_REDIRECT_URI || '').trim();
+  const host = req ? req.get('host') : '';
+  const isLocalHost = host && (host.includes('localhost') || host.includes('127.0.0.1'));
+
+  // Local development
+  if (isLocalHost) {
+    return configuredUri && configuredUri.includes('localhost')
+      ? configuredUri
+      : `http://${host}/api/google-calendar/callback`;
+  }
+
+  // Production environment:
+  // If GOOGLE_CALENDAR_REDIRECT_URI is an explicit HTTPS non-localhost URI, use it
+  if (configuredUri && configuredUri.startsWith('https://') && !configuredUri.includes('localhost')) {
+    return configuredUri;
+  }
+
+  // If MOBILE_GOOGLE_REDIRECT_URI is defined with a known working domain in Google Console:
+  if (process.env.MOBILE_GOOGLE_REDIRECT_URI && process.env.MOBILE_GOOGLE_REDIRECT_URI.startsWith('https://')) {
+    try {
+      const parsed = new URL(process.env.MOBILE_GOOGLE_REDIRECT_URI);
+      return `${parsed.protocol}//${parsed.host}/api/google-calendar/callback`;
+    } catch (e) { }
+  }
+
+  // Fallback: force HTTPS for all public/production deployments
+  const actualHost = host || 'alumnex-backend-backup.onrender.com';
+  return `https://${actualHost}/api/google-calendar/callback`;
+};
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 1. OAUTH AUTHORIZATION INITIATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -41,13 +101,15 @@ const maskClientId = (id) => {
 router.get('/connect', protect, (req, res) => {
   try {
     const mode = req.query.mode === 'mobile' ? 'mobile' : 'web';
-    const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/google-calendar/callback`;
+    const redirectUri = resolveCalendarRedirectUri(req);
+    const frontendUrl = getPrimaryFrontendUrl(req, req.query.frontendUrl);
     const rawClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
 
     const { url, state } = googleCalendarService.generateAuthorizationUrl({
       userId: req.user._id,
       mode,
-      redirectUri
+      redirectUri,
+      frontendUrl
     });
 
     const parsedAuthUrl = new URL(url);
@@ -58,6 +120,7 @@ router.get('/connect', protect, (req, res) => {
     console.log(`clientId: ${maskClientId(rawClientId)}`);
     console.log(`clientIdLength: ${rawClientId.length}`);
     console.log(`redirectUri: ${redirectUri}`);
+    console.log(`frontendUrl: ${frontendUrl}`);
     console.log(`environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`requestHost: ${req.get('host')}`);
     console.log(`requestProtocol: ${req.protocol}`);
@@ -189,8 +252,8 @@ router.get('/callback', async (req, res) => {
         true
       ));
     }
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}/calendar?error=${encodeURIComponent(msg)}`);
+    const fallbackFrontend = getPrimaryFrontendUrl(req);
+    return res.redirect(`${fallbackFrontend}/calendar?error=${encodeURIComponent(msg)}`);
   }
 
   // 2. Validate state token
@@ -206,21 +269,21 @@ router.get('/callback', async (req, res) => {
     }
   } catch (err) {
     console.warn('[Google Calendar] Invalid state in callback:', err.message);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}/calendar?error=${encodeURIComponent('OAuth security state expired or invalid. Please retry connecting.')}`);
+    const fallbackFrontend = getPrimaryFrontendUrl(req);
+    return res.redirect(`${fallbackFrontend}/calendar?error=${encodeURIComponent('OAuth security state expired or invalid. Please retry connecting.')}`);
   }
 
-  const { userId, mode } = decoded;
+  const { userId, mode, redirectUri: stateRedirectUri, frontendUrl: stateFrontendUrl } = decoded;
   const isMobile = mode === 'mobile';
+  const effectiveFrontendUrl = getPrimaryFrontendUrl(req, stateFrontendUrl);
 
   if (!code) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}/calendar?error=${encodeURIComponent('No authorization code returned from Google')}`);
+    return res.redirect(`${effectiveFrontendUrl}/calendar?error=${encodeURIComponent('No authorization code returned from Google')}`);
   }
 
   try {
-    const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/google-calendar/callback`;
-    const { tokens, profile } = await googleCalendarService.exchangeAuthorizationCode(code, redirectUri);
+    const effectiveRedirectUri = stateRedirectUri || resolveCalendarRedirectUri(req);
+    const { tokens, profile } = await googleCalendarService.exchangeAuthorizationCode(code, effectiveRedirectUri);
 
     // Find existing connection or create a new one
     let connection = await GoogleCalendarConnection.findOne({ userId }).select('+accessToken +refreshToken');
@@ -304,16 +367,14 @@ router.get('/callback', async (req, res) => {
       return res.send(renderMobileResult(deepLinkUrl, 'Calendar Connected!', 'Google Calendar has been linked to your Alumnex account.'));
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}/calendar?connected=true`);
+    return res.redirect(`${effectiveFrontendUrl}/calendar?connected=true`);
   } catch (err) {
     console.error('[Google Calendar] Callback exchange error:', err.message);
     if (isMobile) {
       const deepLinkUrl = `com.alumnex.connect://oauth/google-calendar?error=${encodeURIComponent(err.message || 'Token exchange failed')}`;
       return res.status(500).send(renderMobileResult(deepLinkUrl, 'Connection Error', err.message, true));
     }
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}/calendar?error=${encodeURIComponent(err.message || 'Failed to exchange Google authorization code')}`);
+    return res.redirect(`${effectiveFrontendUrl}/calendar?error=${encodeURIComponent(err.message || 'Failed to exchange Google authorization code')}`);
   }
 });
 
@@ -381,7 +442,7 @@ router.get('/calendars', protect, async (req, res) => {
   try {
     const connection = await GoogleCalendarConnection.findOne({ userId: req.user._id });
     if (!connection || connection.status === 'disconnected') {
-      return res.status(400).json({ message: 'Google Calendar is not connected' });
+      return res.json({ success: true, connected: false, calendars: [] });
     }
 
     const calendars = await googleCalendarService.getCalendars(connection);

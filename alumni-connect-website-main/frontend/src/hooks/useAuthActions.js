@@ -31,6 +31,31 @@ export const useAuthActions = (dispatch) => {
       toast.success('Login successful!');
       return { success: true };
     } catch (error) {
+      const isCsrf = error.response?.status === 403 &&
+        ((typeof error.response?.data?.message === 'string' &&
+          error.response.data.message.toLowerCase().includes('csrf')) ||
+         error.response?.data?.code === 'CSRF_MISMATCH');
+
+      if (isCsrf) {
+        // Silently retry login once with refreshed CSRF credentials
+        try {
+          const retryRes = await api.post('/auth/login', { email, password });
+          const { user, token, requires2FA, availableMethods, methodSent, message } = retryRes.data;
+
+          if (requires2FA) {
+            dispatch({ type: AUTH_ACTIONS.LOGOUT });
+            if (methodSent) toast.success(message || 'OTP sent successfully!');
+            return { success: true, requires2FA: true, email, availableMethods, methodSent };
+          }
+
+          dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { user, token } });
+          toast.success('Login successful!');
+          return { success: true };
+        } catch (retryErr) {
+          error = retryErr;
+        }
+      }
+
       const message = error.response?.data?.message || 'Login failed';
       const requiresVerification = error.response?.data?.requiresVerification;
       dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: message });

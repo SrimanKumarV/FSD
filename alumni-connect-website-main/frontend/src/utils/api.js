@@ -234,7 +234,58 @@ const onRefreshFailed = () => {
   pendingRequests = [];
 };
 
-let csrfTokenMemory = null;
+let csrfTokenMemory = typeof window !== 'undefined' ? (sessionStorage.getItem('alumnex_csrf_token') || null) : null;
+
+export const setCsrfToken = (token) => {
+  if (!token || typeof token !== 'string') return;
+  csrfTokenMemory = token;
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem('alumnex_csrf_token', token);
+    } catch (e) { }
+  }
+};
+
+let isInitializingCsrf = false;
+export const initCsrfToken = async () => {
+  if (typeof window === 'undefined' || isInitializingCsrf) return;
+  isInitializingCsrf = true;
+  try {
+    const backendUrl = getActiveBackendUrl();
+    let token = null;
+
+    try {
+      const res = await axios.get(`${backendUrl}/csrf-token`, {
+        withCredentials: true,
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
+      token = res.data?.csrfToken || res.headers?.['x-csrf-token'] || res.headers?.['X-CSRF-Token'];
+    } catch (e1) {
+      try {
+        const res = await axios.get(`${backendUrl}/auth/csrf-token`, {
+          withCredentials: true,
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        token = res.data?.csrfToken || res.headers?.['x-csrf-token'] || res.headers?.['X-CSRF-Token'];
+      } catch (e2) { }
+    }
+
+    if (token) {
+      setCsrfToken(token);
+    }
+  } catch (e) {
+    // Non-fatal background bootstrap
+  } finally {
+    isInitializingCsrf = false;
+  }
+};
+
+// Proactively bootstrap CSRF token in browser environment
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    initCsrfToken().catch(() => {});
+  }, 100);
+}
 
 // ─── Server Unavailability Detector ───────────────────────────────────────────
 // Detects when a backend instance is suspended, down, timed out, or returning gateway errors
@@ -274,10 +325,11 @@ api.interceptors.request.use(
           ?.split('=')[1]
         : null;
 
-      const finalToken = xsrfTokenCookie || csrfTokenMemory;
+      const finalToken = xsrfTokenCookie || csrfTokenMemory || (typeof window !== 'undefined' ? sessionStorage.getItem('alumnex_csrf_token') : null);
 
       if (finalToken) {
         config.headers['X-XSRF-TOKEN'] = finalToken;
+        config.headers['X-CSRF-Token'] = finalToken;
       }
     }
 
@@ -292,8 +344,9 @@ api.interceptors.request.use(
 // ─── Response Interceptor ─────────────────────────────────────────────────────
 api.interceptors.response.use(
   (response) => {
-    if (response.headers && response.headers['x-csrf-token']) {
-      csrfTokenMemory = response.headers['x-csrf-token'];
+    const headerToken = response.headers?.['x-csrf-token'] || response.headers?.['X-CSRF-Token'];
+    if (headerToken) {
+      setCsrfToken(headerToken);
     }
 
     // Mark current backend as successfully verified
@@ -306,11 +359,53 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    if (error.response && error.response.headers && error.response.headers['x-csrf-token']) {
-      csrfTokenMemory = error.response.headers['x-csrf-token'];
+    const errHeaderToken = error.response?.headers?.['x-csrf-token'] || error.response?.headers?.['X-CSRF-Token'];
+    if (errHeaderToken) {
+      setCsrfToken(errHeaderToken);
     }
 
     const originalRequest = error.config || {};
+
+    // ── CSRF Auto-Recovery (Transparent retry on 403 CSRF token mismatch) ──
+    const isCsrfError = error.response?.status === 403 &&
+      ((typeof error.response?.data?.message === 'string' &&
+        error.response.data.message.toLowerCase().includes('csrf')) ||
+       error.response?.data?.code === 'CSRF_MISMATCH');
+
+    if (isCsrfError && !originalRequest._retryCsrf) {
+      originalRequest._retryCsrf = true;
+      console.warn('[api] CSRF validation failed on request. Transparently refreshing token and retrying...');
+
+      let freshToken = errHeaderToken;
+      if (!freshToken) {
+        try {
+          const bootstrapUrl = originalRequest.baseURL || getActiveBackendUrl();
+          let csrfRes;
+          try {
+            csrfRes = await axios.get(`${bootstrapUrl}/csrf-token`, {
+              withCredentials: true,
+              headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+          } catch (e1) {
+            csrfRes = await axios.get(`${bootstrapUrl}/auth/csrf-token`, {
+              withCredentials: true,
+              headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+          }
+          freshToken = csrfRes.data?.csrfToken || csrfRes.headers?.['x-csrf-token'] || csrfRes.headers?.['X-CSRF-Token'];
+        } catch (fetchErr) {
+          console.warn('[api] Failed to fetch fallback CSRF token:', fetchErr.message);
+        }
+      }
+
+      if (freshToken) {
+        setCsrfToken(freshToken);
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers['X-XSRF-TOKEN'] = freshToken;
+        originalRequest.headers['X-CSRF-Token'] = freshToken;
+        return api(originalRequest);
+      }
+    }
 
     // ── Client-Side Failover Logic ──
     // Triggers on network drop, timeout, or 502/503/504 Bad Gateway / Service Suspended

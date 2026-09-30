@@ -196,6 +196,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/api/csrf-token', (req, res) => {
+  const token = req.cookies['XSRF-TOKEN'] || res.getHeader('X-CSRF-Token');
+  res.json({ success: true, csrfToken: token });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -32,6 +32,8 @@ export const NotificationSettingsCard = () => {
 
   // Native App state
   const isNative = Capacitor.isNativePlatform();
+  const [mobilePermission, setMobilePermission] = useState('prompt');
+  const [registeringMobile, setRegisteringMobile] = useState(false);
 
   // Test Runner state
   const [testingChannel, setTestingChannel] = useState(null);
@@ -49,6 +51,55 @@ export const NotificationSettingsCard = () => {
       setDevices(res.data?.devices || []);
     } catch (err) {
       console.warn('[NotificationSettingsCard] Could not load devices:', err.message);
+    } finally {
+      setLoadingDevices(false);
+    }
+  };
+
+  // Inspect Android notification runtime permission
+  const checkMobilePermission = async () => {
+    if (!mobilePushManager.isSupported()) return;
+    try {
+      const perm = await mobilePushManager.checkPermission();
+      setMobilePermission(perm);
+    } catch (_) {}
+  };
+
+  // Explicitly register Android device with Firebase and backend
+  const handleRegisterMobileDevice = async () => {
+    if (!mobilePushManager.isSupported()) {
+      toast.error('Mobile push is only available within the Android APK.');
+      return;
+    }
+    try {
+      setRegisteringMobile(true);
+      toast.loading('Registering Android device with Firebase...', { id: 'fcm-reg' });
+      const result = await mobilePushManager.requestPermissionAndRegister();
+      if (result.success) {
+        toast.success('Android device registered for push notifications!', { id: 'fcm-reg' });
+        await updatePreference('mobileAppEnabled', true);
+        await checkMobilePermission();
+        await fetchDevices();
+      } else {
+        toast.error(result.message || 'Registration failed', { id: 'fcm-reg' });
+        await checkMobilePermission();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to register mobile device', { id: 'fcm-reg' });
+    } finally {
+      setRegisteringMobile(false);
+    }
+  };
+
+  // Sync and refresh devices
+  const handleRefreshDevices = async () => {
+    try {
+      setLoadingDevices(true);
+      if (isNative) {
+        await mobilePushManager.syncRegistration().catch(() => {});
+        await checkMobilePermission();
+      }
+      await fetchDevices();
     } finally {
       setLoadingDevices(false);
     }
@@ -79,6 +130,7 @@ export const NotificationSettingsCard = () => {
   useEffect(() => {
     fetchPreferences();
     checkWebSubscription();
+    checkMobilePermission();
     fetchDevices();
   }, []);
 
@@ -313,29 +365,63 @@ export const NotificationSettingsCard = () => {
               </div>
               <button
                 type="button"
-                disabled={savingKey === 'mobileAppEnabled'}
-                onClick={() => updatePreference('mobileAppEnabled', preferences?.mobileAppEnabled === false)}
+                disabled={savingKey === 'mobileAppEnabled' || registeringMobile}
+                onClick={async () => {
+                  const nextVal = preferences?.mobileAppEnabled === false;
+                  if (nextVal && isNative) {
+                    await handleRegisterMobileDevice();
+                  } else {
+                    await updatePreference('mobileAppEnabled', nextVal);
+                  }
+                }}
                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 flex-shrink-0 ${
                   preferences?.mobileAppEnabled !== false ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-700'
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                  preferences?.mobileAppEnabled !== false ? 'translate-x-6' : 'translate-x-0'
-                }`} />
+                {registeringMobile ? (
+                  <RefreshCw className="w-3.5 h-3.5 text-white animate-spin mx-auto" />
+                ) : (
+                  <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                    preferences?.mobileAppEnabled !== false ? 'translate-x-6' : 'translate-x-0'
+                  }`} />
+                )}
               </button>
             </div>
 
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between text-[11px]">
-              <span className={`px-2 py-0.5 rounded-md font-semibold border ${
-                isNative
-                  ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
-                  : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800/80 dark:text-gray-400 dark:border-gray-700'
-              }`}>
-                {isNative ? 'Capacitor APK Active' : 'Web Session (APK Ready)'}
-              </span>
-              <span className="text-gray-400">
-                FCM & Native Bridge
-              </span>
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700/60 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 rounded-md font-semibold border ${
+                  isNative
+                    ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800/80 dark:text-gray-400 dark:border-gray-700'
+                }`}>
+                  {isNative ? 'Capacitor APK Active' : 'Web Session (APK Ready)'}
+                </span>
+
+                {isNative && (
+                  <span className={`px-2 py-0.5 rounded-md font-semibold border ${
+                    mobilePermission === 'granted'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                      : mobilePermission === 'denied'
+                      ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800'
+                      : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                  }`}>
+                    Permission: {mobilePermission}
+                  </span>
+                )}
+              </div>
+
+              {isNative && !devices.some(d => d.platform === 'android' && d.enabled) && (
+                <button
+                  type="button"
+                  onClick={handleRegisterMobileDevice}
+                  disabled={registeringMobile}
+                  className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-[11px] flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <RefreshCw className={`w-3 h-3 ${registeringMobile ? 'animate-spin' : ''}`} />
+                  <span>Register Device</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -580,7 +666,7 @@ export const NotificationSettingsCard = () => {
           </div>
           <button
             type="button"
-            onClick={fetchDevices}
+            onClick={handleRefreshDevices}
             disabled={loadingDevices}
             className="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             title="Refresh devices"
@@ -590,14 +676,29 @@ export const NotificationSettingsCard = () => {
         </div>
 
         {devices.length === 0 ? (
-          <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+          <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center space-y-3">
             <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
               🔴 No active push endpoint
             </p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              Enable Web Push above or open the Alumnex APK to register this device for offline notifications.
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+              {isNative
+                ? 'Your Android device is not yet registered for background Firebase Cloud Messaging.'
+                : 'Enable Web Push above or open the Alumnex APK to register this device for offline notifications.'}
             </p>
+            {isNative && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleRegisterMobileDevice}
+                  disabled={registeringMobile}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs transition-colors"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>{registeringMobile ? 'Registering with Firebase...' : 'Register This Android Device Now'}</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-2">

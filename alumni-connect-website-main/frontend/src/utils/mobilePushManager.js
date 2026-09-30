@@ -22,19 +22,38 @@ let listenersInitialized = false;
 let currentToken = null;
 let activeNavigateFn = null;
 
+// Multi-subscriber registry for token and error events
+const tokenSubscribers = new Set();
+const errorSubscribers = new Set();
+
 // Helper to dynamically or directly load @capacitor/push-notifications
 async function getPushPlugin() {
   if (PushNotificationsPlugin) return PushNotificationsPlugin;
-  if (!Capacitor.isNativePlatform()) return null;
 
+  // 1. Direct window bridge check (most reliable in Capacitor WebView & remote server.url)
+  if (typeof window !== 'undefined' && window.Capacitor?.Plugins?.PushNotifications) {
+    PushNotificationsPlugin = window.Capacitor.Plugins.PushNotifications;
+    return PushNotificationsPlugin;
+  }
+
+  // 2. Direct dynamic import of @capacitor/push-notifications
   try {
     const mod = await import('@capacitor/push-notifications');
-    PushNotificationsPlugin = mod.PushNotifications;
-    return PushNotificationsPlugin;
+    if (mod?.PushNotifications) {
+      PushNotificationsPlugin = mod.PushNotifications;
+      return PushNotificationsPlugin;
+    }
   } catch (err) {
-    console.error('[MobilePush] Failed to load @capacitor/push-notifications plugin:', err.message);
-    return null;
+    console.warn('[MobilePush] Dynamic import of @capacitor/push-notifications failed:', err.message);
   }
+
+  // 3. Fallback to global plugin registry
+  if (typeof window !== 'undefined' && window.PushNotifications) {
+    PushNotificationsPlugin = window.PushNotifications;
+    return PushNotificationsPlugin;
+  }
+
+  return null;
 }
 
 export const mobilePushManager = {
@@ -46,7 +65,11 @@ export const mobilePushManager = {
     if (typeof window === 'undefined') return false;
     return Boolean(
       Capacitor.isNativePlatform?.() ||
-      window.Capacitor?.isNativePlatform?.()
+      window.Capacitor?.isNativePlatform?.() ||
+      window.Capacitor?.getPlatform?.() === 'android' ||
+      window.Capacitor?.getPlatform?.() === 'ios' ||
+      window.location?.protocol === 'capacitor:' ||
+      (window.Capacitor && window.Capacitor.platform !== 'web')
     );
   },
 
@@ -61,10 +84,10 @@ export const mobilePushManager = {
 
     try {
       const status = await plugin.checkPermissions();
-      return status.receive;
+      return status?.receive || 'prompt';
     } catch (err) {
       console.error('[MobilePush] checkPermissions failed:', err.message);
-      return 'denied';
+      return 'prompt';
     }
   },
 
@@ -96,7 +119,7 @@ export const mobilePushManager = {
    * Attach native push notification listeners.
    * MUST be executed before plugin.register().
    */
-  async initListeners(plugin, onTokenReceived, onRegistrationError) {
+  async initListeners(plugin) {
     if (listenersInitialized) return;
 
     try {
@@ -109,11 +132,14 @@ export const mobilePushManager = {
         if (!token?.value || typeof token.value !== 'string' || token.value.startsWith('fcm_dev_')) {
           const err = new Error('Invalid FCM token received from Firebase SDK');
           console.error('[MobilePush]', err.message);
-          if (typeof onRegistrationError === 'function') onRegistrationError(err);
+          errorSubscribers.forEach(cb => cb(err));
           return;
         }
 
         currentToken = token.value;
+        try {
+          localStorage.setItem('alumnex_fcm_token', token.value);
+        } catch (_) {}
 
         // Deliver real token to Alumnex backend
         try {
@@ -124,13 +150,13 @@ export const mobilePushManager = {
             pushToken: token.value,
             deviceId,
             deviceName: 'Samsung Galaxy (Alumnex APK)',
-            appVersion: '1.0.0'
+            appVersion: '1.0.2'
           });
           console.log('[MobilePush] Real FCM token successfully synchronized with Alumnex backend');
-          if (typeof onTokenReceived === 'function') onTokenReceived(token.value);
+          tokenSubscribers.forEach(cb => cb(token.value));
         } catch (syncErr) {
           console.error('[MobilePush] Backend device registration failed:', syncErr.response?.data?.message || syncErr.message);
-          if (typeof onRegistrationError === 'function') onRegistrationError(syncErr);
+          errorSubscribers.forEach(cb => cb(syncErr));
         }
       });
 
@@ -138,9 +164,7 @@ export const mobilePushManager = {
       await plugin.addListener('registrationError', (error) => {
         const errorReason = error?.error || error?.message || JSON.stringify(error);
         console.error('[MobilePush] Native FCM registration error from Firebase Android SDK:', errorReason);
-        if (typeof onRegistrationError === 'function') {
-          onRegistrationError(new Error(errorReason));
-        }
+        errorSubscribers.forEach(cb => cb(new Error(errorReason)));
       });
 
       // 4. Foreground Message Listener
@@ -154,7 +178,6 @@ export const mobilePushManager = {
         const data = action.notification?.data || {};
         let targetUrl = data.url || data.deepLink;
         if (targetUrl) {
-          // Normalize URL
           if (targetUrl.startsWith('https://alumnex-connect.onrender.com')) {
             targetUrl = targetUrl.replace('https://alumnex-connect.onrender.com', '');
           }
@@ -195,13 +218,18 @@ export const mobilePushManager = {
       };
     }
 
+    // Ensure listeners are always active
+    await this.initListeners(plugin);
+
     return new Promise(async (resolve) => {
       let resolved = false;
 
-      // Safe timeout: Fail if Firebase Android SDK does not return a token within 15 seconds
+      // Safe timeout: 15 seconds
       const timeoutTimer = setTimeout(() => {
         if (!resolved) {
           resolved = true;
+          tokenSubscribers.delete(handleToken);
+          errorSubscribers.delete(handleError);
           console.error('[MobilePush] FCM registration timed out. No token received from Google Play Services.');
           resolve({
             success: false,
@@ -215,6 +243,8 @@ export const mobilePushManager = {
         if (!resolved) {
           resolved = true;
           clearTimeout(timeoutTimer);
+          tokenSubscribers.delete(handleToken);
+          errorSubscribers.delete(handleError);
           resolve({
             success: true,
             token: tokenValue,
@@ -227,6 +257,8 @@ export const mobilePushManager = {
         if (!resolved) {
           resolved = true;
           clearTimeout(timeoutTimer);
+          tokenSubscribers.delete(handleToken);
+          errorSubscribers.delete(handleError);
           resolve({
             success: false,
             reason: 'fcm_registration_failed',
@@ -236,34 +268,55 @@ export const mobilePushManager = {
         }
       };
 
-      try {
-        // Step 1: Install listeners BEFORE calling register
-        await this.initListeners(plugin, handleToken, handleError);
+      tokenSubscribers.add(handleToken);
+      errorSubscribers.add(handleError);
 
-        // Step 2: Check current permission status
+      try {
+        // Step 1: Check current permission status
         let permStatus = await plugin.checkPermissions();
 
-        // Step 3: Request permission if not already granted (Android 13+ POST_NOTIFICATIONS)
-        if (permStatus.receive !== 'granted') {
+        // Step 2: Request permission if not already granted (Android 13+ POST_NOTIFICATIONS)
+        if (permStatus?.receive !== 'granted') {
           console.log('[MobilePush] Requesting POST_NOTIFICATIONS runtime permission...');
           permStatus = await plugin.requestPermissions();
         }
 
-        if (permStatus.receive !== 'granted') {
+        if (permStatus?.receive !== 'granted') {
           if (!resolved) {
             resolved = true;
             clearTimeout(timeoutTimer);
+            tokenSubscribers.delete(handleToken);
+            errorSubscribers.delete(handleError);
             resolve({
               success: false,
               reason: 'permission_denied',
-              permission: permStatus.receive,
+              permission: permStatus?.receive,
               message: 'Notification permission was denied. Please grant notification permission in Android Settings.'
             });
           }
           return;
         }
 
-        // Step 4: Register with Google Firebase Cloud Messaging via Android SDK
+        // If we already have a cached token, immediately sync to backend as fast-path
+        const cachedToken = currentToken || (typeof localStorage !== 'undefined' && localStorage.getItem('alumnex_fcm_token'));
+        if (cachedToken && !cachedToken.startsWith('fcm_dev_') && cachedToken.length >= 20) {
+          try {
+            const deviceId = getOrCreateDeviceId();
+            await api.post('/notifications/devices/register', {
+              platform: 'android',
+              pushProvider: 'fcm',
+              pushToken: cachedToken,
+              deviceId,
+              deviceName: 'Samsung Galaxy (Alumnex APK)',
+              appVersion: '1.0.2'
+            });
+            handleToken(cachedToken);
+          } catch (e) {
+            console.warn('[MobilePush] Fast-path cached token sync failed, falling through to native register:', e.message);
+          }
+        }
+
+        // Step 3: Register with Google Firebase Cloud Messaging via Android SDK
         console.log('[MobilePush] Permission granted. Invoking native PushNotifications.register()...');
         await plugin.register();
 
@@ -271,6 +324,8 @@ export const mobilePushManager = {
         if (!resolved) {
           resolved = true;
           clearTimeout(timeoutTimer);
+          tokenSubscribers.delete(handleToken);
+          errorSubscribers.delete(handleError);
           console.error('[MobilePush] Exception during FCM registration pipeline:', err.message);
           resolve({
             success: false,
@@ -299,19 +354,22 @@ export const mobilePushManager = {
    * Automatically re-registers device with Alumnex backend on login/app start
    */
   async syncRegistration() {
-    if (!this.isSupported()) return;
+    if (!this.isSupported()) return { success: false, reason: 'unsupported' };
     try {
       const perm = await this.checkPermission();
-      if (perm === 'granted') {
-        await this.requestPermissionAndRegister();
+      // On native platform, attempt registration if granted OR if pending prompt
+      if (perm !== 'denied') {
+        return await this.requestPermissionAndRegister();
       }
+      return { success: false, reason: 'permission_denied' };
     } catch (err) {
       console.warn('[MobilePush] Sync registration error:', err.message);
+      return { success: false, error: err.message };
     }
   },
 
   getCurrentToken() {
-    return currentToken;
+    return currentToken || (typeof localStorage !== 'undefined' && localStorage.getItem('alumnex_fcm_token'));
   }
 };
 

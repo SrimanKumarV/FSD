@@ -29,6 +29,15 @@ const maskClientId = (id) => {
   return `${str.substring(0, 8)}...${str.substring(str.length - 20)}`;
 };
 
+// Helper to format client ID with prefix and suffix safely
+const getMaskedConfig = (id) => {
+  if (!id) return { prefix: '(none)', suffix: '(none)' };
+  const str = String(id).trim();
+  const prefix = str.length > 18 ? `${str.substring(0, 18)}...` : str;
+  const suffix = str.length > 25 ? `...${str.substring(str.length - 25)}` : str;
+  return { prefix, suffix };
+};
+
 // Helper to resolve clean primary frontend URL (supporting comma-separated FRONTEND_URL)
 const getPrimaryFrontendUrl = (req, candidate) => {
   if (candidate && typeof candidate === 'string' && candidate.startsWith('http')) {
@@ -85,7 +94,7 @@ const resolveCalendarRedirectUri = (req) => {
   }
 
   // Fallback: force HTTPS for all public/production deployments
-  const actualHost = host || 'alumnex-backend-backup.onrender.com';
+  const actualHost = host || 'alumnex-backend-2.onrender.com';
   return `https://${actualHost}/api/google-calendar/callback`;
 };
 
@@ -103,7 +112,7 @@ router.get('/connect', protect, (req, res) => {
     const mode = req.query.mode === 'mobile' ? 'mobile' : 'web';
     const redirectUri = resolveCalendarRedirectUri(req);
     const frontendUrl = getPrimaryFrontendUrl(req, req.query.frontendUrl);
-    const rawClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+    const rawClientId = (process.env.GOOGLE_CALENDAR_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '').trim();
 
     const { url, state } = googleCalendarService.generateAuthorizationUrl({
       userId: req.user._id,
@@ -114,18 +123,16 @@ router.get('/connect', protect, (req, res) => {
 
     const parsedAuthUrl = new URL(url);
     const generatedClientId = parsedAuthUrl.searchParams.get('client_id');
+    const maskedConfig = getMaskedConfig(rawClientId);
 
     // Safe diagnostic logging (NEVER logs client secret, tokens, cookies, or JWTs)
-    console.log('[Google Calendar OAuth]');
-    console.log(`clientId: ${maskClientId(rawClientId)}`);
-    console.log(`clientIdLength: ${rawClientId.length}`);
-    console.log(`redirectUri: ${redirectUri}`);
-    console.log(`frontendUrl: ${frontendUrl}`);
-    console.log(`environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`requestHost: ${req.get('host')}`);
-    console.log(`requestProtocol: ${req.protocol}`);
-    console.log(`generatedAuthorizationHost: ${parsedAuthUrl.host}`);
-    console.log(`generatedClientId: ${maskClientId(generatedClientId)}`);
+    console.log('[GoogleCalendar] Google Calendar OAuth configuration');
+    console.log(`clientIdPrefix=${maskedConfig.prefix}`);
+    console.log(`clientIdSuffix=${maskedConfig.suffix}`);
+    console.log(`redirectUri=${redirectUri}`);
+    console.log(`frontendUrl=${frontendUrl}`);
+    console.log(`environment=${process.env.NODE_ENV || 'development'}`);
+    console.log(`generatedClientId=${maskClientId(generatedClientId)}`);
 
     res.cookie('gcal_oauth_state', state, {
       httpOnly: true,
@@ -156,13 +163,9 @@ router.get('/callback', async (req, res) => {
   const rawClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
 
   // Safe diagnostic logging (NEVER logs client secret, tokens, cookies, or JWTs)
-  console.log('[Google Calendar OAuth Callback]');
+  console.log('[GoogleCalendar] callback.received');
   console.log(`clientId: ${maskClientId(rawClientId)}`);
-  console.log(`clientIdLength: ${rawClientId.length}`);
   console.log(`redirectUri: ${redirectUri}`);
-  console.log(`environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`requestHost: ${req.get('host')}`);
-  console.log(`requestProtocol: ${req.protocol}`);
   console.log(`hasAuthorizationCode: ${Boolean(code)}`);
   console.log(`oauthError: ${oauthError || 'none'}`);
 
@@ -239,21 +242,39 @@ router.get('/callback', async (req, res) => {
     </html>
   `;
 
-  // 1. Check for user denial or Google error
+  // 1. Check for user denial or Google error (Step 38: distinguish tester restriction vs cancellation)
   if (oauthError) {
-    const msg = error_description || oauthError;
-    console.warn('[Google Calendar] OAuth access denied by user:', msg);
+    const rawError = String(error_description || oauthError).trim();
+    let categorizedError = rawError;
+    let errorCategory = 'access_denied';
+
+    if (oauthError === 'access_denied') {
+      const lower = rawError.toLowerCase();
+      if (lower.includes('tested') || lower.includes('tester') || lower.includes('verification') || lower.includes('developer-approved')) {
+        errorCategory = 'tester_restriction';
+        categorizedError = 'Access Denied (403): The app is in Google Testing mode. Only developer-approved test users added in Google Cloud Console can connect until the app is published.';
+      } else {
+        errorCategory = 'user_denied';
+        categorizedError = 'Google Calendar connection was cancelled or permission was denied.';
+      }
+    } else if (oauthError === 'redirect_uri_mismatch') {
+      errorCategory = 'redirect_uri_mismatch';
+      categorizedError = 'Google OAuth Error (400): Redirect URI mismatch. Ensure the authorized redirect URI in Google Cloud Console matches the backend callback URL.';
+    }
+
+    console.warn(`[GoogleCalendar] callback.error category=${errorCategory} description=${categorizedError}`);
+
     const isMobile = req.cookies?.gcal_oauth_state?.includes('mobile');
     if (isMobile) {
       return res.status(400).send(renderMobileResult(
-        `com.alumnex.connect://oauth/google-calendar?error=${encodeURIComponent(msg)}`,
-        'Calendar Authorization Cancelled',
-        'You declined Google Calendar access. No calendar data was connected.',
+        `com.alumnex.connect://oauth/google-calendar?error=${encodeURIComponent(categorizedError)}&error_category=${errorCategory}`,
+        'Calendar Authorization Notice',
+        categorizedError,
         true
       ));
     }
     const fallbackFrontend = getPrimaryFrontendUrl(req);
-    return res.redirect(`${fallbackFrontend}/calendar?error=${encodeURIComponent(msg)}`);
+    return res.redirect(`${fallbackFrontend}/calendar?error=${encodeURIComponent(categorizedError)}&error_category=${errorCategory}`);
   }
 
   // 2. Validate state token
@@ -268,7 +289,7 @@ router.get('/callback', async (req, res) => {
       throw new Error('Invalid state token type');
     }
   } catch (err) {
-    console.warn('[Google Calendar] Invalid state in callback:', err.message);
+    console.warn('[GoogleCalendar] callback.state.invalid error:', err.message);
     const fallbackFrontend = getPrimaryFrontendUrl(req);
     return res.redirect(`${fallbackFrontend}/calendar?error=${encodeURIComponent('OAuth security state expired or invalid. Please retry connecting.')}`);
   }
@@ -276,6 +297,8 @@ router.get('/callback', async (req, res) => {
   const { userId, mode, redirectUri: stateRedirectUri, frontendUrl: stateFrontendUrl } = decoded;
   const isMobile = mode === 'mobile';
   const effectiveFrontendUrl = getPrimaryFrontendUrl(req, stateFrontendUrl);
+
+  console.log(`[GoogleCalendar] callback.state.valid userId=${userId} mode=${mode}`);
 
   if (!code) {
     return res.redirect(`${effectiveFrontendUrl}/calendar?error=${encodeURIComponent('No authorization code returned from Google')}`);
@@ -313,7 +336,7 @@ router.get('/callback', async (req, res) => {
         if (primaryCal.timeZone) connection.timezone = primaryCal.timeZone;
       }
     } catch (e) {
-      console.warn('[Google Calendar] Primary calendar fetch warning:', e.message);
+      console.warn('[GoogleCalendar] Primary calendar fetch warning:', e.message);
     }
 
     // Retrieve all calendars to auto-select and sync all available schedules, holidays, and classrooms
@@ -326,7 +349,7 @@ router.get('/callback', async (req, res) => {
         }
       }
     } catch (calListErr) {
-      console.warn('[Google Calendar] Calendars auto-discovery on connect warning:', calListErr.message);
+      console.warn('[GoogleCalendar] Calendars auto-discovery on connect warning:', calListErr.message);
     }
 
     if (!connection.selectedCalendarIds || connection.selectedCalendarIds.length === 0) {
@@ -334,18 +357,19 @@ router.get('/callback', async (req, res) => {
     }
 
     await connection.save();
+    console.log(`[GoogleCalendar] connection.created userId=${userId} email=${googleCalendarService.maskEmail(connection.googleAccountEmail)} calendars=${connection.selectedCalendarIds.length}`);
 
     // Trigger initial asynchronous synchronization
     const io = req.app.get('io');
     calendarSyncService.syncUserCalendar(userId, { force: true, io }).catch(syncErr => {
-      console.error('[Google Calendar] Initial background sync error:', syncErr.message);
+      console.error('[GoogleCalendar] Initial background sync error:', syncErr.message);
     });
 
     // Attempt push notification watch channel registration if HTTPS webhook configured
     const webhookUrl = process.env.GOOGLE_CALENDAR_WEBHOOK_URL;
     if (webhookUrl && webhookUrl.startsWith('https://')) {
       googleCalendarService.createWatchChannel(connection, connection.primaryCalendarId || 'primary', webhookUrl).catch(wErr => {
-        console.warn('[Google Calendar] Watch establishment warning:', wErr.message);
+        console.warn('[GoogleCalendar] Watch establishment warning:', wErr.message);
       });
     }
 
@@ -369,7 +393,7 @@ router.get('/callback', async (req, res) => {
 
     return res.redirect(`${effectiveFrontendUrl}/calendar?connected=true`);
   } catch (err) {
-    console.error('[Google Calendar] Callback exchange error:', err.message);
+    console.error(`[GoogleCalendar] callback.token.exchange.failure userId=${userId || 'unknown'} error=${err.message}`);
     if (isMobile) {
       const deepLinkUrl = `com.alumnex.connect://oauth/google-calendar?error=${encodeURIComponent(err.message || 'Token exchange failed')}`;
       return res.status(500).send(renderMobileResult(deepLinkUrl, 'Connection Error', err.message, true));

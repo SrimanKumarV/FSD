@@ -24,6 +24,7 @@ import { AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
 const Calendar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { socket } = useSocket();
+  const [oauthNotice, setOauthNotice] = useState(null);
 
   // URL query param notifications
   useEffect(() => {
@@ -33,14 +34,29 @@ const Calendar = () => {
       setSearchParams(searchParams, { replace: true });
     }
     const err = searchParams.get('error');
+    const category = searchParams.get('error_category');
     if (err) {
       const decodedErr = decodeURIComponent(err);
-      if (decodedErr.includes('redirect_uri_mismatch') || decodedErr.includes('400')) {
+      if (category === 'tester_restriction' || decodedErr.includes('403') || decodedErr.includes('Testing mode') || decodedErr.includes('access_denied')) {
+        setOauthNotice({
+          type: 'warning',
+          title: 'Google OAuth Access Restriction (403: access_denied)',
+          message: decodedErr.includes('Testing mode')
+            ? decodedErr
+            : 'Google Cloud OAuth consent screen is currently in Testing status. Only developer-approved test users configured under Google Cloud Console > Audience / Test users can connect until the application publishing status is set to In Production.',
+          actionText: 'Open Google Cloud Console',
+          actionUrl: 'https://console.cloud.google.com/apis/credentials/consent'
+        });
+        toast.error('Google Calendar authorization restricted by Google Cloud test user policy.', { duration: 6000 });
+      } else if (category === 'user_denied' || decodedErr.includes('cancelled') || decodedErr.includes('declined')) {
+        toast('Google Calendar connection was cancelled or permission denied.', { icon: 'ℹ️' });
+      } else if (decodedErr.includes('redirect_uri_mismatch') || decodedErr.includes('400')) {
         toast.error('Google OAuth Error (400): Redirect URI mismatch. Please verify Authorized Redirect URIs in Google Cloud Console.', { duration: 6000 });
       } else {
         toast.error(decodedErr, { duration: 5000 });
       }
       searchParams.delete('error');
+      searchParams.delete('error_category');
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -159,6 +175,50 @@ const Calendar = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* 0. OAuth Status / Restriction Notice Banner */}
+      {oauthNotice && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-500 flex-shrink-0 mt-0.5">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                {oauthNotice.title}
+              </h4>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed max-w-2xl">
+                {oauthNotice.message}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            {oauthNotice.actionUrl && (
+              <a
+                href={oauthNotice.actionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 transition-all active:scale-95"
+              >
+                <span>{oauthNotice.actionText || 'Open Console'}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={() => setOauthNotice(null)}
+              className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* 1. Connection / Reauthorization Banner */}
       {(!isConnected || isReauthRequired) && (
         <CalendarConnectCard

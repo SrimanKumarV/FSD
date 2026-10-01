@@ -38,64 +38,86 @@ Alumnex Connect integrates seamlessly with Google Calendar using Google's OAuth 
 
 ---
 
-## 2. Google Cloud Console Configuration
+---
 
-Follow these exact steps to configure your Google Cloud project:
+## 2. Root Cause Analysis: 403 access_denied
 
-### Step 1: Create or Select a Google Cloud Project
-1. Navigate to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Select your existing organization/project or click **New Project** and name it `alumnex-connect-prod` (or `alumnex-connect-dev`).
+### The Issue Observed:
+```
+Access blocked: alumnex-backend-2.onrender.com has not completed the Google verification process
+The app is currently being tested, and can only be accessed by developer-approved testers.
+Error 403: access_denied
+Client ID: 253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com
+Redirect URI: https://alumnex-backend-2.onrender.com/api/google-calendar/callback
+```
 
-### Step 2: Enable the Google Calendar API
-1. In the navigation menu, go to **APIs & Services** > **Library**.
-2. Search for **Google Calendar API**.
-3. Select it and click **Enable**.
+### Exact Root Cause:
+1. **Audience / Publishing Status**: The Google Cloud OAuth consent screen is configured as **User Type: External** with **Publishing Status: Testing**.
+2. **Missing Test User**: In "Testing" status, Google strictly restricts authorization to developer-approved email addresses configured under **OAuth consent screen > Audience > Test users**. Any account (even `alumnexconnect@gmail.com` or developer accounts) not explicitly added to this list is blocked by Google with `Error 403: access_denied`.
+3. **App Branding**: Because the app name and branding are not yet verified/configured on the OAuth consent screen, Google defaults to displaying the OAuth callback hostname (`alumnex-backend-2.onrender.com`) instead of `Alumnex Connect`.
 
-### Step 3: Configure the OAuth Consent Screen
-1. Go to **APIs & Services** > **OAuth consent screen**.
-2. Select **External** (unless your organization is strictly Google Workspace Internal).
-3. Fill in the App Information:
-   - **App Name**: `Alumnex Connect`
-   - **User Support Email**: Select an authorized administrator email.
-   - **App Logo**: Upload the official Alumnex Connect logo (120x120px).
+---
+
+## 3. Google Cloud Console Configuration Guide
+
+Follow these exact steps in Google Cloud Console for project `253683997850`:
+
+### Step 1: Immediate Fix for Developer Testing
+1. Navigate to [Google Cloud Console Credentials / Consent](https://console.cloud.google.com/apis/credentials/consent?project=253683997850).
+2. Under **Audience** / **Test users**, click **+ Add Users**.
+3. Add:
+   - `alumnexconnect@gmail.com`
+   - Any other developer, QA, or pilot Google accounts used for testing.
+4. Click **Save**.
+5. *Immediate Result*: `alumnexconnect@gmail.com` and all added test users can now authorize Google Calendar without receiving the 403 `access_denied` error.
+
+### Step 2: Configure Application Branding (Prevent backend URL from displaying)
+1. Go to **APIs & Services** > **OAuth consent screen** (or **Google Auth Platform** > **Branding**).
+2. Set:
+   - **App Name**: `Alumnex Connect` (Do NOT leave empty or as backend hostname).
+   - **User Support Email**: `alumnexconnect@gmail.com`
+   - **App Logo**: Upload official 120x120px Alumnex Connect logo.
    - **Application Home Page**: `https://alumnex-connect.onrender.com`
-   - **Application Privacy Policy link**: `https://alumnex-connect.onrender.com/privacy`
-   - **Application Terms of Service link**: `https://alumnex-connect.onrender.com/terms`
-   - **Authorized Domains**: Add `onrender.com` (and your custom domain if configured).
-   - **Developer Contact Information**: Your system team's email.
-4. Click **Save and Continue**.
+   - **Application Privacy Policy**: `https://alumnex-connect.onrender.com/privacy`
+   - **Application Terms of Service**: `https://alumnex-connect.onrender.com/terms`
+   - **Authorized Domains**: Add `onrender.com`.
+   - **Developer Contact Email**: `alumnexconnect@gmail.com`
+3. Click **Save and Continue**.
 
-### Step 4: Configure OAuth Scopes
-Add the following least-privilege scopes under **Scopes for Google APIs**:
-- `https://www.googleapis.com/auth/calendar.events`
-  - *Purpose*: Read and write events on the user's primary/selected calendars (e.g., creating mentorship appointments, booking Google Meet rooms, syncing user schedule).
-- `https://www.googleapis.com/auth/calendar.calendarlist.readonly`
-  - *Purpose*: Retrieve the list of calendars owned by or shared with the user so they can select which calendars to sync inside Alumnex.
-- `https://www.googleapis.com/auth/userinfo.email`
-  - *Purpose*: Identify the connected Google account email.
+### Step 3: Configure Minimum Least-Privilege Scopes
+In **Data Access** / **Scopes**, declare:
+- `https://www.googleapis.com/auth/calendar.events` (Sensitive — read/write events, add Google Meet links)
+- `https://www.googleapis.com/auth/calendar.calendarlist.readonly` (Sensitive — list user's calendars for sync selection)
+- `https://www.googleapis.com/auth/userinfo.email` (Non-sensitive — identify user account)
+- `https://www.googleapis.com/auth/userinfo.profile` (Non-sensitive)
+- `openid` (Non-sensitive)
 
-> **Scope Justification Note**: We do NOT request `https://www.googleapis.com/auth/calendar` (full control). This ensures Alumnex cannot delete users' secondary calendars, modify calendar access controls (ACLs), or alter global calendar metadata.
+*Remove any unused broad scopes like `https://www.googleapis.com/auth/calendar`.*
 
-### Step 5: Test Users (While in Testing Mode)
-If your OAuth consent screen publishing status is **Testing**:
-1. Click **Test Users** > **Add Users**.
-2. Enter the Google accounts of engineers, testers, and pilot users.
-3. Users outside this list will receive a `403: access_denied` error until the app is submitted and approved by Google.
+### Step 4: Transition to Production (All Users Integration)
+1. In **OAuth consent screen**, locate **Publishing status**.
+2. Click **Publish App** to switch from **Testing** to **In Production**.
+3. *Effect*:
+   - Any standard Google account can now connect their calendar without needing to be pre-registered as a test user.
+   - Google displays an initial "Google hasn't verified this app" notice during user consent. Users can click **Advanced > Go to Alumnex Connect (unsafe)** to connect while verification is in progress.
+   - Up to 100 unverified users can connect before Google requires full OAuth verification.
 
-### Step 6: Create OAuth 2.0 Credentials
-1. Go to **APIs & Services** > **Credentials**.
-2. Click **Create Credentials** > **OAuth client ID**.
-3. Application Type: **Web application**.
-4. Name: `Alumnex Connect Web & Mobile Client`.
-5. **Authorized JavaScript origins**:
-   - `http://localhost:3000` (Local Frontend)
-   - `http://localhost:5000` (Local Backend)
-   - `https://alumnex-connect.onrender.com` (Production URL)
-6. **Authorized redirect URIs**:
-   - `http://localhost:5000/api/google-calendar/callback` (Local Development)
-   - `https://alumnex-connect.onrender.com/api/google-calendar/callback` (Production Environment)
-7. Click **Create**.
-8. Copy the **Client ID** and **Client Secret**.
+### Step 5: Verification Submission Readiness
+To remove the "unverified app" screen entirely for all production users:
+1. Click **Prepare for verification** / **Submit for verification**.
+2. Provide the Scope Justification:
+   > *"Alumnex Connect requests Calendar event access (calendar.events and calendar.calendarlist.readonly) so registered students and alumni can view their academic and career schedule alongside Alumnex mentorship sessions, campus events, and workshops. It allows exporting confirmed 1:1 mentorship appointments with Google Meet links to the user's chosen calendar."*
+3. Provide a demonstration video (YouTube unlisted link) showing the user clicking "Connect Google Calendar", granting permissions, returning to Alumnex, seeing their events, and exporting a mentorship session.
+4. Ensure the privacy policy at `https://alumnex-connect.onrender.com/privacy` includes the Limited Use Disclosure (already implemented in Section 6).
+
+### Step 6: Verify Exact Redirect URIs
+Under **Credentials** > OAuth 2.0 Client ID `253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com`:
+- **Authorized Redirect URIs**:
+  - `https://alumnex-backend-2.onrender.com/api/google-calendar/callback` (Production Backend)
+  - `http://localhost:5000/api/google-calendar/callback` (Local Development)
+- **Authorized JavaScript Origins**:
+  - `https://alumnex-connect.onrender.com` (Production Frontend)
+  - `http://localhost:3000` (Local Frontend)
 
 ---
 

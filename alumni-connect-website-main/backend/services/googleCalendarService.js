@@ -13,13 +13,40 @@ const CALENDAR_SCOPES = [
 
 class GoogleCalendarService {
   /**
+   * Helper to safely mask client ID without leaking sensitive characters
+   * @param {string} id
+   * @returns {string}
+   */
+  maskClientId(id) {
+    if (!id) return '(none)';
+    const str = String(id).trim();
+    if (str.length <= 28) {
+      return str.length > 8 ? `${str.substring(0, 4)}...${str.substring(str.length - 4)}` : '***';
+    }
+    return `${str.substring(0, 8)}...${str.substring(str.length - 20)}`;
+  }
+
+  /**
+   * Helper to safely mask email address in logs
+   * @param {string} email
+   * @returns {string}
+   */
+  maskEmail(email) {
+    if (!email || !email.includes('@')) return '(none)';
+    const [user, domain] = email.split('@');
+    const maskedUser = user.length > 2 ? `${user[0]}***${user[user.length - 1]}` : `${user[0]}***`;
+    return `${maskedUser}@${domain}`;
+  }
+
+  /**
    * Returns a configured OAuth2Client instance
+   * Supports dedicated GOOGLE_CALENDAR_CLIENT_ID / SECRET with fallback to GOOGLE_CLIENT_ID / SECRET
    * @param {string} [redirectUri]
    * @returns {OAuth2Client}
    */
   getOAuthClient(redirectUri) {
-    let clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
-    let clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    let clientId = (process.env.GOOGLE_CALENDAR_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '').trim();
+    let clientSecret = (process.env.GOOGLE_CALENDAR_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '').trim();
     const activeRedirectUri = (redirectUri || process.env.GOOGLE_CALENDAR_REDIRECT_URI || '').trim();
 
     // Guard against accidental swap or misplacement:
@@ -64,6 +91,8 @@ class GoogleCalendarService {
   generateAuthorizationUrl({ userId, mode = 'web', redirectUri, frontendUrl }) {
     const client = this.getOAuthClient(redirectUri);
 
+    console.log(`[GoogleCalendar] connect.start userId=${userId} mode=${mode}`);
+
     const nonce = crypto.randomBytes(24).toString('hex');
     const statePayload = {
       userId: userId.toString(),
@@ -91,6 +120,7 @@ class GoogleCalendarService {
       state: stateToken
     });
 
+    console.log(`[GoogleCalendar] connect.url.generated userId=${userId}`);
     return { url, state: stateToken, redirectUri, frontendUrl };
   }
 
@@ -111,6 +141,7 @@ class GoogleCalendarService {
     });
     const profile = userInfoRes.data || {};
 
+    console.log(`[GoogleCalendar] callback.token.exchange.success account=${this.maskEmail(profile.email)} hasRefreshToken=${Boolean(tokens.refresh_token)}`);
     return { tokens, profile };
   }
 
@@ -168,7 +199,9 @@ class GoogleCalendarService {
         }
         await conn.save();
         client.setCredentials(credentials);
+        console.log(`[GoogleCalendar] token.refresh.success userId=${conn.userId}`);
       } catch (refreshErr) {
+        console.error(`[GoogleCalendar] token.refresh.failure userId=${conn.userId} error=${refreshErr.message}`);
         await this.handleGoogleApiError(refreshErr, conn);
         throw refreshErr;
       }
@@ -565,6 +598,7 @@ class GoogleCalendarService {
     connection.pushNotificationsEnabled = false;
     connection.watchChannels = [];
     await connection.save();
+    console.log(`[GoogleCalendar] disconnect.success userId=${connection.userId}`);
   }
 
   /**

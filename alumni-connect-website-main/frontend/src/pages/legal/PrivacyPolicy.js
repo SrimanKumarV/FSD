@@ -76,6 +76,27 @@ const PrivacyPolicy = () => {
                 Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to request access, correction, erasure, restriction, transfer, to object to processing, to portability of data and (where the lawful ground of processing is consent) to withdraw consent.
               </p>
             </section>
+
+            <section className="p-6 bg-primary-50/50 dark:bg-primary-950/20 border border-primary-200/60 dark:border-primary-800/40 rounded-2xl">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">6. Google Calendar API & User Data Policy Compliance</h2>
+              <p className="mb-3">
+                When you connect your Google Account with Alumnex Connect, we request least-privilege access to your Google Calendar via official OAuth 2.0 authorization (scopes: <code>https://www.googleapis.com/auth/calendar.events</code> and <code>https://www.googleapis.com/auth/calendar.calendarlist.readonly</code>).
+              </p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">How We Access and Use Google User Data:</h3>
+              <ul className="list-disc pl-6 space-y-1.5 mb-4">
+                <li><strong>Read Calendars & Events:</strong> To display your personal events alongside academic workshops, campus deadlines, and 1:1 mentorship sessions.</li>
+                <li><strong>Create & Update Events:</strong> To allow you to export confirmed mentorship sessions (with Google Meet video conferences) and campus events directly to your chosen calendar.</li>
+                <li><strong>Free-Time Context:</strong> To help calculate available focus windows for daily activity planning without exposing personal event details to other users.</li>
+              </ul>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Limited Use Disclosure:</h3>
+              <p className="mb-3 italic">
+                Alumnex Connect's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 underline font-semibold">Google API Services User Data Policy</a>, including the Limited Use requirements.
+              </p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Data Security & Revocation:</h3>
+              <p>
+                All Google OAuth access and refresh tokens are encrypted at rest using AES-256-GCM. We never share, sell, or use your Google Calendar data for advertising or model training. You may disconnect Google Calendar and purge all synchronized credentials at any time in <strong>Settings &gt; Integrations &gt; Google Calendar</strong> or via <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 underline">Google Account Permissions</a>.
+              </p>
+            </section>
           </div>
         </motion.div>
       </div>

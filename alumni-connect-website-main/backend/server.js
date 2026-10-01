@@ -149,6 +149,29 @@ if (process.env.NODE_ENV !== 'test') {
       } catch (cleanErr) {
         console.warn('[NotificationDevice] Startup cleanup note:', cleanErr.message);
       }
+
+      // Google Calendar Configuration & Encryption Key Startup Validation (Step 20)
+      try {
+        const encryptionKey = process.env.GOOGLE_CALENDAR_ENCRYPTION_KEY || process.env.JWT_SECRET;
+        if (!encryptionKey) {
+          console.warn('[Startup] [GoogleCalendar] Warning: Neither GOOGLE_CALENDAR_ENCRYPTION_KEY nor JWT_SECRET is configured. Calendar token encryption requires a secure 32-byte secret.');
+        } else {
+          console.log('[Startup] [GoogleCalendar] Token encryption engine validated.');
+        }
+
+        const rawCalClientId = (process.env.GOOGLE_CALENDAR_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '').trim();
+        const rawCalSecret = (process.env.GOOGLE_CALENDAR_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '').trim();
+        if (rawCalClientId && rawCalSecret) {
+          const calMask = rawCalClientId.length > 25 
+            ? `${rawCalClientId.substring(0, 8)}...${rawCalClientId.substring(rawCalClientId.length - 20)}` 
+            : 'configured';
+          console.log(`[Startup] [GoogleCalendar] OAuth client loaded: ${calMask}`);
+        } else {
+          console.warn('[Startup] [GoogleCalendar] Note: Google Calendar OAuth client credentials are not fully set.');
+        }
+      } catch (calInitErr) {
+        console.warn('[Startup] [GoogleCalendar] Init note:', calInitErr.message);
+      }
     })
     .catch(err => console.error('MongoDB connection error:', err));
 }

@@ -221,4 +221,97 @@ describe('Google Calendar Integration Tests', () => {
       expect(res.text).toBe('OK');
     });
   });
+
+  describe('7. Multi-User Database Isolation (Step 41)', () => {
+    it('should strictly isolate User A and User B connections, tokens, and events', async () => {
+      // Create User B
+      const userB = await User.create({
+        name: 'Calendar User B',
+        email: 'userb@example.com',
+        password: 'password123',
+        role: 'student',
+        isVerified: true
+      });
+      const authTokenB = jwt.sign({ id: userB._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+      // Create Connection A
+      await GoogleCalendarConnection.create({
+        userId: testUser._id,
+        googleAccountEmail: 'usera@gmail.com',
+        accessToken: 'access-token-A',
+        refreshToken: 'refresh-token-A',
+        status: 'connected',
+        primaryCalendarId: 'cal_a_primary'
+      });
+
+      // Create Connection B
+      await GoogleCalendarConnection.create({
+        userId: userB._id,
+        googleAccountEmail: 'userb@gmail.com',
+        accessToken: 'access-token-B',
+        refreshToken: 'refresh-token-B',
+        status: 'connected',
+        primaryCalendarId: 'cal_b_primary'
+      });
+
+      // Create Event for User A
+      await GoogleCalendarEvent.create({
+        userId: testUser._id,
+        googleCalendarId: 'cal_a_primary',
+        googleEventId: 'event_A_1',
+        summary: 'Secret Meeting User A',
+        start: new Date(),
+        end: new Date(Date.now() + 3600000),
+        status: 'confirmed'
+      });
+
+      // Create Event for User B
+      await GoogleCalendarEvent.create({
+        userId: userB._id,
+        googleCalendarId: 'cal_b_primary',
+        googleEventId: 'event_B_1',
+        summary: 'Secret Meeting User B',
+        start: new Date(),
+        end: new Date(Date.now() + 3600000),
+        status: 'confirmed'
+      });
+
+      // 1. User A querying events should only see User A's events
+      const resA = await request(app)
+        .get('/api/google-calendar/events')
+        .set('Authorization', `Bearer ${authToken}`);
+      expect(resA.statusCode).toBe(200);
+      expect(resA.body.events.length).toBe(1);
+      expect(resA.body.events[0].summary).toBe('Secret Meeting User A');
+      expect(resA.body.events[0].googleEventId).toBe('event_A_1');
+
+      // 2. User B querying events should only see User B's events
+      const resB = await request(app)
+        .get('/api/google-calendar/events')
+        .set('Authorization', `Bearer ${authTokenB}`);
+      expect(resB.statusCode).toBe(200);
+      expect(resB.body.events.length).toBe(1);
+      expect(resB.body.events[0].summary).toBe('Secret Meeting User B');
+      expect(resB.body.events[0].googleEventId).toBe('event_B_1');
+
+      // 3. User A status endpoint should only see Connection A
+      const statusResA = await request(app)
+        .get('/api/google-calendar/status')
+        .set('Authorization', `Bearer ${authToken}`);
+      expect(statusResA.body.googleAccountEmail).toBe('usera@gmail.com');
+
+      // 4. User B status endpoint should only see Connection B
+      const statusResB = await request(app)
+        .get('/api/google-calendar/status')
+        .set('Authorization', `Bearer ${authTokenB}`);
+      expect(statusResB.body.googleAccountEmail).toBe('userb@gmail.com');
+
+      // 5. Database token isolation: User A cannot decrypt User B's tokens
+      const fetchedConnA = await GoogleCalendarConnection.findOne({ userId: testUser._id }).select('+accessToken +refreshToken');
+      const fetchedConnB = await GoogleCalendarConnection.findOne({ userId: userB._id }).select('+accessToken +refreshToken');
+      expect(fetchedConnA.getDecryptedTokens().refreshToken).toBe('refresh-token-A');
+      expect(fetchedConnB.getDecryptedTokens().refreshToken).toBe('refresh-token-B');
+      expect(fetchedConnA.getDecryptedTokens().refreshToken).not.toEqual(fetchedConnB.getDecryptedTokens().refreshToken);
+    });
+  });
 });

@@ -67,6 +67,8 @@ class CalendarSyncService {
         ? options.calendarIds
         : selectedCalendars;
 
+      console.log(`[GoogleCalendar] calendar.sync.start userId=${userId} calendarsCount=${calendarsToSync.length}`);
+
       let totalSynced = 0;
       let totalDeleted = 0;
 
@@ -177,6 +179,8 @@ class CalendarSyncService {
       await cache.del(`activity:dashboard:${userId}`);
       await cache.del(`calendar:events:${userId}`);
 
+      console.log(`[GoogleCalendar] calendar.sync.success userId=${userId} syncedCount=${totalSynced} deletedCount=${totalDeleted}`);
+
       // Emit Socket.IO realtime update if available
       const io = options.io;
       if (io) {
@@ -194,7 +198,7 @@ class CalendarSyncService {
         lastSyncedAt: connection.lastSyncedAt
       };
     } catch (err) {
-      console.error('[CalendarSyncService] Global sync error:', err.message);
+      console.error(`[GoogleCalendar] calendar.sync.failure userId=${userId} error=${err.message}`);
       await GoogleCalendarConnection.updateOne(
         { userId },
         {

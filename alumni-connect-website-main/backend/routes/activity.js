@@ -579,10 +579,220 @@ router.post('/admin/test-email', protect, admin, async (req, res) => {
       message: html
     });
 
-    res.json({ message: 'Test email sent', result });
+    res.json({ message: 'Test email sent successfully', result });
   } catch (error) {
     console.error('[Activity] Test email error:', error.message);
     res.status(500).json({ message: 'Failed to send test email', error: error.message });
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DIAGNOSTIC SUITE & INCIDENT RECONCILIATION (Phases 14, 35, 65)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// @desc    Get detailed Activity Intelligence & Notification Duplication Diagnostic
+// @route   GET /api/activity/diagnostics
+// @access  Private
+router.get('/diagnostics', protect, async (req, res) => {
+  try {
+    const DevProfile = require('../models/DevProfile');
+    const NotificationDevice = require('../models/NotificationDevice');
+    const targetUserId = (req.user.role === 'admin' && req.query.userId) ? req.query.userId : req.user._id;
+
+    const prefs = await ReminderPreference.findOne({ userId: targetUserId }).lean();
+    const timezone = prefs?.timezone || 'Asia/Kolkata';
+    const today = req.query.date || activityService.getTodayInTimezone(timezone);
+
+    const [user, devProfile, goals, todayRecords, notifications, devices] = await Promise.all([
+      require('../models/User').findById(targetUserId).select('name email').lean(),
+      DevProfile.findOne({ user: targetUserId }).lean(),
+      ActivityGoal.find({ userId: targetUserId }).lean(),
+      ActivityRecord.find({ userId: targetUserId, date: today }).lean(),
+      Notification.find({
+        recipient: targetUserId,
+        createdAt: {
+          $gte: new Date(new Date().setDate(new Date().getDate() - 2))
+        }
+      }).sort({ createdAt: -1 }).limit(50).lean(),
+      NotificationDevice.find({ userId: targetUserId, platform: 'android' }).lean()
+    ]);
+
+    // Filter notifications for target date
+    const todayNotifications = notifications.filter(n => {
+      const notifDate = activityService.formatDateInTimezone(n.createdAt, timezone);
+      return notifDate === today;
+    });
+
+    const streakAtRiskNotifs = todayNotifications.filter(n => (n.type || '').toUpperCase().includes('STREAK'));
+    const goalReminderNotifs = todayNotifications.filter(n => (n.type || '').toUpperCase().includes('REMINDER') || (n.type || '').toUpperCase().includes('GOAL'));
+
+    // Token analysis
+    const tokenCounts = {};
+    for (const d of devices) {
+      if (d.pushToken) {
+        tokenCounts[d.pushToken] = (tokenCounts[d.pushToken] || 0) + 1;
+      }
+    }
+    const uniqueTokens = Object.keys(tokenCounts);
+    const duplicateTokens = Object.entries(tokenCounts).filter(([_, count]) => count > 1);
+
+    // Platform analysis
+    const platformDiagnostics = {};
+    if (devProfile?.stats) {
+      for (const [p, stats] of Object.entries(devProfile.stats)) {
+        const username = devProfile.usernames?.[p]?.username;
+        const normalized = activityService.normalizePlatformData(p, stats, username, timezone);
+        platformDiagnostics[p] = {
+          username,
+          connected: true,
+          activityToday: normalized.activityToday,
+          lastActivityAt: normalized.lastActivityAt,
+          currentStreak: normalized.currentStreak,
+          longestStreak: normalized.longestStreak
+        };
+      }
+    }
+
+    // Goals diagnosis
+    const goalMap = todayRecords.reduce((acc, r) => {
+      if (r.goalId) acc[r.goalId.toString()] = r;
+      return acc;
+    }, {});
+
+    const goalsDiagnostic = goals.map(g => ({
+      goalId: g._id,
+      title: g.title,
+      platform: g.platform,
+      trackingMode: g.trackingMode,
+      enabled: g.enabled,
+      currentStreak: g.currentStreak,
+      longestStreak: g.longestStreak,
+      completedToday: !!goalMap[g._id.toString()],
+      record: goalMap[g._id.toString()] || null
+    }));
+
+    // Diagnostic Verdict (Answers prompt section 35)
+    let verdict = 'Healthy';
+    const serverSideMultiNotification = streakAtRiskNotifs.length > 1 || goalReminderNotifs.length > 1;
+    const deviceRowMultiplication = duplicateTokens.length > 0;
+
+    if (serverSideMultiNotification && deviceRowMultiplication) {
+      verdict = 'CRITICAL_MULTIPLE_CAUSES: Multiple server notifications created AND duplicate Android device rows present in database.';
+    } else if (serverSideMultiNotification) {
+      verdict = 'SERVER_NOTIFICATION_DUPLICATION: The server created multiple notification records (e.g. uncoordinated cron workers).';
+    } else if (deviceRowMultiplication) {
+      verdict = 'FCM_DELIVERY_DUPLICATION: The server created a single logical notification, but multiple device rows caused FCM to deliver it multiple times.';
+    }
+
+    const { minutesUntilMidnight } = require('../utils/timezoneHelper').getMidnightProximity(timezone);
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      user: {
+        id: targetUserId,
+        name: user?.name,
+        email: user?.email,
+        timezone,
+        targetDate: today,
+        minutesUntilMidnight
+      },
+      verdict,
+      syncFreshness: {
+        lastSyncAttemptAt: devProfile?.lastSyncAttemptAt || null,
+        lastSuccessfulRemoteSyncAt: devProfile?.lastSuccessfulRemoteSyncAt || null,
+        syncStatus: devProfile?.syncStatus || 'unknown',
+        platforms: platformDiagnostics
+      },
+      goals: goalsDiagnostic,
+      recordsTodayCount: todayRecords.length,
+      notificationsToday: {
+        totalRecords: todayNotifications.length,
+        streakAtRiskRecords: streakAtRiskNotifs.length,
+        goalReminderRecords: goalReminderNotifs.length,
+        eventKeys: todayNotifications.map(n => n.dedupKey || n.groupId || 'no_key'),
+        details: todayNotifications.map(n => ({
+          id: n._id,
+          type: n.type,
+          title: n.title,
+          dedupKey: n.dedupKey,
+          createdAt: n.createdAt
+        }))
+      },
+      androidDevices: {
+        totalRows: devices.length,
+        uniqueTokensCount: uniqueTokens.length,
+        duplicateTokensCount: duplicateTokens.length,
+        duplicateTokenDetails: duplicateTokens.map(([token, count]) => ({
+          tokenMask: token.length > 12 ? `${token.substring(0, 6)}...${token.slice(-6)}` : token,
+          count
+        })),
+        rows: devices.map(d => ({
+          id: d._id,
+          deviceId: d.deviceId,
+          deviceName: d.deviceName,
+          enabled: d.enabled,
+          tokenMask: d.pushToken ? `${d.pushToken.substring(0, 6)}...${d.pushToken.slice(-6)}` : 'none',
+          tokenUpdatedAt: d.tokenUpdatedAt,
+          lastSeenAt: d.lastSeenAt
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('[Activity] Diagnostics error:', error);
+    res.status(500).json({ message: 'Diagnostic query failed', error: error.message });
+  }
+});
+
+// @desc    Perform safe database cleanup for duplicate devices and notifications
+// @route   POST /api/activity/diagnostics/cleanup
+// @access  Private
+router.post('/diagnostics/cleanup', protect, async (req, res) => {
+  try {
+    const NotificationDevice = require('../models/NotificationDevice');
+    const targetUserId = req.user._id;
+
+    // 1. Clean duplicate Android devices for current user, preserving newest
+    const devices = await NotificationDevice.find({ userId: targetUserId, platform: 'android' })
+      .sort({ tokenUpdatedAt: -1, updatedAt: -1 });
+
+    const seenTokens = new Set();
+    const duplicateIds = [];
+
+    for (const dev of devices) {
+      if (!dev.pushToken) continue;
+      if (seenTokens.has(dev.pushToken)) {
+        duplicateIds.push(dev._id);
+      } else {
+        seenTokens.add(dev.pushToken);
+      }
+    }
+
+    let devicesCleaned = 0;
+    if (duplicateIds.length > 0) {
+      const delRes = await NotificationDevice.deleteMany({ _id: { $in: duplicateIds } });
+      devicesCleaned = delRes.deletedCount;
+    }
+
+    // 2. Reconcile all streaks for user from ActivityRecord durable truth
+    const userGoals = await ActivityGoal.find({ userId: targetUserId, enabled: true });
+    const prefs = await ReminderPreference.findOne({ userId: targetUserId });
+    const tz = prefs?.timezone || 'Asia/Kolkata';
+
+    const reconciledGoals = [];
+    for (const g of userGoals) {
+      const r = await activityService.reconcileGoalStreak(g._id, targetUserId, tz);
+      if (r) reconciledGoals.push(r);
+    }
+
+    res.json({
+      success: true,
+      message: 'Database cleanup and streak reconciliation completed',
+      devicesCleaned,
+      reconciledGoals
+    });
+  } catch (error) {
+    console.error('[Activity] Cleanup error:', error);
+    res.status(500).json({ message: 'Cleanup failed', error: error.message });
   }
 });
 

@@ -254,19 +254,45 @@ class FCMService {
       pushToken: { $exists: true, $ne: null }
     }).lean();
 
+    // Deduplicate active devices by unique pushToken (Phases 11 & 12)
+    const uniqueDevicesByToken = new Map();
+    const duplicateDeviceIdsToDelete = [];
+
+    for (const dev of devices) {
+      const token = dev.pushToken ? dev.pushToken.trim() : null;
+      if (!token) continue;
+      if (!uniqueDevicesByToken.has(token)) {
+        uniqueDevicesByToken.set(token, dev);
+      } else {
+        // Redundant duplicate database row with identical pushToken
+        duplicateDeviceIdsToDelete.push(dev._id);
+      }
+    }
+
+    // Proactively clean duplicate rows from database
+    if (duplicateDeviceIdsToDelete.length > 0) {
+      console.log(`[FCMService] Deduplicated ${duplicateDeviceIdsToDelete.length} redundant Android device record(s) for user ${userId}`);
+      NotificationDevice.deleteMany({ _id: { $in: duplicateDeviceIdsToDelete } }).catch(e => {
+        console.warn('[FCMService] Device deduplication cleanup warning:', e.message);
+      });
+    }
+
+    const uniqueDevices = Array.from(uniqueDevicesByToken.values());
+
     const summary = {
       sent: 0,
       failed: 0,
-      total: devices.length,
+      total: uniqueDevices.length,
       invalidTokensRemoved: 0,
+      deduplicatedCount: duplicateDeviceIdsToDelete.length,
       details: []
     };
 
-    if (devices.length === 0) {
+    if (uniqueDevices.length === 0) {
       return summary;
     }
 
-    for (const dev of devices) {
+    for (const dev of uniqueDevices) {
       const res = await this.sendToDevice(dev.pushToken, payload, { deviceDoc: dev });
       summary.details.push({
         deviceId: dev.deviceId,

@@ -5,6 +5,22 @@ const Notification = require('../models/Notification');
 const cache = require('../utils/cache');
 const calendarSyncService = require('./calendarSyncService');
 const {
+  getTodayInTimezone,
+  formatDateInTimezone,
+  getDayOfWeekInTimezone,
+  getPreviousDate,
+  getNextDate,
+  isConsecutiveDay,
+  getLocalTimeInfo,
+  getMidnightProximity,
+  isQuietHours,
+  isReminderDay
+} = require('../utils/timezoneHelper');
+const {
+  syncUserActivityIntelligence,
+  reconcileGoalStreak
+} = require('./activitySyncOrchestrator');
+const {
   fetchGitHubStats,
   fetchLeetCodeStats,
   fetchHackerRankStats,
@@ -103,69 +119,9 @@ const PLATFORM_INFO = {
 
 const MILESTONES = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
 
-// ─── TIMEZONE & DATE UTILITIES ──────────────────────────────────
-
-function getTodayInTimezone(timezone = 'Asia/Kolkata') {
-  try {
-    const now = new Date();
-    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).formatToParts(now);
-    const year = parts.find(p => p.type === 'year').value;
-    const month = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
-    return `${year}-${month}-${day}`;
-  } catch {
-    return new Date().toISOString().split('T')[0];
-  }
-}
-
-function formatDateInTimezone(date, timezone = 'Asia/Kolkata') {
-  try {
-    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).formatToParts(new Date(date));
-    const year = parts.find(p => p.type === 'year').value;
-    const month = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
-    return `${year}-${month}-${day}`;
-  } catch {
-    return new Date(date).toISOString().split('T')[0];
-  }
-}
-
-function getDayOfWeekInTimezone(date, timezone = 'Asia/Kolkata') {
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' }).formatToParts(new Date(date));
-    const dayStr = parts.find(p => p.type === 'weekday').value;
-    const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-    return dayMap[dayStr] ?? new Date(date).getDay();
-  } catch {
-    return new Date(date).getDay();
-  }
-}
-
-function getPreviousDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().split('T')[0];
-}
-
-function getNextDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().split('T')[0];
-}
-
-function isConsecutiveDay(lastDate, timezone = 'Asia/Kolkata') {
-  if (!lastDate) return false;
-  const lastStr = formatDateInTimezone(lastDate, timezone);
-  const todayStr = getTodayInTimezone(timezone);
-  const yesterdayStr = getPreviousDate(todayStr);
-  return lastStr === yesterdayStr || lastStr === todayStr;
-}
-
 // ─── PLATFORM DATA NORMALIZATION ────────────────────────────────
 
-function normalizePlatformData(platform, rawStats, username) {
+function normalizePlatformData(platform, rawStats, username, timezone = 'Asia/Kolkata') {
   if (!rawStats) {
     return {
       platform,
@@ -185,7 +141,7 @@ function normalizePlatformData(platform, rawStats, username) {
     };
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayInTimezone(timezone);
   let currentStreak = null;
   let longestStreak = null;
   let activityToday = false;
@@ -203,9 +159,16 @@ function normalizePlatformData(platform, rawStats, username) {
     }
     case 'leetcode': {
       if (rawStats.calendar) {
-        const todayTs = Math.floor(new Date(today).getTime() / 1000);
-        const todayStart = todayTs - (todayTs % 86400);
-        activityToday = (rawStats.calendar[todayStart.toString()] || 0) > 0;
+        // Timezone-aware timestamp check:
+        for (const [timestampStr, count] of Object.entries(rawStats.calendar)) {
+          if (count > 0) {
+            const ts = Number(timestampStr);
+            if (!isNaN(ts) && formatDateInTimezone(ts * 1000, timezone) === today) {
+              activityToday = true;
+              break;
+            }
+          }
+        }
         const calendarDays = Object.keys(rawStats.calendar)
           .map(Number)
           .filter(ts => rawStats.calendar[ts] > 0)
@@ -220,10 +183,9 @@ function normalizePlatformData(platform, rawStats, username) {
     }
     case 'duolingo': {
       currentStreak = rawStats.streak ?? null;
-      activityToday = rawStats.streakData?.currentStreak?.endDate === today;
-      lastActivityAt = rawStats.streakData?.currentStreak?.endDate
-        ? new Date(rawStats.streakData.currentStreak.endDate)
-        : null;
+      const duoEndDate = rawStats.streakData?.currentStreak?.endDate;
+      activityToday = duoEndDate === today;
+      lastActivityAt = duoEndDate ? new Date(duoEndDate) : null;
       break;
     }
     case 'hackerrank': {
@@ -343,156 +305,11 @@ async function refreshPlatformData(userId, platform) {
 // ─── AUTOMATED PLATFORM SYNC & GOAL VERIFICATION ────────────────
 
 async function syncUserPlatformActivities(userId, timezone = 'Asia/Kolkata', refreshRemote = false) {
-  const today = getTodayInTimezone(timezone);
-  let devProfile = await DevProfile.findOne({ user: userId });
-  if (!devProfile) return { synced: 0, activitiesDetected: [], goalsVerified: [] };
-
-  // If remote refresh is requested, fetch fresh platform stats for all connected usernames
-  if (refreshRemote && devProfile.usernames) {
-    let hasUpdates = false;
-    for (const [platform, uData] of Object.entries(devProfile.usernames)) {
-      const username = uData?.username;
-      const fetcher = PLATFORM_FETCHERS[platform];
-      if (username && fetcher) {
-        try {
-          const rawStats = await fetcher(username);
-          if (rawStats) {
-            if (!devProfile.stats) devProfile.stats = {};
-            devProfile.stats[platform] = rawStats;
-            hasUpdates = true;
-          }
-        } catch (fetchErr) {
-          console.warn(`[ActivityService] Error fetching ${platform} for sync:`, fetchErr.message);
-        }
-      }
-    }
-    if (hasUpdates) {
-      devProfile.lastUpdated = new Date();
-      devProfile.markModified('stats');
-      await devProfile.save();
-    }
-  }
-
-  if (!devProfile.stats) return { synced: 0, activitiesDetected: [], goalsVerified: [] };
-
-  const detectedActivities = [];
-  const goalsVerified = [];
-
-  for (const [platform, stats] of Object.entries(devProfile.stats)) {
-    if (!stats || stats.fetchError) continue;
-    const normalized = normalizePlatformData(platform, stats, devProfile.usernames?.[platform]?.username);
-    
-    if (normalized.activityToday) {
-      detectedActivities.push({
-        platform,
-        category: PLATFORM_INFO[platform]?.category || 'coding',
-        title: `${PLATFORM_INFO[platform]?.name || platform} Activity Verified`,
-        completionType: PLATFORM_INFO[platform]?.connectionType === 'api-verified' ? 'api-verified' : 'auto-detected'
-      });
-
-      // 1. Ensure a general activity record exists for this platform today (idempotent)
-      const existingPlatformRecord = await ActivityRecord.findOne({
-        userId,
-        platform,
-        date: today,
-        goalId: null
-      });
-
-      if (!existingPlatformRecord) {
-        try {
-          await ActivityRecord.create({
-            userId,
-            platform,
-            category: PLATFORM_INFO[platform]?.category || 'coding',
-            title: `${PLATFORM_INFO[platform]?.name || platform} Activity Detected`,
-            sourceTitle: `${PLATFORM_INFO[platform]?.name || platform} platform activity`,
-            sourceId: `${platform}-${today}`,
-            date: today,
-            completed: true,
-            completionType: PLATFORM_INFO[platform]?.connectionType === 'api-verified' ? 'api-verified' : 'auto-detected',
-            metadata: { platform, autoDetected: true }
-          });
-        } catch (recordErr) {
-          if (recordErr.code !== 11000) {
-            console.error('[Activity] Error creating general platform record:', recordErr.message);
-          }
-        }
-      }
-
-      // 2. Auto-complete any active goals matching this platform or category
-      const matchingGoals = await ActivityGoal.find({
-        userId,
-        enabled: true,
-        $or: [
-          { platform },
-          { category: PLATFORM_INFO[platform]?.category || 'coding', trackingMode: { $in: ['automatic', 'hybrid'] } }
-        ]
-      });
-
-      for (const goal of matchingGoals) {
-        let goalRecord = await ActivityRecord.findOne({ userId, goalId: goal._id, date: today });
-        if (!goalRecord || !goalRecord.completed) {
-          if (!goalRecord) {
-            goalRecord = new ActivityRecord({
-              userId,
-              goalId: goal._id,
-              platform: goal.platform || platform,
-              category: goal.category || 'coding',
-              title: goal.title,
-              sourceTitle: `${PLATFORM_INFO[platform]?.name || platform} Activity Verified`,
-              date: today,
-              completed: true,
-              completionType: 'api-verified'
-            });
-          } else {
-            goalRecord.completed = true;
-            goalRecord.completionType = 'api-verified';
-          }
-          
-          try {
-            await goalRecord.save();
-            goalsVerified.push({ goalId: goal._id, title: goal.title, platform });
-          } catch (goalSaveErr) {
-            if (goalSaveErr.code !== 11000) {
-              console.error('[Activity] Error saving goal record:', goalSaveErr.message);
-            }
-          }
-
-          // Increment goal streak
-          if (!goal.lastCompletedAt || isConsecutiveDay(goal.lastCompletedAt, timezone)) {
-            goal.currentStreak = (goal.currentStreak || 0) + 1;
-          } else {
-            goal.currentStreak = 1;
-          }
-          goal.longestStreak = Math.max(goal.longestStreak || 0, goal.currentStreak);
-          goal.lastCompletedAt = new Date();
-          goal.totalCompletions = (goal.totalCompletions || 0) + 1;
-          await goal.save();
-
-          // Check milestone for goal
-          if (MILESTONES.includes(goal.currentStreak)) {
-            await Notification.createNotification({
-              recipient: userId,
-              type: 'activity-milestone',
-              title: `🏆 ${goal.currentStreak}-Day Streak Milestone!`,
-              content: `Incredible! "${goal.title}" auto-completed for a ${goal.currentStreak}-day streak.`,
-              priority: 'normal',
-              metadata: { source: 'system', category: 'activity' },
-              actionUrl: '/activity'
-            }).catch(e => console.error(e));
-          }
-        }
-      }
-    }
-  }
-
-  // Invalidate cache
-  await cache.del(`activity:dashboard:${userId}`);
-  return { 
-    synced: Object.keys(devProfile.stats || {}).length, 
-    activitiesDetected: detectedActivities,
-    goalsVerified
-  };
+  return syncUserActivityIntelligence(userId, {
+    timezone,
+    forceRemote: refreshRemote,
+    reason: 'activity-service-sync'
+  });
 }
 
 // ─── STREAK ENGINE (OVERALL, CATEGORY, GOAL) ────────────────────
@@ -1024,8 +841,10 @@ async function getConsistencyScore(userId, timezone = 'Asia/Kolkata') {
 
 async function getDashboardSummary(userId, timezone = 'Asia/Kolkata') {
   const cacheKey = `activity:dashboard:${userId}`;
-  const cached = await cache.get(cacheKey);
-  if (cached) return cached;
+  if (process.env.NODE_ENV !== 'test') {
+    const cached = await cache.get(cacheKey);
+    if (cached) return cached;
+  }
 
   const today = getTodayInTimezone(timezone);
   const dayOfWeek = getDayOfWeekInTimezone(new Date(), timezone);
@@ -1081,44 +900,54 @@ async function getDashboardSummary(userId, timezone = 'Asia/Kolkata') {
     }
   }
 
-  const summary = {
-    today: {
-      date: today,
-      dayName: dayNames[dayOfWeek],
-      totalGoals: todaysPlan.total,
-      completedGoals: todaysPlan.completed,
-      remainingGoals: todaysPlan.remaining,
-      percentage: todaysPlan.percentage
-    },
-    scheduleContext: {
-      eventsCount: scheduleContext?.eventsCount || 0,
-      totalFreeMinutes: scheduleContext?.totalFreeMinutes || 0,
-      freeWindows: scheduleContext?.freeWindows || [],
-      nextEvent: scheduleContext?.nextEvent || null,
-      events: scheduleContext?.events || []
-    },
-    // Backwards compatibility for existing dashboard callers and tests:
-    todaysGoals: {
-      total: todaysPlan.total,
-      completed: todaysPlan.completed,
-      pending: todaysPlan.remaining,
-      goals: todaysPlan.goals || []
-    },
-    currentStreak: overallStreak.current,
-    longestStreak: overallStreak.longest,
-    overallStreak,
-    categoryStreaks,
-    todaysPlan,
-    weekly,
-    recentActivity: timeline.items,
-    insights,
-    consistency,
-    integrations,
-    personalRecords: records
-  };
+    const devProfile = await DevProfile.findOne({ user: userId }).select('lastRemoteSyncAt lastSuccessfulRemoteSyncAt lastSyncAttemptAt syncStatus').lean();
 
-  // Cache for 3 minutes for high responsiveness
-  await cache.set(cacheKey, summary, 180);
+    const summary = {
+      today: {
+        date: today,
+        dayName: dayNames[dayOfWeek],
+        totalGoals: todaysPlan.total,
+        completedGoals: todaysPlan.completed,
+        remainingGoals: todaysPlan.remaining,
+        percentage: todaysPlan.percentage
+      },
+      syncFreshness: {
+        lastRemoteSyncAt: devProfile?.lastRemoteSyncAt || null,
+        lastSuccessfulRemoteSyncAt: devProfile?.lastSuccessfulRemoteSyncAt || null,
+        lastSyncAttemptAt: devProfile?.lastSyncAttemptAt || null,
+        syncStatus: devProfile?.syncStatus || 'success'
+      },
+      scheduleContext: {
+        eventsCount: scheduleContext?.eventsCount || 0,
+        totalFreeMinutes: scheduleContext?.totalFreeMinutes || 0,
+        freeWindows: scheduleContext?.freeWindows || [],
+        nextEvent: scheduleContext?.nextEvent || null,
+        events: scheduleContext?.events || []
+      },
+      // Backwards compatibility for existing dashboard callers and tests:
+      todaysGoals: {
+        total: todaysPlan.total,
+        completed: todaysPlan.completed,
+        pending: todaysPlan.remaining,
+        goals: todaysPlan.goals || []
+      },
+      currentStreak: overallStreak.current,
+      longestStreak: overallStreak.longest,
+      overallStreak,
+      categoryStreaks,
+      todaysPlan,
+      weekly,
+      recentActivity: timeline.items,
+      insights,
+      consistency,
+      integrations,
+      personalRecords: records
+    };
+
+    // Cache for 3 minutes for high responsiveness in production
+    if (process.env.NODE_ENV !== 'test') {
+      await cache.set(cacheKey, summary, 180);
+    }
   return summary;
 }
 
@@ -1153,22 +982,14 @@ async function completeGoal(userId, goalId, timezone = 'Asia/Kolkata') {
   }
   await record.save();
 
-  // Update streak
-  if (!goal.lastCompletedAt || isConsecutiveDay(goal.lastCompletedAt, timezone)) {
-    goal.currentStreak = (goal.currentStreak || 0) + 1;
-  } else {
-    goal.currentStreak = 1;
-  }
-
-  goal.longestStreak = Math.max(goal.longestStreak || 0, goal.currentStreak);
-  goal.lastCompletedAt = new Date();
-  goal.totalCompletions = (goal.totalCompletions || 0) + 1;
-  await goal.save();
+  // Centralized schedule-aware streak reconciliation from ActivityRecord truth (Phase 5 & 11)
+  await reconcileGoalStreak(goal._id, userId, timezone);
+  const updatedGoal = await ActivityGoal.findById(goal._id);
 
   // Invalidate cache
   await cache.del(`activity:dashboard:${userId}`);
 
-  return { alreadyCompleted: false, record, goal };
+  return { alreadyCompleted: false, record, goal: updatedGoal || goal };
 }
 
 async function getWeeklySummary(userId, timezone = 'Asia/Kolkata') {
@@ -1182,6 +1003,8 @@ module.exports = {
   getUserIntegrations,
   refreshPlatformData,
   syncUserPlatformActivities,
+  syncUserActivityIntelligence,
+  reconcileGoalStreak,
   calculateOverallStreak,
   calculateCategoryStreaks,
   getTodaysPlan,

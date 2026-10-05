@@ -167,13 +167,36 @@ const ActivityHub = () => {
   }, [fetchDashboard, fetchGoals, fetchPreferences, fetchTimeline, fetchAnalytics, analyticsDays]);
 
   useEffect(() => {
+    let isSubscribed = true;
     const init = async () => {
       setLoading(true);
       await reloadAll();
       setLoading(false);
+
+      // Section 45 & 76: Freshness check on opening Activity Hub
+      // If last remote sync > 5 minutes ago, auto-sync in background
+      try {
+        const res = await api.get('/activity/dashboard');
+        const lastSync = res.data?.syncFreshness?.lastRemoteSyncAt;
+        const lastTime = lastSync ? new Date(lastSync).getTime() : 0;
+        const minutesAgo = (Date.now() - lastTime) / (60 * 1000);
+        if ((!lastSync || minutesAgo > 5) && isSubscribed) {
+          setIsSyncingAll(true);
+          const syncRes = await api.post('/activity/sync');
+          if (isSubscribed) {
+            if (syncRes.data?.summary) setDashboard(syncRes.data.summary);
+            await Promise.all([fetchGoals(), fetchTimeline()]);
+          }
+        }
+      } catch (err) {
+        // Non-blocking auto-sync
+      } finally {
+        if (isSubscribed) setIsSyncingAll(false);
+      }
     };
     init();
-  }, [reloadAll]);
+    return () => { isSubscribed = false; };
+  }, [reloadAll, fetchGoals, fetchTimeline]);
 
   // Handle Analytics period change
   const handleRangeChange = (days) => {
@@ -498,6 +521,62 @@ const ActivityHub = () => {
     };
   }, [user?.name, preferences?.timezone, dashboard, todayGoalsList, rankedCategories]);
 
+  // Step 60: Dynamic synchronization freshness indicator
+  const syncFreshnessInfo = useMemo(() => {
+    if (isSyncingAll) {
+      return {
+        text: 'Syncing...',
+        status: 'syncing',
+        badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+      };
+    }
+    const freshness = dashboard?.syncFreshness;
+    if (freshness?.syncStatus === 'failed' || freshness?.syncStatus === 'temporarily-unavailable') {
+      return {
+        text: 'Verification delayed',
+        status: 'delayed',
+        badgeClass: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+      };
+    }
+    const timestamp = freshness?.lastSuccessfulRemoteSyncAt || freshness?.lastRemoteSyncAt;
+    if (!timestamp) {
+      return {
+        text: 'Pending sync',
+        status: 'pending',
+        badgeClass: 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+      };
+    }
+    const msAgo = Date.now() - new Date(timestamp).getTime();
+    const minsAgo = Math.max(0, Math.floor(msAgo / 60000));
+    if (minsAgo < 1) {
+      return {
+        text: 'Synced just now',
+        status: 'fresh',
+        badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+      };
+    }
+    if (minsAgo === 1) {
+      return {
+        text: 'Synced 1 minute ago',
+        status: 'fresh',
+        badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+      };
+    }
+    if (minsAgo < 60) {
+      return {
+        text: `Synced ${minsAgo} minutes ago`,
+        status: minsAgo <= 15 ? 'fresh' : 'normal',
+        badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+      };
+    }
+    const hoursAgo = Math.floor(minsAgo / 60);
+    return {
+      text: `Last verified ${hoursAgo}h ago`,
+      status: 'stale',
+      badgeClass: 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+    };
+  }, [isSyncingAll, dashboard?.syncFreshness]);
+
   // ─── LOADING STATE ──────────────────────────────────────────
 
   if (loading) {
@@ -520,8 +599,12 @@ const ActivityHub = () => {
             <Zap className="w-5 h-5 text-amber-500 fill-amber-500 shrink-0" />
             <span className="truncate">Activity Hub</span>
           </div>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
-            Today • {currentDateShort}
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5 flex items-center gap-1.5">
+            <span>Today • {currentDateShort}</span>
+            <span>•</span>
+            <span className={syncFreshnessInfo.status === 'delayed' ? 'text-amber-500 font-bold' : ''}>
+              {syncFreshnessInfo.text}
+            </span>
           </p>
         </div>
 
@@ -557,9 +640,22 @@ const ActivityHub = () => {
             <Zap className="w-7 h-7 text-amber-500 fill-amber-500 shrink-0" />
             <span className="truncate">Activity Intelligence</span>
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Automated tracking, streak intelligence & career momentum
-          </p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+              Automated tracking, streak intelligence & career momentum
+            </span>
+            <span className="text-gray-300 dark:text-gray-700 hidden sm:inline">•</span>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${syncFreshnessInfo.badgeClass}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                syncFreshnessInfo.status === 'delayed'
+                  ? 'bg-amber-500'
+                  : syncFreshnessInfo.status === 'syncing'
+                  ? 'bg-indigo-500 animate-ping'
+                  : 'bg-emerald-500'
+              }`} />
+              <span>{syncFreshnessInfo.text}</span>
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
@@ -1341,28 +1437,38 @@ const ActivityHub = () => {
 
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className={`text-sm font-bold truncate ${isCompleted ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'}`}>
-                              {goal.title}
-                            </span>
-
-                            {/* Trust Badge */}
+                            {/* Distinct Goal Status UX (Step 61: Completed, Pending, Verifying, Sync delayed, At risk) */}
                             {isCompleted ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                 <ShieldCheck className="w-3 h-3" />
-                                <span>Verified</span>
+                                <span>{goal.completionType === 'api-verified' ? 'Verified' : 'Completed'}</span>
                               </span>
-                            ) : goal.trackingMode === 'automatic' ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                                <Zap className="w-2.5 h-2.5 text-amber-500" />
-                                <span>Auto Track</span>
+                            ) : isSyncingAll ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 animate-pulse">
+                                <Zap className="w-2.5 h-2.5 text-indigo-500" />
+                                <span>Verifying...</span>
                               </span>
-                            ) : null}
-
-                            {/* Streak at Risk Indicator */}
-                            {!isCompleted && isAtRisk && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                            ) : dashboard?.syncFreshness?.syncStatus === 'failed' || dashboard?.syncFreshness?.syncStatus === 'temporarily-unavailable' ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                <Clock className="w-2.5 h-2.5" />
+                                <span>Sync delayed</span>
+                              </span>
+                            ) : isAtRisk ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                                 <AlertTriangle className="w-3 h-3" />
-                                <span>Streak at Risk</span>
+                                <span>At risk</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                                <Clock className="w-2.5 h-2.5" />
+                                <span>Pending</span>
+                              </span>
+                            )}
+
+                            {/* Auto Track indicator if automatic/hybrid */}
+                            {!isCompleted && goal.trackingMode === 'automatic' && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400">
+                                (Auto)
                               </span>
                             )}
                           </div>
@@ -1487,6 +1593,8 @@ const ActivityHub = () => {
             overallStreak={dashboard?.overallStreak}
             categoryStreaks={dashboard?.categoryStreaks}
             timezone={preferences?.timezone}
+            syncFreshness={dashboard?.syncFreshness}
+            isSyncing={isSyncingAll}
           />
 
           {/* Milestone Timeline */}

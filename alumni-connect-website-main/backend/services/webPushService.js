@@ -110,13 +110,32 @@ class WebPushService {
       'subscription.endpoint': { $exists: true, $ne: null }
     }).lean();
 
-    const summary = { sent: 0, failed: 0, expired: 0, total: devices.length };
+    // Deduplicate by subscription.endpoint (Phase 12 & 34)
+    const uniqueDevicesByEndpoint = new Map();
+    const duplicateIdsToDelete = [];
 
-    if (devices.length === 0) {
+    for (const dev of devices) {
+      const endpoint = dev.subscription?.endpoint?.trim();
+      if (!endpoint) continue;
+      if (!uniqueDevicesByEndpoint.has(endpoint)) {
+        uniqueDevicesByEndpoint.set(endpoint, dev);
+      } else {
+        duplicateIdsToDelete.push(dev._id);
+      }
+    }
+
+    if (duplicateIdsToDelete.length > 0) {
+      NotificationDevice.deleteMany({ _id: { $in: duplicateIdsToDelete } }).catch(() => {});
+    }
+
+    const uniqueDevices = Array.from(uniqueDevicesByEndpoint.values());
+    const summary = { sent: 0, failed: 0, expired: 0, total: uniqueDevices.length, deduplicatedCount: duplicateIdsToDelete.length };
+
+    if (uniqueDevices.length === 0) {
       return summary;
     }
 
-    const pushPromises = devices.map(async (device) => {
+    const pushPromises = uniqueDevices.map(async (device) => {
       const res = await this.sendPushNotification(device.subscription, payload);
       if (res.success) {
         summary.sent++;

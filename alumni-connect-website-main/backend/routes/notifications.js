@@ -216,6 +216,20 @@ router.post('/web-push/subscribe', protect, async (req, res) => {
 
     const effectiveDeviceId = deviceId || require('crypto').createHash('sha256').update(subscription.endpoint).digest('hex').substring(0, 32);
 
+    // Unbind endpoint from any other user (account safety / rebinding)
+    await NotificationDevice.deleteMany({
+      'subscription.endpoint': subscription.endpoint,
+      userId: { $ne: req.user._id }
+    }).catch(() => {});
+
+    // Deduplicate existing web devices for this user with the same endpoint
+    await NotificationDevice.deleteMany({
+      userId: req.user._id,
+      platform: 'web',
+      'subscription.endpoint': subscription.endpoint,
+      deviceId: { $ne: effectiveDeviceId }
+    }).catch(() => {});
+
     const device = await NotificationDevice.findOneAndUpdate(
       {
         userId: req.user._id,
@@ -229,6 +243,7 @@ router.post('/web-push/subscribe', protect, async (req, res) => {
           deviceName: deviceName || 'Web Browser',
           browser: browser || 'Unknown Browser',
           enabled: true,
+          tokenUpdatedAt: new Date(),
           lastSeenAt: new Date()
         }
       },
@@ -308,6 +323,74 @@ router.post('/devices/register', protect, async (req, res) => {
       }
     }
 
+    const trimmedToken = platform === 'android' ? pushToken?.trim() : undefined;
+
+    if (platform === 'android') {
+      // 1. Account rebinding safety: Token can only belong to this authenticated user (Phase 11 & 31)
+      await NotificationDevice.deleteMany({
+        platform: 'android',
+        pushToken: trimmedToken,
+        userId: { $ne: req.user._id }
+      }).catch(e => console.warn('[Notifications] Account rebinding cleanup warning:', e.message));
+
+      // 2. Installation deduplication: Find if a device record already exists with this token or deviceId
+      const existingMatch = await NotificationDevice.findOne({
+        userId: req.user._id,
+        platform: 'android',
+        $or: [
+          { pushToken: trimmedToken },
+          { deviceId }
+        ]
+      });
+
+      const targetDeviceId = existingMatch ? existingMatch.deviceId : deviceId;
+
+      const device = await NotificationDevice.findOneAndUpdate(
+        {
+          userId: req.user._id,
+          deviceId: targetDeviceId,
+          platform: 'android'
+        },
+        {
+          $set: {
+            pushProvider: 'fcm',
+            pushToken: trimmedToken,
+            deviceId: targetDeviceId,
+            deviceName: deviceName || 'Samsung Galaxy (Alumnex APK)',
+            appVersion: appVersion || '1.0.0',
+            enabled: true,
+            permission: 'granted',
+            tokenUpdatedAt: new Date(),
+            lastSeenAt: new Date(),
+            lastRegistrationError: null,
+            firebaseProjectId: firebaseAdmin.getProjectId() || undefined
+          }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      // Clean up any remaining duplicate rows for this user with the same pushToken
+      await NotificationDevice.deleteMany({
+        userId: req.user._id,
+        platform: 'android',
+        pushToken: trimmedToken,
+        _id: { $ne: device._id }
+      }).catch(() => {});
+
+      // Also update ReminderPreference mobileAppEnabled flag
+      await ReminderPreference.findOneAndUpdate(
+        { userId: req.user._id },
+        { $set: { mobileAppEnabled: true } },
+        { upsert: true, new: true }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Native Android FCM device registered successfully',
+        deviceId: device.deviceId
+      });
+    }
+
     const device = await NotificationDevice.findOneAndUpdate(
       {
         userId: req.user._id,
@@ -316,33 +399,23 @@ router.post('/devices/register', protect, async (req, res) => {
       },
       {
         $set: {
-          pushProvider: platform === 'android' ? 'fcm' : pushProvider,
+          pushProvider,
           pushToken: pushToken ? pushToken.trim() : undefined,
-          deviceName: deviceName || (platform === 'android' ? 'Samsung Galaxy (Alumnex APK)' : 'Device'),
+          deviceName: deviceName || 'Device',
           appVersion: appVersion || '1.0.0',
           enabled: true,
           permission: 'granted',
           tokenUpdatedAt: new Date(),
           lastSeenAt: new Date(),
-          lastRegistrationError: null,
-          firebaseProjectId: firebaseAdmin.getProjectId() || undefined
+          lastRegistrationError: null
         }
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Also update ReminderPreference mobileAppEnabled flag
-    if (platform === 'android') {
-      await ReminderPreference.findOneAndUpdate(
-        { userId: req.user._id },
-        { $set: { mobileAppEnabled: true } },
-        { upsert: true, new: true }
-      );
-    }
-
     res.json({
       success: true,
-      message: 'Native Android FCM device registered successfully',
+      message: 'Device registered successfully',
       deviceId: device.deviceId
     });
   } catch (error) {

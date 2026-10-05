@@ -143,6 +143,18 @@ const notificationSchema = new mongoose.Schema({
   
   // Grouping (for similar notifications)
   groupId: String,
+
+  // Deduplication & Event Idempotency Keys (Phase 10 & 21)
+  dedupKey: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  eventKey: {
+    type: String,
+    trim: true,
+    default: null
+  },
   
   // Metadata
   metadata: {
@@ -154,9 +166,16 @@ const notificationSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for better performance
+// Indexes for better performance & distributed idempotency
 notificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
-notificationSchema.index({ recipient: 1, type: 1 });
+notificationSchema.index({ recipient: 1, type: 1, createdAt: -1 });
+notificationSchema.index(
+  { recipient: 1, dedupKey: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { dedupKey: { $type: 'string' } }
+  }
+);
 notificationSchema.index({ 'relatedData.mentorshipId': 1 });
 notificationSchema.index({ 'relatedData.jobId': 1 });
 notificationSchema.index({ 'relatedData.eventId': 1 });
@@ -255,6 +274,38 @@ notificationSchema.statics.createNotification = async function(data) {
   }
 
   return saved;
+};
+
+// Canonical atomic creation & claiming operation (Phase 10 & 22)
+notificationSchema.statics.createOrClaimNotification = async function(data) {
+  const dedupKey = data.dedupKey || data.eventKey;
+  if (!dedupKey) {
+    const saved = await this.createNotification(data);
+    return { created: true, claimed: true, notification: saved, duplicate: false };
+  }
+
+  const notification = new this({
+    ...data,
+    content: data.content || data.message || data.body || data.title || 'Notification',
+    dedupKey,
+    eventKey: data.eventKey || dedupKey,
+    expiresAt: data.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  });
+
+  try {
+    const saved = await notification.save();
+    return { created: true, claimed: true, notification: saved, duplicate: false };
+  } catch (err) {
+    if (err.code === 11000) {
+      // Mongo duplicate key error: already claimed / already created
+      const existing = await this.findOne({
+        recipient: data.recipient,
+        dedupKey
+      }).lean();
+      return { created: false, claimed: false, notification: existing, duplicate: true };
+    }
+    throw err;
+  }
 };
 
 // Static method to find unread notifications for user

@@ -171,15 +171,13 @@ class NotificationDispatcher {
       return { success: false, error: 'Missing required event fields' };
     }
 
-    // 1. Deduplication Check
+    // 1. Atomic Distributed Deduplication Check (Phase 10 & 20)
     if (dedupKey) {
-      const alreadySent = await cache.get(`notif:dedup:${dedupKey}`);
-      if (alreadySent) {
-        console.log(`[NotificationDispatcher] Deduplicated notification: ${dedupKey}`);
+      const claimed = await cache.setNX(`notif:dedup:${dedupKey}`, true, 86400);
+      if (!claimed) {
+        console.log(`[NotificationDispatcher] Atomic distributed cache claim deduplicated notification: ${dedupKey}`);
         return { success: true, deduplicated: true };
       }
-      // Set deduplication TTL (default 24h)
-      await cache.set(`notif:dedup:${dedupKey}`, true, 86400);
     }
 
     // 2. Fetch User & Preferences
@@ -218,12 +216,13 @@ class NotificationDispatcher {
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // CHANNEL 1: IN-APP NOTIFICATION
+    // CHANNEL 1: IN-APP NOTIFICATION (WITH ATOMIC DB CLAIM)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    let notifDoc = null;
     if (policy.inApp && effectivePrefs.inAppEnabled !== false) {
       results.inApp.attempted = true;
       try {
-        const notifDoc = await Notification.create({
+        const claimRes = await Notification.createOrClaimNotification({
           recipient: userId,
           type: type.toLowerCase().replace(/_/g, '-'),
           title,
@@ -231,14 +230,23 @@ class NotificationDispatcher {
           priority: priority === 'urgent' ? 'urgent' : priority === 'high' ? 'high' : 'normal',
           actionUrl: deepLink,
           relatedData: { data },
+          dedupKey: dedupKey || undefined,
           metadata: {
             source: 'system',
             category: categoryKey || 'general'
           }
         });
 
+        // If duplicate was intercepted by DB partial unique index:
+        if (claimRes.duplicate && !claimRes.created) {
+          console.log(`[NotificationDispatcher] Database unique index prevented duplicate notification event: ${dedupKey}`);
+          return { success: true, deduplicated: true, notificationId: claimRes.notification?._id };
+        }
+
+        notifDoc = claimRes.notification;
+
         // Realtime Socket.IO delivery
-        if (io) {
+        if (io && notifDoc) {
           io.to(userId.toString()).emit('new-notification', {
             _id: notifDoc._id,
             title,
@@ -252,7 +260,7 @@ class NotificationDispatcher {
         }
 
         results.inApp.success = true;
-        results.inApp.id = notifDoc._id;
+        results.inApp.id = notifDoc?._id;
       } catch (inAppErr) {
         console.error('[NotificationDispatcher] In-App delivery error:', inAppErr.message);
         results.inApp.error = inAppErr.message;

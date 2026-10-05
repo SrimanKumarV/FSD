@@ -77,6 +77,22 @@ const devProfileSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  lastRemoteSyncAt: {
+    type: Date,
+    default: null
+  },
+  lastSuccessfulRemoteSyncAt: {
+    type: Date,
+    default: null
+  },
+  lastSyncAttemptAt: {
+    type: Date,
+    default: null
+  },
+  syncStatus: {
+    type: String,
+    default: 'unknown'
+  },
   alumnexScore: {
     type: Number,
     default: 0

@@ -11,125 +11,80 @@ const {
   getStreakWarningTemplate,
   getWeeklyActivitySummaryTemplate
 } = require('../utils/activityEmailTemplates');
-const { getWeeklySummary, getTodayInTimezone, syncUserPlatformActivities } = require('../services/activityService');
+const {
+  getTodayInTimezone,
+  formatDateInTimezone,
+  getDayOfWeekInTimezone,
+  getPreviousDate,
+  getMidnightProximity,
+  isQuietHours,
+  isReminderDay
+} = require('../utils/timezoneHelper');
+const {
+  syncUserActivityIntelligence,
+  reconcileGoalStreak
+} = require('../services/activitySyncOrchestrator');
 const { notificationDispatcher, NOTIFICATION_TYPES } = require('../services/notificationDispatcher');
 
+// Environment Configuration (Phase 7 & 53)
+const ACTIVITY_BACKGROUND_SYNC_MINUTES = parseInt(process.env.ACTIVITY_BACKGROUND_SYNC_MINUTES, 10) || 30;
+const ACTIVITY_PRE_DEADLINE_SYNC_MINUTES = parseInt(process.env.ACTIVITY_PRE_DEADLINE_SYNC_MINUTES, 10) || 60;
+const ACTIVITY_FINAL_PROTECTION_SYNC_MINUTES = parseInt(process.env.ACTIVITY_FINAL_PROTECTION_SYNC_MINUTES, 10) || 15;
+const ACTIVITY_SYNC_ENABLED = process.env.ACTIVITY_SYNC_ENABLED !== 'false';
+const ACTIVITY_REMINDER_ENABLED = process.env.ACTIVITY_REMINDER_ENABLED !== 'false';
+
 /**
- * Check if the current time is within quiet hours for a user
+ * Generate canonical notification event key
  */
-function isQuietHours(prefs) {
-  if (!prefs?.quietHoursEnabled) return false;
-  
-  const tz = prefs.timezone || 'Asia/Kolkata';
-  let nowHour, nowMinute;
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: tz, hour: 'numeric', minute: 'numeric', hour12: false
-    }).formatToParts(new Date());
-    nowHour = parseInt(parts.find(p => p.type === 'hour').value, 10);
-    nowMinute = parseInt(parts.find(p => p.type === 'minute').value, 10);
-  } catch {
-    return false;
+function getCanonicalNotifKey(type, userId, date, extra = '') {
+  if (type === 'daily-reminder') {
+    return `goal-reminder:${userId}:${date}`;
   }
-
-  const [startH, startM] = (prefs.quietHoursStart || '22:00').split(':').map(Number);
-  const [endH, endM] = (prefs.quietHoursEnd || '07:00').split(':').map(Number);
-  
-  const nowMins = nowHour * 60 + nowMinute;
-  const startMins = startH * 60 + startM;
-  const endMins = endH * 60 + endM;
-
-  if (startMins <= endMins) {
-    // Simple range (e.g., 08:00 - 18:00)
-    return nowMins >= startMins && nowMins < endMins;
-  } else {
-    // Overnight range (e.g., 22:00 - 07:00)
-    return nowMins >= startMins || nowMins < endMins;
+  if (type === 'streak-risk') {
+    return `streak-risk:${userId}:${extra}:${date}`;
   }
+  return `activity:notif:${userId}:${type}:${date}${extra ? `:${extra}` : ''}`;
 }
 
 /**
- * Check if today is a reminder day for this user
- */
-function isReminderDay(prefs) {
-  const tz = prefs?.timezone || 'Asia/Kolkata';
-  let dayOfWeek;
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: tz, weekday: 'short'
-    }).formatToParts(new Date());
-    const dayStr = parts.find(p => p.type === 'weekday').value;
-    const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-    dayOfWeek = dayMap[dayStr] ?? new Date().getDay();
-  } catch {
-    dayOfWeek = new Date().getDay();
-  }
-
-  const reminderDays = prefs?.reminderDays || [1, 2, 3, 4, 5];
-  return reminderDays.includes(dayOfWeek);
-}
-
-/**
- * Generate a unique notification key for deduplication
- */
-function getNotificationKey(userId, type, date) {
-  return `activity:notif:${userId}:${type}:${date}`;
-}
-
-/**
- * Check if a notification has already been sent (anti-spam)
- */
-async function wasAlreadySent(userId, type, date) {
-  const key = getNotificationKey(userId, type, date);
-  const sent = await cache.get(key);
-  return !!sent;
-}
-
-/**
- * Mark a notification as sent
- */
-async function markAsSent(userId, type, date) {
-  const key = getNotificationKey(userId, type, date);
-  // TTL of 25 hours ensures we don't re-send within the same day
-  await cache.set(key, true, 90000);
-}
-
-/**
- * Process daily reminders for all users
+ * Process daily reminders with distributed lock and fresh remote verification
  */
 const runDailyReminders = async () => {
-  const startTime = Date.now();
-  console.log('[Activity Cron] Starting daily reminder processing...');
+  if (!ACTIVITY_REMINDER_ENABLED) {
+    console.log('[Activity Cron] Reminders disabled by ACTIVITY_REMINDER_ENABLED.');
+    return { skipped: true };
+  }
 
-  const results = { sent: 0, skipped: 0, errors: 0, quiet: 0, alreadySent: 0 };
+  const startTime = Date.now();
+  console.log('[Activity Cron] Attempting to acquire distributed lock for daily reminders...');
+
+  // Phase 9 & 17: Acquire atomic distributed lock (5-minute TTL)
+  const lockKey = 'activity:cron:lock:daily-reminders';
+  const { acquired, lockValue } = await cache.acquireLock(lockKey, 300);
+
+  if (!acquired) {
+    console.log('[Activity Cron] Another scheduler worker holds the lock. Skipping duplicate execution.');
+    return { locked: true, skipped: true };
+  }
+
+  const results = { sent: 0, skipped: 0, errors: 0, quiet: 0, alreadySent: 0, streakWarningsSent: 0 };
 
   try {
-    // Get all users who have activity goals with reminders enabled
+    // Select users with active enabled goals
     const usersWithGoals = await ActivityGoal.distinct('userId', { enabled: true });
     if (usersWithGoals.length === 0) {
       console.log('[Activity Cron] No users with active goals.');
       return results;
     }
 
-    // Process each user
+    console.log(`[Activity Cron] Processing reminders for ${usersWithGoals.length} users with active goals...`);
+
     for (const userId of usersWithGoals) {
       try {
-        const prefs = await ReminderPreference.findOne({ userId });
-        
-        // Skip if reminders are disabled
-        if (prefs && !prefs.dailyReminder) {
-          results.skipped++;
-          continue;
-        }
+        const prefs = await ReminderPreference.findOne({ userId }).lean();
 
-        // Skip if quiet hours
-        if (isQuietHours(prefs)) {
-          results.quiet++;
-          continue;
-        }
-
-        // Skip if not a reminder day
-        if (!isReminderDay(prefs)) {
+        // Check if reminders are enabled by user
+        if (prefs && prefs.dailyReminder === false && prefs.streakAlert === false) {
           results.skipped++;
           continue;
         }
@@ -137,73 +92,139 @@ const runDailyReminders = async () => {
         const tz = prefs?.timezone || 'Asia/Kolkata';
         const today = getTodayInTimezone(tz);
 
-        // Skip if already sent today (anti-spam)
-        if (await wasAlreadySent(userId, 'daily', today)) {
+        // Phase 9 & 18: User-level idempotent claim
+        const userClaimKey = `activity:claim:reminders:${userId}:${today}`;
+        const userClaimed = await cache.setNX(userClaimKey, true, 7200);
+        if (!userClaimed) {
           results.alreadySent++;
           continue;
         }
 
-        // Auto-sync platform activity first to detect external actions made today
-        try {
-          if (typeof syncUserPlatformActivities === 'function') {
-            await syncUserPlatformActivities(userId);
-          }
-        } catch (syncErr) {
-          // Non-blocking sync check
-        }
-
-        // Get user's goals and today's completions
-        const goals = await ActivityGoal.find({ userId, enabled: true }).lean();
-        const todayRecords = await ActivityRecord.find({ userId, date: today, completed: true }).lean();
-        const completedIds = new Set(todayRecords.map(r => r.goalId?.toString()));
-
-        const pendingGoals = goals.filter(g => !completedIds.has(g._id.toString()));
-
-        // If all goals completed, no reminder needed
-        if (pendingGoals.length === 0) {
-          results.skipped++;
-          await markAsSent(userId, 'daily', today);
+        // Check quiet hours
+        if (isQuietHours(prefs)) {
+          results.quiet++;
           continue;
         }
 
-        // Get user info for email
-        const user = await User.findById(userId).select('name email emailPreferences').lean();
+        // Check reminder day
+        if (!isReminderDay(prefs)) {
+          results.skipped++;
+          continue;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // STEP 1: FRESH REMOTE VERIFICATION (Phases 3, 4, 10)
+        // Never evaluate stale state! Fetch fresh external activities first.
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        try {
+          await syncUserActivityIntelligence(userId, {
+            timezone: tz,
+            forceRemote: true,
+            reason: 'pre-reminder'
+          });
+        } catch (syncErr) {
+          console.warn(`[Activity Cron] Pre-reminder sync warning for user ${userId}:`, syncErr.message);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // STEP 2: RE-EVALUATE GOALS & STREAKS AFTER SYNC
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const goals = await ActivityGoal.find({ userId, enabled: true }).lean();
+        const todayRecords = await ActivityRecord.find({ userId, date: today, completed: true }).lean();
+        const completedGoalIds = new Set(todayRecords.filter(r => r.goalId).map(r => r.goalId.toString()));
+
+        // Also check if platform-level completion covers goals
+        const completedPlatforms = new Set(todayRecords.filter(r => r.platform).map(r => r.platform));
+
+        const pendingGoals = goals.filter(g => {
+          if (completedGoalIds.has(g._id.toString())) return false;
+          if (g.platform && completedPlatforms.has(g.platform)) return false;
+          return true;
+        });
+
+        // If all goals are completed today, suppress reminders
+        if (pendingGoals.length === 0) {
+          results.skipped++;
+          continue;
+        }
+
+        // Fetch user data for notification/email
+        const user = await User.findById(userId).select('name email').lean();
         if (!user) {
           results.skipped++;
           continue;
         }
 
-        // Calculate max streak for context
-        const maxStreak = goals.reduce((max, g) => Math.max(max, g.currentStreak || 0), 0);
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // STEP 3: SMART NOTIFICATION SUPPRESSION (Phases 13 & 25)
+        // If a pending goal has currentStreak >= 3, it qualifies for a streak warning.
+        // A streak warning supersedes the generic daily reminder to prevent duplicate spam!
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const atRiskGoals = pendingGoals.filter(g => (g.currentStreak || 0) >= 3);
+        const streakAlertsAllowed = prefs ? prefs.streakAlert !== false : true;
+        const dailyReminderAllowed = prefs ? prefs.dailyReminder !== false : true;
 
-        // Smart reminder content
-        let reminderTitle = '🔔 Daily Activity Reminder';
-        let reminderContent = '';
-        if (pendingGoals.length === 1) {
-          const single = pendingGoals[0];
-          reminderTitle = `🔥 Keep your streak alive!`;
-          reminderContent = `Your ${maxStreak > 0 ? `${maxStreak}-day ` : ''}streak is active today. 1 goal left: "${single.title}"${single.estimatedMinutes ? ` (~${single.estimatedMinutes} min)` : ''}.`;
-        } else {
-          reminderContent = `You have ${pendingGoals.length} goals remaining today. ${maxStreak > 0 ? `Protect your ${maxStreak}-day streak!` : 'Build your momentum!'}`;
+        let streakWarningDispatched = false;
+
+        if (streakAlertsAllowed && atRiskGoals.length > 0) {
+          for (const atRiskGoal of atRiskGoals) {
+            const streakDedupKey = getCanonicalNotifKey('streak-risk', userId, today, atRiskGoal._id.toString());
+
+            const dispatchRes = await notificationDispatcher.dispatch({
+              type: NOTIFICATION_TYPES.STREAK_AT_RISK,
+              userId,
+              title: `🔥 ${atRiskGoal.currentStreak}-Day Streak at Risk!`,
+              body: `Your "${atRiskGoal.title}" goal hasn't been completed today. Complete it before midnight to maintain your streak!`,
+              priority: 'high',
+              deepLink: '/activity?tab=today',
+              data: { goalId: atRiskGoal._id.toString(), streak: atRiskGoal.currentStreak, date: today },
+              dedupKey: streakDedupKey
+            });
+
+            if (dispatchRes.success && !dispatchRes.deduplicated) {
+              results.streakWarningsSent++;
+              streakWarningDispatched = true;
+            }
+          }
         }
 
-        // Dispatch via Unified Multi-Channel Notification Engine
-        await notificationDispatcher.dispatch({
-          type: NOTIFICATION_TYPES.GOAL_REMINDER,
-          userId,
-          title: reminderTitle,
-          body: reminderContent,
-          priority: maxStreak >= 7 ? 'high' : 'normal',
-          deepLink: '/activity?tab=today',
-          data: { pendingCount: pendingGoals.length, maxStreak },
-          dedupKey: `daily-reminder:${userId}:${today}`
-        });
+        // Phase 13 & 25: Only send generic daily reminder if:
+        // 1. User has daily reminders enabled
+        // 2. AND either no streak warnings were sent OR there are other pending goals not covered by streak warning
+        const remainingUnwarnedGoals = pendingGoals.filter(g => (g.currentStreak || 0) < 3);
 
-        await markAsSent(userId, 'daily', today);
-        results.sent++;
+        if (dailyReminderAllowed && (!streakWarningDispatched || remainingUnwarnedGoals.length > 0)) {
+          const dailyDedupKey = getCanonicalNotifKey('daily-reminder', userId, today);
+          const maxStreak = goals.reduce((max, g) => Math.max(max, g.currentStreak || 0), 0);
 
-        // Throttle to avoid overloading email provider
-        await new Promise(resolve => setTimeout(resolve, 200));
+          let reminderTitle = '🔔 Daily Activity Reminder';
+          let reminderContent = '';
+          if (pendingGoals.length === 1) {
+            const single = pendingGoals[0];
+            reminderTitle = `Keep your habit alive!`;
+            reminderContent = `1 goal left today: "${single.title}"${single.estimatedMinutes ? ` (~${single.estimatedMinutes} min)` : ''}.`;
+          } else {
+            reminderContent = `You have ${pendingGoals.length} goals remaining today. Maintain your momentum!`;
+          }
+
+          const dailyRes = await notificationDispatcher.dispatch({
+            type: NOTIFICATION_TYPES.GOAL_REMINDER,
+            userId,
+            title: reminderTitle,
+            body: reminderContent,
+            priority: maxStreak >= 7 ? 'high' : 'normal',
+            deepLink: '/activity?tab=today',
+            data: { pendingCount: pendingGoals.length, maxStreak, date: today },
+            dedupKey: dailyDedupKey
+          });
+
+          if (dailyRes.success && !dailyRes.deduplicated) {
+            results.sent++;
+          }
+        }
+
+        // Small throttle between users to protect CPU/network
+        await new Promise(r => setTimeout(r, 100));
 
       } catch (userErr) {
         console.error(`[Activity Cron] Error processing user ${userId}:`, userErr.message);
@@ -211,84 +232,172 @@ const runDailyReminders = async () => {
       }
     }
 
-    // Also send streak-at-risk warnings
-    await processStreakWarnings(results);
-
   } catch (error) {
-    console.error('[Activity Cron] Critical error:', error);
+    console.error('[Activity Cron] Critical error during daily reminder processing:', error);
+  } finally {
+    // Release distributed lock
+    await cache.releaseLock(lockKey, lockValue).catch(() => {});
   }
 
   const duration = Date.now() - startTime;
-  console.log(`[Activity Cron] Completed in ${duration}ms. Sent: ${results.sent}, Skipped: ${results.skipped}, Quiet: ${results.quiet}, AlreadySent: ${results.alreadySent}, Errors: ${results.errors}`);
+  console.log(`[Activity Cron] Completed daily reminders in ${duration}ms. Daily sent: ${results.sent}, Streak warnings: ${results.streakWarningsSent}, Skipped: ${results.skipped}, AlreadySent: ${results.alreadySent}, Quiet: ${results.quiet}, Errors: ${results.errors}`);
   return results;
 };
 
 /**
- * Process streak-at-risk warnings for users who haven't completed
- * goals today but have active streaks
+ * Pre-Midnight Streak Protection Run (Phase 8 & 9)
+ * Identifies users whose local deadline is approaching and performs fresh remote sync
+ * to prevent false streak resets.
  */
-async function processStreakWarnings(results) {
+const runPreMidnightProtection = async () => {
+  if (!ACTIVITY_SYNC_ENABLED) return { skipped: true };
+
+  const startTime = Date.now();
+  const lockKey = 'activity:cron:lock:pre-midnight';
+  const { acquired, lockValue } = await cache.acquireLock(lockKey, 300);
+
+  if (!acquired) {
+    return { locked: true, skipped: true };
+  }
+
+  const results = { checked: 0, protected: 0, reconciled: 0, errors: 0 };
+
   try {
-    // Find goals with active streaks > 3 that haven't been completed today
+    // Select users with active streaks (currentStreak >= 1) on automatic/hybrid goals
     const atRiskGoals = await ActivityGoal.find({
       enabled: true,
-      currentStreak: { $gte: 3 }
+      currentStreak: { $gte: 1 },
+      trackingMode: { $in: ['automatic', 'hybrid'] }
     }).lean();
 
-    for (const goal of atRiskGoals) {
-      const prefs = await ReminderPreference.findOne({ userId: goal.userId });
-      if (prefs && !prefs.streakAlert) continue;
-      if (isQuietHours(prefs)) continue;
+    const userIds = Array.from(new Set(atRiskGoals.map(g => g.userId.toString())));
 
-      const tz = prefs?.timezone || 'Asia/Kolkata';
-      const today = getTodayInTimezone(tz);
+    for (const userId of userIds) {
+      try {
+        const prefs = await ReminderPreference.findOne({ userId }).lean();
+        const tz = prefs?.timezone || 'Asia/Kolkata';
+        const { minutesUntilMidnight, localDate } = getMidnightProximity(tz);
 
-      // Check if already completed today
-      const record = await ActivityRecord.findOne({
-        userId: goal.userId, goalId: goal._id, date: today, completed: true
-      });
-      if (record) continue;
+        // Check if user is in the protection window (e.g. <= 60 minutes before local midnight)
+        if (minutesUntilMidnight <= ACTIVITY_PRE_DEADLINE_SYNC_MINUTES) {
+          results.checked++;
 
-      // Check if already warned today
-      if (await wasAlreadySent(goal.userId, `streak-warn-${goal._id}`, today)) continue;
+          // Check if goal was already completed today
+          const todayRecords = await ActivityRecord.find({
+            userId,
+            date: localDate,
+            completed: true
+          }).lean();
 
-      const user = await User.findById(goal.userId).select('name email').lean();
-      if (!user) continue;
+          const completedGoalIds = new Set(todayRecords.filter(r => r.goalId).map(r => r.goalId.toString()));
+          const userGoals = atRiskGoals.filter(g => g.userId.toString() === userId);
+          const pendingAtRisk = userGoals.filter(g => !completedGoalIds.has(g._id.toString()));
 
-      // Dispatch streak-at-risk warning via Unified Multi-Channel Engine
-      await notificationDispatcher.dispatch({
-        type: NOTIFICATION_TYPES.STREAK_AT_RISK,
-        userId: goal.userId,
-        title: `🔥 ${goal.currentStreak}-Day Streak at Risk!`,
-        body: `Your "${goal.title}" goal hasn't been completed today. Complete it before midnight to maintain your streak!`,
-        priority: 'high',
-        deepLink: '/activity?tab=today',
-        data: { goalId: goal._id.toString(), streak: goal.currentStreak },
-        dedupKey: `streak-risk:${goal.userId}:${goal._id}:${today}`
-      });
+          if (pendingAtRisk.length > 0) {
+            // Perform fresh remote verification
+            const syncRes = await syncUserActivityIntelligence(userId, {
+              timezone: tz,
+              forceRemote: true,
+              reason: 'pre-midnight'
+            });
 
-      await markAsSent(goal.userId, `streak-warn-${goal._id}`, today);
+            if (syncRes.goalsVerified?.length > 0 || syncRes.activitiesDetected?.length > 0) {
+              results.protected++;
+              console.log(`[Activity Cron] Pre-midnight protection saved activity/streak for user ${userId} (${minutesUntilMidnight}m until midnight)`);
+            }
+          }
+        }
+      } catch (userErr) {
+        console.warn(`[Activity Cron] Pre-midnight error for user ${userId}:`, userErr.message);
+        results.errors++;
+      }
     }
-  } catch (error) {
-    console.error('[Activity Cron] Streak warning error:', error.message);
+  } catch (err) {
+    console.error('[Activity Cron] Pre-midnight protection error:', err);
+  } finally {
+    await cache.releaseLock(lockKey, lockValue).catch(() => {});
   }
-}
+
+  const duration = Date.now() - startTime;
+  if (results.checked > 0) {
+    console.log(`[Activity Cron] Pre-midnight check in ${duration}ms: Checked ${results.checked} users, Protected ${results.protected}`);
+  }
+  return results;
+};
+
+/**
+ * Adaptive Background Synchronization (Phase 7)
+ * Runs periodically to keep automatic/hybrid goals synced without hammering APIs
+ */
+const runAdaptiveBackgroundSync = async () => {
+  if (!ACTIVITY_SYNC_ENABLED) return { skipped: true };
+
+  const lockKey = 'activity:cron:lock:background-sync';
+  const { acquired, lockValue } = await cache.acquireLock(lockKey, 600);
+  if (!acquired) return { locked: true, skipped: true };
+
+  const results = { synced: 0, detected: 0, errors: 0 };
+
+  try {
+    // Only select users who actually have automatic or hybrid goals
+    const usersWithAutoGoals = await ActivityGoal.distinct('userId', {
+      enabled: true,
+      trackingMode: { $in: ['automatic', 'hybrid'] }
+    });
+
+    for (const userId of usersWithAutoGoals) {
+      try {
+        const prefs = await ReminderPreference.findOne({ userId }).lean();
+        const tz = prefs?.timezone || 'Asia/Kolkata';
+
+        const syncRes = await syncUserActivityIntelligence(userId, {
+          timezone: tz,
+          forceRemote: true,
+          reason: 'background-sync'
+        });
+
+        results.synced++;
+        results.detected += syncRes.activitiesDetected?.length || 0;
+
+        // Controlled concurrency delay between users
+        await new Promise(r => setTimeout(r, 200));
+      } catch (err) {
+        results.errors++;
+      }
+    }
+  } catch (err) {
+    console.error('[Activity Cron] Adaptive sync critical error:', err);
+  } finally {
+    await cache.releaseLock(lockKey, lockValue).catch(() => {});
+  }
+
+  console.log(`[Activity Cron] Adaptive background sync completed: ${results.synced} users synced, ${results.detected} activities detected.`);
+  return results;
+};
 
 /**
  * Process weekly summaries (run on Sundays)
  */
 const runWeeklySummaries = async () => {
+  const lockKey = 'activity:cron:lock:weekly-summary';
+  const { acquired, lockValue } = await cache.acquireLock(lockKey, 600);
+  if (!acquired) return { locked: true, skipped: true };
+
   console.log('[Activity Cron] Starting weekly summary processing...');
   const results = { sent: 0, skipped: 0, errors: 0 };
 
   try {
     const prefs = await ReminderPreference.find({ weeklySummary: true });
-    
+    const { getWeeklySummary } = require('../services/activityService');
+
     for (const pref of prefs) {
       try {
-        const today = getTodayInTimezone(pref.timezone || 'Asia/Kolkata');
+        const tz = pref.timezone || 'Asia/Kolkata';
+        const today = getTodayInTimezone(tz);
 
-        if (await wasAlreadySent(pref.userId, 'weekly', today)) {
+        const summaryDedupKey = `weekly-summary:${pref.userId}:${today}`;
+        const alreadyClaimed = await cache.setNX(`notif:dedup:${summaryDedupKey}`, true, 86400 * 3);
+        if (!alreadyClaimed) {
           results.skipped++;
           continue;
         }
@@ -296,15 +405,14 @@ const runWeeklySummaries = async () => {
         const user = await User.findById(pref.userId).select('name email').lean();
         if (!user) continue;
 
-        const summary = await getWeeklySummary(pref.userId, pref.timezone || 'Asia/Kolkata');
+        const summary = await getWeeklySummary(pref.userId, tz);
 
-        // Only send if there's some activity
-        if (summary.goalsCompleted === 0 && summary.coding.activeDays === 0 && summary.learning.activeDays === 0) {
+        if (summary.goalsCompleted === 0 && summary.coding?.activeDays === 0 && summary.learning?.activeDays === 0) {
           results.skipped++;
           continue;
         }
 
-        if (pref.emailEnabled !== false) {
+        if (pref.emailEnabled !== false && user.email) {
           const html = getWeeklyActivitySummaryTemplate(user, summary);
           await sendEmail({
             email: user.email,
@@ -314,20 +422,19 @@ const runWeeklySummaries = async () => {
         }
 
         if (pref.inAppEnabled !== false) {
-          await Notification.createNotification({
+          await Notification.createOrClaimNotification({
             recipient: pref.userId,
             type: 'activity-weekly-summary',
             title: '📊 Weekly Activity Summary',
-            content: `This week: ${summary.goalsCompleted} goals completed, ${summary.coding.activeDays}/7 coding days, ${summary.learning.activeDays}/7 learning days.`,
+            content: `This week: ${summary.goalsCompleted} goals completed, ${summary.coding?.activeDays || 0}/7 coding days, ${summary.learning?.activeDays || 0}/7 learning days.`,
             priority: 'low',
             metadata: { source: 'system', category: 'activity' },
-            actionUrl: '/activity'
+            actionUrl: '/activity',
+            dedupKey: summaryDedupKey
           });
         }
 
-        await markAsSent(pref.userId, 'weekly', today);
         results.sent++;
-
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (err) {
         console.error(`[Activity Cron] Weekly summary error for user ${pref.userId}:`, err.message);
@@ -336,36 +443,53 @@ const runWeeklySummaries = async () => {
     }
   } catch (error) {
     console.error('[Activity Cron] Weekly summary critical error:', error);
+  } finally {
+    await cache.releaseLock(lockKey, lockValue).catch(() => {});
   }
 
-  console.log(`[Activity Cron] Weekly summary: Sent ${results.sent}, Skipped ${results.skipped}, Errors ${results.errors}`);
+  console.log(`[Activity Cron] Weekly summary completed: Sent ${results.sent}, Skipped ${results.skipped}, Errors ${results.errors}`);
   return results;
 };
 
 /**
- * Initialize activity reminder cron jobs
+ * Initialize all activity intelligence cron jobs
  */
 const initActivityCron = () => {
-  // Daily reminders — run every hour to cover different user timezones
-  // The deduplication logic ensures each user only gets one reminder per day
-  const dailySchedule = process.env.ACTIVITY_REMINDER_CRON || '0 */2 * * *'; // Every 2 hours
-  
+  // 1. Daily reminders schedule (default every 2 hours)
+  const dailySchedule = process.env.ACTIVITY_REMINDER_CRON || '0 */2 * * *';
   cron.schedule(dailySchedule, async () => {
-    console.log(`[Activity CRON] Triggering daily reminders (${dailySchedule})...`);
+    console.log(`[Activity CRON] Triggering distributed daily reminders (${dailySchedule})...`);
     await runDailyReminders();
   });
 
-  // Weekly summaries — Sunday at 10 AM
+  // 2. Pre-midnight streak protection (every 15 minutes)
+  const protectionSchedule = '*/15 * * * *';
+  cron.schedule(protectionSchedule, async () => {
+    await runPreMidnightProtection();
+  });
+
+  // 3. Adaptive background sync for automatic/hybrid goals (every 30 minutes)
+  const bgSyncSchedule = `*/${ACTIVITY_BACKGROUND_SYNC_MINUTES} * * * *`;
+  cron.schedule(bgSyncSchedule, async () => {
+    await runAdaptiveBackgroundSync();
+  });
+
+  // 4. Weekly summaries — Sunday at 10 AM
   const weeklySchedule = process.env.ACTIVITY_WEEKLY_CRON || '0 10 * * 0';
-  
   cron.schedule(weeklySchedule, async () => {
     console.log(`[Activity CRON] Triggering weekly summaries (${weeklySchedule})...`);
     await runWeeklySummaries();
   });
 
-  console.log(`[Activity CRON] Activity reminders scheduled: "${dailySchedule}" (daily), "${weeklySchedule}" (weekly)`);
+  console.log(`[Activity CRON] Distributed Activity Intelligence Scheduled:
+  - Daily Reminders: "${dailySchedule}" (Distributed Lock Protected)
+  - Pre-Midnight Protection: "${protectionSchedule}" (<= ${ACTIVITY_PRE_DEADLINE_SYNC_MINUTES}m window)
+  - Adaptive Background Sync: "${bgSyncSchedule}" (Interval: ${ACTIVITY_BACKGROUND_SYNC_MINUTES}m)
+  - Weekly Summaries: "${weeklySchedule}"`);
 };
 
 module.exports = initActivityCron;
 module.exports.runDailyReminders = runDailyReminders;
+module.exports.runPreMidnightProtection = runPreMidnightProtection;
+module.exports.runAdaptiveBackgroundSync = runAdaptiveBackgroundSync;
 module.exports.runWeeklySummaries = runWeeklySummaries;

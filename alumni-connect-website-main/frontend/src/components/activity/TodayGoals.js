@@ -22,7 +22,9 @@ const TodayGoals = ({
   onOpenHub,
   maxDisplay = null,
   showFilters = false,
-  compact = false
+  compact = false,
+  isSyncing = false,
+  syncStatus = null
 }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'pending', 'completed'
   const handleAction = onToggleGoal || onCompleteGoal;
@@ -146,7 +148,7 @@ const TodayGoals = ({
                         {goal.title}
                       </span>
 
-                      {/* Verification/Tracking Badge */}
+                      {/* Distinct Goal Status UX (Step 61: Completed, Pending, Verifying, Sync delayed, At risk) */}
                       {isCompleted ? (
                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           goal.completionType === 'api-verified'
@@ -156,17 +158,32 @@ const TodayGoals = ({
                           <ShieldCheck className="w-3 h-3" />
                           {goal.completionType === 'api-verified' ? 'Verified' : 'Completed'}
                         </span>
-                      ) : isAuto ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                          <Zap className="w-2.5 h-2.5 text-amber-500" />
-                          Auto Track
+                      ) : isSyncing ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 animate-pulse">
+                          <Zap className="w-2.5 h-2.5 text-indigo-500" />
+                          Verifying...
                         </span>
-                      ) : null}
+                      ) : syncStatus === 'failed' || syncStatus === 'temporarily-unavailable' ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          <AlertCircle className="w-2.5 h-2.5" />
+                          Sync delayed
+                        </span>
+                      ) : (goal.priority === 'high' || goal.atRisk || ((goal.currentStreak || 0) >= 2)) ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                          <Flame className="w-2.5 h-2.5" />
+                          At risk
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                          <Clock className="w-2.5 h-2.5" />
+                          Pending
+                        </span>
+                      )}
 
-                      {/* Priority Badge */}
-                      {!isCompleted && goal.priority === 'high' && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                          High Priority
+                      {/* Auto Track indicator if automatic/hybrid */}
+                      {!isCompleted && isAuto && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400">
+                          (Auto)
                         </span>
                       )}
                     </div>

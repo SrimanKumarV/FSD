@@ -143,17 +143,17 @@ const ActivityTimeline = ({ items, timeline, isCompact = false, compact = false,
                 {isApiVerified ? (
                   <>
                     <ShieldCheck className="w-3 h-3" />
-                    <span>Verified</span>
+                    <span>{item.platform ? `${item.platform.charAt(0).toUpperCase() + item.platform.slice(1)} API verified` : 'API verified'}</span>
                   </>
                 ) : isAuto ? (
                   <>
                     <Zap className="w-3 h-3 text-amber-500" />
-                    <span>Auto Detected</span>
+                    <span>{item.platform ? `${item.platform.charAt(0).toUpperCase() + item.platform.slice(1)} Auto detected` : 'Auto detected'}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-3 h-3" />
-                    <span>Logged</span>
+                    <span>Manual Log</span>
                   </>
                 )}
               </span>

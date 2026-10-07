@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumnex Connect - Agile & Jira Engineering Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        atlassian: {
+                            blue: '#0052CC',
+                            dark: '#172B4D',
+                            light: '#DEEBFF',
+                            purple: '#5243AA',
+                            teal: '#00B8D9',
+                            green: '#36B37E',
+                            red: '#FF5630',
+                            yellow: '#FFAB00',
+                            gray: '#F4F5F7',
+                            grayDark: '#5E6C84'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #F4F5F7; color: #172B4D; font-family: 'Inter', sans-serif; }
+        
+        /* Slide Container */
+        #slide-container {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16/9;
+            margin: 0 auto;
+            position: relative;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(9, 30, 66, 0.15);
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            padding: 4rem 5rem;
+            box-sizing: border-box;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Typography Hierarchy */
+        .slide-title { font-size: 2.5rem; font-weight: 800; color: #172B4D; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .slide-subtitle { font-size: 1.25rem; font-weight: 500; color: #5E6C84; margin-bottom: 2rem; }
+        
+        /* UI Elements */
+        .screenshot-frame {
+            border: 1px solid #DFE1E6;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(9,30,66,0.08);
+            background: #FAFBFC;
+            position: relative;
+        }
+        .screenshot-header { height: 24px; background: #EBECF0; border-bottom: 1px solid #DFE1E6; display: flex; align-items: center; padding: 0 8px; gap: 4px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #C1C7D0; }
+        .callout {
+            position: absolute;
+            background: rgba(0, 82, 204, 0.95);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .callout::after {
+            content: ''; position: absolute; border: 6px solid transparent;
+        }
+        
+        /* Diagrams */
+        .node { background: white; border: 2px solid #0052CC; border-radius: 8px; padding: 1rem; text-align: center; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .node-dark { background: #172B4D; color: white; border: none; }
+        .connector { background: #0052CC; }
+
+        /* Controls */
+        #controls { max-width: 1280px; margin: 1rem auto; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; }
+        button.btn { background: #0052CC; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        button.btn:hover { background: #0747A6; }
+        button.btn:disabled { background: #N80; cursor: not-allowed; opacity: 0.5; }
+        
+        /* Appendix */
+        .appendix-section { max-width: 1280px; margin: 4rem auto; background: white; padding: 3rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(9, 30, 66, 0.1); }
+        .appendix-section h1 { font-size: 2rem; font-weight: 800; color: #172B4D; margin-bottom: 2rem; border-bottom: 2px solid #DFE1E6; padding-bottom: 0.5rem; }
+        .appendix-section h2 { font-size: 1.5rem; font-weight: 700; color: #0052CC; margin-top: 2rem; margin-bottom: 1rem; }
+        .appendix-section h3 { font-size: 1.25rem; font-weight: 600; color: #172B4D; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        
+        table.prof-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+        table.prof-table th, table.prof-table td { border: 1px solid #DFE1E6; padding: 12px 16px; text-align: left; }
+        table.prof-table th { background: #FAFBFC; font-weight: 600; color: #5E6C84; }
+        table.prof-table tr:nth-child(even) { background: #fafbfc; }
+
+        .note-card { border-left: 4px solid #0052CC; background: #FAFBFC; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 4px 4px 0; }
+        .note-label { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #5E6C84; margin-bottom: 0.25rem; }
+        .note-content { font-size: 0.95rem; color: #172B4D; margin-bottom: 1rem; line-height: 1.5; }
+        
+        @media print {
+            body { background: white; }
+            #slide-container, #controls { display: none; }
+            .appendix-section { box-shadow: none; padding: 0; margin: 0; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-atlassian-dark text-white py-4 px-8 flex justify-between items-center mb-8 shadow-md">
+        <div>
+            <h1 class="text-xl font-bold tracking-wide">ALUMNEX CONNECT</h1>
+            <p class="text-sm text-atlassian-teal">Engineering Project Review</p>
+        </div>
+        <div class="text-sm font-medium bg-white/10 px-4 py-2 rounded">
+            Project: KAN | Status: Academic Review
+        </div>
+    </div>
+
+    <!-- Presentation Container -->
+    <div id="slide-container">
+        
+        <div class="slide active bg-atlassian-dark text-white flex justify-center items-center text-center" id="slide-1">
+            <div class="max-w-4xl">
+                <p class="text-atlassian-teal font-bold tracking-widest uppercase mb-4 text-lg">Academic Project Review</p>
+                <h1 class="text-7xl font-extrabold mb-6 leading-tight">ALUMNEX CONNECT</h1>
+                <div class="h-1 w-24 bg-atlassian-blue mx-auto mb-8"></div>
+                <h2 class="text-3xl font-light text-atlassian-light mb-8">Agile Project Management &<br>Jira-Based Software Development</h2>
+                <p class="text-xl font-medium text-gray-300 italic mb-16">"Transforming a complex software product into a visible, traceable, and continuously improvable Agile system."</p>
+                
+                <div class="flex justify-between items-center bg-white/10 p-6 rounded-lg backdrop-blur-sm text-left">
+                    <div>
+                        <p class="text-sm text-gray-400 uppercase tracking-wider mb-1">Jira Project</p>
+                        <p class="text-xl font-bold text-white">KAN (Team-Managed)</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400 uppercase tracking-wider mb-1">Student / Team</p>
+                        <p class="text-xl font-bold text-white">[Student Name]</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400 uppercase tracking-wider mb-1">Institution</p>
+                        <p class="text-xl font-bold text-white">[Department / College]</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-2">
+            <h2 class="slide-title">What is Alumnex Connect?</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 relative flex justify-center items-center">
+                <!-- Ecosystem Hub -->
+                <div class="absolute w-[800px] h-[400px]">
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-atlassian-blue rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-2xl z-20 text-center leading-tight">
+                        ALUMNEX<br>CONNECT
+                    </div>
+                    
+                    <!-- SVG Connectors -->
+                    <svg class="absolute inset-0 w-full h-full z-10" pointer-events="none">
+                        <line x1="400" y1="200" x2="400" y2="40" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="400" y2="360" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="150" y2="200" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="650" y2="200" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="220" y2="70" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="580" y2="70" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="220" y2="330" stroke="#DFE1E6" stroke-width="3" />
+                        <line x1="400" y1="200" x2="580" y2="330" stroke="#DFE1E6" stroke-width="3" />
+                    </svg>
+
+                    <!-- Nodes -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 node z-20 w-48">MENTORSHIP</div>
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 node z-20 w-48">CAREER & JOBS</div>
+                    <div class="absolute top-1/2 left-0 transform -translate-x-1/2 -translate-y-1/2 node z-20 w-48">DEVPULSE (ANALYTICS)</div>
+                    <div class="absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2 node z-20 w-48">AI ASSISTANT</div>
+                    
+                    <div class="absolute top-[17.5%] left-[27.5%] transform -translate-x-1/2 -translate-y-1/2 node z-20 w-40 text-sm">COMMUNICATION</div>
+                    <div class="absolute top-[17.5%] right-[27.5%] transform translate-x-1/2 -translate-y-1/2 node z-20 w-40 text-sm">COMMUNITY</div>
+                    <div class="absolute bottom-[17.5%] left-[27.5%] transform -translate-x-1/2 translate-y-1/2 node z-20 w-40 text-sm">MOBILE</div>
+                    <div class="absolute bottom-[17.5%] right-[27.5%] transform translate-x-1/2 translate-y-1/2 node z-20 w-40 text-sm">SECURITY</div>
+                </div>
+            </div>
+            
+            <div class="mt-auto bg-atlassian-gray p-4 rounded text-center border-l-4 border-atlassian-blue">
+                <p class="text-lg font-semibold text-atlassian-dark">One platform. Multiple interconnected product capabilities.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-3">
+            <h2 class="slide-title">Why Agile for Alumnex Connect?</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex flex-1 gap-8">
+                <!-- Traditional -->
+                <div class="flex-1 bg-rose-50 border border-rose-100 rounded-lg p-8 flex flex-col">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-rose-200">
+                        <i class="fa-solid fa-times-circle text-rose-500 text-2xl"></i>
+                        <h3 class="text-2xl font-bold text-atlassian-dark">Traditional Sequential</h3>
+                    </div>
+                    <div class="flex-1 flex flex-col gap-6 justify-center">
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-caret-right text-rose-400 mt-1"></i><p class="text-lg font-medium">Rigid, upfront planning</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-caret-right text-rose-400 mt-1"></i><p class="text-lg font-medium">Late feedback loops</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-caret-right text-rose-400 mt-1"></i><p class="text-lg font-medium">Late defect discovery</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-caret-right text-rose-400 mt-1"></i><p class="text-lg font-medium">Hidden integration dependencies</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-caret-right text-rose-400 mt-1"></i><p class="text-lg font-medium">High risk in monolithic release</p></div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-center text-gray-300 text-3xl">VS</div>
+
+                <!-- Agile -->
+                <div class="flex-1 bg-emerald-50 border border-emerald-100 rounded-lg p-8 flex flex-col shadow-[0_0_20px_rgba(52,211,153,0.15)]">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-emerald-200">
+                        <i class="fa-solid fa-check-circle text-emerald-500 text-2xl"></i>
+                        <h3 class="text-2xl font-bold text-atlassian-dark">Agile Development</h3>
+                    </div>
+                    <div class="flex-1 flex flex-col gap-6 justify-center">
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-arrow-right text-emerald-500 mt-1"></i><p class="text-lg font-medium">Incremental delivery of value</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-arrow-right text-emerald-500 mt-1"></i><p class="text-lg font-medium">Continuous, early feedback</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-arrow-right text-emerald-500 mt-1"></i><p class="text-lg font-medium">Visible work states</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-arrow-right text-emerald-500 mt-1"></i><p class="text-lg font-medium">Early defect discovery</p></div>
+                        <div class="flex items-start gap-4"><i class="fa-solid fa-arrow-right text-emerald-500 mt-1"></i><p class="text-lg font-medium">Adaptive planning & scope management</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-atlassian-light p-4 rounded text-center border-l-4 border-atlassian-blue">
+                <p class="text-lg font-semibold text-atlassian-blue">Alumnex Connect is a multi-module product with changing dependencies, making incremental and feedback-driven development more appropriate.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col bg-slate-50" id="slide-4">
+            <h2 class="slide-title">The Agile System</h2>
+            <p class="slide-subtitle">How different frameworks unite in one project.</p>
+            
+            <div class="flex-1 relative flex flex-col justify-center items-center">
+                <!-- Top Header -->
+                <div class="text-3xl font-extrabold text-atlassian-blue tracking-widest mb-12 border-b-2 border-atlassian-blue pb-2">AGILE DELIVERY PHILOSOPHY</div>
+                
+                <!-- Circular Model -->
+                <div class="relative w-[500px] h-[250px] flex justify-center items-center mb-16">
+                    <div class="absolute w-full h-full border-4 border-dashed border-gray-300 rounded-[100px] z-0"></div>
+                    
+                    <div class="bg-atlassian-dark text-white text-2xl font-bold py-6 px-12 rounded-xl z-20 shadow-xl relative">
+                        ALUMNEX CONNECT
+                    </div>
+
+                    <!-- Surrounding Methodologies -->
+                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-blue-100 text-atlassian-blue font-bold py-2 px-6 rounded z-10 border border-blue-200">SCRUM</div>
+                    <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-teal-100 text-teal-700 font-bold py-2 px-6 rounded z-10 border border-teal-200">KANBAN</div>
+                    <div class="absolute top-1/2 -left-6 transform -translate-y-1/2 bg-purple-100 text-atlassian-purple font-bold py-2 px-6 rounded z-10 border border-purple-200">XP</div>
+                    <div class="absolute top-1/2 -right-6 transform -translate-y-1/2 bg-orange-100 text-orange-700 font-bold py-2 px-6 rounded z-10 border border-orange-200">LEAN</div>
+                </div>
+
+                <!-- Bottom Layer -->
+                <div class="flex gap-8 w-full max-w-4xl">
+                    <div class="flex-1 bg-white border border-gray-200 p-6 rounded-xl shadow-md text-center">
+                        <i class="fa-brands fa-jira text-atlassian-blue text-4xl mb-4"></i>
+                        <h3 class="text-xl font-bold text-atlassian-dark">JIRA</h3>
+                        <p class="text-gray-500 font-medium mt-2 uppercase tracking-wide text-sm">Execution Layer</p>
+                    </div>
+                    <div class="flex-1 bg-white border border-gray-200 p-6 rounded-xl shadow-md text-center">
+                        <i class="fa-brands fa-confluence text-atlassian-blue text-4xl mb-4"></i>
+                        <h3 class="text-xl font-bold text-atlassian-dark">CONFLUENCE</h3>
+                        <p class="text-gray-500 font-medium mt-2 uppercase tracking-wide text-sm">Knowledge Layer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-5">
+            <h2 class="slide-title">From Requirements to Traceable Work</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex flex-1 items-center gap-12">
+                <!-- Flow -->
+                <div class="flex-1 flex flex-col gap-2">
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm">1</div><div class="bg-white border border-gray-200 p-3 rounded shadow-sm flex-1 font-semibold">Requirement</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">2</div><div class="bg-blue-50 border border-blue-200 p-3 rounded shadow-sm flex-1 font-semibold text-atlassian-blue">Epic</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm">3</div><div class="bg-green-50 border border-green-200 p-3 rounded shadow-sm flex-1 font-semibold text-green-700">Story</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm">4</div><div class="bg-white border border-gray-200 p-3 rounded shadow-sm flex-1 font-semibold text-gray-600 text-sm">Acceptance Criteria</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">5</div><div class="bg-teal-50 border border-teal-200 p-3 rounded shadow-sm flex-1 font-semibold text-teal-700">Subtask</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm">6</div><div class="bg-white border border-gray-200 p-3 rounded shadow-sm flex-1 font-semibold text-gray-700">Development</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold text-sm">7</div><div class="bg-yellow-50 border border-yellow-200 p-3 rounded shadow-sm flex-1 font-semibold text-yellow-700">Review</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">8</div><div class="bg-emerald-50 border border-emerald-200 p-3 rounded shadow-sm flex-1 font-semibold text-emerald-700">Done</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">9</div><div class="bg-purple-50 border border-purple-200 p-3 rounded shadow-sm flex-1 font-semibold text-purple-700">Release</div></div>
+                    <div class="flex items-center gap-4"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm">10</div><div class="bg-white border border-gray-200 p-3 rounded shadow-sm flex-1 font-semibold">Feedback / Improvement</div></div>
+                </div>
+
+                <!-- Explanation -->
+                <div class="w-96 flex flex-col justify-center">
+                    <div class="bg-atlassian-dark text-white p-8 rounded-xl shadow-xl text-center">
+                        <i class="fa-brands fa-jira text-6xl text-blue-400 mb-6"></i>
+                        <h3 class="text-2xl font-bold mb-4">Jira Operationalizes Agile Work</h3>
+                        <p class="text-gray-300 text-lg leading-relaxed">
+                            Jira provides the structured platform to transform abstract requirements into visible, actionable, and trackable units of work.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-6">
+            <h2 class="slide-title">Jira Project Overview</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 relative">
+                <!-- Simulated Screenshot -->
+                <div class="screenshot-frame w-full h-full flex flex-col absolute inset-0">
+                    <div class="screenshot-header">
+                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                        <div class="ml-4 text-xs text-gray-500 font-mono">Alumnex Connect - Board - Jira</div>
+                    </div>
+                    <div class="flex flex-1 p-0 overflow-hidden bg-white">
+                        <!-- Sidebar mockup -->
+                        <div class="w-56 bg-gray-50 border-r border-gray-200 p-4 flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-4">
+                                <div class="w-6 h-6 bg-blue-600 rounded text-white flex items-center justify-center text-xs"><i class="fa-solid fa-graduation-cap"></i></div>
+                                <span class="font-bold text-sm">Alumnex Connect</span>
+                            </div>
+                            <div class="text-sm font-medium text-gray-600 py-2 px-2 bg-blue-50 text-blue-600 rounded">Board</div>
+                            <div class="text-sm font-medium text-gray-600 py-2 px-2">Backlog</div>
+                            <div class="text-sm font-medium text-gray-600 py-2 px-2">Timeline</div>
+                            <div class="text-sm font-medium text-gray-600 py-2 px-2">Calendar</div>
+                            <div class="text-sm font-medium text-gray-600 py-2 px-2">Reports</div>
+                            <div class="text-sm font-medium text-gray-600 py-2 px-2">Development</div>
+                        </div>
+                        <!-- Main Content Mockup -->
+                        <div class="flex-1 p-6 bg-white">
+                            <h3 class="text-2xl font-bold mb-6">KAN board</h3>
+                            <div class="flex gap-4">
+                                <div class="w-1/4 bg-gray-100 rounded p-2 h-64 border-t-2 border-gray-400">IDEA</div>
+                                <div class="w-1/4 bg-gray-100 rounded p-2 h-64 border-t-2 border-blue-400">TO DO</div>
+                                <div class="w-1/4 bg-gray-100 rounded p-2 h-64 border-t-2 border-blue-600">IN PROGRESS</div>
+                                <div class="w-1/4 bg-gray-100 rounded p-2 h-64 border-t-2 border-green-500">DONE</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Callouts -->
+                <div class="callout" style="top: 15%; left: 16%;">Project: KAN (Team-Managed)</div>
+                <div class="callout bg-atlassian-purple" style="top: 40%; left: 30%;">Executable Views</div>
+                <div class="callout bg-emerald-600" style="bottom: 10%; right: 10%;">Visible Workflow</div>
+                
+                <div class="absolute bottom-6 left-6 bg-white p-4 rounded shadow-lg border-l-4 border-atlassian-blue z-20">
+                    <p class="font-bold text-atlassian-dark">Figure 1. Jira is used as the executable project-management layer.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-7">
+            <h2 class="slide-title">The Jira Data Model</h2>
+            <p class="slide-subtitle">Structuring work for execution and tracking.</p>
+            
+            <div class="flex-1 flex justify-center items-center gap-16">
+                <!-- Core Hierarchy -->
+                <div class="flex flex-col items-center gap-6">
+                    <div class="w-64 bg-purple-100 border-2 border-purple-400 rounded-lg p-4 text-center">
+                        <i class="fa-solid fa-bolt text-purple-600 text-2xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-purple-800">EPIC</h3>
+                        <p class="text-sm text-purple-600 font-medium">Large Capability</p>
+                    </div>
+                    <div class="h-8 w-1 bg-gray-300"></div>
+                    <div class="w-64 bg-green-100 border-2 border-green-400 rounded-lg p-4 text-center">
+                        <i class="fa-solid fa-bookmark text-green-600 text-2xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-green-800">STORY</h3>
+                        <p class="text-sm text-green-600 font-medium">User Value Increment</p>
+                    </div>
+                    <div class="h-8 w-1 bg-gray-300"></div>
+                    <div class="w-64 bg-blue-100 border-2 border-blue-400 rounded-lg p-4 text-center">
+                        <i class="fa-solid fa-check-square text-blue-600 text-2xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-blue-800">SUBTASK</h3>
+                        <p class="text-sm text-blue-600 font-medium">Implementation Activity</p>
+                    </div>
+                </div>
+
+                <!-- Parallel Branches -->
+                <div class="flex flex-col gap-12 justify-center">
+                    <div class="flex items-center gap-6">
+                        <div class="w-48 bg-red-100 border-2 border-red-400 rounded-lg p-4 text-center">
+                            <h3 class="text-xl font-bold text-red-800"><i class="fa-solid fa-bug mr-2"></i>BUG</h3>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-gray-400 text-2xl"></i>
+                        <div class="text-lg font-bold text-gray-600 bg-gray-100 px-4 py-2 rounded">QUALITY</div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="w-48 bg-gray-100 border-2 border-gray-400 rounded-lg p-4 text-center">
+                            <h3 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-box-open mr-2"></i>VERSION</h3>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-gray-400 text-2xl"></i>
+                        <div class="text-lg font-bold text-gray-600 bg-gray-100 px-4 py-2 rounded">RELEASE</div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="w-48 bg-gray-100 border-2 border-gray-400 rounded-lg p-4 text-center">
+                            <h3 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-bars-progress mr-2"></i>STATUS</h3>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-gray-400 text-2xl"></i>
+                        <div class="text-lg font-bold text-gray-600 bg-gray-100 px-4 py-2 rounded">FLOW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-8">
+            <h2 class="slide-title">10 Epics = Product Structure</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 grid grid-cols-2 gap-4 auto-rows-max mt-4">
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-1</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-shield-halved text-gray-400 mr-2"></i>Authentication & User Management</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-2</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-users text-gray-400 mr-2"></i>Alumni–Student Mentorship</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-3</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-chart-line text-gray-400 mr-2"></i>Developer Intelligence (DevPulse)</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-4</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-briefcase text-gray-400 mr-2"></i>Career & Job Management</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-5</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-robot text-gray-400 mr-2"></i>AI Career Assistant</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-6</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-comments text-gray-400 mr-2"></i>Real-Time Communication</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-7</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-globe text-gray-400 mr-2"></i>Community & Events</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-8</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-mobile-screen-button text-gray-400 mr-2"></i>Mobile Application</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-9</div>
+                    <div class="font-semibold text-lg text-atlassian-dark"><i class="fa-solid fa-server text-gray-400 mr-2"></i>Security, Reliability & DevOps</div>
+                </div>
+                <div class="bg-blue-50 border-2 border-blue-400 p-4 rounded shadow-sm flex items-center gap-4">
+                    <div class="bg-blue-600 text-white font-bold px-2 py-1 rounded text-sm min-w-[70px] text-center">KAN-10</div>
+                    <div class="font-semibold text-lg text-blue-900"><i class="fa-solid fa-clipboard-list text-blue-600 mr-2"></i>Scrum & Project Governance</div>
+                </div>
+            </div>
+
+            <div class="mt-auto bg-atlassian-gray p-4 rounded text-center border-l-4 border-atlassian-purple">
+                <p class="text-xl font-bold text-atlassian-dark">Epics convert a large product into manageable capability areas.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-9">
+            <h2 class="slide-title">From Epic to User Story</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex gap-8">
+                <!-- Structure -->
+                <div class="flex flex-col gap-4 justify-center w-1/3">
+                    <div class="bg-purple-100 border border-purple-300 p-4 rounded text-center">
+                        <p class="text-sm font-bold text-purple-700 mb-1">EPIC KAN-1</p>
+                        <h4 class="font-bold text-lg">Authentication & User Mgmt</h4>
+                    </div>
+                    <div class="flex justify-center"><i class="fa-solid fa-arrow-down text-3xl text-gray-300"></i></div>
+                    <div class="bg-green-100 border border-green-300 p-4 rounded text-center shadow-lg transform scale-105">
+                        <p class="text-sm font-bold text-green-700 mb-1">STORY KAN-11</p>
+                        <h4 class="font-bold text-xl text-green-900">Student Registration</h4>
+                    </div>
+                </div>
+
+                <!-- Story Detail Mockup -->
+                <div class="flex-1 screenshot-frame flex flex-col bg-white">
+                    <div class="screenshot-header border-b border-gray-200 bg-gray-50 p-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-bookmark text-green-500"></i>
+                            <span class="font-mono text-sm font-semibold">KAN-11</span>
+                            <span class="font-semibold ml-2">Student Registration</span>
+                        </div>
+                    </div>
+                    <div class="p-8 flex-1">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8 text-xl font-medium text-blue-900 leading-relaxed shadow-sm">
+                            "As a student,<br>I want to register,<br>so that I can create my account."
+                        </div>
+                        <div class="grid grid-cols-2 gap-y-6 text-sm">
+                            <div><span class="font-bold text-gray-500 block mb-1">Acceptance Criteria</span><span class="font-medium text-gray-800">Testable conditions defined.</span></div>
+                            <div><span class="font-bold text-gray-500 block mb-1">Status</span><span class="bg-green-100 text-green-800 font-bold px-2 py-1 rounded text-xs">DONE</span></div>
+                            <div><span class="font-bold text-gray-500 block mb-1">Priority</span><span class="font-medium text-gray-800"><i class="fa-solid fa-arrow-up text-red-500 mr-1"></i> High</span></div>
+                            <div><span class="font-bold text-gray-500 block mb-1">Estimate</span><span class="bg-gray-200 text-gray-800 font-bold px-2 py-1 rounded text-xs">5 Points</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-10">
+            <h2 class="slide-title">Acceptance Criteria = Quality Contract</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex gap-12 items-center">
+                <!-- Example Block -->
+                <div class="w-1/2 screenshot-frame bg-white p-8">
+                    <h3 class="text-xl font-bold mb-2 flex items-center"><i class="fa-solid fa-bookmark text-green-500 mr-2"></i>KAN-14: OTP/Two-Factor</h3>
+                    <div class="h-px bg-gray-200 w-full mb-6"></div>
+                    
+                    <div class="border-2 border-blue-400 rounded-lg p-6 relative bg-blue-50">
+                        <div class="absolute -top-3 left-4 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">Acceptance Criteria</div>
+                        <ul class="space-y-4">
+                            <li class="flex gap-3 items-start"><i class="fa-solid fa-check-circle text-green-500 mt-1"></i><span class="font-medium text-gray-800">OTP is generated and delivered successfully.</span></li>
+                            <li class="flex gap-3 items-start"><i class="fa-solid fa-check-circle text-green-500 mt-1"></i><span class="font-medium text-gray-800">Verification succeeds ONLY with a valid, unexpired OTP.</span></li>
+                            <li class="flex gap-3 items-start"><i class="fa-solid fa-check-circle text-green-500 mt-1"></i><span class="font-medium text-gray-800">Retry and expiry flows are handled correctly.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Explanation Flow -->
+                <div class="w-1/2 flex flex-col gap-6">
+                    <p class="text-2xl font-bold text-atlassian-dark mb-4">Acceptance Criteria connects:</p>
+                    
+                    <div class="flex items-center gap-4"><div class="w-32 bg-gray-200 py-2 rounded text-center font-bold text-gray-600">USER NEED</div><i class="fa-solid fa-arrow-down transform -rotate-45 text-gray-300 text-xl"></i></div>
+                    <div class="flex items-center gap-4 ml-8"><div class="w-40 bg-blue-100 py-2 rounded text-center font-bold text-blue-700">IMPLEMENTATION</div><i class="fa-solid fa-arrow-down transform -rotate-45 text-gray-300 text-xl"></i></div>
+                    <div class="flex items-center gap-4 ml-16"><div class="w-32 bg-yellow-100 py-2 rounded text-center font-bold text-yellow-700">TESTING</div><i class="fa-solid fa-arrow-down transform -rotate-45 text-gray-300 text-xl"></i></div>
+                    <div class="flex items-center gap-4 ml-24"><div class="w-32 bg-purple-100 py-2 rounded text-center font-bold text-purple-700">REVIEW</div><i class="fa-solid fa-arrow-down transform -rotate-45 text-gray-300 text-xl"></i></div>
+                    <div class="flex items-center gap-4 ml-32"><div class="w-32 bg-green-500 py-2 rounded text-center font-bold text-white">DONE</div></div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-atlassian-dark p-4 rounded text-center">
+                <p class="text-xl font-semibold text-white">A Story is not complete because code exists. It is complete when its expected behavior is demonstrably satisfied.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-11">
+            <h2 class="slide-title">Story Decomposition</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex flex-col items-center justify-center">
+                <!-- Parent Story -->
+                <div class="bg-green-100 border-2 border-green-500 rounded-lg p-6 w-[600px] mb-8 relative shadow-md">
+                    <span class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-md">USER VALUE</span>
+                    <h3 class="text-2xl font-bold text-green-900 flex items-center"><i class="fa-solid fa-bookmark text-green-600 mr-3"></i>KAN-11: Student Registration</h3>
+                </div>
+
+                <!-- Arrow -->
+                <div class="flex justify-center mb-8 w-[600px] relative">
+                    <div class="w-1 h-12 bg-gray-300 absolute -top-8 left-1/2 transform -translate-x-1/2"></div>
+                    <div class="w-3/4 h-1 bg-gray-300 absolute -top-2 left-1/8"></div>
+                    <!-- Connectors -->
+                    <div class="w-1 h-8 bg-gray-300 absolute -top-2 left-[12.5%]"></div>
+                    <div class="w-1 h-8 bg-gray-300 absolute -top-2 left-1/2 transform -translate-x-1/2"></div>
+                    <div class="w-1 h-8 bg-gray-300 absolute -top-2 right-[12.5%]"></div>
+                </div>
+
+                <!-- Subtasks -->
+                <div class="flex gap-6 w-full max-w-5xl justify-center">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 w-72 text-center shadow-sm relative">
+                        <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-200 text-blue-800 text-xs font-bold px-2 py-1 rounded uppercase">IMPLEMENTATION</span>
+                        <div class="text-blue-600 font-bold mb-2"><i class="fa-solid fa-check-square mr-2"></i>KAN-69</div>
+                        <h4 class="font-semibold text-gray-800 text-lg">Design registration flow</h4>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 w-72 text-center shadow-sm relative">
+                        <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-200 text-blue-800 text-xs font-bold px-2 py-1 rounded uppercase">IMPLEMENTATION</span>
+                        <div class="text-blue-600 font-bold mb-2"><i class="fa-solid fa-check-square mr-2"></i>KAN-70</div>
+                        <h4 class="font-semibold text-gray-800 text-lg">Implement secure credential handling</h4>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 w-72 text-center shadow-sm relative">
+                        <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-200 text-blue-800 text-xs font-bold px-2 py-1 rounded uppercase">IMPLEMENTATION</span>
+                        <div class="text-blue-600 font-bold mb-2"><i class="fa-solid fa-check-square mr-2"></i>KAN-71</div>
+                        <h4 class="font-semibold text-gray-800 text-lg">Registration tests</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <p class="text-xl font-bold text-gray-500 uppercase tracking-widest">This demonstrates Agile decomposition.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-12">
+            <h2 class="slide-title">Product Backlog</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 relative flex items-center justify-center">
+                
+                <!-- Background visual representation of backlog list -->
+                <div class="w-full max-w-4xl bg-white border border-gray-200 rounded-lg shadow-sm p-4 opacity-40">
+                    <div class="h-8 bg-gray-100 rounded w-full mb-3 flex items-center px-4 gap-4"><div class="w-4 h-4 bg-green-400 rounded"></div><div class="h-2 bg-gray-300 w-1/3 rounded"></div></div>
+                    <div class="h-8 bg-gray-100 rounded w-full mb-3 flex items-center px-4 gap-4"><div class="w-4 h-4 bg-green-400 rounded"></div><div class="h-2 bg-gray-300 w-1/2 rounded"></div></div>
+                    <div class="h-8 bg-gray-100 rounded w-full mb-3 flex items-center px-4 gap-4"><div class="w-4 h-4 bg-green-400 rounded"></div><div class="h-2 bg-gray-300 w-1/4 rounded"></div></div>
+                    <div class="h-8 bg-gray-100 rounded w-full mb-3 flex items-center px-4 gap-4"><div class="w-4 h-4 bg-green-400 rounded"></div><div class="h-2 bg-gray-300 w-2/5 rounded"></div></div>
+                    <div class="h-8 bg-gray-100 rounded w-full mb-3 flex items-center px-4 gap-4"><div class="w-4 h-4 bg-green-400 rounded"></div><div class="h-2 bg-gray-300 w-1/3 rounded"></div></div>
+                </div>
+
+                <!-- Overlay Process -->
+                <div class="absolute inset-0 flex items-center justify-center z-10">
+                    <div class="flex gap-4 items-center">
+                        <div class="bg-atlassian-dark text-white font-bold px-6 py-4 rounded-lg shadow-xl text-lg">CAPTURE</div>
+                        <i class="fa-solid fa-arrow-right text-2xl text-atlassian-blue"></i>
+                        <div class="bg-atlassian-dark text-white font-bold px-6 py-4 rounded-lg shadow-xl text-lg">CLARIFY</div>
+                        <i class="fa-solid fa-arrow-right text-2xl text-atlassian-blue"></i>
+                        <div class="bg-atlassian-blue text-white font-bold px-6 py-4 rounded-lg shadow-xl text-lg transform scale-110">PRIORITIZE</div>
+                        <i class="fa-solid fa-arrow-right text-2xl text-atlassian-blue"></i>
+                        <div class="bg-atlassian-dark text-white font-bold px-6 py-4 rounded-lg shadow-xl text-lg">ESTIMATE</div>
+                        <i class="fa-solid fa-arrow-right text-2xl text-atlassian-blue"></i>
+                        <div class="bg-atlassian-dark text-white font-bold px-6 py-4 rounded-lg shadow-xl text-lg">REFINE</div>
+                        <i class="fa-solid fa-arrow-right text-2xl text-atlassian-blue"></i>
+                        <div class="bg-emerald-600 text-white font-bold px-6 py-4 rounded-lg shadow-xl text-lg transform scale-110">READY</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-xl font-medium text-gray-700">This is where Scrum Product Backlog management connects to Jira.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-13">
+            <h2 class="slide-title">Prioritization & Estimation</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex gap-12">
+                <!-- Left Context -->
+                <div class="w-1/3 flex flex-col justify-center gap-6">
+                    <h3 class="text-2xl font-bold text-atlassian-dark mb-2">Estimation Factors</h3>
+                    <div class="bg-white p-6 rounded-lg shadow border border-gray-100 flex flex-col gap-4">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-chart-line text-blue-500 w-6"></i><span class="font-medium text-lg">Business Priority</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-microchip text-blue-500 w-6"></i><span class="font-medium text-lg">Technical Complexity</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-list-check text-blue-500 w-6"></i><span class="font-medium text-lg">Acceptance Criteria</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-link text-blue-500 w-6"></i><span class="font-medium text-lg">Dependencies</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-weight-hanging text-blue-500 w-6"></i><span class="font-medium text-lg">Relative Effort</span></div>
+                    </div>
+                </div>
+
+                <!-- Right Visuals -->
+                <div class="w-2/3 flex flex-col justify-center items-center gap-8">
+                    <div class="flex gap-8 w-full justify-center">
+                        <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-8 text-center w-64 shadow-md">
+                            <div class="text-6xl font-black text-blue-600 mb-2">53</div>
+                            <div class="text-xl font-bold text-gray-700 uppercase">STORIES</div>
+                        </div>
+                        <div class="bg-purple-50 border-2 border-purple-200 rounded-xl p-8 text-center w-64 shadow-md">
+                            <div class="text-6xl font-black text-purple-600 mb-2">256</div>
+                            <div class="text-xl font-bold text-gray-700 uppercase">SUGGESTED POINTS</div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full max-w-lg">
+                        <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-600">5 Points</span><span class="font-bold">29 Stories</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-4"><div class="bg-blue-500 h-4 rounded-full" style="width: 55%"></div></div>
+                        
+                        <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-600">3 Points</span><span class="font-bold">15 Stories</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-4"><div class="bg-teal-500 h-4 rounded-full" style="width: 28%"></div></div>
+                        
+                        <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-600">8 Points</span><span class="font-bold">8 Stories</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-4"><div class="bg-purple-500 h-4 rounded-full" style="width: 15%"></div></div>
+
+                        <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-600">2 Points</span><span class="font-bold">1 Story</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-gray-500 h-4 rounded-full" style="width: 2%"></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded text-sm text-yellow-800 font-medium w-full text-center">
+                Important note: The values are documented estimates because the current KAN configuration does not expose a native Story Points field.
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-14">
+            <h2 class="slide-title">The Jira Flow</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-16"></div>
+            
+            <div class="flex-1 flex flex-col justify-center relative">
+                
+                <div class="flex w-full justify-between items-stretch gap-4 relative z-10">
+                    <div class="flex-1 bg-gray-100 border-t-8 border-gray-400 rounded-b-lg p-6 shadow-md flex flex-col items-center text-center">
+                        <h3 class="text-2xl font-black text-gray-700 mb-4 tracking-wider">IDEA</h3>
+                        <p class="text-lg font-medium text-gray-600">Potential work</p>
+                    </div>
+                    
+                    <div class="flex items-center text-gray-300 text-3xl"><i class="fa-solid fa-chevron-right"></i></div>
+                    
+                    <div class="flex-1 bg-blue-50 border-t-8 border-blue-400 rounded-b-lg p-6 shadow-md flex flex-col items-center text-center">
+                        <h3 class="text-2xl font-black text-blue-800 mb-4 tracking-wider">TO DO</h3>
+                        <p class="text-lg font-medium text-blue-700">Refined & queued</p>
+                    </div>
+
+                    <div class="flex items-center text-gray-300 text-3xl"><i class="fa-solid fa-chevron-right"></i></div>
+
+                    <div class="flex-1 bg-indigo-50 border-t-8 border-indigo-500 rounded-b-lg p-6 shadow-md flex flex-col items-center text-center transform scale-105">
+                        <h3 class="text-2xl font-black text-indigo-900 mb-4 tracking-wider">IN PROGRESS</h3>
+                        <p class="text-lg font-medium text-indigo-700">Active execution</p>
+                    </div>
+
+                    <div class="flex items-center text-gray-300 text-3xl"><i class="fa-solid fa-chevron-right"></i></div>
+
+                    <div class="flex-1 bg-yellow-50 border-t-8 border-yellow-400 rounded-b-lg p-6 shadow-md flex flex-col items-center text-center">
+                        <h3 class="text-2xl font-black text-yellow-800 mb-4 tracking-wider">IN REVIEW</h3>
+                        <p class="text-lg font-medium text-yellow-700">Validation</p>
+                    </div>
+
+                    <div class="flex items-center text-gray-300 text-3xl"><i class="fa-solid fa-chevron-right"></i></div>
+
+                    <div class="flex-1 bg-emerald-50 border-t-8 border-emerald-500 rounded-b-lg p-6 shadow-md flex flex-col items-center text-center">
+                        <h3 class="text-2xl font-black text-emerald-800 mb-4 tracking-wider">DONE</h3>
+                        <p class="text-lg font-medium text-emerald-700">Quality gate passed</p>
+                    </div>
+                </div>
+
+                <div class="absolute w-full top-1/2 left-0 h-1 bg-gray-200 -z-10"></div>
+            </div>
+
+            <div class="mt-16 text-center">
+                <p class="text-xl font-bold text-atlassian-dark">The board makes work state visible and supports continuous flow.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-15">
+            <h2 class="slide-title">Current Project Status</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex items-center justify-center gap-20">
+                <!-- Donut Chart representation using CSS -->
+                <div class="relative w-80 h-80 rounded-full border-[30px] border-gray-100 flex items-center justify-center shadow-xl"
+                     style="background: conic-gradient(#10B981 0% 43%, #3B82F6 43% 55%, #F59E0B 55% 65%, #9CA3AF 65% 88%, #D1D5DB 88% 100%);">
+                    <div class="absolute inset-0 m-auto w-56 h-56 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+                        <span class="text-7xl font-black text-atlassian-dark">88</span>
+                        <span class="text-lg font-bold text-gray-500 uppercase tracking-widest mt-2">TOTAL ISSUES</span>
+                    </div>
+                </div>
+
+                <!-- Legend / Stats -->
+                <div class="flex flex-col gap-6 w-96">
+                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border-l-8 border-emerald-500">
+                        <span class="text-xl font-bold text-gray-700">DONE</span>
+                        <span class="text-3xl font-black text-emerald-600">38</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border-l-8 border-blue-500">
+                        <span class="text-xl font-bold text-gray-700">IN PROGRESS</span>
+                        <span class="text-3xl font-black text-blue-600">11</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border-l-8 border-yellow-500">
+                        <span class="text-xl font-bold text-gray-700">IN REVIEW</span>
+                        <span class="text-3xl font-black text-yellow-600">9</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border-l-8 border-gray-400">
+                        <span class="text-xl font-bold text-gray-700">TO DO</span>
+                        <span class="text-3xl font-black text-gray-600">20</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border-l-8 border-gray-300">
+                        <span class="text-xl font-bold text-gray-700">IDEA</span>
+                        <span class="text-3xl font-black text-gray-500">10</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-rose-600 font-bold uppercase tracking-wider text-sm bg-rose-50 py-2 px-4 rounded inline-block mx-auto border border-rose-200">
+                * Current project-management snapshot; not historical Sprint completion evidence. *
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-16">
+            <h2 class="slide-title">Release Roadmap</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-16"></div>
+            
+            <div class="flex-1 relative flex items-center justify-center">
+                <!-- Connective Line -->
+                <div class="absolute w-10/12 h-2 bg-gradient-to-r from-blue-200 via-blue-400 to-purple-500 top-1/2 transform -translate-y-1/2 -z-10 rounded-full"></div>
+                
+                <div class="flex w-full justify-between items-center px-12">
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-white border-4 border-blue-300 rounded-full flex justify-center items-center text-xl font-bold text-blue-600 shadow-lg mb-4">1</div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-blue-400 w-40 h-24 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">PHASE 1</span>
+                            <span class="font-bold text-atlassian-dark text-sm leading-tight">FOUNDATION</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-white border-4 border-blue-400 rounded-full flex justify-center items-center text-xl font-bold text-blue-600 shadow-lg mb-4">2</div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-blue-500 w-40 h-24 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">PHASE 2</span>
+                            <span class="font-bold text-atlassian-dark text-sm leading-tight">MENTORSHIP & CAREER</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <div class="w-20 h-20 bg-blue-600 border-4 border-white rounded-full flex justify-center items-center text-2xl font-black text-white shadow-xl mb-4 transform scale-110">3</div>
+                        <div class="bg-blue-50 p-3 rounded shadow text-center border-t-4 border-blue-600 w-44 h-24 flex flex-col justify-center transform scale-110">
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">PHASE 3</span>
+                            <span class="font-bold text-blue-900 text-base leading-tight">DEVPULSE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-white border-4 border-purple-400 rounded-full flex justify-center items-center text-xl font-bold text-purple-600 shadow-lg mb-4">4</div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-purple-500 w-40 h-24 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">PHASE 4</span>
+                            <span class="font-bold text-atlassian-dark text-sm leading-tight">AI & COMMS</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-white border-4 border-purple-500 rounded-full flex justify-center items-center text-xl font-bold text-purple-600 shadow-lg mb-4">5</div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-purple-600 w-40 h-24 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">PHASE 5</span>
+                            <span class="font-bold text-atlassian-dark text-sm leading-tight">MOBILE & RELIABILITY</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-16 flex justify-center gap-12 text-lg">
+                <div class="flex flex-col items-center"><span class="font-black text-gray-800 tracking-widest">VERSION</span><span class="text-gray-500 font-medium">Release grouping</span></div>
+                <div class="text-3xl text-gray-300 font-light">≠</div>
+                <div class="flex flex-col items-center"><span class="font-black text-gray-800 tracking-widest">SPRINT</span><span class="text-gray-500 font-medium">Time-boxed iteration</span></div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-17">
+            <h2 class="slide-title">Dependency Management</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 relative flex flex-col justify-center items-center">
+                <div class="w-full max-w-5xl bg-slate-50 p-8 rounded-xl border border-slate-200">
+                    <div class="grid grid-cols-2 gap-x-20 gap-y-12">
+                        
+                        <!-- Block 1 -->
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-33</span><span class="font-semibold text-gray-800">AI Career Mentor</span></div>
+                            <div class="flex flex-col items-center w-24">
+                                <span class="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded uppercase tracking-wider mb-1">BLOCKS</span>
+                                <div class="w-full h-1 bg-red-500 relative">
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-red-500 rotate-45"></div>
+                                </div>
+                            </div>
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-36</span><span class="font-semibold text-gray-800">AI Provider Failover</span></div>
+                        </div>
+
+                        <!-- Block 2 -->
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-45</span><span class="font-semibold text-gray-800">Android Wrapper</span></div>
+                            <div class="flex flex-col items-center w-24">
+                                <span class="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded uppercase tracking-wider mb-1">BLOCKS</span>
+                                <div class="w-full h-1 bg-red-500 relative">
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-red-500 rotate-45"></div>
+                                </div>
+                            </div>
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-46</span><span class="font-semibold text-gray-800">Mobile Auth</span></div>
+                        </div>
+
+                        <!-- Block 3 -->
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-48</span><span class="font-semibold text-gray-800">Mobile Notifications</span></div>
+                            <div class="flex flex-col items-center w-24">
+                                <span class="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded uppercase tracking-wider mb-1">BLOCKS</span>
+                                <div class="w-full h-1 bg-red-500 relative">
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-red-500 rotate-45"></div>
+                                </div>
+                            </div>
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-66</span><span class="font-semibold text-gray-800">FCM Delivery Failure</span></div>
+                        </div>
+
+                        <!-- Block 4 -->
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-50</span><span class="font-semibold text-gray-800">Security Hardening</span></div>
+                            <div class="flex flex-col items-center w-24">
+                                <span class="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded uppercase tracking-wider mb-1">BLOCKS</span>
+                                <div class="w-full h-1 bg-red-500 relative">
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-red-500 rotate-45"></div>
+                                </div>
+                            </div>
+                            <div class="flex-1 bg-white border border-gray-300 p-4 rounded text-center shadow-sm"><span class="block text-xs font-bold text-gray-500 mb-1">KAN-52</span><span class="font-semibold text-gray-800">Automated Testing</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center items-center gap-8 text-lg font-bold text-atlassian-dark">
+                <span class="bg-gray-200 px-4 py-2 rounded">8 recorded Blocks relationships</span>
+                <span>Dependencies expose sequencing risk.</span>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-18">
+            <h2 class="slide-title">Bug Management</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex flex-col justify-center gap-12">
+                <!-- Bug Cards -->
+                <div class="flex justify-center gap-4 w-full">
+                    <div class="bg-white border-t-4 border-red-500 p-4 rounded shadow w-48 text-center flex flex-col items-center">
+                        <i class="fa-solid fa-bug text-red-500 text-xl mb-2"></i>
+                        <span class="text-xs font-bold text-gray-400">KAN-64</span>
+                        <p class="font-bold text-sm text-gray-800 mt-1">Streak synchronization</p>
+                    </div>
+                    <div class="bg-white border-t-4 border-red-500 p-4 rounded shadow w-48 text-center flex flex-col items-center">
+                        <i class="fa-solid fa-bug text-red-500 text-xl mb-2"></i>
+                        <span class="text-xs font-bold text-gray-400">KAN-65</span>
+                        <p class="font-bold text-sm text-gray-800 mt-1">Duplicate notifications</p>
+                    </div>
+                    <div class="bg-white border-t-4 border-red-500 p-4 rounded shadow w-48 text-center flex flex-col items-center transform scale-110 z-10 shadow-xl">
+                        <i class="fa-solid fa-bug text-red-500 text-xl mb-2"></i>
+                        <span class="text-xs font-bold text-gray-400">KAN-66</span>
+                        <p class="font-bold text-sm text-gray-800 mt-1">FCM delivery failure</p>
+                    </div>
+                    <div class="bg-white border-t-4 border-red-500 p-4 rounded shadow w-48 text-center flex flex-col items-center">
+                        <i class="fa-solid fa-bug text-red-500 text-xl mb-2"></i>
+                        <span class="text-xs font-bold text-gray-400">KAN-67</span>
+                        <p class="font-bold text-sm text-gray-800 mt-1">OAuth redirect mismatch</p>
+                    </div>
+                    <div class="bg-white border-t-4 border-red-500 p-4 rounded shadow w-48 text-center flex flex-col items-center">
+                        <i class="fa-solid fa-bug text-red-500 text-xl mb-2"></i>
+                        <span class="text-xs font-bold text-gray-400">KAN-68</span>
+                        <p class="font-bold text-sm text-gray-800 mt-1">Calendar scope denial</p>
+                    </div>
+                </div>
+
+                <!-- Lifecycle -->
+                <div class="flex justify-center items-center mt-4">
+                    <div class="flex gap-4 items-center bg-gray-100 p-6 rounded-xl border border-gray-200">
+                        <div class="font-black text-gray-600 uppercase tracking-widest">REPORT</div>
+                        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+                        <div class="font-black text-gray-600 uppercase tracking-widest">TRIAGE</div>
+                        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+                        <div class="font-black text-blue-600 uppercase tracking-widest">FIX</div>
+                        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+                        <div class="font-black text-purple-600 uppercase tracking-widest">RETEST</div>
+                        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+                        <div class="font-black text-emerald-600 uppercase tracking-widest">DONE</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <p class="text-xl font-semibold text-atlassian-dark">Bugs are visible, traceable items within the Agile workflow, not hidden failures.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-19">
+            <h2 class="slide-title">Definition of Ready (DoR)</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex justify-center items-center gap-16">
+                <!-- Visual Pipeline -->
+                <div class="flex flex-col items-center w-1/3">
+                    <div class="w-full bg-gray-200 text-gray-600 font-bold text-2xl text-center py-6 rounded-t-lg">BACKLOG</div>
+                    <div class="flex justify-center my-2 text-3xl text-gray-300"><i class="fa-solid fa-arrow-down"></i></div>
+                    <div class="w-full bg-blue-600 text-white font-black text-3xl text-center py-8 rounded-lg shadow-xl border-4 border-blue-800 transform scale-110 z-10 tracking-widest relative">
+                        READY GATE
+                        <div class="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded shadow">KAN-60</div>
+                    </div>
+                    <div class="flex justify-center my-2 text-3xl text-gray-300"><i class="fa-solid fa-arrow-down"></i></div>
+                    <div class="w-full bg-indigo-100 border-2 border-indigo-300 text-indigo-800 font-bold text-2xl text-center py-6 rounded-b-lg">EXECUTION</div>
+                </div>
+
+                <!-- Checklist -->
+                <div class="w-1/2 bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
+                    <h3 class="text-2xl font-bold text-atlassian-dark mb-6 border-b border-gray-200 pb-4">DoR Conditions:</h3>
+                    <ul class="space-y-5 text-xl font-medium text-gray-700">
+                        <li class="flex items-center gap-4"><i class="fa-solid fa-check-circle text-blue-500 text-2xl"></i>Clear user outcome defined</li>
+                        <li class="flex items-center gap-4"><i class="fa-solid fa-check-circle text-blue-500 text-2xl"></i>Testable acceptance criteria</li>
+                        <li class="flex items-center gap-4"><i class="fa-solid fa-check-circle text-blue-500 text-2xl"></i>Dependencies known & tracked</li>
+                        <li class="flex items-center gap-4"><i class="fa-solid fa-check-circle text-blue-500 text-2xl"></i>Scope sized appropriately</li>
+                        <li class="flex items-center gap-4"><i class="fa-solid fa-check-circle text-blue-500 text-2xl"></i>Success evidence identified</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-20">
+            <h2 class="slide-title">Definition of Done (DoD)</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex justify-center items-center flex-col relative">
+                
+                <div class="absolute right-10 top-0 bg-blue-100 text-blue-800 font-bold px-4 py-2 rounded shadow">Ref: KAN-60</div>
+
+                <div class="flex items-center gap-4 w-full max-w-5xl justify-between relative z-10">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center shadow-md border-4 border-white"><i class="fa-solid fa-code text-4xl text-gray-500"></i></div>
+                        <span class="font-bold text-gray-700">IMPLEMENTED</span>
+                    </div>
+                    <div class="h-1 flex-1 bg-gray-300"></div>
+
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-32 h-32 rounded-full bg-blue-50 flex items-center justify-center shadow-md border-4 border-white"><i class="fa-solid fa-vial text-4xl text-blue-500"></i></div>
+                        <span class="font-bold text-gray-700">TESTED</span>
+                    </div>
+                    <div class="h-1 flex-1 bg-gray-300"></div>
+
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-32 h-32 rounded-full bg-yellow-50 flex items-center justify-center shadow-md border-4 border-white"><i class="fa-solid fa-users text-4xl text-yellow-500"></i></div>
+                        <span class="font-bold text-gray-700">REVIEWED</span>
+                    </div>
+                    <div class="h-1 flex-1 bg-gray-300"></div>
+
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-32 h-32 rounded-full bg-purple-50 flex items-center justify-center shadow-md border-4 border-white"><i class="fa-solid fa-shield text-4xl text-purple-500"></i></div>
+                        <span class="font-bold text-gray-700 text-center">SECURITY<br>CHECKED</span>
+                    </div>
+                    <div class="h-1 flex-1 bg-gray-300"></div>
+
+                    <div class="flex flex-col items-center gap-2 transform scale-110">
+                        <div class="w-36 h-36 rounded-full bg-emerald-500 flex items-center justify-center shadow-xl border-4 border-white"><span class="text-3xl font-black text-white">DONE</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-atlassian-dark p-6 rounded-lg text-center mx-auto max-w-3xl">
+                <p class="text-2xl font-bold text-white"><span class="text-blue-400">DoR</span> protects what enters execution.<br><span class="text-emerald-400">DoD</span> protects what leaves execution.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-21">
+            <h2 class="slide-title">Scrum in Alumnex Connect</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex gap-12">
+                <!-- Map -->
+                <div class="flex-1 flex flex-col gap-3 justify-center">
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">Product Backlog</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">Jira Backlog</div></div>
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">Backlog Refinement</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">KAN-55</div></div>
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">Sprint Planning</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">KAN-56</div></div>
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">Daily Scrum Tracking</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">KAN-57</div></div>
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">Sprint Review</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">KAN-58</div></div>
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">Retrospective</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">KAN-59</div></div>
+                    <div class="flex items-center gap-4"><div class="w-1/2 text-right font-bold text-gray-700 text-lg">DoR / DoD</div><i class="fa-solid fa-arrow-right text-blue-500"></i><div class="w-1/2 bg-white px-4 py-2 border border-gray-200 rounded font-mono font-bold text-blue-800 shadow-sm">KAN-60</div></div>
+                </div>
+
+                <!-- Right Side -->
+                <div class="w-1/3 flex flex-col justify-center items-center">
+                    <div class="w-full bg-blue-600 p-8 rounded-xl text-center shadow-xl mb-6">
+                        <i class="fa-solid fa-rotate text-white text-6xl mb-4"></i>
+                        <h3 class="text-2xl font-black text-white">SCRUM =<br>Governance & Iteration Model</h3>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded text-sm text-yellow-900 font-medium">
+                        <p><strong>Note:</strong> KAN-55 to KAN-63 represent the documented Scrum operating model. The current board configuration does not contain native Jira Scrum Sprint history.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-22">
+            <h2 class="slide-title">Kanban in Alumnex Connect</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex gap-8 items-center">
+                
+                <!-- Mockup Board -->
+                <div class="w-1/2 screenshot-frame bg-white h-96 flex flex-col">
+                    <div class="screenshot-header bg-gray-50 border-b border-gray-200 p-2 text-xs font-bold text-gray-500 uppercase tracking-widest pl-4">Visible Workflow</div>
+                    <div class="flex-1 flex p-4 gap-2">
+                        <div class="flex-1 bg-gray-100 rounded border-t-2 border-gray-400 p-2 flex flex-col gap-2">
+                            <div class="text-[10px] font-bold text-gray-500 mb-1">IDEA</div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-gray-200 h-12"></div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-gray-200 h-12"></div>
+                        </div>
+                        <div class="flex-1 bg-gray-100 rounded border-t-2 border-blue-400 p-2 flex flex-col gap-2">
+                            <div class="text-[10px] font-bold text-gray-500 mb-1">TO DO</div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-gray-200 h-12"></div>
+                        </div>
+                        <div class="flex-1 bg-gray-100 rounded border-t-2 border-blue-600 p-2 flex flex-col gap-2">
+                            <div class="text-[10px] font-bold text-gray-500 mb-1">IN PROGRESS</div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-blue-200 h-12 border-l-4 border-l-blue-500"></div>
+                        </div>
+                        <div class="flex-1 bg-gray-100 rounded border-t-2 border-yellow-500 p-2 flex flex-col gap-2">
+                            <div class="text-[10px] font-bold text-gray-500 mb-1">IN REVIEW</div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-yellow-200 h-12 border-l-4 border-l-yellow-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concept Mapping -->
+                <div class="w-1/2 flex flex-col gap-5">
+                    <div class="flex items-center gap-4 bg-white p-3 rounded shadow-sm border border-gray-100"><div class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded w-32 text-center text-sm">VISUALIZE</div><i class="fa-solid fa-arrow-right text-gray-300"></i><div class="font-medium text-gray-800 text-lg">Jira Board</div></div>
+                    <div class="flex items-center gap-4 bg-white p-3 rounded shadow-sm border border-gray-100"><div class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded w-32 text-center text-sm">FLOW</div><i class="fa-solid fa-arrow-right text-gray-300"></i><div class="font-medium text-gray-800 text-lg">Idea <i class="fa-solid fa-caret-right text-gray-400 text-sm"></i> To Do <i class="fa-solid fa-caret-right text-gray-400 text-sm"></i> In Progress...</div></div>
+                    <div class="flex items-center gap-4 bg-white p-3 rounded shadow-sm border border-gray-100"><div class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded w-32 text-center text-sm">WIP VISIBILITY</div><i class="fa-solid fa-arrow-right text-gray-300"></i><div class="font-medium text-gray-800 text-lg">In Progress State</div></div>
+                    <div class="flex items-center gap-4 bg-white p-3 rounded shadow-sm border border-gray-100"><div class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded w-32 text-center text-sm leading-tight pt-1">BOTTLENECK VISIBILITY</div><i class="fa-solid fa-arrow-right text-gray-300"></i><div class="font-medium text-gray-800 text-lg">In Review State</div></div>
+                    <div class="flex items-center gap-4 bg-white p-3 rounded shadow-sm border border-gray-100"><div class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded w-32 text-center text-sm leading-tight pt-1">CONTINUOUS FLOW</div><i class="fa-solid fa-arrow-right text-gray-300"></i><div class="font-medium text-gray-800 text-lg">Pull next work</div></div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-teal-600 p-4 rounded-lg text-center">
+                <p class="text-2xl font-bold text-white tracking-wide">Kanban is the strongest direct operational fit of the current Jira board.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-23">
+            <h2 class="slide-title">Engineering Quality: Where XP Enters</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex flex-col justify-center items-center gap-16">
+                <!-- Jira Cards -->
+                <div class="flex gap-12 w-full justify-center">
+                    <div class="bg-white border-2 border-purple-400 p-6 rounded-xl shadow-lg w-80 relative transform rotate-[-2deg]">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded uppercase">Engineering Backlog</div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-mono font-bold text-gray-500">KAN-52</span>
+                            <i class="fa-solid fa-vial text-purple-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-atlassian-dark">Automated Testing</h3>
+                    </div>
+                    
+                    <div class="bg-white border-2 border-purple-400 p-6 rounded-xl shadow-lg w-80 relative transform rotate-[2deg]">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded uppercase">Engineering Backlog</div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-mono font-bold text-gray-500">KAN-53</span>
+                            <i class="fa-solid fa-code-merge text-purple-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-atlassian-dark">CI/CD Pipeline</h3>
+                    </div>
+                </div>
+
+                <!-- Equation -->
+                <div class="flex items-center justify-center gap-6 bg-purple-50 px-12 py-6 rounded-full border border-purple-100 shadow-inner">
+                    <div class="text-center"><span class="block text-purple-900 font-bold text-lg">SMALL INCREMENTS</span></div>
+                    <i class="fa-solid fa-plus text-purple-400 text-xl"></i>
+                    <div class="text-center"><span class="block text-purple-900 font-bold text-lg">TESTING</span></div>
+                    <i class="fa-solid fa-plus text-purple-400 text-xl"></i>
+                    <div class="text-center"><span class="block text-purple-900 font-bold text-lg">CONTINUOUS INTEGRATION</span></div>
+                    <i class="fa-solid fa-plus text-purple-400 text-xl"></i>
+                    <div class="text-center"><span class="block text-purple-900 font-bold text-lg">FAST FEEDBACK</span></div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center text-gray-600 font-medium text-lg">
+                XP engineering practices are represented within the project's quality and development backlog.
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-24">
+            <h2 class="slide-title">Lean in Alumnex Connect</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex justify-center items-center gap-20">
+                <!-- Visual Pipeline -->
+                <div class="flex flex-col items-center">
+                    <div class="w-64 bg-orange-500 text-white font-black text-xl text-center py-4 rounded shadow-md tracking-wider">WASTE REDUCTION</div>
+                    <div class="h-8 w-1 bg-orange-200 my-1"></div>
+                    <div class="w-64 bg-orange-500 text-white font-black text-xl text-center py-4 rounded shadow-md tracking-wider">VISIBLE FLOW</div>
+                    <div class="h-8 w-1 bg-orange-200 my-1"></div>
+                    <div class="w-64 bg-orange-500 text-white font-black text-xl text-center py-4 rounded shadow-md tracking-wider text-sm leading-tight">DEPENDENCY<br>AWARENESS</div>
+                    <div class="h-8 w-1 bg-orange-200 my-1"></div>
+                    <div class="w-64 bg-orange-500 text-white font-black text-xl text-center py-4 rounded shadow-md tracking-wider">FAST FEEDBACK</div>
+                    <div class="h-8 w-1 bg-orange-200 my-1"></div>
+                    <div class="w-64 bg-orange-600 text-white font-black text-xl text-center py-4 rounded shadow-lg tracking-wider border-2 border-orange-800">CONTINUOUS<br>IMPROVEMENT</div>
+                </div>
+
+                <!-- Mapping to Artifacts -->
+                <div class="flex flex-col justify-center h-full gap-[3.5rem] pt-2">
+                    <div class="flex items-center gap-4"><i class="fa-solid fa-arrow-right text-orange-400 text-2xl"></i><div class="font-bold text-gray-700 text-2xl">Avoid Unnecessary Work</div></div>
+                    <div class="flex items-center gap-4"><i class="fa-solid fa-arrow-right text-orange-400 text-2xl"></i><div class="font-bold text-gray-700 text-2xl">Jira Board</div></div>
+                    <div class="flex items-center gap-4"><i class="fa-solid fa-arrow-right text-orange-400 text-2xl"></i><div class="font-bold text-gray-700 text-2xl">Blocks Links</div></div>
+                    <div class="flex items-center gap-4"><i class="fa-solid fa-arrow-right text-orange-400 text-2xl"></i><div class="font-bold text-gray-700 text-2xl">Reports & Reviews</div></div>
+                    <div class="flex items-center gap-4"><i class="fa-solid fa-arrow-right text-orange-600 text-2xl"></i><div class="font-bold text-orange-700 text-2xl bg-orange-50 px-4 py-1 rounded">KAN-59 + KAN-63</div></div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-atlassian-dark p-6 rounded-lg text-center">
+                <p class="text-2xl font-bold text-white tracking-wide">Lean improves the system in which the team delivers value.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-25">
+            <h2 class="slide-title">One Project, Four Agile Lenses</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-4"></div>
+            
+            <div class="flex-1 relative flex items-center justify-center">
+                
+                <!-- 4 Quadrants -->
+                <div class="grid grid-cols-2 grid-rows-2 w-full max-w-4xl h-[400px] gap-2">
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-tl-3xl p-8 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <h3 class="text-3xl font-black text-blue-700 mb-4 tracking-widest">SCRUM</h3>
+                            <ul class="text-lg font-medium text-blue-900 space-y-1">
+                                <li>Governance</li><li>Backlog</li><li>Planning</li><li>Review</li><li>Retrospective</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-teal-50 border border-teal-200 rounded-tr-3xl p-8 flex flex-col justify-between items-end text-right shadow-sm">
+                        <div>
+                            <h3 class="text-3xl font-black text-teal-700 mb-4 tracking-widest">KANBAN</h3>
+                            <ul class="text-lg font-medium text-teal-900 space-y-1">
+                                <li>Flow</li><li>Visibility</li><li>WIP Limits</li><li>Cycle Time</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-50 border border-purple-200 rounded-bl-3xl p-8 flex flex-col justify-end shadow-sm">
+                        <div>
+                            <ul class="text-lg font-medium text-purple-900 space-y-1 mb-4">
+                                <li>Testing</li><li>CI/CD</li><li>Engineering Quality</li>
+                            </ul>
+                            <h3 class="text-3xl font-black text-purple-700 tracking-widest">XP</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-orange-50 border border-orange-200 rounded-br-3xl p-8 flex flex-col justify-end items-end text-right shadow-sm">
+                        <div>
+                            <ul class="text-lg font-medium text-orange-900 space-y-1 mb-4">
+                                <li>Waste Reduction</li><li>Flow Optimization</li><li>Feedback</li>
+                            </ul>
+                            <h3 class="text-3xl font-black text-orange-700 tracking-widest">LEAN</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Hub -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="w-56 h-56 bg-atlassian-dark rounded-full flex items-center justify-center shadow-2xl border-8 border-white z-10">
+                        <span class="text-white font-black text-xl text-center leading-tight">ALUMNEX<br>CONNECT</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 text-center text-xl font-bold text-gray-600 bg-white shadow-sm border border-gray-200 py-3 rounded-full mx-auto px-12">
+                <span class="text-atlassian-blue">JIRA</span> operationalizes all four lenses.
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-26">
+            <h2 class="slide-title">The Two-Layer Architecture</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex gap-16 justify-center items-stretch px-12">
+                
+                <!-- Jira Layer -->
+                <div class="flex-1 bg-white border border-gray-200 rounded-xl shadow-lg flex flex-col overflow-hidden">
+                    <div class="bg-atlassian-blue text-white p-6 text-center">
+                        <i class="fa-brands fa-jira text-5xl mb-4"></i>
+                        <h3 class="text-3xl font-black tracking-widest">JIRA</h3>
+                        <p class="text-blue-200 font-bold uppercase tracking-wider text-sm mt-2">Execution Layer</p>
+                    </div>
+                    <div class="p-8 flex flex-col justify-center items-center flex-1 bg-blue-50/30">
+                        <div class="text-center font-bold text-gray-800 text-xl mb-6 pb-4 border-b-2 border-blue-100 italic w-full">"What is being done?"</div>
+                        <ul class="space-y-3 text-lg font-medium text-gray-700 text-center">
+                            <li>Epics & Stories</li>
+                            <li>Subtasks</li>
+                            <li>Bugs & Status</li>
+                            <li>Dependencies</li>
+                            <li>Versions & Metrics</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="flex items-center text-4xl text-gray-300"><i class="fa-solid fa-plus"></i></div>
+
+                <!-- Confluence Layer -->
+                <div class="flex-1 bg-white border border-gray-200 rounded-xl shadow-lg flex flex-col overflow-hidden">
+                    <div class="bg-atlassian-purple text-white p-6 text-center">
+                        <i class="fa-brands fa-confluence text-5xl mb-4"></i>
+                        <h3 class="text-3xl font-black tracking-widest">CONFLUENCE</h3>
+                        <p class="text-purple-200 font-bold uppercase tracking-wider text-sm mt-2">Knowledge Layer</p>
+                    </div>
+                    <div class="p-8 flex flex-col justify-center items-center flex-1 bg-purple-50/30">
+                        <div class="text-center font-bold text-gray-800 text-xl mb-6 pb-4 border-b-2 border-purple-100 italic w-full">"How is it managed and why?"</div>
+                        <ul class="space-y-3 text-lg font-medium text-gray-700 text-center">
+                            <li>Agile Playbook</li>
+                            <li>Project Plan</li>
+                            <li>Meeting Notes</li>
+                            <li>Weekly Reports</li>
+                            <li>Decisions & Governance</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-27">
+            <h2 class="slide-title">Project Analytics</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 flex gap-12 items-center">
+                <!-- Screenshots Mockup -->
+                <div class="w-2/3 grid grid-cols-2 grid-rows-2 gap-4 h-full py-4">
+                    <div class="screenshot-frame bg-white flex flex-col">
+                        <div class="screenshot-header"><span class="text-[10px] text-gray-500 font-bold ml-2">Summary</span></div>
+                        <div class="flex-1 p-4 flex flex-col justify-center items-center relative overflow-hidden">
+                            <div class="w-24 h-24 rounded-full border-8 border-t-green-500 border-r-blue-500 border-b-yellow-500 border-l-gray-300 mb-2"></div>
+                            <span class="font-bold text-gray-700 text-sm">Status Overview</span>
+                        </div>
+                    </div>
+                    <div class="screenshot-frame bg-white flex flex-col">
+                        <div class="screenshot-header"><span class="text-[10px] text-gray-500 font-bold ml-2">Reports</span></div>
+                        <div class="flex-1 p-4 flex flex-col justify-end gap-1 relative overflow-hidden">
+                            <div class="w-full h-4 bg-blue-500 rounded-sm"></div>
+                            <div class="w-full h-3 bg-purple-500 rounded-sm"></div>
+                            <div class="w-full h-2 bg-green-500 rounded-sm"></div>
+                            <span class="font-bold text-gray-700 text-xs text-center mt-2">Creation Trend</span>
+                        </div>
+                    </div>
+                    <div class="screenshot-frame bg-white flex flex-col col-span-2">
+                        <div class="screenshot-header"><span class="text-[10px] text-gray-500 font-bold ml-2">Development</span></div>
+                        <div class="flex-1 p-4 flex justify-around items-center bg-gray-50">
+                            <div class="text-center"><div class="text-2xl font-black text-gray-400">0</div><div class="text-xs font-bold text-gray-500">Pull Requests</div></div>
+                            <div class="w-px h-10 bg-gray-200"></div>
+                            <div class="text-center"><div class="text-2xl font-black text-gray-400">0</div><div class="text-xs font-bold text-gray-500">Deployments</div></div>
+                            <div class="w-px h-10 bg-gray-200"></div>
+                            <div class="text-center"><div class="text-2xl font-black text-gray-400">0</div><div class="text-xs font-bold text-gray-500">Vulnerabilities</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text -->
+                <div class="w-1/3 flex flex-col gap-6">
+                    <h3 class="text-2xl font-bold text-atlassian-dark">Verified Metrics</h3>
+                    <ul class="space-y-4 text-lg font-medium text-gray-700">
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-chart-pie text-blue-500 w-6"></i>Work items by status</li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-chart-bar text-blue-500 w-6"></i>Work type distribution</li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-clock text-blue-500 w-6"></i>Cycle time & Lead time</li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-code text-blue-500 w-6"></i>Dev integration state</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-6 bg-atlassian-dark p-4 rounded text-center">
+                <p class="text-xl font-bold text-white tracking-widest uppercase">Metrics enable: Inspect <i class="fa-solid fa-arrow-right mx-2 text-blue-400"></i> Adapt <i class="fa-solid fa-arrow-right mx-2 text-emerald-400"></i> Improve</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-28">
+            <h2 class="slide-title">Timeline & Calendar Planning</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex gap-12 items-center">
+                
+                <div class="flex-1 flex flex-col gap-6">
+                    <div class="bg-white border border-gray-200 p-8 rounded-xl shadow-md border-l-8 border-l-blue-500">
+                        <h3 class="text-2xl font-black text-atlassian-dark mb-2">Timeline View</h3>
+                        <p class="text-lg text-gray-600 font-medium">Roadmap and Epic planning across delivery phases.</p>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 p-8 rounded-xl shadow-md border-l-8 border-l-purple-500">
+                        <h3 class="text-2xl font-black text-atlassian-dark mb-2">Calendar View</h3>
+                        <p class="text-lg text-gray-600 font-medium">Date-based scheduling and unscheduled work visibility.</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex justify-center">
+                    <div class="relative w-full max-w-sm">
+                        <div class="screenshot-frame bg-white h-48 mb-8 transform -rotate-2 hover:rotate-0 transition duration-300 shadow-xl border border-gray-300">
+                            <div class="screenshot-header"><span class="text-[10px] text-gray-500 font-bold ml-2">Timeline</span></div>
+                            <div class="p-4 flex flex-col gap-2">
+                                <div class="w-full flex items-center gap-2"><div class="w-4 h-4 bg-purple-200 rounded"></div><div class="h-3 bg-blue-400 rounded w-2/3"></div></div>
+                                <div class="w-full flex items-center gap-2"><div class="w-4 h-4 bg-purple-200 rounded"></div><div class="h-3 bg-blue-400 rounded w-1/2 ml-10"></div></div>
+                                <div class="w-full flex items-center gap-2"><div class="w-4 h-4 bg-purple-200 rounded"></div><div class="h-3 bg-blue-400 rounded w-1/3 ml-20"></div></div>
+                            </div>
+                        </div>
+                        <div class="screenshot-frame bg-white h-48 absolute top-32 left-10 transform rotate-3 hover:rotate-0 transition duration-300 shadow-2xl border border-gray-300 w-full">
+                            <div class="screenshot-header"><span class="text-[10px] text-gray-500 font-bold ml-2">Calendar</span></div>
+                            <div class="p-4 grid grid-cols-5 gap-1 h-full pb-8">
+                                <div class="bg-gray-50 border border-gray-100 rounded"></div><div class="bg-gray-50 border border-gray-100 rounded"></div><div class="bg-gray-50 border border-gray-100 rounded"></div><div class="bg-gray-50 border border-gray-100 rounded"></div><div class="bg-gray-50 border border-gray-100 rounded"></div>
+                                <div class="bg-gray-50 border border-gray-100 rounded"></div><div class="bg-blue-100 border border-blue-200 rounded"></div><div class="bg-blue-100 border border-blue-200 rounded"></div><div class="bg-gray-50 border border-gray-100 rounded"></div><div class="bg-gray-50 border border-gray-100 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-auto bg-gray-100 p-4 rounded text-center border border-gray-200">
+                <p class="text-sm font-bold text-gray-600 uppercase tracking-widest">Note: These views complement the board but are not presented as evidence of historical Scrum Sprints.</p>
+            </div>
+        </div>
+
+        <div class="slide flex-col bg-slate-50" id="slide-29">
+            <h2 class="slide-title text-center w-full">The Complete Alumnex Agile Model</h2>
+            <div class="h-1 w-24 bg-atlassian-blue mx-auto mb-10"></div>
+            
+            <div class="flex-1 relative flex justify-center items-center">
+                
+                <!-- Massive Flowchart -->
+                <div class="w-full max-w-5xl relative z-10 flex flex-col items-center">
+                    
+                    <!-- Row 1: Planning -->
+                    <div class="flex justify-center items-center gap-4 mb-6">
+                        <div class="bg-white border border-gray-300 px-4 py-2 rounded shadow text-sm font-bold">PRODUCT NEED</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-white border border-gray-300 px-4 py-2 rounded shadow text-sm font-bold">PRIORITIZATION</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-purple-100 border border-purple-300 px-4 py-2 rounded shadow text-sm font-bold text-purple-800">EPIC</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-green-100 border border-green-300 px-4 py-2 rounded shadow text-sm font-bold text-green-800">USER STORY</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-white border border-gray-300 px-4 py-2 rounded shadow text-sm font-bold">ESTIMATION</div>
+                    </div>
+
+                    <div class="h-8 w-px bg-blue-500 mb-6"></div>
+
+                    <!-- Row 2: Execution (Jira Workflow Box) -->
+                    <div class="bg-white border-2 border-blue-400 rounded-xl p-6 shadow-xl w-full relative mb-6">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white font-black px-4 py-1 rounded text-xs tracking-widest">JIRA WORKFLOW</div>
+                        
+                        <div class="flex justify-between items-center px-4">
+                            <div class="flex flex-col items-center gap-2"><div class="bg-gray-100 px-3 py-1 rounded text-xs font-bold">READY</div></div>
+                            <i class="fa-solid fa-arrow-right text-gray-300"></i>
+                            <div class="flex flex-col items-center gap-2"><div class="bg-gray-100 px-3 py-1 rounded text-xs font-bold">SUBTASKS</div></div>
+                            <i class="fa-solid fa-arrow-right text-gray-300"></i>
+                            <div class="flex flex-col items-center gap-2"><div class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold">DEVELOPMENT</div></div>
+                            <i class="fa-solid fa-arrow-right text-gray-300"></i>
+                            <div class="flex flex-col items-center gap-2"><div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-xs font-bold">TESTING / REVIEW</div></div>
+                            <i class="fa-solid fa-arrow-right text-gray-300"></i>
+                            <div class="flex flex-col items-center gap-2"><div class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-xs font-bold">DONE</div></div>
+                        </div>
+                    </div>
+
+                    <div class="h-8 w-px bg-blue-500 mb-6"></div>
+
+                    <!-- Row 3: Release & Loop -->
+                    <div class="flex justify-center items-center gap-6">
+                        <div class="bg-atlassian-dark text-white px-6 py-3 rounded shadow-lg text-sm font-bold tracking-widest">VERSION / RELEASE</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-white border border-gray-300 px-6 py-3 rounded shadow-lg text-sm font-bold">FEEDBACK</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-3 rounded shadow-lg text-sm font-bold">BUG / IMPROVEMENT</div>
+                        <i class="fa-solid fa-arrow-right text-blue-500"></i>
+                        <div class="bg-white border border-gray-300 px-6 py-3 rounded shadow-lg text-sm font-bold">NEXT ITERATION</div>
+                    </div>
+                </div>
+
+                <!-- Surrounding Lenses -->
+                <div class="absolute top-0 left-0 text-3xl font-black text-gray-200 tracking-widest transform -rotate-90 origin-bottom-left -translate-y-full translate-x-12">SCRUM</div>
+                <div class="absolute bottom-0 right-0 text-3xl font-black text-gray-200 tracking-widest transform -rotate-90 origin-top-right translate-y-full -translate-x-12">KANBAN</div>
+                <div class="absolute top-0 right-10 text-3xl font-black text-gray-200 tracking-widest">XP</div>
+                <div class="absolute bottom-16 left-10 text-3xl font-black text-gray-200 tracking-widest">LEAN</div>
+            </div>
+
+            <!-- Bottom Footers -->
+            <div class="flex justify-center gap-12 mt-auto">
+                <div class="bg-atlassian-blue text-white font-bold px-8 py-2 rounded-t-lg shadow-lg">JIRA = EXECUTION</div>
+                <div class="bg-atlassian-purple text-white font-bold px-8 py-2 rounded-t-lg shadow-lg">CONFLUENCE = KNOWLEDGE</div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-30">
+            <h2 class="slide-title">Evidence of Project Management</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-8"></div>
+            
+            <div class="flex-1 grid grid-cols-4 grid-rows-2 gap-4 h-full">
+                
+                <div class="screenshot-frame bg-gray-50 flex flex-col justify-center items-center p-4 relative group">
+                    <div class="absolute inset-0 bg-blue-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase">BACKLOG</span>
+                    </div>
+                    <i class="fa-solid fa-list text-4xl text-gray-300 mb-2"></i>
+                    <div class="w-full h-2 bg-gray-200 rounded mb-1"></div><div class="w-3/4 h-2 bg-gray-200 rounded"></div>
+                </div>
+
+                <div class="screenshot-frame bg-gray-50 flex flex-col justify-center items-center p-4 relative group col-span-2">
+                    <div class="absolute inset-0 bg-blue-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase">WORKFLOW</span>
+                    </div>
+                    <i class="fa-brands fa-trello text-4xl text-gray-300 mb-2"></i>
+                    <div class="flex w-full gap-2"><div class="h-12 w-1/4 bg-gray-200 rounded"></div><div class="h-12 w-1/4 bg-gray-200 rounded"></div><div class="h-12 w-1/4 bg-gray-200 rounded"></div><div class="h-12 w-1/4 bg-gray-200 rounded"></div></div>
+                </div>
+
+                <div class="screenshot-frame bg-gray-50 flex flex-col justify-center items-center p-4 relative group">
+                    <div class="absolute inset-0 bg-blue-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase text-center">DECOMPOSITION</span>
+                    </div>
+                    <i class="fa-solid fa-sitemap text-4xl text-gray-300 mb-2"></i>
+                    <div class="w-full h-2 bg-gray-200 rounded mb-1"></div><div class="w-1/2 h-2 bg-gray-200 rounded ml-4 mb-1"></div><div class="w-1/2 h-2 bg-gray-200 rounded ml-4"></div>
+                </div>
+
+                <div class="screenshot-frame bg-gray-50 flex flex-col justify-center items-center p-4 relative group">
+                    <div class="absolute inset-0 bg-blue-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase">QUALITY</span>
+                    </div>
+                    <i class="fa-solid fa-bug text-4xl text-gray-300 mb-2"></i>
+                    <div class="w-full h-8 bg-red-100 border border-red-200 rounded"></div>
+                </div>
+
+                <div class="screenshot-frame bg-gray-50 flex flex-col justify-center items-center p-4 relative group">
+                    <div class="absolute inset-0 bg-blue-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase text-center">RELEASE & DEPENDENCY</span>
+                    </div>
+                    <i class="fa-solid fa-code-branch text-4xl text-gray-300 mb-2"></i>
+                    <div class="w-full h-2 bg-gray-200 rounded mb-1"></div><div class="w-full h-2 bg-gray-200 rounded"></div>
+                </div>
+
+                <div class="screenshot-frame bg-gray-50 flex flex-col justify-center items-center p-4 relative group">
+                    <div class="absolute inset-0 bg-blue-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase">ANALYTICS</span>
+                    </div>
+                    <i class="fa-solid fa-chart-pie text-4xl text-gray-300 mb-2"></i>
+                    <div class="w-12 h-12 rounded-full border-4 border-gray-200"></div>
+                </div>
+
+                <div class="screenshot-frame bg-purple-50 flex flex-col justify-center items-center p-4 relative group border-purple-200">
+                    <div class="absolute inset-0 bg-purple-900/80 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <span class="text-white font-bold tracking-widest uppercase text-center">DOCUMENTATION</span>
+                    </div>
+                    <i class="fa-brands fa-confluence text-4xl text-purple-300 mb-2"></i>
+                    <div class="w-full h-12 bg-white border border-purple-100 rounded"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="slide flex-col bg-atlassian-dark text-white" id="slide-31">
+            <h2 class="slide-title text-white">What This Project Demonstrates</h2>
+            <div class="h-1 w-16 bg-atlassian-teal mb-10"></div>
+            
+            <div class="flex-1 grid grid-cols-2 gap-x-12 gap-y-8 content-center px-8">
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">01</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Structured Product Backlog</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">06</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Release Planning</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">02</span>
+                    <h3 class="text-2xl font-bold tracking-wide">User-Centric Stories</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">07</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Dependency Visibility</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">03</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Technical Decomposition</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">08</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Quality Gates</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">04</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Visible Workflow</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">09</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Agile Governance</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">05</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Defect Traceability</h3>
+                </div>
+                <div class="flex items-center gap-6 border-b border-gray-700 pb-4">
+                    <span class="text-4xl font-black text-atlassian-teal w-12">10</span>
+                    <h3 class="text-2xl font-bold tracking-wide">Continuous Improvement</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-32">
+            <h2 class="slide-title">Limitations & Future State</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex items-stretch gap-8 relative">
+                
+                <!-- Current -->
+                <div class="flex-1 bg-white border border-gray-200 rounded-xl p-8 shadow-sm flex flex-col">
+                    <div class="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">CURRENT STATE</div>
+                    <ul class="space-y-6 flex-1">
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-circle-dot text-blue-500 mt-1"></i><span class="text-lg font-medium text-gray-700">Team-managed Jira board</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-circle-dot text-blue-500 mt-1"></i><span class="text-lg font-medium text-gray-700">Flow-based (Kanban) workflow</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-circle-dot text-blue-500 mt-1"></i><span class="text-lg font-medium text-gray-700">Documented Scrum governance</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-circle-dot text-rose-500 mt-1"></i><span class="text-lg font-medium text-gray-700">No native Sprint history</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-circle-dot text-rose-500 mt-1"></i><span class="text-lg font-medium text-gray-700">No native Story Points field</span></li>
+                    </ul>
+                </div>
+
+                <!-- Arrow -->
+                <div class="flex flex-col justify-center items-center w-32 relative z-10">
+                    <div class="bg-emerald-50 text-emerald-700 text-center font-bold px-4 py-2 rounded-lg border border-emerald-200 shadow-sm text-sm uppercase tracking-wide mb-2 z-10 bg-white whitespace-nowrap transform -rotate-90 absolute left-1/2 -translate-x-1/2 w-48">Improved Agile Maturity</div>
+                    <i class="fa-solid fa-arrow-right text-4xl text-gray-300"></i>
+                </div>
+
+                <!-- Future -->
+                <div class="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-8 shadow-md flex flex-col transform scale-105">
+                    <div class="text-sm font-black text-emerald-600 uppercase tracking-widest mb-6">FUTURE STATE</div>
+                    <ul class="space-y-6 flex-1">
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-check text-emerald-600 mt-1 text-xl"></i><span class="text-lg font-bold text-gray-800">Scrum-capable project configuration</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-check text-emerald-600 mt-1 text-xl"></i><span class="text-lg font-bold text-gray-800">Native Sprint execution</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-check text-emerald-600 mt-1 text-xl"></i><span class="text-lg font-bold text-gray-800">Native Story Points & Estimation fields</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-check text-emerald-600 mt-1 text-xl"></i><span class="text-lg font-bold text-gray-800">Historical velocity reporting</span></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-check text-emerald-600 mt-1 text-xl"></i><span class="text-lg font-bold text-gray-800">Actual Scrum ceremony evidence</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col" id="slide-33">
+            <h2 class="slide-title">From Software Project to Managed Agile System</h2>
+            <div class="h-1 w-16 bg-atlassian-blue mb-12"></div>
+            
+            <div class="flex-1 flex flex-col justify-center items-center gap-12">
+                <!-- Large Equations -->
+                <div class="flex w-full justify-between items-center bg-white p-8 rounded-xl shadow border border-gray-100">
+                    <div class="text-center w-1/3">
+                        <div class="text-2xl font-black text-atlassian-dark mb-2">ALUMNEX CONNECT</div>
+                        <div class="text-4xl text-gray-300 font-light">=</div>
+                        <div class="text-xl font-bold text-blue-600 mt-2 tracking-widest uppercase">PRODUCT</div>
+                    </div>
+                    <div class="w-px h-24 bg-gray-200"></div>
+                    <div class="text-center w-1/3">
+                        <div class="text-2xl font-black text-atlassian-dark mb-2">JIRA</div>
+                        <div class="text-4xl text-gray-300 font-light">=</div>
+                        <div class="text-xl font-bold text-blue-600 mt-2 tracking-widest uppercase">EXECUTION</div>
+                    </div>
+                    <div class="w-px h-24 bg-gray-200"></div>
+                    <div class="text-center w-1/3">
+                        <div class="text-2xl font-black text-atlassian-dark mb-2">AGILE</div>
+                        <div class="text-4xl text-gray-300 font-light">=</div>
+                        <div class="text-xl font-bold text-blue-600 mt-2 tracking-widest uppercase">DELIVERY SYSTEM</div>
+                    </div>
+                </div>
+
+                <!-- Lenses -->
+                <div class="flex gap-8 text-lg font-bold text-gray-600 bg-gray-50 py-4 px-12 rounded-full border border-gray-200 shadow-inner">
+                    <span>Scrum <i class="fa-solid fa-arrow-right text-gray-400 mx-1"></i> Governance</span>
+                    <span class="text-gray-300">|</span>
+                    <span>Kanban <i class="fa-solid fa-arrow-right text-gray-400 mx-1"></i> Flow</span>
+                    <span class="text-gray-300">|</span>
+                    <span>XP <i class="fa-solid fa-arrow-right text-gray-400 mx-1"></i> Quality</span>
+                    <span class="text-gray-300">|</span>
+                    <span>Lean <i class="fa-solid fa-arrow-right text-gray-400 mx-1"></i> Improvement</span>
+                </div>
+
+                <!-- Final Statement -->
+                <div class="bg-atlassian-blue p-8 rounded-xl text-center w-full shadow-2xl mt-4">
+                    <p class="text-2xl font-semibold text-white leading-relaxed">
+                        "Alumnex Connect demonstrates how Agile principles can be translated into traceable software project-management practices through Jira, supported by Confluence."
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide flex-col bg-atlassian-dark text-white justify-center items-center text-center" id="slide-34">
+            <h1 class="text-7xl font-extrabold mb-8 tracking-wider">QUESTIONS?</h1>
+            <div class="h-1 w-24 bg-atlassian-blue mx-auto mb-16"></div>
+            
+            <div class="flex flex-col items-center gap-4">
+                <div class="border-2 border-blue-500 text-blue-400 font-bold text-2xl px-8 py-3 rounded tracking-widest w-80">AGILE</div>
+                <i class="fa-solid fa-arrow-down text-gray-500 text-2xl"></i>
+                <div class="border-2 border-blue-500 text-blue-400 font-bold text-2xl px-8 py-3 rounded tracking-widest w-80">JIRA</div>
+                <i class="fa-solid fa-arrow-down text-gray-500 text-2xl"></i>
+                <div class="bg-blue-600 text-white font-black text-3xl px-8 py-4 rounded shadow-xl tracking-widest w-96 transform scale-110">ALUMNEX CONNECT</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Controls -->
+    <div id="controls" class="mb-16">
+        <div class="text-gray-500 font-bold text-sm"><span id="current-slide">1</span> / <span id="total-slides">34</span></div>
+        <div class="flex gap-4">
+            <button class="btn" id="prev-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left mr-2"></i> Previous</button>
+            <button class="btn" id="next-btn" onclick="nextSlide()">Next <i class="fa-solid fa-arrow-right ml-2"></i></button>
+        </div>
+        <div class="text-sm font-medium text-gray-400"><i class="fa-regular fa-keyboard"></i> Use arrow keys to navigate</div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+
+    <div class="appendix-section">
+        <h1>Presentation Appendix & Documentation</h1>
+        <p class="text-lg text-gray-600 mb-8 border-b pb-8">This section contains the required academic documentation, methodology mapping matrix, Viva Q&A preparation, and detailed slide-by-slide speaker notes. Scroll down to review.</p>
+
+        <!-- Appendix A -->
+        <h2>Appendix A: Agile Methodology Mapping Matrix</h2>
+        <table class="prof-table">
+            <thead>
+                <tr>
+                    <th>Agile Concept</th>
+                    <th>Jira Artifact</th>
+                    <th>Alumnex Example</th>
+                    <th>Methodology</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Product Backlog</td><td>Jira Backlog</td><td>KAN Stories</td><td>Scrum</td></tr>
+                <tr><td>Work Visualization</td><td>Jira Board</td><td>KAN workflow</td><td>Kanban</td></tr>
+                <tr><td>Incremental Delivery</td><td>Stories</td><td>KAN-11, KAN-26, KAN-33</td><td>Agile / Scrum</td></tr>
+                <tr><td>Decomposition</td><td>Subtasks</td><td>KAN-69 etc.</td><td>Scrum / XP</td></tr>
+                <tr><td>Defect Handling</td><td>Bugs</td><td>KAN-64 to KAN-68</td><td>Agile / Scrum / XP</td></tr>
+                <tr><td>Estimation</td><td>Suggested Estimates</td><td>256 points total</td><td>Scrum / Planning</td></tr>
+                <tr><td>Quality Gates</td><td>DoR / DoD</td><td>KAN-60</td><td>Scrum / XP / Lean</td></tr>
+                <tr><td>Testing</td><td>Automated Testing</td><td>KAN-52</td><td>XP</td></tr>
+                <tr><td>CI/CD</td><td>Continuous Integration</td><td>KAN-53</td><td>XP</td></tr>
+                <tr><td>Continuous Improvement</td><td>Retrospective / Metrics</td><td>KAN-59 / KAN-63</td><td>Scrum / Lean</td></tr>
+                <tr><td>Release Planning</td><td>Jira Versions</td><td>Phase 1–5</td><td>Agile / Scrum / Lean</td></tr>
+                <tr><td>Dependency Tracking</td><td>Blocks Links</td><td>8 dependencies</td><td>Agile / Lean</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Appendix B -->
+        <h2 class="mt-16">Appendix B: Complete Jira Artifact Summary</h2>
+        <table class="prof-table w-1/2">
+            <tbody>
+                <tr><th class="w-1/2">Total Issues</th><td>88</td></tr>
+                <tr><th>Epics</th><td>10</td></tr>
+                <tr><th>Stories</th><td>53</td></tr>
+                <tr><th>Subtasks</th><td>20</td></tr>
+                <tr><th>Bugs</th><td>5</td></tr>
+                <tr><th>Release Phases</th><td>5</td></tr>
+                <tr><th>Total Story Points</th><td>256 (Suggested estimates)</td></tr>
+                <tr><th>Current Status (Done)</th><td>38</td></tr>
+                <tr><th>Current Status (In Progress)</th><td>11</td></tr>
+                <tr><th>Current Status (In Review)</th><td>9</td></tr>
+                <tr><th>Current Status (To Do)</th><td>20</td></tr>
+                <tr><th>Current Status (Idea)</th><td>10</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Appendix C -->
+        <h2 class="mt-16 text-atlassian-purple">Appendix C: Viva Questions & Answers</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q1. Why did you use Jira?</div>
+                <div class="note-content">Jira is the software platform used to operationalize Agile work management. It makes work visible, traceable, and decomposable. It is not an Agile methodology itself, but an execution tool.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q2. What is an Epic?</div>
+                <div class="note-content">An Epic is a large product capability that groups related User Stories. For example, "KAN-1 Authentication & User Management" represents a major product area.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q3. What is a User Story?</div>
+                <div class="note-content">A feature expressed from the user's perspective focusing on business value (As a... I want to... So that...).</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q4. Why are acceptance criteria important?</div>
+                <div class="note-content">They define the observable conditions that determine whether a Story is actually complete and testable, forming the basis of the Definition of Done.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q5. What is a Subtask?</div>
+                <div class="note-content">A breakdown of a User Story into concrete technical implementation activities (e.g., KAN-11 Registration is broken into UI design, DB tables, and tests).</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q6. What is the difference between Epic and Story?</div>
+                <div class="note-content">An Epic is a high-level grouping of requirements. A Story is a specific, deliverable increment of value within that Epic.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q7. What is a Bug in Agile?</div>
+                <div class="note-content">A visible defect or quality deviation kept in the backlog, triaged, and fixed rather than hidden outside the project management system.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q8. What is Story Point estimation?</div>
+                <div class="note-content">A relative measure of effort, complexity, and risk used for planning iteration capacity.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q9. Why are Story Points not hours?</div>
+                <div class="note-content">Hours vary by developer experience; points represent absolute complexity which remains constant regardless of who does the work.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q10. What is Scrum?</div>
+                <div class="note-content">An Agile framework providing governance, iteration structure, ceremonies (Daily Scrum, Planning), and backlog artifacts.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q11. What is Kanban?</div>
+                <div class="note-content">An Agile framework focused on continuous visual flow, limiting WIP, and pulling work through a board without necessarily using time-boxed iterations.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q12. What is XP?</div>
+                <div class="note-content">Extreme Programming, focused on engineering quality practices like automated testing, continuous integration, and small code increments.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q13. What is Lean?</div>
+                <div class="note-content">A philosophy focused on reducing waste, managing dependencies, preventing bottlenecks, and optimizing the flow of value delivery.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q14. How does Jira support Agile?</div>
+                <div class="note-content">It provides the executable layer (boards, backlogs, issue hierarchies, workflows) to track and manage Agile artifacts.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q15. How does the Alumnex board represent Kanban?</div>
+                <div class="note-content">Through a continuous, visible flow from Idea → To Do → In Progress → In Review → Done, where bottlenecks can be visually identified.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q16. Where is Scrum applied?</div>
+                <div class="note-content">It is documented as the intended governance and iteration model via stories KAN-55 through KAN-63, guiding backlog refinement and quality gates.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q17. Where is XP applied?</div>
+                <div class="note-content">In the engineering backlog items like KAN-52 (Automated Testing) and KAN-53 (CI/CD Pipeline).</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q18. Where is Lean applied?</div>
+                <div class="note-content">Through explicit dependency tracking (Blocks), visual workflows to reduce wait times, and continuous improvement metrics.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q19. What is Definition of Done?</div>
+                <div class="note-content">The quality gate determining when work can leave execution (code written, tested, documented, and reviewed).</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q20. What is Definition of Ready?</div>
+                <div class="note-content">The quality gate determining if a story is refined, understood, and testable enough to safely enter execution.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q21. What are dependencies?</div>
+                <div class="note-content">Sequencing constraints where one story blocks another (e.g., Mobile Auth blocks Mobile Notifications). Tracked via "Blocks" issue links.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q22. Why are Jira Versions used?</div>
+                <div class="note-content">To group completed work into deliverable release phases (Phase 1-5), providing a high-level roadmap.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q23. What is the role of Confluence?</div>
+                <div class="note-content">It serves as the documentation and knowledge layer (playbooks, meeting notes, project plans).</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q24. What is the difference between Jira & Confluence?</div>
+                <div class="note-content">Jira tracks execution ("what work is being done"); Confluence tracks knowledge and governance ("how and why it is managed").</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q25. Does the current board have actual Scrum Sprints?</div>
+                <div class="note-content">No. The KAN project is a simple team-managed board without native sprint history. Scrum is our documented operating model for governance.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q26. Why does the project not show native Story Points?</div>
+                <div class="note-content">The team-managed configuration limits custom fields, so estimates (totaling 256) are securely documented in the story descriptions and baseline document.</div>
+            </div>
+            <div class="note-card border-purple-500">
+                <div class="note-label">Q27. What do the current status counts represent?</div>
+                <div class="note-content">They represent a current project-management snapshot of active visualization, not a historical sprint completion record.</div>
+            </div>
+        </div>
+
+
+        <h2 class="mt-16 text-emerald-600 page-break">Slide-by-Slide Speaker Notes</h2>
+        
+        <!-- Note 1 -->
+        <div class="note-card">
+            <div class="note-label">Slide 1: Cinematic Title</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The title of the presentation, establishing a premium software engineering aesthetic.<br>
+            <strong>What it proves:</strong> Introduces Alumnex Connect as the project and KAN as the Jira identifier.<br>
+            <strong>Agile interpretation:</strong> Agile is about systematic value delivery, which this presentation will prove.<br>
+            <strong>Alumnex-specific:</strong> Connects the specific project name to the Agile/Jira theme.<br>
+            <strong>Speech (20s):</strong> "Welcome to our engineering project review for Alumnex Connect. Today, we will demonstrate how we transformed a complex software product into a visible, traceable, and continuously improvable Agile system using Jira."<br>
+            <strong>Viva Q:</strong> Why did you choose Agile for this project?<br>
+            <strong>Viva A:</strong> Because Alumnex Connect has multiple complex, interconnected modules, making incremental delivery and continuous feedback essential.</div>
+        </div>
+
+        <!-- Note 2 -->
+        <div class="note-card">
+            <div class="note-label">Slide 2: The Product</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A visual ecosystem diagram of Alumnex Connect's core modules.<br>
+            <strong>What it proves:</strong> Demonstrates the complexity and multi-faceted nature of the product.<br>
+            <strong>Agile interpretation:</strong> Complex systems cannot be built effectively using rigid, sequential methods.<br>
+            <strong>Alumnex-specific:</strong> Shows Mentorship, DevPulse, Careers, AI, etc., as interconnected nodes.<br>
+            <strong>Speech (30s):</strong> "Alumnex Connect is not a simple website; it's an integrated ecosystem. It includes mentorship, career management, developer analytics via DevPulse, AI assistance, and mobile access. Building this requires managing multiple interconnected product capabilities simultaneously."<br>
+            <strong>Viva Q:</strong> How did you organize all these modules?<br>
+            <strong>Viva A:</strong> We translated these high-level product capabilities into 10 distinct Epics within Jira.</div>
+        </div>
+
+        <!-- Note 3 -->
+        <div class="note-card">
+            <div class="note-label">Slide 3: Why Agile?</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A split-screen comparison of Traditional vs. Agile development.<br>
+            <strong>What it proves:</strong> Explains the theoretical justification for the chosen project management approach.<br>
+            <strong>Agile interpretation:</strong> Emphasizes early feedback, visible work, and adaptive planning over rigid, late-testing models.<br>
+            <strong>Alumnex-specific:</strong> States that Alumnex's changing dependencies require this feedback-driven approach.<br>
+            <strong>Speech (30s):</strong> "Traditional sequential development hides risks and integration issues until late in the project. Because Alumnex Connect relies on external APIs, mobile integration, and AI, we chose Agile to ensure incremental delivery, early defect discovery, and adaptive planning."<br>
+            <strong>Viva Q:</strong> What is the main risk of sequential development for this project?<br>
+            <strong>Viva A:</strong> Discovering late in the cycle that our external integrations (like Firebase or OAuth) conflict with our core architecture. Agile surfaces these issues early.</div>
+        </div>
+
+        <!-- Note 4 -->
+        <div class="note-card">
+            <div class="note-label">Slide 4: The Agile System</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The core conceptual architecture of our project methodology.<br>
+            <strong>What it proves:</strong> Clarifies that Agile is the philosophy, Scrum/Kanban/XP/Lean are frameworks, and Jira/Confluence are tools.<br>
+            <strong>Agile interpretation:</strong> Methodologies are lenses through which we view and manage work.<br>
+            <strong>Alumnex-specific:</strong> Shows exactly how the Alumnex Connect Jira workspace is positioned.<br>
+            <strong>Speech (30s):</strong> "It's crucial to understand our architecture. Agile is our delivery philosophy. We apply Scrum for governance, Kanban for flow, XP for quality, and Lean for waste reduction. But to make this executable, we use Jira as our execution tracking layer, and Confluence as our knowledge layer."<br>
+            <strong>Viva Q:</strong> Is Jira an Agile methodology?<br>
+            <strong>Viva A:</strong> No. Jira is the software platform used to operationalize Agile work management. Agile is the philosophy.</div>
+        </div>
+
+        <!-- Note 5 -->
+        <div class="note-card">
+            <div class="note-label">Slide 5: Why Jira?</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The lifecycle flow of a requirement through the Jira system.<br>
+            <strong>What it proves:</strong> Demonstrates that Jira transforms abstract ideas into traceable steps.<br>
+            <strong>Agile interpretation:</strong> Work must be visible and traceable from inception to feedback.<br>
+            <strong>Alumnex-specific:</strong> Maps directly to how we use Epics, Stories, and workflow states.<br>
+            <strong>Speech (30s):</strong> "We chose Jira because it operationalizes Agile work. It takes an abstract requirement and provides the structured platform to track it through Epic creation, Story definition, subtask development, testing, and release. It makes the invisible work of software engineering completely visible."<br>
+            <strong>Viva Q:</strong> Why not just use Excel or a simple to-do list?<br>
+            <strong>Viva A:</strong> A to-do list lacks traceability. Jira links code, defects, dependencies, and releases directly to the original user requirement.</div>
+        </div>
+
+        <!-- Note 6 -->
+        <div class="note-card">
+            <div class="note-label">Slide 6: Jira Project Overview</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A recreated UI representing the authentic Jira Board screenshot.<br>
+            <strong>What it proves:</strong> Visually verifies the KAN project exists, is team-managed, and has a defined board.<br>
+            <strong>Agile interpretation:</strong> Shows the digital workspace where Agile flow occurs.<br>
+            <strong>Alumnex-specific:</strong> Proves the KAN key and the specific column structure.<br>
+            <strong>Speech (20s):</strong> "This is our actual project workspace. Alumnex Connect operates under the project key KAN. As you can see, we utilize the board, backlog, timeline, and reports to manage our execution layer."<br>
+            <strong>Viva Q:</strong> What type of Jira project is this?<br>
+            <strong>Viva A:</strong> It is a simple, team-managed project configuration, utilizing a Kanban-style board workflow.</div>
+        </div>
+
+        <!-- Note 7 -->
+        <div class="note-card">
+            <div class="note-label">Slide 7: The Jira Data Model</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The hierarchical relationship between Epics, Stories, Subtasks, Bugs, Versions, and Statuses.<br>
+            <strong>What it proves:</strong> Shows we understand how to structure data in an Agile tool.<br>
+            <strong>Agile interpretation:</strong> Decomposition (Epic to Subtask) makes large work small enough to estimate and execute.<br>
+            <strong>Alumnex-specific:</strong> Explains the exact hierarchy used to manage the 88 Alumnex issues.<br>
+            <strong>Speech (30s):</strong> "Before writing code, we established a strict data model. High-level capabilities are Epics. These break down into User Stories, which break down into implementation Subtasks. Running parallel, we track Bugs for quality, Versions for releases, and Statuses for workflow."<br>
+            <strong>Viva Q:</strong> What is the difference between an Epic and a Story?<br>
+            <strong>Viva A:</strong> An Epic is a large product capability (like User Management). A Story is a specific, testable user value increment within that Epic (like Registration).</div>
+        </div>
+
+        <!-- Note 8 -->
+        <div class="note-card">
+            <div class="note-label">Slide 8: 10 Epics = Product Structure</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A matrix of the 10 core Epics (KAN-1 through KAN-10).<br>
+            <strong>What it proves:</strong> Proves the Alumnex product was successfully decomposed into high-level features.<br>
+            <strong>Agile interpretation:</strong> Large scopes must be organized to allow iterative planning.<br>
+            <strong>Alumnex-specific:</strong> Highlights DevPulse, Mentorship, and the specific Scrum Governance Epic (KAN-10).<br>
+            <strong>Speech (20s):</strong> "We organized the entire ecosystem into 10 manageable Epics. This ranges from KAN-1 Authentication all the way to KAN-10, which specifically holds our Scrum and Project Governance documentation."<br>
+            <strong>Viva Q:</strong> Why is Scrum & Project Governance an Epic?<br>
+            <strong>Viva A:</strong> Because defining our process, DoR/DoD, and Agile metrics is actual work that requires time and tracking, just like writing code.</div>
+        </div>
+
+        <!-- Note 9 -->
+        <div class="note-card">
+            <div class="note-label">Slide 9: From Epic to User Story</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The breakdown of KAN-1 into Story KAN-11, with details.<br>
+            <strong>What it proves:</strong> Demonstrates how we write requirements using the standard Agile format.<br>
+            <strong>Agile interpretation:</strong> Stories shift focus from technical specs to user value.<br>
+            <strong>Alumnex-specific:</strong> Uses the actual Student Registration story text from the Jira backlog.<br>
+            <strong>Speech (30s):</strong> "Here is how decomposition works in practice. Epic KAN-1 breaks down into Story KAN-11: Student Registration. We use the standard Agile format: 'As a student, I want to register, so that I can create my account.' It includes acceptance criteria, priority, and a point estimate."<br>
+            <strong>Viva Q:</strong> Why use the "As a... I want to..." format?<br>
+            <strong>Viva A:</strong> It forces the developer to understand the user's perspective and the business value, rather than just building a technical feature in isolation.</div>
+        </div>
+
+        <!-- Note 10 -->
+        <div class="note-card">
+            <div class="note-label">Slide 10: Acceptance Criteria = Quality Contract</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The Acceptance Criteria for KAN-14 (OTP/2FA).<br>
+            <strong>What it proves:</strong> Proves we define testable conditions before coding begins.<br>
+            <strong>Agile interpretation:</strong> AC is the bridge between a user need and the Definition of Done.<br>
+            <strong>Alumnex-specific:</strong> Uses the exact criteria for the OTP story (generation, validity, expiry).<br>
+            <strong>Speech (30s):</strong> "A Story is not complete just because code exists. It requires Acceptance Criteria. For example, in KAN-14 (OTP Verification), we explicitly state that verification must succeed ONLY with a valid, unexpired OTP, and retries must be handled. This forms a contract between development and testing."<br>
+            <strong>Viva Q:</strong> What happens if a Story lacks Acceptance Criteria?<br>
+            <strong>Viva A:</strong> It violates our Definition of Ready, because developers won't know exactly what to build, and testers won't know exactly what to test.</div>
+        </div>
+
+        <!-- Note 11 -->
+        <div class="note-card">
+            <div class="note-label">Slide 11: Story Decomposition</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> Breaking Story KAN-11 into three Subtasks (KAN-69, 70, 71).<br>
+            <strong>What it proves:</strong> Demonstrates the conversion of user value into technical tasks.<br>
+            <strong>Agile interpretation:</strong> Subtasks represent the actual engineering work required to deliver the story.<br>
+            <strong>Alumnex-specific:</strong> Shows the UI, backend, and testing breakdown for Registration.<br>
+            <strong>Speech (20s):</strong> "While a Story describes user value, a Subtask describes technical execution. Here, KAN-11 Registration is broken down into three subtasks: designing the flow, implementing secure credential handling, and writing registration tests."<br>
+            <strong>Viva Q:</strong> What is a Subtask?<br>
+            <strong>Viva A:</strong> A subtask is a granular, technical implementation activity required to satisfy a parent User Story.</div>
+        </div>
+
+        <!-- Note 12 -->
+        <div class="note-card">
+            <div class="note-label">Slide 12: Product Backlog</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A representation of the Jira Backlog list with a process overlay.<br>
+            <strong>What it proves:</strong> Shows that the backlog is actively refined, not just a dumping ground.<br>
+            <strong>Agile interpretation:</strong> Backlog refinement is a continuous Scrum activity.<br>
+            <strong>Alumnex-specific:</strong> Illustrates the journey of our 88 issues before execution.<br>
+            <strong>Speech (20s):</strong> "This represents our Jira Backlog. However, it's not just a list of ideas. It is an active Scrum artifact where items are captured, clarified, prioritized, estimated, and refined until they meet the Definition of Ready for implementation."<br>
+            <strong>Viva Q:</strong> What is backlog refinement?<br>
+            <strong>Viva A:</strong> The ongoing process of reviewing, prioritizing, and adding detail (like estimates and acceptance criteria) to items in the product backlog.</div>
+        </div>
+
+        <!-- Note 13 -->
+        <div class="note-card">
+            <div class="note-label">Slide 13: Prioritization & Estimation</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The 256-point estimation baseline across 53 stories.<br>
+            <strong>What it proves:</strong> Proves that relative effort estimation was conducted for the project.<br>
+            <strong>Agile interpretation:</strong> Estimation supports planning and capacity management.<br>
+            <strong>Alumnex-specific:</strong> Explains the specific point distribution and the Jira configuration constraint.<br>
+            <strong>Speech (30s):</strong> "We established a planning baseline of 256 suggested story points across 53 stories. Importantly, because our current team-managed Jira configuration does not expose a native Story Points field, these estimates are securely documented in the story descriptions and our baseline document."<br>
+            <strong>Viva Q:</strong> Why are these points "documented" rather than in a Jira field?<br>
+            <strong>Viva A:</strong> The current project uses a simple team-managed board which lacks custom field metadata for story points, so we maintained academic rigor by documenting the baseline explicitly.</div>
+        </div>
+
+        <!-- Note 14 -->
+        <div class="note-card">
+            <div class="note-label">Slide 14: The Jira Flow</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The 5 column states of the KAN board.<br>
+            <strong>What it proves:</strong> Verifies the exact workflow implemented in the tool.<br>
+            <strong>Agile interpretation:</strong> Kanban flow visualizes states and exposes bottlenecks.<br>
+            <strong>Alumnex-specific:</strong> Defines what Idea, To Do, In Progress, In Review, and Done mean for this team.<br>
+            <strong>Speech (20s):</strong> "This is our execution workflow. Work moves from Idea, to a refined To Do state, into active In Progress execution, through validation In Review, and finally to Done once quality gates are passed. The board makes this state instantly visible."<br>
+            <strong>Viva Q:</strong> Are these Sprint stages?<br>
+            <strong>Viva A:</strong> No, these are workflow execution states. A Sprint is a time-box; these columns represent the current status of the work item.</div>
+        </div>
+
+        <!-- Note 15 -->
+        <div class="note-card">
+            <div class="note-label">Slide 15: Current Project Status</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A donut chart breakdown of the 88 current issues by status.<br>
+            <strong>What it proves:</strong> Demonstrates that the Jira board is populated and actively managed.<br>
+            <strong>Agile interpretation:</strong> Provides a transparent view of project progress and WIP.<br>
+            <strong>Alumnex-specific:</strong> Shows 38 Done, 11 In Progress, 9 In Review, etc.<br>
+            <strong>Speech (30s):</strong> "This is our current project management snapshot, displaying the distribution of our 88 total issues. It is important to note for academic reporting: this represents our current active Agile work visualization, and is not presented as evidence of historical Sprint completion."<br>
+            <strong>Viva Q:</strong> Does this mean you completed 38 items in Sprint 1?<br>
+            <strong>Viva A:</strong> No. As clearly stated, this is a current management snapshot of the board's state, because the current configuration does not track historical Sprints.</div>
+        </div>
+
+        <!-- Note 16 -->
+        <div class="note-card">
+            <div class="note-label">Slide 16: Release Roadmap</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The 5 delivery phases established using Jira Versions.<br>
+            <strong>What it proves:</strong> Proves release planning and logical capability grouping.<br>
+            <strong>Agile interpretation:</strong> Agile delivers value incrementally through planned releases.<br>
+            <strong>Alumnex-specific:</strong> Shows Foundation through to Mobile & Reliability phases.<br>
+            <strong>Speech (20s):</strong> "We organized the delivery into five distinct Jira Versions, from Foundation to Mobile & Reliability. Note the vital Agile distinction: A Version is a release grouping of scope, whereas a Sprint is a time-boxed iteration."<br>
+            <strong>Viva Q:</strong> Why are Jira Versions used?<br>
+            <strong>Viva A:</strong> To group completed work into deliverable, deployable release phases, providing a high-level roadmap above individual stories.</div>
+        </div>
+
+        <!-- Note 17 -->
+        <div class="note-card">
+            <div class="note-label">Slide 17: Dependency Management</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A visual network of 8 "Blocks" relationships.<br>
+            <strong>What it proves:</strong> Demonstrates advanced Jira usage to track sequencing risk.<br>
+            <strong>Agile interpretation:</strong> Lean principle: expose blockers early to prevent waste and waiting.<br>
+            <strong>Alumnex-specific:</strong> Shows how Mobile Auth blocks Notifications, etc.<br>
+            <strong>Speech (30s):</strong> "In complex systems, a valid story cannot progress if an upstream capability is missing. We explicitly recorded 8 'Blocks' relationships in Jira. For instance, Android Wrapper blocks Mobile Auth. Documenting dependencies exposes sequencing risk early."<br>
+            <strong>Viva Q:</strong> What are dependencies?<br>
+            <strong>Viva A:</strong> Dependencies are sequencing constraints where one piece of work must be completed before another can begin or be released.</div>
+        </div>
+
+        <!-- Note 18 -->
+        <div class="note-card">
+            <div class="note-label">Slide 18: Bug Management</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The 5 specific bugs tracked in the project and their lifecycle.<br>
+            <strong>What it proves:</strong> Proves that defects are managed transparently within the backlog.<br>
+            <strong>Agile interpretation:</strong> Bugs are visible work items, subject to the same flow as features.<br>
+            <strong>Alumnex-specific:</strong> Lists KAN-64 (Streak sync) through KAN-68.<br>
+            <strong>Speech (20s):</strong> "In Agile, bugs are not hidden failures; they are visible, traceable items within the backlog. We recorded 5 specific defects, like FCM Delivery Failure, pushing them through a strict lifecycle from Report to Retest."<br>
+            <strong>Viva Q:</strong> How do you handle a bug found during testing?<br>
+            <strong>Viva A:</strong> We log it as a Bug issue in Jira, link it to the parent Story, assign it a priority, and move it through the workflow until the fix is verified.</div>
+        </div>
+
+        <!-- Note 19 -->
+        <div class="note-card">
+            <div class="note-label">Slide 19: Definition of Ready (DoR)</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A visual gate between the Backlog and Execution.<br>
+            <strong>What it proves:</strong> Demonstrates understanding of Scrum quality standards prior to starting work.<br>
+            <strong>Agile interpretation:</strong> DoR prevents untestable or vague work from clogging the development flow.<br>
+            <strong>Alumnex-specific:</strong> Maps to governance story KAN-60.<br>
+            <strong>Speech (20s):</strong> "Before an item leaves the Backlog, it must pass the Definition of Ready gate. It must have clear outcomes, testable criteria, and known dependencies. This protects the team from starting work they cannot finish."<br>
+            <strong>Viva Q:</strong> What is the Definition of Ready?<br>
+            <strong>Viva A:</strong> A checklist that determines if a user story is refined and understood well enough to safely enter the active development phase.</div>
+        </div>
+
+        <!-- Note 20 -->
+        <div class="note-card">
+            <div class="note-label">Slide 20: Definition of Done (DoD)</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The required steps (Implemented, Tested, Reviewed, etc.) to reach "Done".<br>
+            <strong>What it proves:</strong> Demonstrates the strict completion criteria applied to the project.<br>
+            <strong>Agile interpretation:</strong> Done means releasable quality, not just "code written".<br>
+            <strong>Alumnex-specific:</strong> Maps to governance story KAN-60.<br>
+            <strong>Speech (20s):</strong> "Conversely, before an item can be marked 'Done', it must pass the Definition of Done. It must be implemented, tested, reviewed, security checked, and documented. DoR protects what enters execution; DoD protects what leaves it."<br>
+            <strong>Viva Q:</strong> What is the Definition of Done?<br>
+            <strong>Viva A:</strong> The universal quality gate determining that work is fully complete, tested, and meets all project standards for release.</div>
+        </div>
+
+        <!-- Note 21 -->
+        <div class="note-card">
+            <div class="note-label">Slide 21: Scrum in Alumnex Connect</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> Mapping of Scrum practices to specific Jira KAN stories.<br>
+            <strong>What it proves:</strong> Shows exactly where Scrum governance exists in the backlog.<br>
+            <strong>Agile interpretation:</strong> Scrum provides the meeting and iteration governance framework.<br>
+            <strong>Alumnex-specific:</strong> Highlights KAN-55 to KAN-60 as the documented operating model.<br>
+            <strong>Speech (30s):</strong> "We use Scrum as our governance and iteration model. We mapped Scrum ceremonies—like Sprint Planning and Retrospectives—directly to Jira stories KAN-55 through KAN-60. Note that these represent our documented operating model, as the current board does not execute native Jira Sprints."<br>
+            <strong>Viva Q:</strong> Where is Scrum applied in your project?<br>
+            <strong>Viva A:</strong> It is documented as our intended governance model via stories KAN-55 through KAN-63, establishing rules for planning and quality gates.</div>
+        </div>
+
+        <!-- Note 22 -->
+        <div class="note-card">
+            <div class="note-label">Slide 22: Kanban in Alumnex Connect</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> Mapping Kanban flow concepts to the Jira Board features.<br>
+            <strong>What it proves:</strong> Explains how the current simple board operates operationally.<br>
+            <strong>Agile interpretation:</strong> Kanban optimizes continuous flow and WIP visibility.<br>
+            <strong>Alumnex-specific:</strong> Maps the specific 5 columns to Kanban principles.<br>
+            <strong>Speech (20s):</strong> "Operationally, Kanban is the strongest direct fit for our current board. It allows us to visualize work, maintain continuous flow across columns, easily identify bottlenecks in the 'In Review' state, and pull work efficiently."<br>
+            <strong>Viva Q:</strong> How does the board represent Kanban?<br>
+            <strong>Viva A:</strong> Through a continuous, visual flow from Idea to Done, allowing us to monitor Work In Progress and identify bottlenecks without relying on time-boxed sprints.</div>
+        </div>
+
+        <!-- Note 23 -->
+        <div class="note-card">
+            <div class="note-label">Slide 23: XP in Alumnex Connect</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> How Extreme Programming principles influence the backlog.<br>
+            <strong>What it proves:</strong> Shows awareness of Agile technical/engineering practices.<br>
+            <strong>Agile interpretation:</strong> XP focuses on code quality, testing, and CI/CD.<br>
+            <strong>Alumnex-specific:</strong> Highlights KAN-52 (Automated Testing) and KAN-53 (CI/CD).<br>
+            <strong>Speech (20s):</strong> "While Scrum manages planning, Extreme Programming influences our engineering quality. XP practices are represented within our project via specific quality backlog items, such as KAN-52 for Automated Testing and KAN-53 for CI/CD Pipelines."<br>
+            <strong>Viva Q:</strong> What is XP?<br>
+            <strong>Viva A:</strong> Extreme Programming is an Agile framework focused intensely on engineering quality practices, such as automated testing and continuous integration.</div>
+        </div>
+
+        <!-- Note 24 -->
+        <div class="note-card">
+            <div class="note-label">Slide 24: Lean in Alumnex Connect</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> Lean principles mapped to specific project management actions.<br>
+            <strong>What it proves:</strong> Demonstrates understanding of flow optimization and waste reduction.<br>
+            <strong>Agile interpretation:</strong> Lean focuses on optimizing the whole system and removing blockers.<br>
+            <strong>Alumnex-specific:</strong> Connects Lean to the board, blocks links, and metrics stories.<br>
+            <strong>Speech (20s):</strong> "Lean principles aim to reduce waste and improve system flow. We apply Lean by making work visible on the board to avoid unnecessary effort, tracking dependencies to reduce waiting time, and using metrics to drive continuous improvement."<br>
+            <strong>Viva Q:</strong> Where is Lean applied?<br>
+            <strong>Viva A:</strong> Through explicit dependency tracking to prevent waiting, visual workflows to optimize flow, and continuous improvement metrics.</div>
+        </div>
+
+        <!-- Note 25 -->
+        <div class="note-card">
+            <div class="note-label">Slide 25: One Project, Four Agile Lenses</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A 4-quadrant summary of Scrum, Kanban, XP, and Lean surrounding the project.<br>
+            <strong>What it proves:</strong> Synthesizes the multi-framework Agile approach into a single visual.<br>
+            <strong>Agile interpretation:</strong> Agile is a hybrid philosophy combining the best of different frameworks.<br>
+            <strong>Alumnex-specific:</strong> Shows how Jira operationalizes all these theories for this specific project.<br>
+            <strong>Speech (20s):</strong> "To summarize our methodology: Scrum governs our planning. Kanban drives our visual flow. XP ensures our engineering quality. And Lean optimizes our waste reduction. Jira serves as the central platform that operationalizes all four lenses."<br>
+            <strong>Viva Q:</strong> Why combine four methodologies?<br>
+            <strong>Viva A:</strong> Because no single framework does everything. Scrum plans, Kanban flows, XP engineers, and Lean optimizes. Jira ties them together.</div>
+        </div>
+
+        <!-- Note 26 -->
+        <div class="note-card">
+            <div class="note-label">Slide 26: The Two-Layer Architecture (Jira + Confluence)</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The division of responsibilities between Jira and Confluence.<br>
+            <strong>What it proves:</strong> Shows an enterprise-grade understanding of Atlassian tooling.<br>
+            <strong>Agile interpretation:</strong> Execution requires tracking; Governance requires documentation.<br>
+            <strong>Alumnex-specific:</strong> Defines where the Playbook lives vs where the Epics live.<br>
+            <strong>Speech (20s):</strong> "Our project infrastructure uses a two-layer architecture. Jira is the Execution Layer—it answers 'What is being done?' tracking statuses and bugs. Confluence is the Knowledge Layer—it answers 'How is it managed and why?' storing our Agile Playbook and decisions."<br>
+            <strong>Viva Q:</strong> What is the difference between Jira and Confluence?<br>
+            <strong>Viva A:</strong> Jira tracks executable work items and statuses. Confluence is a wiki that stores process documentation, meeting notes, and governance rules.</div>
+        </div>
+
+        <!-- Note 27 -->
+        <div class="note-card">
+            <div class="note-label">Slide 27: Project Analytics</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A mockup of the Jira Reports and Development screens.<br>
+            <strong>What it proves:</strong> Proves we utilize metrics for inspection and adaptation.<br>
+            <strong>Agile interpretation:</strong> Data drives continuous improvement.<br>
+            <strong>Alumnex-specific:</strong> Shows verified metrics like status distribution, type, and dev connections.<br>
+            <strong>Speech (20s):</strong> "To ensure continuous improvement, we utilize project analytics. Verified metrics track work items by status, cycle time, and development integrations. These metrics enable the team to inspect, adapt, and improve the delivery process."<br>
+            <strong>Viva Q:</strong> What do the development metrics show?<br>
+            <strong>Viva A:</strong> They track integrations like Pull Requests and Deployments, allowing us to connect source code activity directly to Jira work items.</div>
+        </div>
+
+        <!-- Note 28 -->
+        <div class="note-card">
+            <div class="note-label">Slide 28: Timeline & Calendar Planning</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The Timeline and Calendar views in Jira.<br>
+            <strong>What it proves:</strong> Demonstrates usage of alternative planning views beyond the board.<br>
+            <strong>Agile interpretation:</strong> Roadmapping is essential for long-term Epic planning.<br>
+            <strong>Alumnex-specific:</strong> Clarifies that these views support planning but are not Scrum Sprints.<br>
+            <strong>Speech (20s):</strong> "Beyond the board, we use the Timeline view for Epic-level roadmapping and phase planning, and the Calendar view for date-based scheduling. Note that these views complement our planning, but do not represent historical Scrum Sprints."<br>
+            <strong>Viva Q:</strong> What is the Timeline view used for?<br>
+            <strong>Viva A:</strong> It provides a Gantt-style roadmap view to plan large Epics and Release Phases over time, helping to visualize dependencies and long-term goals.</div>
+        </div>
+
+        <!-- Note 29 -->
+        <div class="note-card">
+            <div class="note-label">Slide 29: The Complete Alumnex Agile Model</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A massive end-to-end flowchart of the entire project lifecycle.<br>
+            <strong>What it proves:</strong> Synthesizes the entire presentation into one cohesive system.<br>
+            <strong>Agile interpretation:</strong> From product need to continuous feedback loop.<br>
+            <strong>Alumnex-specific:</strong> The ultimate summary of how Alumnex was managed.<br>
+            <strong>Speech (30s):</strong> "This diagram synthesizes our entire system. A product need is prioritized, broken into an Epic, then a Story, estimated, and passes the Ready gate. It flows through the Jira execution workflow, gets released as a Version, generates feedback, and loops back into the next iteration. Supported by all four Agile lenses."<br>
+            <strong>Viva Q:</strong> Can you summarize your entire process?<br>
+            <strong>Viva A:</strong> Yes, we decompose requirements into testable stories, pull them through a Kanban-style visual workflow, release them in phases, and use Scrum governance to inspect and adapt.</div>
+        </div>
+
+        <!-- Note 30 -->
+        <div class="note-card">
+            <div class="note-label">Slide 30: Evidence of Project Management</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A "proof wall" layout representing the various Jira UI views utilized.<br>
+            <strong>What it proves:</strong> Visually reinforces that actual PM artifacts back up the theory.<br>
+            <strong>Agile interpretation:</strong> Tools must support every facet of the Agile lifecycle.<br>
+            <strong>Alumnex-specific:</strong> Correlates to the exported Jira screenshots (Backlog, Board, Reports, etc.).<br>
+            <strong>Speech (20s):</strong> "Our Agile model is not just theoretical. It is implemented and evidenced through our active Backlog, the Board workflow, subtask decomposition, quality tracking, release planning, and integrated documentation."<br>
+            <strong>Viva Q:</strong> How do you prove this work was managed?<br>
+            <strong>Viva A:</strong> Through the comprehensive Jira artifacts we exported, including the populated backlog, board states, detailed story descriptions, and dependency tracking.</div>
+        </div>
+
+        <!-- Note 31 -->
+        <div class="note-card">
+            <div class="note-label">Slide 31: What This Project Demonstrates</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> 10 large summary statements of achievement.<br>
+            <strong>What it proves:</strong> Summarizes the core competencies demonstrated by the project.<br>
+            <strong>Agile interpretation:</strong> Reviews the successful application of Agile principles.<br>
+            <strong>Alumnex-specific:</strong> Acts as the final checklist of project management successes.<br>
+            <strong>Speech (20s):</strong> "In summary, this project demonstrates our ability to structure a product backlog, write user-centric stories, decompose technical work, manage visible workflows, track defects, and establish strong Agile governance."<br>
+            <strong>Viva Q:</strong> What was the biggest project management achievement?<br>
+            <strong>Viva A:</strong> Successfully decomposing a massive, multi-module product into 53 traceable, testable user stories managed within a continuous visual workflow.</div>
+        </div>
+
+        <!-- Note 32 -->
+        <div class="note-card">
+            <div class="note-label">Slide 32: Limitations & Future State</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A transparent comparison of current constraints vs future maturity.<br>
+            <strong>What it proves:</strong> Demonstrates academic honesty and deep understanding of Jira's limitations.<br>
+            <strong>Agile interpretation:</strong> Continuous improvement applies to the process itself.<br>
+            <strong>Alumnex-specific:</strong> Directly addresses the lack of native Sprint history in the current KAN board.<br>
+            <strong>Speech (30s):</strong> "For academic transparency, we acknowledge our current limitations: we operate on a team-managed board without native Sprint history or Story Point fields. In a future state of improved maturity, we would migrate to a Scrum-capable project configuration to execute native Sprints and track historical velocity."<br>
+            <strong>Viva Q:</strong> Why are there no Sprints in Jira right now?<br>
+            <strong>Viva A:</strong> The current project uses a simplified team-managed board which lacks native sprint tracking. We documented the Scrum model instead of fabricating false historical data.</div>
+        </div>
+
+        <!-- Note 33 -->
+        <div class="note-card">
+            <div class="note-label">Slide 33: Conclusion</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> The final concluding statements tying Product, Execution, and Delivery together.<br>
+            <strong>What it proves:</strong> Finalizes the narrative arc of the presentation.<br>
+            <strong>Agile interpretation:</strong> Agile is the system, Jira is the tool.<br>
+            <strong>Alumnex-specific:</strong> The definitive closing statement for the project review.<br>
+            <strong>Speech (20s):</strong> "To conclude: Alumnex Connect is the Product. Jira is the Execution platform. Agile is our Delivery System. This project proves how theoretical Agile principles translate into traceable, professional project-management practices."<br>
+            <strong>Viva Q:</strong> Any final thoughts?<br>
+            <strong>Viva A:</strong> Only that utilizing Jira has fundamentally shifted our perspective from merely writing code to systematically delivering validated user value.</div>
+        </div>
+
+        <!-- Note 34 -->
+        <div class="note-card">
+            <div class="note-label">Slide 34: Q&A</div>
+            <div class="note-content"><strong>What the slide is showing:</strong> A final, visually striking Q&A placeholder.<br>
+            <strong>What it proves:</strong> Concludes the visual deck cleanly.<br>
+            <strong>Agile interpretation:</strong> N/A.<br>
+            <strong>Alumnex-specific:</strong> Leaves the core theme on screen during questioning.<br>
+            <strong>Speech (10s):</strong> "Thank you for your time. We are now open to any questions regarding our Agile process, Jira implementation, or the Alumnex Connect ecosystem."<br>
+            <strong>Viva Q:</strong> N/A<br>
+            <strong>Viva A:</strong> N/A</div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const currentSlideEl = document.getElementById('current-slide');
+        const totalSlidesEl = document.getElementById('total-slides');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        totalSlidesEl.innerText = totalSlides;
+
+        function updateControls() {
+            currentSlideEl.innerText = currentSlide + 1;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+            
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateControls();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateControls();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Initialize
+        updateControls();
+    </script>
+</body>
+</html>

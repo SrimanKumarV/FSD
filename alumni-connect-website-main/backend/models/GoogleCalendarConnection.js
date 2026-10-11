@@ -124,6 +124,33 @@ googleCalendarConnectionSchema.methods.getDecryptedTokens = function () {
  * Safe public profile representation that never exposes tokens
  */
 googleCalendarConnectionSchema.methods.toSafeJSON = function () {
+  let safeLastError = null;
+  if (this.lastError && this.lastError.message) {
+    const rawMsg = String(this.lastError.message || '').toLowerCase();
+    if (rawMsg.includes('disabled') || rawMsg.includes('not been used') || rawMsg.includes('accessnotconfigured')) {
+      safeLastError = {
+        code: 'CALENDAR_CONNECTION_UNAVAILABLE',
+        category: 'configuration',
+        message: "Calendar connection is temporarily unavailable. We've been notified and are working on it. Your existing calendar connection and data are safe.",
+        timestamp: this.lastError.timestamp
+      };
+    } else if (rawMsg.includes('reauth') || this.status === 'reauthorization_required' || rawMsg.includes('expired or revoked')) {
+      safeLastError = {
+        code: 'CALENDAR_REAUTH_REQUIRED',
+        category: 'authorization',
+        message: 'Your Google Calendar connection needs to be renewed. Reconnect your calendar to continue syncing.',
+        timestamp: this.lastError.timestamp
+      };
+    } else {
+      safeLastError = {
+        code: 'CALENDAR_TEMPORARILY_UNAVAILABLE',
+        category: 'temporary',
+        message: "Calendar sync is temporarily unavailable. Your existing calendar data is safe. We'll try again automatically.",
+        timestamp: this.lastError.timestamp
+      };
+    }
+  }
+
   return {
     id: this._id,
     userId: this.userId,
@@ -138,7 +165,7 @@ googleCalendarConnectionSchema.methods.toSafeJSON = function () {
     lastSyncedAt: this.lastSyncedAt,
     lastSuccessfulSyncAt: this.lastSuccessfulSyncAt,
     status: this.status,
-    lastError: this.lastError,
+    lastError: safeLastError,
     watchChannelsActive: (this.watchChannels || []).length,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt

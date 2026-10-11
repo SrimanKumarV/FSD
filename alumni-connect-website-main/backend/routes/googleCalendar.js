@@ -8,6 +8,9 @@ const GoogleCalendarEvent = require('../models/GoogleCalendarEvent');
 const googleCalendarService = require('../services/googleCalendarService');
 const calendarSyncService = require('../services/calendarSyncService');
 const Notification = require('../models/Notification');
+const { sendUserSafeError } = require('../middleware/errorHandler');
+const { classifyError } = require('../utils/errorClassification');
+const incidentService = require('../services/incidentService');
 
 // Validation helper
 const checkValidation = (req, res) => {
@@ -242,39 +245,31 @@ router.get('/callback', async (req, res) => {
     </html>
   `;
 
-  // 1. Check for user denial or Google error (Step 38: distinguish tester restriction vs cancellation)
+  // 1. Check for user denial or Google error
   if (oauthError) {
     const rawError = String(error_description || oauthError).trim();
-    let categorizedError = rawError;
-    let errorCategory = 'access_denied';
+    const classified = classifyError(rawError, {
+      provider: 'google-calendar',
+      operation: 'oauth.callback'
+    });
 
-    if (oauthError === 'access_denied') {
-      const lower = rawError.toLowerCase();
-      if (lower.includes('tested') || lower.includes('tester') || lower.includes('verification') || lower.includes('developer-approved')) {
-        errorCategory = 'tester_restriction';
-        categorizedError = 'Access Denied (403): The app is in Google Testing mode. Only developer-approved test users added in Google Cloud Console can connect until the app is published.';
-      } else {
-        errorCategory = 'user_denied';
-        categorizedError = 'Google Calendar connection was cancelled or permission was denied.';
-      }
-    } else if (oauthError === 'redirect_uri_mismatch') {
-      errorCategory = 'redirect_uri_mismatch';
-      categorizedError = 'Google OAuth Error (400): Redirect URI mismatch. Ensure the authorized redirect URI in Google Cloud Console matches the backend callback URL.';
+    if (classified.requiresAdminAction) {
+      incidentService.recordIncident(classified).catch(() => {});
     }
 
-    console.warn(`[GoogleCalendar] callback.error category=${errorCategory} description=${categorizedError}`);
+    console.warn(`[GoogleCalendar] callback.notice code=${classified.internalCode} category=${classified.category}`);
 
     const isMobile = req.cookies?.gcal_oauth_state?.includes('mobile');
     if (isMobile) {
-      return res.status(400).send(renderMobileResult(
-        `com.alumnex.connect://oauth/google-calendar?error=${encodeURIComponent(categorizedError)}&error_category=${errorCategory}`,
+      return res.status(classified.httpStatus || 200).send(renderMobileResult(
+        `com.alumnex.connect://oauth/google-calendar?status=${encodeURIComponent(classified.userSafeCode.toLowerCase())}&category=${encodeURIComponent(classified.category.toLowerCase())}&ref=${encodeURIComponent(classified.reference)}`,
         'Calendar Authorization Notice',
-        categorizedError,
-        true
+        classified.userSafeMessage,
+        classified.requiresAdminAction
       ));
     }
     const fallbackFrontend = getPrimaryFrontendUrl(req);
-    return res.redirect(`${fallbackFrontend}/calendar?error=${encodeURIComponent(categorizedError)}&error_category=${errorCategory}`);
+    return res.redirect(`${fallbackFrontend}/calendar?status=${encodeURIComponent(classified.userSafeCode.toLowerCase())}&category=${encodeURIComponent(classified.category.toLowerCase())}&ref=${encodeURIComponent(classified.reference)}`);
   }
 
   // 2. Validate state token
@@ -394,11 +389,14 @@ router.get('/callback', async (req, res) => {
     return res.redirect(`${effectiveFrontendUrl}/calendar?connected=true`);
   } catch (err) {
     console.error(`[GoogleCalendar] callback.token.exchange.failure userId=${userId || 'unknown'} error=${err.message}`);
+    const classified = classifyError(err, { provider: 'google-calendar', operation: 'oauth.exchange', userId });
+    incidentService.recordIncident(classified, { userId }).catch(() => {});
+
     if (isMobile) {
-      const deepLinkUrl = `com.alumnex.connect://oauth/google-calendar?error=${encodeURIComponent(err.message || 'Token exchange failed')}`;
-      return res.status(500).send(renderMobileResult(deepLinkUrl, 'Connection Error', err.message, true));
+      const deepLinkUrl = `com.alumnex.connect://oauth/google-calendar?status=${encodeURIComponent(classified.userSafeCode.toLowerCase())}&category=${encodeURIComponent(classified.category.toLowerCase())}&ref=${encodeURIComponent(classified.reference)}`;
+      return res.status(500).send(renderMobileResult(deepLinkUrl, 'Connection Notice', classified.userSafeMessage, true));
     }
-    return res.redirect(`${effectiveFrontendUrl}/calendar?error=${encodeURIComponent(err.message || 'Failed to exchange Google authorization code')}`);
+    return res.redirect(`${effectiveFrontendUrl}/calendar?status=${encodeURIComponent(classified.userSafeCode.toLowerCase())}&category=${encodeURIComponent(classified.category.toLowerCase())}&ref=${encodeURIComponent(classified.reference)}`);
   }
 });
 
@@ -473,17 +471,11 @@ router.get('/calendars', protect, async (req, res) => {
     res.json({ calendars });
   } catch (error) {
     console.error('[Google Calendar] Calendars fetch error:', error.message);
-    const googleMsg = error.response?.data?.error?.message;
-    const isApiDisabled = error.response?.status === 403 && (googleMsg?.includes('not been used') || googleMsg?.includes('disabled'));
-    if (isApiDisabled) {
-      return res.status(403).json({
-        message: 'Google Calendar API is not enabled in Google Cloud project 253683997850. Please enable it in Google Cloud Console.',
-        enableUrl: 'https://console.developers.google.com/apis/api/calendar-json.googleapis.com/overview?project=253683997850',
-        apiDisabled: true
-      });
-    }
-    const status = error.response?.status && error.response.status < 500 ? error.response.status : 500;
-    res.status(status).json({ message: googleMsg || error.message || 'Failed to fetch Google calendars' });
+    return sendUserSafeError(res, error, {
+      provider: 'google-calendar',
+      operation: 'calendars.list',
+      userId: req.user._id
+    });
   }
 });
 
@@ -636,7 +628,11 @@ router.post('/events', protect, [
     });
   } catch (error) {
     console.error('[Google Calendar] Create event error:', error.message);
-    res.status(500).json({ message: error.message || 'Failed to create event' });
+    return sendUserSafeError(res, error, {
+      provider: 'google-calendar',
+      operation: 'events.create',
+      userId: req.user._id
+    });
   }
 });
 
@@ -696,7 +692,11 @@ router.put('/events/:eventId', protect, [
     });
   } catch (error) {
     console.error('[Google Calendar] Update event error:', error.message);
-    res.status(500).json({ message: error.message || 'Failed to update event' });
+    return sendUserSafeError(res, error, {
+      provider: 'google-calendar',
+      operation: 'events.update',
+      userId: req.user._id
+    });
   }
 });
 
@@ -734,7 +734,11 @@ router.delete('/events/:eventId', protect, [
     res.json({ success: true, message: 'Event deleted successfully' });
   } catch (error) {
     console.error('[Google Calendar] Delete event error:', error.message);
-    res.status(500).json({ message: error.message || 'Failed to delete event' });
+    return sendUserSafeError(res, error, {
+      provider: 'google-calendar',
+      operation: 'events.delete',
+      userId: req.user._id
+    });
   }
 });
 
@@ -756,13 +760,21 @@ router.post('/sync', protect, async (req, res) => {
     });
 
     if (!result.success) {
-      return res.status(400).json(result);
+      return sendUserSafeError(res, result.error, {
+        provider: 'google-calendar',
+        operation: 'sync',
+        userId: req.user._id
+      });
     }
 
     res.json(result);
   } catch (error) {
     console.error('[Google Calendar] Manual sync error:', error.message);
-    res.status(500).json({ message: 'Synchronization failed' });
+    return sendUserSafeError(res, error, {
+      provider: 'google-calendar',
+      operation: 'sync',
+      userId: req.user._id
+    });
   }
 });
 

@@ -214,10 +214,25 @@ class FCMService {
       }
 
       if (analysis.isCredentialMismatch) {
+        try {
+          const incidentService = require('./incidentService');
+          const { classifyError } = require('../utils/errorClassification');
+          const classified = classifyError(analysis.message || 'Firebase project mismatch', {
+            provider: 'firebase-fcm',
+            operation: 'push.dispatch'
+          });
+          classified.internalCode = 'FCM_PROJECT_MISMATCH';
+          classified.severity = 'high';
+          classified.adminMessage = 'Firebase project mismatch: The Android google-services.json and backend Firebase Admin service account belong to different Firebase projects.';
+          classified.recommendedAction = 'Ensure google-services.json on Android matches FIREBASE_PROJECT_ID and service account credentials on backend.';
+          incidentService.recordIncident(classified).catch(() => {});
+        } catch (e) { }
+
         return {
           success: false,
           status: 'failed',
           permanent: false,
+          userSafeMessage: 'Notification preferences are active.',
           error: 'Firebase project mismatch: The Android google-services.json and backend Firebase Admin service account belong to different Firebase projects.'
         };
       }
@@ -226,6 +241,7 @@ class FCMService {
         success: false,
         status: analysis.isTransient ? 'temporary-failure' : 'failed',
         permanent: false,
+        userSafeMessage: 'Notification delivery is scheduled.',
         error: analysis.message
       };
     }

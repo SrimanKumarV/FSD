@@ -87,9 +87,10 @@ const corsOptions = {
     }
   },
   credentials: true,
-  exposedHeaders: ['X-CSRF-Token']
+  exposedHeaders: ['X-CSRF-Token', 'X-Correlation-ID']
 };
 app.use(cors(corsOptions));
+app.use(require('./middleware/correlation'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -224,18 +225,8 @@ app.get('/api/csrf-token', (req, res) => {
   res.json({ success: true, csrfToken: token });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  require('fs').appendFile('error.log', `[${new Date().toISOString()}] ${err.stack}\n`, () => {});
-  
-  // Never expose internal details in production
-  if (process.env.NODE_ENV === 'development') {
-    res.status(500).json({ message: err.message || 'Something went wrong!', error: err.message, stack: err.stack });
-  } else {
-    res.status(500).json({ message: 'Something went wrong!' });
-  }
-});
+// User-safe Error handling middleware with admin diagnostic logging
+app.use(require('./middleware/errorHandler').globalErrorHandler);
 
 // Prevent unhandled promise rejections from crashing the server
 process.on('unhandledRejection', (reason, promise) => {

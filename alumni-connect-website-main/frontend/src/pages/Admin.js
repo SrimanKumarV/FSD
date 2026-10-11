@@ -38,13 +38,15 @@ import {
   AlertCircle,
   Mail,
   RefreshCw,
-  Zap
+  Zap,
+  ShieldAlert
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 import DefaultAvatar from '../components/DefaultAvatar';
 import MandatoryTasksAdminTab from '../components/admin/MandatoryTasksAdminTab';
+import SystemHealthAdminTab from '../components/admin/SystemHealthAdminTab';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -162,6 +164,7 @@ const Admin = () => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'users', label: 'User Management', icon: Users },
+    { id: 'health', label: 'System Health', icon: ShieldAlert },
     { id: 'feedback', label: 'Feedback', icon: MessageSquarePlus },
     { id: 'helpdesk', label: 'Help Desk', icon: LifeBuoy },
     { id: 'content', label: 'Content Moderation', icon: Flag },
@@ -241,6 +244,9 @@ const Admin = () => {
               onSelectUser={setSelectedUser}
               onShowModal={setShowUserModal}
             />
+          )}
+          {activeTab === 'health' && (
+            <SystemHealthAdminTab />
           )}
           {activeTab === 'feedback' && (
             <FeedbackAdminTab

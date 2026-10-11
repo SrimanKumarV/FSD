@@ -3,6 +3,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const GoogleCalendarConnection = require('../models/GoogleCalendarConnection');
+const { classifyError } = require('../utils/errorClassification');
+const incidentService = require('./incidentService');
 
 const CALENDAR_SCOPES = [
   'https://www.googleapis.com/auth/calendar.events',
@@ -607,26 +609,26 @@ class GoogleCalendarService {
    * @param {GoogleCalendarConnection} connection
    */
   async handleGoogleApiError(error, connection) {
-    const status = error.response?.status;
-    const errorData = error.response?.data?.error;
-    const errorCode = typeof errorData === 'object' ? errorData.message || errorData.status : error.message;
+    const classified = classifyError(error, {
+      provider: 'google-calendar',
+      operation: 'api.request',
+      userId: connection?.userId
+    });
 
-    console.error(`[GoogleCalendarService] API Error (${status}):`, errorCode);
+    console.error(`[GoogleCalendarService] [${classified.correlationId}] API Error (${classified.httpStatus}): ${classified.internalCode} - ${classified.adminMessage}`);
 
-    if (status === 401 || errorCode === 'invalid_grant' || errorCode === 'Token has been expired or revoked.') {
-      if (connection) {
+    // Record or update Admin Incident
+    incidentService.recordIncident(classified, { userId: connection?.userId }).catch(() => {});
+
+    if (connection) {
+      if (classified.requiresReauth) {
         connection.status = 'reauthorization_required';
-        connection.lastError = {
-          message: 'Google authorization has expired or was revoked. Please reconnect your account.',
-          code: 'reauthorization_required',
-          timestamp: new Date()
-        };
-        await connection.save().catch(() => {});
+      } else {
+        connection.status = 'error';
       }
-    } else if (connection) {
       connection.lastError = {
-        message: errorCode || 'Google Calendar API error',
-        code: String(status || 'unknown'),
+        message: classified.userSafeMessage,
+        code: classified.internalCode,
         timestamp: new Date()
       };
       await connection.save().catch(() => {});

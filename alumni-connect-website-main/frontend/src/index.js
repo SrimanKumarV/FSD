@@ -12,9 +12,7 @@ window.process = process;
 window.Buffer = Buffer;
 window.global = window;
 
-const googleClientId =
-  process.env.REACT_APP_GOOGLE_CLIENT_ID ||
-  '253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com';
+const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 
 // Initialize Web Push & Streak Service Worker
 registerServiceWorker();

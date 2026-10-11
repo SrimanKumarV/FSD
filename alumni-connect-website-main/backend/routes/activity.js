@@ -8,6 +8,7 @@ const ReminderPreference = require('../models/ReminderPreference');
 const Notification = require('../models/Notification');
 const activityService = require('../services/activityService');
 const cache = require('../utils/cache');
+const { sendUserSafeError } = require('../middleware/errorHandler');
 
 // Validation helper
 const validate = (req, res) => {
@@ -34,7 +35,7 @@ router.get('/dashboard', protect, async (req, res) => {
     res.json(summary);
   } catch (error) {
     console.error('[Activity] Dashboard error:', error.message);
-    res.status(500).json({ message: 'Failed to load dashboard' });
+    return sendUserSafeError(res, error, { provider: 'activity-hub', operation: 'dashboard', userId: req.user._id });
   }
 });
 
@@ -55,7 +56,7 @@ router.post('/sync', protect, async (req, res) => {
     res.json({ message: 'Sync complete', ...result, summary });
   } catch (error) {
     console.error('[Activity] Sync error:', error.message);
-    res.status(500).json({ message: 'Failed to synchronize activities' });
+    return sendUserSafeError(res, error, { provider: 'activity-hub', operation: 'sync', userId: req.user._id });
   }
 });
 

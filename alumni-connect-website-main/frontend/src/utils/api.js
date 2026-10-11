@@ -1,5 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getUserSafeErrorMessage } from './userSafeError';
 
 // ─── Capacitor / Mobile Detection ─────────────────────────────────────────────
 // In Capacitor WebView, cookies from cross-origin backends don't work reliably.
@@ -519,7 +520,7 @@ api.interceptors.response.use(
     } else if (error.response?.status >= 500) {
       console.error('Server error:', error.response.status, error.response.data?.message);
       if (!originalRequest._toastShown) {
-        toast.error('Server error. Please try again later.');
+        toast.error(getUserSafeErrorMessage(error, 'Something went wrong. Please try again later.'));
         originalRequest._toastShown = true;
       }
     }

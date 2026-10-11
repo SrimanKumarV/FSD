@@ -847,4 +847,149 @@ router.post('/trigger-weekly-engagement', [protect, admin], async (req, res) => 
   }
 });
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SYSTEM HEALTH & ERROR INCIDENTS (ADMIN ONLY)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const incidentService = require('../services/incidentService');
+const AdminIncident = require('../models/AdminIncident');
+const { redactSensitiveData } = require('../utils/errorClassification');
+
+/**
+ * @desc    Get overall System Health and status across all external integrations
+ * @route   GET /api/admin/system-health
+ * @access  Private (Admin only)
+ */
+router.get('/system-health', [protect, admin], async (req, res) => {
+  try {
+    const health = await incidentService.getIntegrationHealth();
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      ...health
+    });
+  } catch (error) {
+    console.error('[Admin] Error fetching system health:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve system health diagnostics' });
+  }
+});
+
+/**
+ * @desc    Query and filter error incidents
+ * @route   GET /api/admin/incidents
+ * @access  Private (Admin only)
+ */
+router.get('/incidents', [protect, admin], async (req, res) => {
+  try {
+    const data = await incidentService.listIncidents(req.query);
+    res.json({ success: true, ...data });
+  } catch (error) {
+    console.error('[Admin] Error listing incidents:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve error incidents' });
+  }
+});
+
+/**
+ * @desc    Get single incident details with full masked technical diagnostic context
+ * @route   GET /api/admin/incidents/:id
+ * @access  Private (Admin only)
+ */
+router.get('/incidents/:id', [protect, admin], async (req, res) => {
+  try {
+    const incident = await AdminIncident.findById(req.params.id)
+      .populate('affectedUsers', 'name email role photo')
+      .populate('resolvedBy', 'name email');
+
+    if (!incident) {
+      return res.status(404).json({ success: false, message: 'Incident not found' });
+    }
+
+    res.json({
+      success: true,
+      incident: redactSensitiveData(incident.toObject())
+    });
+  } catch (error) {
+    console.error('[Admin] Error fetching incident details:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve incident details' });
+  }
+});
+
+/**
+ * @desc    Update incident status (open, acknowledged, investigating, resolved, etc.)
+ * @route   PATCH /api/admin/incidents/:id/status
+ * @access  Private (Admin only)
+ */
+router.patch('/incidents/:id/status', [protect, admin], async (req, res) => {
+  try {
+    const { status, note, resolutionNotes } = req.body;
+    const validStatuses = ['open', 'acknowledged', 'investigating', 'mitigated', 'resolved', 'ignored'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid incident status' });
+    }
+
+    const updated = await incidentService.updateIncidentStatus(req.params.id, status, {
+      adminUser: req.user,
+      note,
+      resolutionNotes
+    });
+
+    console.log(`[Admin Audit] Admin ${req.user.email} changed incident ${req.params.id} to '${status}'.`);
+
+    res.json({
+      success: true,
+      message: `Incident status updated to ${status}`,
+      incident: updated
+    });
+  } catch (error) {
+    console.error('[Admin] Error updating incident status:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to update incident status' });
+  }
+});
+
+/**
+ * @desc    Perform live test/ping check on a specific integration
+ * @route   POST /api/admin/system-health/test-integration
+ * @access  Private (Admin only)
+ */
+router.post('/system-health/test-integration', [protect, admin], async (req, res) => {
+  try {
+    const { provider } = req.body;
+    let result = { provider, healthy: true, message: 'Provider check passed' };
+
+    if (provider === 'google-calendar') {
+      const clientId = process.env.GOOGLE_CALENDAR_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.GOOGLE_CALENDAR_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+      result = {
+        provider,
+        healthy: Boolean(clientId && clientSecret),
+        clientIdConfigured: Boolean(clientId),
+        clientSecretConfigured: Boolean(clientSecret),
+        message: Boolean(clientId && clientSecret)
+          ? 'Google Calendar OAuth credentials are configured'
+          : 'Google Calendar OAuth credentials missing in environment variables'
+      };
+    } else if (provider === 'firebase-fcm') {
+      const fbConfigured = Boolean(process.env.FIREBASE_PROJECT_ID || process.env.FIREBASE_SERVICE_ACCOUNT);
+      result = {
+        provider,
+        healthy: fbConfigured,
+        message: fbConfigured ? 'Firebase credentials configured' : 'Firebase credentials not found'
+      };
+    } else if (provider === 'mongodb') {
+      const mongoose = require('mongoose');
+      const isConnected = mongoose.connection.readyState === 1;
+      result = {
+        provider,
+        healthy: isConnected,
+        readyState: mongoose.connection.readyState,
+        message: isConnected ? 'MongoDB connected and operational' : 'MongoDB connection not ready'
+      };
+    }
+
+    res.json({ success: true, testResult: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;

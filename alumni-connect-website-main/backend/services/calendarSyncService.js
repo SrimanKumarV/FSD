@@ -4,6 +4,8 @@ const Event = require('../models/Event');
 const MentorshipSession = require('../models/MentorshipSession');
 const googleCalendarService = require('./googleCalendarService');
 const cache = require('../utils/cache');
+const { classifyError } = require('../utils/errorClassification');
+const incidentService = require('./incidentService');
 
 class CalendarSyncService {
   /**
@@ -179,6 +181,10 @@ class CalendarSyncService {
       await cache.del(`activity:dashboard:${userId}`);
       await cache.del(`calendar:events:${userId}`);
 
+      // Record recovery for any active Google Calendar incidents
+      incidentService.recordRecovery('google-calendar', 'GOOGLE_CALENDAR_API_DISABLED');
+      incidentService.recordRecovery('google-calendar', 'GOOGLE_API_TEMPORARY_OUTAGE');
+
       console.log(`[GoogleCalendar] calendar.sync.success userId=${userId} syncedCount=${totalSynced} deletedCount=${totalDeleted}`);
 
       // Emit Socket.IO realtime update if available
@@ -199,17 +205,32 @@ class CalendarSyncService {
       };
     } catch (err) {
       console.error(`[GoogleCalendar] calendar.sync.failure userId=${userId} error=${err.message}`);
+      const classified = classifyError(err, { provider: 'google-calendar', operation: 'sync', userId });
+      incidentService.recordIncident(classified, { userId }).catch(() => {});
+
       await GoogleCalendarConnection.updateOne(
         { userId },
         {
           $set: {
-            status: err.message?.includes('reauthorization') ? 'reauthorization_required' : 'error',
-            'lastError.message': err.message,
+            status: classified.requiresReauth ? 'reauthorization_required' : 'error',
+            'lastError.message': classified.userSafeMessage,
+            'lastError.code': classified.internalCode,
             'lastError.timestamp': new Date()
           }
         }
       ).catch(() => {});
-      return { success: false, error: err.message, syncedCount: 0, deletedCount: 0 };
+
+      return {
+        success: false,
+        error: classified.userSafeMessage,
+        code: classified.userSafeCode,
+        category: classified.category.toLowerCase(),
+        retryable: Boolean(classified.retryable),
+        requiresReauth: Boolean(classified.requiresReauth),
+        reference: classified.reference,
+        syncedCount: 0,
+        deletedCount: 0
+      };
     } finally {
       await cache.del(lockKey);
     }

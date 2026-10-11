@@ -121,48 +121,71 @@ class ErrorBoundary extends React.Component {
               </button>
             </div>
 
-            {/* Expandable Technical Details */}
-            {this.state.error && (
-              <div className="border-t border-slate-700/60 pt-4 text-left">
-                <button
-                  type="button"
-                  onClick={() => this.setState((prev) => ({ showDetails: !prev.showDetails }))}
-                  className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors py-1"
-                >
-                  <span>Technical Error Details</span>
-                  {this.state.showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
+            {/* Safe User Reference & Admin Diagnostic Guard */}
+            {(() => {
+              let isAdmin = false;
+              try {
+                const storedUser = localStorage.getItem('alumnex_auth_user');
+                if (storedUser) {
+                  const parsed = JSON.parse(storedUser);
+                  isAdmin = parsed?.role === 'admin';
+                }
+              } catch (e) { }
 
-                {this.state.showDetails && (
-                  <div className="mt-3 bg-black/40 border border-slate-700/60 p-4 rounded-xl text-xs font-mono overflow-hidden">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-red-400 font-semibold truncate pr-2">
-                        {this.state.error.name || 'Error'}: {this.state.error.message || this.state.error.toString()}
-                      </span>
-                      <button
-                        onClick={this.handleCopyDetails}
-                        className="flex items-center gap-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[11px] shrink-0 transition-colors"
-                        title="Copy error details"
-                      >
-                        {this.state.copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                        {this.state.copied ? 'Copied' : 'Copy'}
-                      </button>
-                    </div>
+              const errorRef = (this.state.error?.name?.slice(0, 3) || 'ERR') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-                    <div className="max-h-48 overflow-y-auto space-y-2 text-slate-400 text-[11px] leading-relaxed">
-                      {this.state.error.stack && (
-                        <pre className="whitespace-pre-wrap text-slate-400">{this.state.error.stack}</pre>
-                      )}
-                      {this.state.errorInfo?.componentStack && (
-                        <pre className="whitespace-pre-wrap text-slate-500 border-t border-slate-800 pt-2">
-                          {this.state.errorInfo.componentStack}
-                        </pre>
-                      )}
-                    </div>
+              if (!isAdmin) {
+                return (
+                  <div className="border-t border-slate-700/60 pt-4 text-center">
+                    <p className="text-xs text-slate-400">
+                      If this issue persists, please quote reference: <span className="font-mono text-indigo-400 font-semibold">{errorRef}</span>
+                    </p>
                   </div>
-                )}
-              </div>
-            )}
+                );
+              }
+
+              return (
+                <div className="border-t border-slate-700/60 pt-4 text-left">
+                  <button
+                    type="button"
+                    onClick={() => this.setState((prev) => ({ showDetails: !prev.showDetails }))}
+                    className="w-full flex items-center justify-between text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors py-1"
+                  >
+                    <span>🛡️ Administrator Technical Diagnostics</span>
+                    {this.state.showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+
+                  {this.state.showDetails && (
+                    <div className="mt-3 bg-black/40 border border-slate-700/60 p-4 rounded-xl text-xs font-mono overflow-hidden">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-amber-400 font-semibold truncate pr-2">
+                          {this.state.error?.name || 'Error'}: {this.state.error?.message || this.state.error?.toString()}
+                        </span>
+                        <button
+                          onClick={this.handleCopyDetails}
+                          className="flex items-center gap-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[11px] shrink-0 transition-colors"
+                          title="Copy diagnostic details"
+                        >
+                          {this.state.copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                          {this.state.copied ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+
+                      <div className="max-h-48 overflow-y-auto space-y-2 text-slate-400 text-[11px] leading-relaxed">
+                        {this.state.error?.stack && (
+                          <pre className="whitespace-pre-wrap text-slate-400">{this.state.error.stack}</pre>
+                        )}
+                        {this.state.errorInfo?.componentStack && (
+                          <pre className="whitespace-pre-wrap text-slate-500 border-t border-slate-800 pt-2">
+                            {this.state.errorInfo.componentStack}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </motion.div>
         </div>
       );

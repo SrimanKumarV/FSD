@@ -1,0 +1,57 @@
+flowchart LR
+  Student[Student / Member]
+  Mentor[Alumni / Mentor]
+  Admin[Administrator]
+  Org[Institution / Business]
+  OAuth[Google / GitHub OAuth]
+  Email[Email / OTP Provider]
+  DevAPI[Developer APIs: GitHub / LeetCode / Codeforces]
+  AIProvider[Groq / Gemini AI]
+  CalendarProvider[Google Calendar]
+  PushProvider[Web Push / FCM]
+  subgraph AC[Alumnex Connect]
+    Identity((Identity, OAuth and Profile))
+    Network((Member Network and Connections))
+    Mentorship((Mentorship Requests and Sessions))
+    Jobs((Jobs and Applications))
+    CareerAI((AI Career and Resume Assistance))
+    Activity((DevPulse and Activity Goals))
+    Messaging((Real-Time Messages))
+    Notifications((Notification Preferences))
+    Events((Events and Calendar Sync))
+    Community((Forum, Tech Hub and Projects))
+    Contests((Contests and Leaderboards))
+    Governance((Admin Governance and Analytics))
+    Directory((Institution and Business Directory))
+  end
+  Student --> Identity
+  Student --> Network
+  Student --> Mentorship
+  Student --> Jobs
+  Student --> CareerAI
+  Student --> Activity
+  Student --> Messaging
+  Student --> Notifications
+  Student --> Events
+  Student --> Community
+  Student --> Contests
+  Student --> Directory
+  Mentor --> Identity
+  Mentor --> Mentorship
+  Mentor --> Jobs
+  Mentor --> Messaging
+  Mentor --> Events
+  Mentor --> Community
+  Admin --> Governance
+  Admin --> Identity
+  Admin --> Community
+  Admin --> Events
+  Admin --> Directory
+  Org --> Directory
+  Org --> Jobs
+  Identity -.-> OAuth
+  Identity -.-> Email
+  Activity -.-> DevAPI
+  CareerAI -.-> AIProvider
+  Events -.-> CalendarProvider
+  Notifications -.-> PushProvider

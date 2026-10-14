@@ -1,0 +1,21 @@
+test_live_mysql_registration_then_login (test_mysql_integration.LiveMySQLIntegrationTests.test_live_mysql_registration_then_login) ... skipped 'Requires a real MySQL instance, schema and RUN_MYSQL_INTEGRATION=1'
+test_email_is_normalized (test_unit.RegistrationValidationTests.test_email_is_normalized) ... ok
+test_invalid_email_is_rejected (test_unit.RegistrationValidationTests.test_invalid_email_is_rejected) ... ok
+test_long_password_is_rejected (test_unit.RegistrationValidationTests.test_long_password_is_rejected) ... ok
+test_malformed_hash_is_rejected (test_unit.RegistrationValidationTests.test_malformed_hash_is_rejected) ... ok
+test_missing_name_is_rejected (test_unit.RegistrationValidationTests.test_missing_name_is_rejected) ... ok
+test_password_hash_verifies_without_storing_plaintext (test_unit.RegistrationValidationTests.test_password_hash_verifies_without_storing_plaintext) ... ok
+test_short_password_is_rejected (test_unit.RegistrationValidationTests.test_short_password_is_rejected) ... ok
+test_valid_registration_has_no_errors (test_unit.RegistrationValidationTests.test_valid_registration_has_no_errors) ... ok
+test_database_connection_failure_returns_generic_error (test_wsgi_integration.WSGIIntegrationTests.test_database_connection_failure_returns_generic_error) ... ok
+test_home_and_health_routes (test_wsgi_integration.WSGIIntegrationTests.test_home_and_health_routes) ... ok
+test_html_form_post_escapes_result (test_wsgi_integration.WSGIIntegrationTests.test_html_form_post_escapes_result) ... ok
+test_login_accepts_correct_and_rejects_wrong_password (test_wsgi_integration.WSGIIntegrationTests.test_login_accepts_correct_and_rejects_wrong_password) ... ok
+test_registration_persists_hashed_password_and_duplicate_is_rejected (test_wsgi_integration.WSGIIntegrationTests.test_registration_persists_hashed_password_and_duplicate_is_rejected) ... ok
+test_unknown_user_gets_generic_authentication_failure (test_wsgi_integration.WSGIIntegrationTests.test_unknown_user_gets_generic_authentication_failure) ... ok
+test_validation_rejects_bad_payload_before_opening_database (test_wsgi_integration.WSGIIntegrationTests.test_validation_rejects_bad_payload_before_opening_database) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.203s
+
+OK (skipped=1)

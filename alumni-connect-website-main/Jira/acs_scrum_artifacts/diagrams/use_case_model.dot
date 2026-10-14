@@ -1,0 +1,43 @@
+digraph AlumnexUseCases {
+  graph [rankdir=LR, bgcolor="#ffffff", pad="0.28", nodesep="0.35", ranksep="0.55", splines=ortho, fontname="DejaVu Sans", labelloc="t", label="ALUMNEX CONNECT — BUSINESS USE-CASE MODEL\nActors, product workflows and external integration boundaries", fontsize=22];
+  node [fontname="DejaVu Sans", fontsize=10, color="#45556c", fontcolor="#142033", style="filled", fillcolor="#f8fafc", penwidth=1.2];
+  edge [fontname="DejaVu Sans", fontsize=8, color="#64748b", arrowsize=0.65, penwidth=1.1];
+  Student [shape=box, style="rounded,filled", fillcolor="#dbeafe", label="Student / Member"];
+  Mentor [shape=box, style="rounded,filled", fillcolor="#dcfce7", label="Alumni / Mentor"];
+  Admin [shape=box, style="rounded,filled", fillcolor="#fef3c7", label="Administrator"];
+  Org [shape=box, style="rounded,filled", fillcolor="#f3e8ff", label="Institution / Business"];
+  OAuth [shape=box, style="rounded,filled", fillcolor="#e2e8f0", label="Google / GitHub OAuth"];
+  Email [shape=box, style="rounded,filled", fillcolor="#e2e8f0", label="Email / OTP Provider"];
+  DevAPI [shape=box, style="rounded,filled", fillcolor="#e2e8f0", label="Developer APIs\nGitHub / LeetCode / Codeforces"];
+  AIProvider [shape=box, style="rounded,filled", fillcolor="#e2e8f0", label="AI Model Providers\nGroq / Gemini"];
+  CalendarProvider [shape=box, style="rounded,filled", fillcolor="#e2e8f0", label="Google Calendar"];
+  PushProvider [shape=box, style="rounded,filled", fillcolor="#e2e8f0", label="Web Push / FCM"];
+
+  subgraph cluster_product {
+    label="Alumnex Connect"; fontsize=16; fontname="DejaVu Sans"; color="#94a3b8"; penwidth=1.3; style="rounded"; margin=18;
+    node [shape=ellipse, style="filled", fillcolor="#eff6ff", color="#93c5fd", width=2.05, height=0.55];
+    Identity [label="Identity, OAuth & Profile"];
+    Network [label="Member Network & Connections"];
+    Mentorship [label="Mentorship Request & Sessions"];
+    Jobs [label="Jobs & Applications"];
+    CareerAI [label="AI Career & Resume Assistance"];
+    Activity [label="DevPulse & Activity Goals"];
+    Messaging [label="Real-Time Messages"];
+    Notifications [label="Notification Preferences"];
+    Events [label="Events & Calendar Sync"];
+    Community [label="Forum, Tech Hub & Projects"];
+    Contests [label="Contests & Leaderboards"];
+    Governance [label="Admin Governance & Analytics"];
+    Directory [label="Institution / Business Directory"];
+  }
+  Student -> Identity; Student -> Network; Student -> Mentorship; Student -> Jobs; Student -> CareerAI; Student -> Activity; Student -> Messaging; Student -> Notifications; Student -> Events; Student -> Community; Student -> Contests; Student -> Directory;
+  Mentor -> Identity; Mentor -> Mentorship; Mentor -> Jobs; Mentor -> Messaging; Mentor -> Events; Mentor -> Community;
+  Admin -> Governance; Admin -> Identity; Admin -> Community; Admin -> Events; Admin -> Directory;
+  Org -> Directory; Org -> Jobs;
+  Identity -> OAuth [style=dashed, arrowhead=none, label="external sign-in"];
+  Identity -> Email [style=dashed, arrowhead=none, label="verification / recovery"];
+  Activity -> DevAPI [style=dashed, arrowhead=none, label="developer activity source"];
+  CareerAI -> AIProvider [style=dashed, arrowhead=none, label="model inference"];
+  Events -> CalendarProvider [style=dashed, arrowhead=none, label="OAuth / event sync"];
+  Notifications -> PushProvider [style=dashed, arrowhead=none, label="delivery boundary"];
+}

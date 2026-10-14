@@ -1,0 +1,47 @@
+﻿key,issue_type,summary,status,priority,assignee,parent_key,story_points,created,updated,browse_url
+ACS-1,Epic,"Identity, Profiles and Governance",To Do,High,subhadharanis.24cse,,,2026-10-13T09:03:45.666+0530,,https://srimankumar06.atlassian.net/browse/ACS-1
+ACS-2,Epic,Mentorship and Career Opportunities,To Do,High,SRIMATHI D 24CSR302,,,2026-10-13T09:03:48.743+0530,,https://srimankumar06.atlassian.net/browse/ACS-2
+ACS-3,Epic,Developer Intelligence and Community Engagement,To Do,High,THIRUMURUGAN A 24CSR330,,,2026-10-13T09:03:50.810+0530,,https://srimankumar06.atlassian.net/browse/ACS-3
+ACS-4,Task,Experiment 1 — Product Backlog and Story Refinement,Done,High,SRIMAN VEL,ACS-28,,2026-10-13T09:04:15.869+0530,2026-10-14T15:09:50.186+0530,https://srimankumar06.atlassian.net/browse/ACS-4
+ACS-5,Task,Experiment 2 — Release Plan,Done,High,SRIMATHI D 24CSR302,ACS-28,,2026-10-13T09:04:18.438+0530,2026-10-14T15:22:15.654+0530,https://srimankumar06.atlassian.net/browse/ACS-5
+ACS-6,Task,Experiment 3 — Sprint Planning for Alumnex Connect,Done,High,SRIMATHI D 24CSR302,ACS-28,,2026-10-13T09:04:20.923+0530,2026-10-14T15:09:57.901+0530,https://srimankumar06.atlassian.net/browse/ACS-6
+ACS-7,Task,Experiment 4 — Sprint Execution and Workload Management,Done,High,THIRUMURUGAN A 24CSR330,ACS-28,,2026-10-13T09:04:23.327+0530,2026-10-14T15:20:46.551+0530,https://srimankumar06.atlassian.net/browse/ACS-7
+ACS-8,Task,Experiment 5 — JQL Queries,Done,High,THIRUMURUGAN A 24CSR330,ACS-28,,2026-10-13T09:04:25.534+0530,2026-10-14T15:20:36.693+0530,https://srimankumar06.atlassian.net/browse/ACS-8
+ACS-9,Task,Experiment 6 — Sprint Review,Done,High,SRIMAN VEL,ACS-28,,2026-10-13T09:04:28.530+0530,2026-10-14T15:10:07.431+0530,https://srimankumar06.atlassian.net/browse/ACS-9
+ACS-10,Task,Experiment 7 — Sprint Closure and Next Sprint,Done,High,subhadharanis.24cse,ACS-28,,2026-10-13T09:04:31.096+0530,2026-10-14T15:10:10.339+0530,https://srimankumar06.atlassian.net/browse/ACS-10
+ACS-11,Task,Experiment 8 — Alumnex Connect Business Use-Case Model,In Progress,High,subhadharanis.24cse,ACS-28,,2026-10-13T09:04:33.418+0530,2026-10-14T15:20:13.751+0530,https://srimankumar06.atlassian.net/browse/ACS-11
+ACS-12,Story,User Registration and Email Verification,In Progress,Medium,SRIMAN VEL,ACS-1,5,2026-10-13T09:05:26.173+0530,2026-10-14T15:05:52.494+0530,https://srimankumar06.atlassian.net/browse/ACS-12
+ACS-13,Story,"Secure Login, OAuth and Session Lifecycle",In Progress,Medium,SRIMAN VEL,ACS-1,3,2026-10-13T09:05:28.894+0530,2026-10-14T15:05:58.099+0530,https://srimankumar06.atlassian.net/browse/ACS-13
+ACS-14,Story,"Mentorship Requests, Matching and Reviews",To Do,Medium,SRIMAN VEL,ACS-2,5,2026-10-13T09:05:31.339+0530,2026-10-14T15:06:02.810+0530,https://srimankumar06.atlassian.net/browse/ACS-14
+ACS-15,Story,Career Opportunities and Application Tracking,To Do,Medium,SRIMAN VEL,ACS-2,3,2026-10-13T09:05:34.251+0530,2026-10-14T15:06:06.294+0530,https://srimankumar06.atlassian.net/browse/ACS-15
+ACS-16,Story,"DevPulse, Developer Profiles and Activity Goals",To Do,Medium,subhadharanis.24cse,ACS-3,5,2026-10-13T09:05:37.533+0530,2026-10-14T15:06:10.297+0530,https://srimankumar06.atlassian.net/browse/ACS-16
+ACS-17,Story,AI Career Support and Resume Analysis,To Do,Medium,THIRUMURUGAN A 24CSR330,ACS-2,5,2026-10-13T09:05:40.055+0530,2026-10-14T15:06:13.685+0530,https://srimankumar06.atlassian.net/browse/ACS-17
+ACS-18,Story,Real-Time Messaging and Notification Preferences,To Do,Medium,THIRUMURUGAN A 24CSR330,ACS-3,3,2026-10-13T09:05:43.613+0530,2026-10-14T15:06:19.358+0530,https://srimankumar06.atlassian.net/browse/ACS-18
+ACS-19,Story,Events and Google Calendar Synchronization,To Do,Medium,SRIMAN VEL,ACS-3,3,2026-10-13T09:05:45.887+0530,2026-10-14T15:06:22.752+0530,https://srimankumar06.atlassian.net/browse/ACS-19
+ACS-20,Task,Experiment 9 — Alumnex Connect Conceptual Classes and UML Domain Model,In Progress,High,subhadharanis.24cse,ACS-28,,2026-10-13T09:05:51.785+0530,2026-10-14T15:20:32.294+0530,https://srimankumar06.atlassian.net/browse/ACS-20
+ACS-21,Task,"Experiment 10 — Alumnex Source Study, Python/MySQL Lab and Testing",In Progress,High,THIRUMURUGAN A 24CSR330,ACS-28,,2026-10-13T09:05:54.617+0530,2026-10-14T15:20:51.293+0530,https://srimankumar06.atlassian.net/browse/ACS-21
+ACS-22,Subtask,Registration — Define validation and duplicate checks,Done,Medium,SRIMAN VEL,ACS-21,,2026-10-13T09:06:53.948+0530,,https://srimankumar06.atlassian.net/browse/ACS-22
+ACS-23,Subtask,Registration — Implement and document endpoint contract,Done,Medium,SRIMAN VEL,ACS-21,,2026-10-13T09:06:56.934+0530,,https://srimankumar06.atlassian.net/browse/ACS-23
+ACS-24,Subtask,Registration — Unit and integration test plan,Done,Medium,SRIMAN VEL,ACS-21,,2026-10-13T09:06:59.586+0530,,https://srimankumar06.atlassian.net/browse/ACS-24
+ACS-25,Subtask,Login — Credential verification,Done,Medium,SRIMAN VEL,ACS-21,,2026-10-13T09:07:01.853+0530,,https://srimankumar06.atlassian.net/browse/ACS-25
+ACS-26,Subtask,Login — Session/token behavior,To Do,Medium,SRIMAN VEL,ACS-13,,2026-10-13T09:07:04.150+0530,,https://srimankumar06.atlassian.net/browse/ACS-26
+ACS-27,Subtask,Login — Authentication test cases,Done,Medium,SRIMAN VEL,ACS-21,,2026-10-13T09:07:06.615+0530,,https://srimankumar06.atlassian.net/browse/ACS-27
+ACS-28,Epic,Alumnex Connect — Scrum Lab Experiments 1–10 Portfolio,In Progress,High,SRIMAN VEL,,,2026-10-13T09:15:25.538+0530,2026-10-14T15:22:20.647+0530,https://srimankumar06.atlassian.net/browse/ACS-28
+ACS-29,Subtask,JQL — Sprint Scope and Status Queries,Done,High,THIRUMURUGAN A 24CSR330,ACS-8,,2026-10-13T09:37:11.772+0530,,https://srimankumar06.atlassian.net/browse/ACS-29
+ACS-30,Subtask,JQL — Release and Experiment Queries,Done,Medium,subhadharanis.24cse,ACS-8,,2026-10-13T09:37:14.235+0530,,https://srimankumar06.atlassian.net/browse/ACS-30
+ACS-31,Subtask,JQL — Backlog and Defect Queries,Done,Medium,SRIMATHI D 24CSR302,ACS-8,,2026-10-13T09:37:17.724+0530,2026-10-14T15:20:41.439+0530,https://srimankumar06.atlassian.net/browse/ACS-31
+ACS-32,Subtask,Sprint 1 Retrospective and Improvements,Done,Medium,THIRUMURUGAN A 24CSR330,ACS-10,,2026-10-13T09:37:19.994+0530,,https://srimankumar06.atlassian.net/browse/ACS-32
+ACS-33,Subtask,Definition of Ready and Definition of Done,Done,High,SRIMATHI D 24CSR302,ACS-10,,2026-10-13T09:37:22.620+0530,,https://srimankumar06.atlassian.net/browse/ACS-33
+ACS-34,Subtask,Experiment 10 — Offline Test Evidence,Done,High,SRIMAN VEL,ACS-21,,2026-10-13T09:37:25.334+0530,,https://srimankumar06.atlassian.net/browse/ACS-34
+ACS-35,Subtask,Experiment 10 — Run Against Real MySQL,To Do,High,subhadharanis.24cse,ACS-21,,2026-10-13T09:37:28.226+0530,2026-10-14T15:04:00.695+0530,https://srimankumar06.atlassian.net/browse/ACS-35
+ACS-36,Subtask,Sprint Review — Agenda and Date,Done,High,SRIMATHI D 24CSR302,ACS-9,,2026-10-13T09:37:36.043+0530,,https://srimankumar06.atlassian.net/browse/ACS-36
+ACS-37,Story,"Profiles, Connections and Role-Aware Access",To Do,High,SRIMAN VEL,ACS-1,5,2026-10-14T15:06:57.257+0530,2026-10-14T15:08:28.730+0530,https://srimankumar06.atlassian.net/browse/ACS-37
+ACS-38,Story,"Admin Governance, Moderation and Analytics",To Do,High,subhadharanis.24cse,ACS-1,8,2026-10-14T15:07:00.300+0530,2026-10-14T15:08:23.137+0530,https://srimankumar06.atlassian.net/browse/ACS-38
+ACS-39,Story,Forum and Tech Hub Knowledge Sharing,To Do,Medium,SRIMATHI D 24CSR302,ACS-3,5,2026-10-14T15:07:03.862+0530,2026-10-14T15:08:19.658+0530,https://srimankumar06.atlassian.net/browse/ACS-39
+ACS-40,Story,Project Showcase and Collaboration,To Do,Medium,srimanlumar06,ACS-3,5,2026-10-14T15:07:07.471+0530,2026-10-14T15:08:00.817+0530,https://srimankumar06.atlassian.net/browse/ACS-40
+ACS-41,Story,Competitive Contests and Leaderboards,To Do,Medium,SRIMATHI D 24CSR302,ACS-3,5,2026-10-14T15:07:10.402+0530,2026-10-14T15:07:57.089+0530,https://srimankumar06.atlassian.net/browse/ACS-41
+ACS-42,Story,Capacitor Mobile App and Native Push Delivery,To Do,High,SRIMAN VEL,ACS-3,8,2026-10-14T15:07:14.022+0530,2026-10-14T15:07:52.167+0530,https://srimankumar06.atlassian.net/browse/ACS-42
+ACS-43,Story,Institution and Business Directory,To Do,Medium,subhadharanis.24cse,ACS-2,3,2026-10-14T15:07:16.990+0530,2026-10-14T15:07:49.162+0530,https://srimankumar06.atlassian.net/browse/ACS-43
+ACS-44,Subtask,Experiment 5 — Save Native JQL Filters in Jira,To Do,High,,ACS-8,,2026-10-14T15:17:06.067+0530,2026-10-14T15:17:06.480+0530,https://srimankumar06.atlassian.net/browse/ACS-44
+ACS-45,Subtask,Experiment 6 — Run Live Alumnex Demo Smoke Test,To Do,High,,ACS-9,,2026-10-14T15:17:10.069+0530,2026-10-14T15:17:10.280+0530,https://srimankumar06.atlassian.net/browse/ACS-45
+ACS-46,Subtask,Experiments 8–9 — Attach UML Diagram Exports to Jira,To Do,High,,ACS-20,,2026-10-14T15:17:13.275+0530,2026-10-14T15:17:13.499+0530,https://srimankumar06.atlassian.net/browse/ACS-46

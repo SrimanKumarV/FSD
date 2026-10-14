@@ -1,0 +1,168 @@
+classDiagram
+  class User {
+    +ObjectId id
+    +string name
+    +string email
+    +string role
+    +string college
+    +boolean isVerified
+    +boolean isApproved
+  }
+  class MentorshipRequest {
+    +ObjectId student
+    +ObjectId mentor
+    +string domain
+    +string status
+  }
+  class Mentorship {
+    +ObjectId student
+    +ObjectId mentor
+    +string status
+    +date startDate
+    +date endDate
+  }
+  class MentorshipSession {
+    +ObjectId student
+    +ObjectId mentor
+    +date date
+    +string time
+    +string status
+  }
+  class MentorReview {
+    +ObjectId mentorId
+    +ObjectId studentId
+    +number rating
+  }
+  class MentorReward {
+    +ObjectId mentor
+    +number totalPoints
+    +number averageRating
+  }
+  class Job {
+    +string title
+    +string company
+    +string status
+  }
+  class JobOpportunity {
+    +ObjectId postedBy
+    +string title
+    +string company
+    +string status
+  }
+  class JobApplication {
+    +ObjectId job
+    +ObjectId applicant
+    +string status
+  }
+  class DevProfile {
+    +ObjectId user
+    +string platform
+    +string username
+  }
+  class ActivityGoal {
+    +ObjectId userId
+    +string title
+    +boolean isActive
+  }
+  class ActivityRecord {
+    +ObjectId userId
+    +string source
+    +date activityDate
+  }
+  class Message {
+    +ObjectId sender
+    +ObjectId receiver
+    +string content
+    +string status
+  }
+  class ChatGroup {
+    +string name
+    +string type
+  }
+  class Notification {
+    +ObjectId recipient
+    +ObjectId sender
+    +string type
+    +boolean isRead
+  }
+  class NotificationDevice {
+    +ObjectId userId
+    +string platform
+    +boolean enabled
+  }
+  class ReminderPreference {
+    +ObjectId userId
+    +boolean webPushEnabled
+  }
+  class Event {
+    +string title
+    +date startDate
+    +date endDate
+    +string status
+  }
+  class GoogleCalendarConnection {
+    +ObjectId userId
+    +string encryptedTokens
+  }
+  class GoogleCalendarEvent {
+    +ObjectId userId
+    +string googleEventId
+    +string calendarId
+  }
+  class ForumPost {
+    +ObjectId author
+    +string title
+    +string status
+  }
+  class TechHubQuestion {
+    +ObjectId author
+    +string title
+    +string status
+  }
+  class Project {
+    +ObjectId user
+    +string title
+    +string githubLink
+    +string liveLink
+  }
+  class Contest {
+    +string title
+    +string status
+  }
+  class Business {
+    +string name
+    +string profile
+    +string status
+  }
+  class AdminIncident {
+    +string severity
+    +string status
+  }
+  class Report {
+    +ObjectId reporter
+    +ObjectId reportedUser
+    +string reason
+    +string status
+  }
+  User "1" --> "0..*" MentorshipRequest : student or mentor
+  User "1" --> "0..*" Mentorship : student or mentor
+  Mentorship "1" --> "0..*" MentorshipSession : sessions
+  Mentorship "1" --> "0..*" MentorReview : feedback
+  User "1" --> "0..*" MentorReward : mentors
+  User "1" --> "0..*" JobApplication : applicant
+  Job "1" --> "0..*" JobApplication : receives
+  JobOpportunity --> User : postedBy
+  User "1" --> "0..*" DevProfile : owns
+  User "1" --> "0..*" ActivityGoal : sets
+  User "1" --> "0..*" ActivityRecord : generates
+  User "1" --> "0..*" Message : sender or receiver
+  ChatGroup "1" --> "0..*" Message : contains
+  User "1" --> "0..*" Notification : receives
+  User "1" --> "0..*" NotificationDevice : registers
+  User "1" --> "0..1" ReminderPreference : configures
+  User "1" --> "0..1" GoogleCalendarConnection : connects
+  User "1" --> "0..*" GoogleCalendarEvent : syncs
+  User "1" --> "0..*" ForumPost : authors
+  User "1" --> "0..*" TechHubQuestion : authors
+  User "1" --> "0..*" Project : publishes
+  User "1" --> "0..*" Report : reporter

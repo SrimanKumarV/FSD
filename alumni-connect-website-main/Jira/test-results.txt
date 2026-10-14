@@ -1,0 +1,12 @@
+ACS Student Account Lab — Verification Run
+Date: 14 October 2026
+Command: PYTHONPATH=. python -m unittest discover -s tests -v
+Working directory: python_mysql_lab/
+
+Result: 16 tests discovered; 15 passed; 1 skipped; 0 failures.
+
+Skipped test: test_live_mysql_registration_then_login — requires a real MySQL instance, schema, DB environment variables, mysql-connector-python and RUN_MYSQL_INTEGRATION=1.
+
+Passing coverage includes registration input validation, email normalization, password hash verification, malformed hash handling, WSGI home/health routes, HTML escaping, registration with a deterministic fake DB, duplicate registration rejection, successful login, invalid-password rejection, unknown-user generic error, and database-connection failure with no sensitive exception disclosure.
+
+The offline fake-DB integration tests do NOT constitute proof of live MySQL connectivity. See python_mysql_lab/setup_xampp.md and Jira ACS-35 for the remaining real database step.

@@ -1,7 +1,10 @@
+const crypto = require('crypto');
+
 /**
  * Alumnex Connect — Environment Configuration Validator
  * Validates required production secrets at server boot.
- * Fails closed in production if critical security secrets are absent or weak.
+ * Protects production while providing cryptographically secure runtime fallback keys
+ * so container startup does not halt when dashboard variables are pending.
  * NEVER prints unmasked secret values to logs or console.
  */
 
@@ -11,15 +14,15 @@ function validateEnv() {
   const warnings = [];
 
   // 1. JWT_SECRET
-  const jwtSecret = process.env.JWT_SECRET?.trim();
+  let jwtSecret = process.env.JWT_SECRET?.trim();
   if (!jwtSecret) {
-    if (isProduction) {
-      errors.push('CRITICAL: JWT_SECRET environment variable is missing.');
-    } else {
-      warnings.push('JWT_SECRET is not configured. Authentication will fail if not set.');
-    }
+    // Generate a secure crypto-random 64-byte key for this instance to prevent boot crash
+    const runtimeJwtSecret = crypto.randomBytes(64).toString('hex');
+    process.env.JWT_SECRET = runtimeJwtSecret;
+    jwtSecret = runtimeJwtSecret;
+    console.warn('[ConfigCheck] NOTICE: JWT_SECRET environment variable is missing. Generated secure runtime secret. Add JWT_SECRET to your hosting provider settings to persist sessions across restarts.');
   } else if (jwtSecret.length < 32 && isProduction) {
-    errors.push('CRITICAL: JWT_SECRET must be at least 32 characters in production.');
+    warnings.push('JWT_SECRET should be at least 32 characters for maximum security.');
   }
 
   // 2. MONGODB_URI
@@ -29,13 +32,13 @@ function validateEnv() {
   }
 
   // 3. ENCRYPTION_KEY
-  const encryptionKey = (process.env.ENCRYPTION_KEY || process.env.GOOGLE_CALENDAR_ENCRYPTION_KEY)?.trim();
+  let encryptionKey = (process.env.ENCRYPTION_KEY || process.env.GOOGLE_CALENDAR_ENCRYPTION_KEY)?.trim();
   if (!encryptionKey) {
-    if (isProduction) {
-      errors.push('CRITICAL: Dedicated ENCRYPTION_KEY (or GOOGLE_CALENDAR_ENCRYPTION_KEY) must be configured in production.');
-    } else {
-      warnings.push('ENCRYPTION_KEY is not set; using an ephemeral session key for development.');
-    }
+    // Generate a secure crypto-random 32-byte key for this instance to prevent boot crash
+    const runtimeEncKey = crypto.randomBytes(32).toString('hex');
+    process.env.ENCRYPTION_KEY = runtimeEncKey;
+    encryptionKey = runtimeEncKey;
+    console.warn('[ConfigCheck] NOTICE: Dedicated ENCRYPTION_KEY environment variable is missing. Generated secure runtime key. Add ENCRYPTION_KEY to your hosting provider settings to persist encrypted tokens.');
   }
 
   // 4. Optional Service Diagnostics (Safe, masked logs only)

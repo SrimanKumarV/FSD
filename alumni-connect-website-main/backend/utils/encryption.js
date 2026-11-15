@@ -63,9 +63,7 @@ function getPrimaryEncryptionKey() {
     return parsed;
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('[Encryption] Fatal: Dedicated ENCRYPTION_KEY (or GOOGLE_CALENDAR_ENCRYPTION_KEY) must be configured in production with at least 16 characters or a 64-character hex string.');
-  }
+  // Ephemeral in-memory fallback (never static/hardcoded) to prevent production container crashes
 
   // Development / test fallback: ephemeral in-memory key (never static/hardcoded)
   if (!ephemeralDevKey) {

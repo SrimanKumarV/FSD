@@ -58,7 +58,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "cross-env CI=false GENERATE_SOURCEMAP=false NODE_OPTIONS=--max_old_space_size=4096 react-scripts build",
+    "build": "cross-env CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS=--max_old_space_size=4096 react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "cypress:open": "cypress open",
@@ -124,8 +124,7 @@
     "socket.io-parser": "^4.2.7",
     "source-map-js": "^1.2.2",
     "systeminformation": "^5.33.23",
-    "glob": "^14.0.6",
-    "minimatch": "^11.0.8",
+    "minimatch": "^3.1.5",
     "qs": "^6.17.1",
     "colord": "^2.13.0",
     "deepmerge": "^4.3.1",

@@ -216,8 +216,8 @@ const Settings = () => {
 
   // State for Password Change
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordOtp, setPasswordOtp] = useState('');
-  const [passwordOtpStatus, setPasswordOtpStatus] = useState('idle');
+  const [recoverySecurityCode, setRecoverySecurityCode] = useState('');
+  const [otpVerificationStep, setOtpVerificationStep] = useState('idle');
   const [newPassword, setNewPassword] = useState('');
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -236,7 +236,7 @@ const Settings = () => {
   };
 
   const confirmPasswordChange = async () => {
-    if (!passwordOtp || passwordOtp.length !== 6) {
+    if (!recoverySecurityCode || recoverySecurityCode.length !== 6) {
       toast.error('Please enter a valid 6-digit security code');
       return;
     }
@@ -247,22 +247,22 @@ const Settings = () => {
     
     try {
       setIsChangingPassword(true);
-      setPasswordOtpStatus('loading');
+      setOtpVerificationStep('loading');
       await api.post('/auth/reset-password', { 
         email: user.email, 
-        otp: passwordOtp, 
+        otp: recoverySecurityCode, 
         newPassword: newPassword 
       });
       toast.success('Password changed successfully');
-      setPasswordOtpStatus('success');
+      setOtpVerificationStep('success');
       setTimeout(() => {
         setShowPasswordModal(false);
-        setPasswordOtp('');
+        setRecoverySecurityCode('');
         setNewPassword('');
-        setPasswordOtpStatus('idle');
+        setOtpVerificationStep('idle');
       }, 1500);
     } catch (error) {
-      setPasswordOtpStatus('error');
+      setOtpVerificationStep('error');
       toast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
       setIsChangingPassword(false);
@@ -742,12 +742,12 @@ const Settings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">Security Code (OTP)</label>
                 <AnimatedOTP 
-                  status={passwordOtpStatus} 
+                  status={otpVerificationStep} 
                   onChange={(val) => {
-                    setPasswordOtp(val);
-                    if (passwordOtpStatus === 'error') setPasswordOtpStatus('idle');
+                    setRecoverySecurityCode(val);
+                    if (otpVerificationStep === 'error') setOtpVerificationStep('idle');
                   }}
-                  onClear={() => setPasswordOtp('')}
+                  onClear={() => setRecoverySecurityCode('')}
                 />
               </div>
               
@@ -768,7 +768,7 @@ const Settings = () => {
                 type="button"
                 onClick={() => {
                   setShowPasswordModal(false);
-                  setPasswordOtp('');
+                  setRecoverySecurityCode('');
                   setNewPassword('');
                 }}
                 disabled={isChangingPassword}
@@ -779,7 +779,7 @@ const Settings = () => {
               <button
                 type="button"
                 onClick={confirmPasswordChange}
-                disabled={isChangingPassword || passwordOtp.length !== 6 || newPassword.length < 6}
+                disabled={isChangingPassword || recoverySecurityCode.length !== 6 || newPassword.length < 6}
                 className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center shadow-sm"
               >
                 {isChangingPassword ? 'Updating...' : 'Change Password'}

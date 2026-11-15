@@ -43,7 +43,7 @@ router.get('/questions', protect, async (req, res) => {
 // @access  Private
 router.get('/questions/:id', protect, async (req, res) => {
   try {
-    const question = await TechAssistanceQuestion.findById(req.params.id)
+    const question = await TechAssistanceQuestion.findById(String(req.params.id))
       .populate('author', 'name photo role')
       .populate({
         path: 'replies',

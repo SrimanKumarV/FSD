@@ -350,7 +350,7 @@ router.get('/conversations', protect, async (req, res) => {
 // @access  Private
 router.put('/:id/read', protect, async (req, res) => {
   try {
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(String(req.params.id));
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -407,7 +407,7 @@ router.put('/:id', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(String(req.params.id));
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -438,7 +438,7 @@ router.put('/:id', protect, [
 // @access  Private (Message sender only)
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(String(req.params.id));
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -467,7 +467,7 @@ router.post('/:id/reactions', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(String(req.params.id));
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -507,7 +507,7 @@ router.post('/:id/forward', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const originalMessage = await Message.findById(req.params.id);
+    const originalMessage = await Message.findById(String(req.params.id));
     if (!originalMessage) {
       return res.status(404).json({ message: 'Message not found' });
     }

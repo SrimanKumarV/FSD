@@ -152,7 +152,7 @@ router.get('/feed', protect, async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id)
+    const post = await ForumPost.findById(String(req.params.id))
       .populate('author', 'name photo role bio')
       .populate('likes', 'name photo')
       .populate('comments.author', 'name photo role')
@@ -278,7 +278,7 @@ router.post('/', [protect], [
 // @access  Private
 router.post('/:id/save', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -305,7 +305,7 @@ router.post('/:id/save', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/report', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -343,7 +343,7 @@ router.put('/:id', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -381,7 +381,7 @@ router.put('/:id', protect, [
 // @access  Private (Post author or admin only)
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -403,7 +403,7 @@ router.delete('/:id', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/like', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -444,7 +444,7 @@ router.post('/:id/comments', [protect], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -523,7 +523,7 @@ router.put('/:id/comments/:commentId', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -560,7 +560,7 @@ router.put('/:id/comments/:commentId', protect, [
 // @access  Private (Comment author or post author only)
 router.delete('/:id/comments/:commentId', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -594,7 +594,7 @@ router.delete('/:id/comments/:commentId', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/comments/:commentId/like', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -629,7 +629,7 @@ router.post('/:id/comments/:commentId/like', protect, async (req, res) => {
 // @access  Private (Post author only)
 router.put('/:id/comments/:commentId/solution', protect, async (req, res) => {
   try {
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -668,7 +668,7 @@ router.put('/:id/status', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const post = await ForumPost.findById(req.params.id);
+    const post = await ForumPost.findById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }

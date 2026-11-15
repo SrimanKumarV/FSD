@@ -85,7 +85,7 @@ router.get('/unread-count', protect, async (req, res) => {
 // @access  Private
 router.put('/:id/read', protect, async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findById(String(req.params.id));
     if (!notification) {
       return res.status(404).json({ message: 'Notification not found' });
     }
@@ -149,7 +149,7 @@ router.put('/read-by-type', protect, async (req, res) => {
 // @access  Private
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findById(String(req.params.id));
     if (!notification) {
       return res.status(404).json({ message: 'Notification not found' });
     }
@@ -710,7 +710,7 @@ router.get('/stats', protect, async (req, res) => {
 // @access  Private
 router.put('/:id/action', protect, async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findById(String(req.params.id));
     if (!notification) {
       return res.status(404).json({ message: 'Notification not found' });
     }

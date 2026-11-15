@@ -8,13 +8,13 @@ class RegistrationValidationTests(unittest.TestCase):
         self.assertEqual(normalize_email("  Student@Example.COM "), "student@example.com")
 
     def test_valid_registration_has_no_errors(self):
-        self.assertEqual(validate_registration("Student A", "student@example.com", "StrongPass123"), [])
+        self.assertEqual(validate_registration("Student A", "student@example.com", "test-mock-pass"), [])
 
     def test_missing_name_is_rejected(self):
-        self.assertIn("full_name is required", validate_registration("", "student@example.com", "StrongPass123"))
+        self.assertIn("full_name is required", validate_registration("", "student@example.com", "test-mock-pass"))
 
     def test_invalid_email_is_rejected(self):
-        self.assertIn("valid email is required", validate_registration("Student A", "not-an-email", "StrongPass123"))
+        self.assertIn("valid email is required", validate_registration("Student A", "not-an-email", "test-mock-pass"))
 
     def test_short_password_is_rejected(self):
         self.assertIn("password must be at least 8 characters", validate_registration("Student A", "student@example.com", "short"))
@@ -23,9 +23,9 @@ class RegistrationValidationTests(unittest.TestCase):
         self.assertIn("password must be at most 256 characters", validate_registration("Student A", "student@example.com", "x" * 257))
 
     def test_password_hash_verifies_without_storing_plaintext(self):
-        encoded = hash_password("StrongPass123", salt=b"0123456789abcdef", iterations=10_000)
-        self.assertNotEqual(encoded, "StrongPass123")
-        self.assertTrue(verify_password("StrongPass123", encoded))
+        encoded = hash_password("test-mock-pass", salt=b"0123456789abcdef", iterations=10_000)
+        self.assertNotEqual(encoded, "test-mock-pass")
+        self.assertTrue(verify_password("test-mock-pass", encoded))
         self.assertFalse(verify_password("WrongPassword", encoded))
 
     def test_malformed_hash_is_rejected(self):

@@ -45,7 +45,7 @@ class WSGIIntegrationTests(unittest.TestCase):
         self.assertEqual(json.loads(health["body"])["status"], "ok")
 
     def test_registration_persists_hashed_password_and_duplicate_is_rejected(self):
-        payload = {"full_name":"Student A", "email":" Student@Example.com ", "password":"StrongPass123"}
+        payload = {"full_name":"Student A", "email":" Student@Example.com ", "password":"test-mock-pass"}
         created = request(self.app, "POST", "/api/register", payload)
         self.assertTrue(created["status"].startswith("201"))
         self.assertIn("student@example.com", self.db.users)
@@ -62,9 +62,9 @@ class WSGIIntegrationTests(unittest.TestCase):
         self.assertEqual(self.db.commits, 0)
 
     def test_login_accepts_correct_and_rejects_wrong_password(self):
-        payload = {"full_name":"Student A", "email":"student@example.com", "password":"StrongPass123"}
+        payload = {"full_name":"Student A", "email":"student@example.com", "password":"test-mock-pass"}
         request(self.app, "POST", "/api/register", payload)
-        good = request(self.app, "POST", "/api/login", {"email":"STUDENT@example.com", "password":"StrongPass123"})
+        good = request(self.app, "POST", "/api/login", {"email":"STUDENT@example.com", "password":"test-mock-pass"})
         bad = request(self.app, "POST", "/api/login", {"email":"student@example.com", "password":"incorrect-password"})
         self.assertTrue(good["status"].startswith("200"))
         self.assertTrue(bad["status"].startswith("401"))
@@ -76,7 +76,7 @@ class WSGIIntegrationTests(unittest.TestCase):
         self.assertNotIn(b"<A>", response["body"])
 
     def test_unknown_user_gets_generic_authentication_failure(self):
-        response = request(self.app, "POST", "/api/login", {"email":"missing@example.com", "password":"StrongPass123"})
+        response = request(self.app, "POST", "/api/login", {"email":"missing@example.com", "password":"test-mock-pass"})
         self.assertTrue(response["status"].startswith("401"))
         payload = json.loads(response["body"])
         self.assertEqual(payload["error"], "Invalid email or password")
@@ -86,7 +86,7 @@ class WSGIIntegrationTests(unittest.TestCase):
         def failing_connection_factory():
             raise RuntimeError("private-hostname-and-password-must-not-leak")
         failing_app = create_app(failing_connection_factory)
-        response = request(failing_app, "POST", "/api/login", {"email":"student@example.com", "password":"StrongPass123"})
+        response = request(failing_app, "POST", "/api/login", {"email":"student@example.com", "password":"test-mock-pass"})
         self.assertTrue(response["status"].startswith("500"))
         self.assertEqual(json.loads(response["body"]), {"error":"Unable to authenticate at this time"})
         self.assertNotIn("private-hostname", response["body"].decode())

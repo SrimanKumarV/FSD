@@ -53,10 +53,8 @@
     "stream-browserify": "^3.0.0",
     "tailwind-merge": "^1.14.0",
     "three": "^0.185.1",
-    "underscore": "^1.13.8",
     "util": "^0.12.5",
-    "uuid": "^14.0.1",
-    "vite": "^7.1.2"
+    "uuid": "^14.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -104,7 +102,7 @@
     "cross-env": "^10.1.0",
     "cypress": "^15.20.1",
     "eslint-plugin-jsx-a11y": "^6.7.1",
-    "postcss": "^8.4.24",
+    "postcss": "^8.5.33",
     "tailwindcss": "^3.3.2"
   },
   "proxy": "http://localhost:5000",
@@ -119,6 +117,25 @@
     "serialize-javascript": "^7.1.4",
     "node-forge": "^1.4.3",
     "d3-color": "^3.1.1",
-    "follow-redirects": "^1.16.3"
+    "follow-redirects": "^1.16.3",
+    "compression": "^1.8.2",
+    "js-yaml": "^4.3.2",
+    "prismjs": "^1.30.0",
+    "socket.io-parser": "^4.2.7",
+    "source-map-js": "^1.2.2",
+    "systeminformation": "^5.33.23",
+    "glob": "^14.0.6",
+    "minimatch": "^11.0.8",
+    "qs": "^6.17.1",
+    "colord": "^2.13.0",
+    "deepmerge": "^4.3.1",
+    "@tootallnate/once": "^2.0.1",
+    "webpack-dev-middleware": "^7.4.6",
+    "launch-editor": "^2.14.2",
+    "nth-check": "^2.1.1",
+    "postcss": "^8.5.33",
+    "postcss-selector-parser": "^7.2.1",
+    "underscore": "^1.13.8",
+    "svgo": "^2.8.4"
   }
 }

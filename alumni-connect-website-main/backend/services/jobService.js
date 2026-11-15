@@ -157,8 +157,20 @@ const createJob = async (user, data, io) => {
     throw new Error('Minimum salary cannot be greater than maximum salary');
   }
 
+  const allowedFields = [
+    'title', 'description', 'company', 'companyLogo', 'companyWebsite',
+    'jobType', 'category', 'location', 'isRemote', 'remoteType',
+    'requirements', 'skills', 'experience', 'education', 'salary',
+    'benefits', 'applicationLink', 'applicationMethod',
+    'contactEmail', 'contactPhone', 'perks', 'workCulture', 'growthOpportunities'
+  ];
+  const safeData = {};
+  for (const f of allowedFields) {
+    if (data[f] !== undefined) safeData[f] = data[f];
+  }
+
   const job = new Job({
-    ...data,
+    ...safeData,
     applicationDeadline: data.applicationDeadline ? new Date(data.applicationDeadline) : undefined,
     postedBy: user.id
   });
@@ -174,7 +186,7 @@ const createJob = async (user, data, io) => {
 };
 
 const updateJob = async (user, jobId, data, io) => {
-  const job = await Job.findById(jobId);
+  const job = await Job.findById(String(jobId));
   if (!job) {
     const err = new Error('Job not found');
     err.status = 404;
@@ -223,7 +235,7 @@ const updateJob = async (user, jobId, data, io) => {
 };
 
 const deleteJob = async (user, jobId, io) => {
-  const job = await Job.findById(jobId);
+  const job = await Job.findById(String(jobId));
   if (!job) {
     const err = new Error('Job not found');
     err.status = 404;
@@ -244,7 +256,7 @@ const deleteJob = async (user, jobId, io) => {
 };
 
 const applyForJob = async (user, jobId, data, io) => {
-  const job = await Job.findById(jobId);
+  const job = await Job.findById(String(jobId));
   if (!job) {
     const err = new Error('Job not found');
     err.status = 404;

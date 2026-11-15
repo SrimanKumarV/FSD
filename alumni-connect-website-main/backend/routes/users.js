@@ -210,7 +210,7 @@ router.get('/search', protect, searchLimiter, async (req, res) => {
 // @access  Public (for basic info), Private (for detailed info)
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(String(req.params.id)).select('-password');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -485,7 +485,7 @@ router.post('/profile/phone/verify-otp', protect, otpVerifyLimiter, [
 // @access  Private
 router.post('/:id/connect', protect, async (req, res) => {
   try {
-    const targetUser = await User.findById(req.params.id);
+    const targetUser = await User.findById(String(req.params.id));
     if (!targetUser) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -528,7 +528,7 @@ router.post('/:id/connect', protect, async (req, res) => {
 // @access  Private
 router.delete('/:id/connect', protect, async (req, res) => {
   try {
-    const targetUser = await User.findById(req.params.id);
+    const targetUser = await User.findById(String(req.params.id));
     if (!targetUser) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -557,7 +557,7 @@ router.delete('/:id/connect', protect, async (req, res) => {
 // @access  Private
 router.get('/:id/connections', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const user = await User.findById(String(req.params.id))
       .populate('connections', 'name email photo role location studentInfo alumniInfo')
       .populate('followers', 'name email photo role location studentInfo alumniInfo')
       .populate('following', 'name email photo role location studentInfo alumniInfo')
@@ -585,7 +585,7 @@ router.get('/:id/connections', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/follow', protect, async (req, res) => {
   try {
-    const targetUser = await User.findById(req.params.id);
+    const targetUser = await User.findById(String(req.params.id));
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
     if (targetUser._id.toString() === req.user.id) return res.status(400).json({ message: 'Cannot follow yourself' });
 
@@ -732,7 +732,7 @@ router.post('/:id/decline-follow', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/unfollow', protect, async (req, res) => {
   try {
-    const targetUser = await User.findById(req.params.id);
+    const targetUser = await User.findById(String(req.params.id));
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
     if (targetUser.followers) {
@@ -763,7 +763,7 @@ router.post('/:id/report', protect, [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const reportedUser = await User.findById(req.params.id);
+    const reportedUser = await User.findById(String(req.params.id));
     if (!reportedUser) return res.status(404).json({ message: 'User not found' });
 
     if (reportedUser._id.toString() === req.user.id) {

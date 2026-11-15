@@ -45,7 +45,7 @@ router.post('/', auth.protect, async (req, res) => {
 // View a business
 router.get('/:id', async (req, res) => {
   try {
-    const business = await Business.findById(req.params.id)
+    const business = await Business.findById(String(req.params.id))
       .populate('founder', 'name email profilePicture');
     
     if (!business) {
@@ -66,7 +66,7 @@ router.get('/:id', async (req, res) => {
 // Update a business
 router.put('/:id', auth.protect, async (req, res) => {
   try {
-    const business = await Business.findById(req.params.id);
+    const business = await Business.findById(String(req.params.id));
     if (!business) {
       return res.status(404).json({ message: 'Business not found' });
     }
@@ -99,7 +99,7 @@ router.put('/:id', auth.protect, async (req, res) => {
 // Delete a business
 router.delete('/:id', auth.protect, async (req, res) => {
   try {
-    const business = await Business.findById(req.params.id);
+    const business = await Business.findById(String(req.params.id));
     if (!business) {
       return res.status(404).json({ message: 'Business not found' });
     }

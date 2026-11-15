@@ -25,8 +25,52 @@ allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group == 'io.netty') {
-                details.useVersion '4.1.118.Final'
+                if (details.requested.name == 'netty-handler') details.useVersion '4.1.137.Final'
+                else if (details.requested.name == 'netty-codec') details.useVersion '4.1.136.Final'
+                else if (details.requested.name == 'netty-codec-http') details.useVersion '4.1.137.Final'
+                else if (details.requested.name == 'netty-codec-http2') details.useVersion '4.1.136.Final'
+                else if (details.requested.name == 'netty-handler-proxy') details.useVersion '4.1.133.Final'
+                else details.useVersion '4.1.118.Final'
                 details.because 'Patch known Netty vulnerabilities across all Android modules'
+            }
+            if (details.requested.group == 'org.bouncycastle') {
+                if (details.requested.name == 'bcprov-jdk18on') details.useVersion '1.85'
+                else if (details.requested.name == 'bcpkix-jdk18on') details.useVersion '1.84'
+            }
+            if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
+                details.useVersion '33.7.2-jre'
+            }
+            if (details.requested.group == 'org.bitbucket.b_c' && details.requested.name == 'jose4j') {
+                details.useVersion '0.9.6'
+            }
+            if (details.requested.group == 'org.jdom' && details.requested.name == 'jdom2') {
+                details.useVersion '2.0.6.1'
+            }
+            if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
+                details.useVersion '1.26.0'
+            }
+        }
+    }
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('dependencies')) {
+            project.dependencies {
+                constraints {
+                    implementation('io.netty:netty-handler:4.1.137.Final') { because 'Security vulnerability mitigation' }
+                    implementation('io.netty:netty-codec:4.1.136.Final') { because 'Security vulnerability mitigation' }
+                    implementation('io.netty:netty-codec-http:4.1.137.Final') { because 'Security vulnerability mitigation' }
+                    implementation('io.netty:netty-codec-http2:4.1.136.Final') { because 'Security vulnerability mitigation' }
+                    implementation('io.netty:netty-common:4.1.118.Final') { because 'Security vulnerability mitigation' }
+                    implementation('io.netty:netty-handler-proxy:4.1.133.Final') { because 'Security vulnerability mitigation' }
+                    implementation('org.bouncycastle:bcprov-jdk18on:1.85') { because 'Security vulnerability mitigation' }
+                    implementation('org.bouncycastle:bcpkix-jdk18on:1.84') { because 'Security vulnerability mitigation' }
+                    implementation('com.google.guava:guava:33.7.2-jre') { because 'Security vulnerability mitigation' }
+                    implementation('org.bitbucket.b_c:jose4j:0.9.6') { because 'Security vulnerability mitigation' }
+                    implementation('org.jdom:jdom2:2.0.6.1') { because 'Security vulnerability mitigation' }
+                    implementation('org.apache.commons:commons-compress:1.26.0') { because 'Security vulnerability mitigation' }
+                }
             }
         }
     }

@@ -172,7 +172,7 @@ router.get('/virtual', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const event = await Event.findById(String(req.params.id))
       .populate('organizer', 'name photo role alumniInfo')
       .populate('coOrganizers', 'name photo role');
 
@@ -306,7 +306,7 @@ router.put('/:id', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(String(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -353,7 +353,7 @@ router.put('/:id', protect, [
 // @access  Private (Event organizer only)
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(String(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -375,7 +375,7 @@ router.delete('/:id', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/register', protect, async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(String(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -425,7 +425,7 @@ router.post('/:id/register', protect, async (req, res) => {
 // @access  Private
 router.delete('/:id/register', protect, async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(String(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -445,7 +445,7 @@ router.delete('/:id/register', protect, async (req, res) => {
 // @access  Private (Event organizer only)
 router.put('/:id/publish', protect, async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(String(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -474,7 +474,7 @@ router.put('/:id/cancel', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(String(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }

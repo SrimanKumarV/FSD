@@ -227,7 +227,7 @@ router.get('/external', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id)
+    const contest = await Contest.findById(String(req.params.id))
       .populate('organizer', 'name photo role alumniInfo')
       .populate('participants.user', 'name photo role');
 
@@ -354,7 +354,7 @@ router.put('/:id', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -398,7 +398,7 @@ router.put('/:id', protect, [
 // @access  Private (Contest organizer only)
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -424,7 +424,7 @@ router.delete('/:id', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/register', protect, async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -471,7 +471,7 @@ router.post('/:id/register', protect, async (req, res) => {
 // @access  Private
 router.delete('/:id/register', protect, async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -517,7 +517,7 @@ router.post('/:id/submit', protect, async (req, res) => {
   }
   try {
 
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -572,7 +572,7 @@ router.post('/:id/submit', protect, async (req, res) => {
 // @access  Public
 router.get('/:id/leaderboard', async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -604,7 +604,7 @@ router.get('/:id/leaderboard', async (req, res) => {
 // @access  Private (Contest organizer only)
 router.put('/:id/start', protect, async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -630,7 +630,7 @@ router.put('/:id/start', protect, async (req, res) => {
 // @access  Private (Contest organizer only)
 router.put('/:id/end', protect, async (req, res) => {
   try {
-    const contest = await Contest.findById(req.params.id);
+    const contest = await Contest.findById(String(req.params.id));
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }

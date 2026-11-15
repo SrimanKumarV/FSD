@@ -146,7 +146,7 @@ router.put('/users/:id/approval', [protect, admin], [
     }
 
     const { isApproved, reason } = req.body;
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(String(req.params.id));
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -201,7 +201,7 @@ router.put('/users/:id/mentor-verify', [protect, admin], [
     }
 
     const { adminVerifiedMentor } = req.body;
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(String(req.params.id));
 
     if (!user || user.role !== 'alumni') {
       return res.status(404).json({ message: 'Alumni not found' });
@@ -234,7 +234,7 @@ router.put('/users/:id/role', [protect, admin], [
     }
 
     const { role, reason } = req.body;
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(String(req.params.id));
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -299,7 +299,7 @@ router.put('/users/:id/suspend', [protect, admin], [
     }
 
     const { isSuspended, reason, duration } = req.body;
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(String(req.params.id));
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -898,7 +898,7 @@ router.get('/incidents', [protect, admin], async (req, res) => {
  */
 router.get('/incidents/:id', [protect, admin], async (req, res) => {
   try {
-    const incident = await AdminIncident.findById(req.params.id)
+    const incident = await AdminIncident.findById(String(req.params.id))
       .populate('affectedUsers', 'name email role photo')
       .populate('resolvedBy', 'name email');
 

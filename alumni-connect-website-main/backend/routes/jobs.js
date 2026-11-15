@@ -199,7 +199,7 @@ router.get('/applications/me', protect, async (req, res) => {
 // @access  Private
 router.get('/:id/applications', protect, async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findById(String(req.params.id));
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -229,7 +229,7 @@ router.put('/applications/:appId/status', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const application = await JobApplication.findById(req.params.appId).populate('job');
+    const application = await JobApplication.findById(String(req.params.appId)).populate('job');
     if (!application) {
       return res.status(404).json({ message: 'Application not found' });
     }
@@ -268,7 +268,7 @@ router.put('/applications/:appId/status', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/save', protect, async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findById(String(req.params.id));
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -330,7 +330,7 @@ router.put('/:id/status', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findById(String(req.params.id));
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -357,7 +357,7 @@ router.put('/:id/status', protect, async (req, res) => {
 // @access  Private (Job poster only)
 router.get('/:id/stats', protect, async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findById(String(req.params.id));
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -387,7 +387,7 @@ router.get('/:id/stats', protect, async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id)
+    const job = await Job.findById(String(req.params.id))
       .populate('postedBy', 'name photo role alumniInfo');
 
     if (!job) {

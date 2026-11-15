@@ -277,9 +277,28 @@ router.post('/goals', protect, [
       return res.status(400).json({ message: 'Maximum 20 goals allowed. Delete some goals first.' });
     }
 
+    const {
+      title, description, category, platform, targetMetric,
+      targetValue, frequency, customDays, trackingMode,
+      reminderEnabled, reminderTime, priority, color, icon
+    } = req.body;
+
     const goal = new ActivityGoal({
       userId: req.user._id,
-      ...req.body
+      title: typeof title === 'string' ? title.trim() : title,
+      description: typeof description === 'string' ? description.trim() : description,
+      category,
+      platform,
+      targetMetric,
+      targetValue,
+      frequency,
+      customDays,
+      trackingMode,
+      reminderEnabled: Boolean(reminderEnabled),
+      reminderTime,
+      priority,
+      color,
+      icon
     });
 
     await goal.save();
@@ -309,9 +328,22 @@ router.put('/goals/:id', protect, [
   if (!validate(req, res)) return;
 
   try {
+    const allowedFields = [
+      'title', 'description', 'category', 'platform', 'targetMetric',
+      'targetValue', 'frequency', 'customDays', 'trackingMode',
+      'reminderEnabled', 'reminderTime', 'priority', 'color', 'icon', 'enabled'
+    ];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+
+    const safeId = String(req.params.id);
     const goal = await ActivityGoal.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      { $set: req.body },
+      { _id: safeId, userId: req.user._id },
+      { $set: updateData },
       { new: true, runValidators: true }
     );
 
@@ -415,9 +447,24 @@ router.put('/preferences', protect, [
   if (!validate(req, res)) return;
 
   try {
+    const allowedPrefFields = [
+      'emailEnabled', 'inAppEnabled', 'webPushEnabled', 'mobileAppEnabled',
+      'emailMode', 'dailyReminder', 'streakAlert', 'milestoneAlert',
+      'goalCompletion', 'weeklySummary', 'platformUpdates', 'interviewReminder',
+      'mentorshipReminder', 'jobAlerts', 'chatMessages', 'connectionRequests',
+      'socialReactions', 'securityAlerts', 'systemAnnouncements', 'reminderTime',
+      'quietHoursEnabled', 'quietHoursStart', 'quietHoursEnd', 'timezone', 'reminderDays'
+    ];
+    const updatePrefs = {};
+    for (const key of allowedPrefFields) {
+      if (req.body[key] !== undefined) {
+        updatePrefs[key] = req.body[key];
+      }
+    }
+
     const prefs = await ReminderPreference.findOneAndUpdate(
       { userId: req.user._id },
-      { $set: req.body },
+      { $set: updatePrefs },
       { new: true, upsert: true, runValidators: true }
     );
     res.json(prefs);

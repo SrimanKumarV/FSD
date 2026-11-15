@@ -20,7 +20,7 @@ describe('Mobile Google OAuth Routes', () => {
     process.env = {
       ...originalEnv,
       JWT_SECRET: 'test_jwt_secret_key_12345',
-      GOOGLE_CLIENT_ID: '253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com',
+      GOOGLE_CLIENT_ID: 'test-mock-client-id.apps.googleusercontent.com',
       GOOGLE_CLIENT_SECRET: 'test_google_client_secret',
       MOBILE_GOOGLE_REDIRECT_URI: 'https://alumnex-backend-backup.onrender.com/api/auth/mobile/google/callback'
     };
@@ -37,7 +37,7 @@ describe('Mobile Google OAuth Routes', () => {
       expect(res.statusCode).toBe(302);
       const location = res.headers.location;
       expect(location).toContain('https://accounts.google.com/o/oauth2/v2/auth');
-      expect(location).toContain('client_id=253683997850-ec2t9ae74tnrsadu6enid73lnpeoho7d.apps.googleusercontent.com');
+      expect(location).toContain('client_id=test-mock-client-id.apps.googleusercontent.com');
       expect(location).toContain('redirect_uri=' + encodeURIComponent('https://alumnex-backend-backup.onrender.com/api/auth/mobile/google/callback'));
       expect(location).toContain('response_type=code');
       expect(location).toContain('state=');

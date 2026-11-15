@@ -87,7 +87,7 @@ router.get('/leaderboard', protect, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
-    const mentorship = await Mentorship.findById(req.params.id)
+    const mentorship = await Mentorship.findById(String(req.params.id))
       .populate('student', 'name email photo role studentInfo')
       .populate('mentor', 'name email photo role alumniInfo');
 
@@ -199,7 +199,7 @@ router.post('/:id/feedback', [protect], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const mentorship = await Mentorship.findById(req.params.id);
+    const mentorship = await Mentorship.findById(String(req.params.id));
     if (!mentorship) return res.status(404).json({ message: 'Mentorship not found' });
     if (mentorship.student.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Only the student can give feedback' });
@@ -281,7 +281,7 @@ router.post('/:id/milestones', [protect, alumni], [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const mentorship = await Mentorship.findById(req.params.id);
+    const mentorship = await Mentorship.findById(String(req.params.id));
     if (!mentorship) {
       return res.status(404).json({ message: 'Mentorship not found' });
     }
@@ -325,7 +325,7 @@ router.put('/:id/milestones/:milestoneId', [protect, student], [
   body('notes').optional().trim().isLength({ max: 1000 })
 ], async (req, res) => {
   try {
-    const mentorship = await Mentorship.findById(req.params.id);
+    const mentorship = await Mentorship.findById(String(req.params.id));
     if (!mentorship) {
       return res.status(404).json({ message: 'Mentorship not found' });
     }
@@ -365,7 +365,7 @@ router.post('/:id/notes', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const mentorship = await Mentorship.findById(req.params.id);
+    const mentorship = await Mentorship.findById(String(req.params.id));
     if (!mentorship) {
       return res.status(404).json({ message: 'Mentorship not found' });
     }
@@ -445,7 +445,7 @@ router.put('/:id/cancel', protect, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const mentorship = await Mentorship.findById(req.params.id);
+    const mentorship = await Mentorship.findById(String(req.params.id));
     if (!mentorship) {
       return res.status(404).json({ message: 'Mentorship not found' });
     }

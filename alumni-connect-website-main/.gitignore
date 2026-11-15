@@ -104,3 +104,9 @@ google-services.json
 # ------------------------------
 *.map
 **/*.map
+
+# ------------------------------
+# Mobile compiled bundles
+# ------------------------------
+mobile-wrapper/www/
+**/mobile-wrapper/www/**

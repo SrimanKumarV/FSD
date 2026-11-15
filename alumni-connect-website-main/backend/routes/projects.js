@@ -88,7 +88,7 @@ router.get('/followers', protect, async (req, res) => {
 // @access  Public
 router.get('/user/:userId', async (req, res) => {
   try {
-    const projects = await Project.find({ user: req.params.userId })
+    const projects = await Project.find({ user: String(req.params.userId) })
       .populate('user', 'name role photo')
       .populate('teamMembers', 'name photo')
       .sort({ createdAt: -1 });
@@ -162,7 +162,7 @@ router.post('/', protect, async (req, res) => {
 // @access  Private
 router.put('/:id', protect, async (req, res) => {
   try {
-    let project = await Project.findById(req.params.id);
+    let project = await Project.findById(String(req.params.id));
     
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
@@ -173,7 +173,15 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(401).json({ message: 'Not authorized to update this project' });
     }
     
-    project = await Project.findByIdAndUpdate(req.params.id, req.body, {
+    const allowedFields = ['title', 'description', 'tags', 'teamMembers', 'githubLink', 'liveLink', 'thumbnail'];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+    const safeId = String(req.params.id);
+    project = await Project.findByIdAndUpdate(safeId, updateData, {
       new: true,
       runValidators: true
     });
@@ -190,7 +198,7 @@ router.put('/:id', protect, async (req, res) => {
 // @access  Private
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id);
+    const project = await Project.findById(String(req.params.id));
     
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
@@ -215,7 +223,7 @@ router.delete('/:id', protect, async (req, res) => {
 // @access  Private
 router.put('/:id/like', protect, async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id);
+    const project = await Project.findById(String(req.params.id));
     
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });

@@ -96,9 +96,17 @@ router.post('/', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, admin, async (req, res) => {
   try {
+    const allowedFields = ['title', 'description', 'actionText', 'actionUrl', 'targetAudience', 'taskType', 'isActive'];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+    const safeId = String(req.params.id);
     const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
+      safeId,
+      { $set: updateData },
       { new: true }
     );
     
@@ -115,15 +123,15 @@ router.put('/:id', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.delete('/:id', protect, admin, async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findById(String(req.params.id));
     if (!task) return res.status(404).json({ message: 'Task not found' });
     
     await task.remove();
     
     // Also remove this task from all users' completedTasks
     await User.updateMany(
-      { completedTasks: req.params.id },
-      { $pull: { completedTasks: req.params.id } }
+      { completedTasks: String(req.params.id) },
+      { $pull: { completedTasks: String(req.params.id) } }
     );
     
     res.json({ message: 'Task removed' });

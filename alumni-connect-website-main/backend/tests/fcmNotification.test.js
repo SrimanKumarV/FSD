@@ -23,7 +23,7 @@ describe('Android FCM Push Notification Production Pipeline', () => {
     });
 
     test('accepts realistic FCM registration tokens', () => {
-      const realToken = 'fK9zP1xL8mQ:APA91bH7v_3xX1yZ8wK2lM4nO5pQ6rS7tU8vW9xY0zA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU1vW2xY3zA4bC5dE6fG7hI8jK9lM0';
+      const realToken = 'test_fcm_registration_token_mock_pipeline_valid';
       const result = fcmService.validateToken(realToken);
       expect(result.valid).toBe(true);
       expect(result.token).toBe(realToken);
@@ -57,9 +57,9 @@ describe('Android FCM Push Notification Production Pipeline', () => {
 
   describe('Token Masking for Safe Structured Logging', () => {
     test('masks tokens without exposing full secret', () => {
-      const token = 'c8q9Z7xL1mQ2wE3rT4yU5iO6pA7sD8fG9hJ0';
+      const token = 'sample_fcm_token_for_mask_test';
       const masked = fcmService.maskToken(token);
-      expect(masked).toBe('c8q9Z7...fG9hJ0');
+      expect(masked).toBe('sample...k_test');
       expect(masked).not.toBe(token);
     });
 

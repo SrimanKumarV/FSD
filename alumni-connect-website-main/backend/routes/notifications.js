@@ -197,9 +197,11 @@ router.delete('/delete-read', protect, async (req, res) => {
 // @route   GET /api/notifications/vapid-public-key
 // @access  Public
 router.get('/vapid-public-key', (req, res) => {
+  const key = webPushService.getPublicKey();
   res.json({
-    success: true,
-    publicKey: webPushService.getPublicKey()
+    success: Boolean(key),
+    configured: Boolean(key),
+    publicKey: key
   });
 });
 

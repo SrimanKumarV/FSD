@@ -98,3 +98,9 @@ match.txt
 service-account*.json
 google-services.json
 **/google-services.json
+
+# ------------------------------
+# Source maps (Prevent leaking client bundle internals)
+# ------------------------------
+*.map
+**/*.map

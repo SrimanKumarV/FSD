@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const { getNewPeerEmailTemplate } = require('../utils/emailTemplates');
@@ -35,38 +37,94 @@ const notifyPeersOfNewUser = async (newUser) => {
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
 
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateOTP = () => crypto.randomInt(100000, 1000000).toString();
 
 class AuthService {
+  getGoogleClient() {
+    if (!this.googleClient) {
+      this.googleClient = new OAuth2Client();
+    }
+    return this.googleClient;
+  }
+
   async processGoogleLogin(credential) {
+    if (!credential || typeof credential !== 'string') {
+      throw { status: 400, message: 'Google credential is required' };
+    }
+
     let payload = null;
 
-    // 1. Try resolving user info via Google userinfo endpoint (for access tokens)
-    try {
-      const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-        headers: { Authorization: `Bearer ${credential}` }
-      });
-      if (googleResponse.ok) {
-        payload = await googleResponse.json();
-      }
-    } catch (e) {
-      // Fall through to JWT ID token decoding
-    }
+    const allowedClientIds = [
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.MOBILE_GOOGLE_CLIENT_ID,
+      process.env.REACT_APP_GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CALENDAR_CLIENT_ID
+    ].filter(Boolean).map(id => id.trim());
 
-    // 2. If userinfo didn't resolve and credential is an ID token (JWT format), decode payload
-    if (!payload && typeof credential === 'string' && credential.includes('.')) {
+    // 1. If credential matches JWT format (3 dot-separated parts), verify cryptographically with Google public certificates
+    const isJwtFormat = typeof credential === 'string' && credential.split('.').length === 3;
+    if (isJwtFormat) {
       try {
-        const decoded = jwt.decode(credential);
-        if (decoded && decoded.email) {
-          payload = decoded;
+        const client = this.getGoogleClient();
+        const ticket = await client.verifyIdToken({
+          idToken: credential,
+          audience: allowedClientIds.length > 0 ? allowedClientIds : undefined
+        });
+        const ticketPayload = ticket.getPayload();
+
+        // Cryptographic check: issuer must be Google and email must be verified
+        if (
+          ticketPayload &&
+          (ticketPayload.iss === 'accounts.google.com' || ticketPayload.iss === 'https://accounts.google.com') &&
+          ticketPayload.email
+        ) {
+          if (ticketPayload.email_verified !== false) {
+            payload = ticketPayload;
+          }
         }
-      } catch (e) {}
+      } catch (idErr) {
+        console.warn('[GoogleAuth] Cryptographic ID token verification failed:', idErr.message);
+      }
+      if (!payload || !payload.email) {
+        throw { status: 401, message: 'Invalid or forged Google authentication token' };
+      }
     }
 
+    // 2. If not verified as an ID token, check if it is a legitimate Google OAuth2 access token via userinfo endpoint
+    if (!payload) {
+      try {
+        if (typeof global.fetch === 'function') {
+          const googleResponse = await global.fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${credential}` }
+          });
+          if (googleResponse.ok) {
+            const data = await googleResponse.json();
+            if (data && data.email && data.email_verified !== false) {
+              payload = data;
+            }
+          }
+        } else {
+          const googleResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${credential}` },
+            timeout: 8000
+          });
+          if (googleResponse.status === 200 && googleResponse.data && googleResponse.data.email) {
+            if (googleResponse.data.email_verified !== false) {
+              payload = googleResponse.data;
+            }
+          }
+        }
+      } catch (accessErr) {
+        // Access token endpoint failed or returned non-200
+      }
+    }
+
+    // Strict fail-closed: NO unverified jwt.decode fallback
     if (!payload || !payload.email) {
       throw { status: 401, message: 'Failed to fetch user info from Google' };
     }
@@ -80,7 +138,7 @@ class AuthService {
       const tempToken = jwt.sign(
         { email, name, picture, sub, provider: 'google' },
         process.env.JWT_SECRET,
-        { expiresIn: '15m' }
+        { algorithm: 'HS256', expiresIn: '15m' }
       );
       
       return {
@@ -180,7 +238,7 @@ class AuthService {
       const tempToken = jwt.sign(
         { email, name, picture, sub: githubUser.id.toString(), provider: 'github' },
         process.env.JWT_SECRET,
-        { expiresIn: '15m' }
+        { algorithm: 'HS256', expiresIn: '15m' }
       );
       
       return {
@@ -215,7 +273,7 @@ class AuthService {
   async completeOAuth(tempToken, role, additionalData = {}) {
     let decoded;
     try {
-      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch (err) {
       throw { status: 401, message: 'Token is invalid or expired. Please login again.' };
     }
@@ -232,7 +290,7 @@ class AuthService {
     user = new User({
       name: decoded.name,
       email: decoded.email,
-      password: await bcrypt.hash(decoded.sub + process.env.JWT_SECRET, 10),
+      password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
       role: role,
       photo: decoded.picture,
       isVerified: true,
@@ -286,6 +344,9 @@ class AuthService {
       throw { status: 400, message: 'User already exists' };
     }
 
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      throw { status: 400, message: 'Password must be at least 6 characters long' };
+    }
     const userFields = { name, email, password, role, skills: skills || [], interests: interests || [], location, bio, college, country, department };
 
     if (role === 'student') {
@@ -344,7 +405,7 @@ class AuthService {
   }
 
   async login(email, password) {
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password +twoFactorOtp +twoFactorOtpExpires +twoFactorOtpAttempts');
     if (!user) {
       throw { status: 400, message: 'Invalid credentials' };
     }
@@ -357,6 +418,7 @@ class AuthService {
       const otp = generateOTP();
       user.verificationOtp = otp;
       user.verificationOtpExpires = Date.now() + 15 * 60 * 1000;
+      user.verificationOtpAttempts = 0;
       await user.save();
       
       try {
@@ -384,6 +446,42 @@ class AuthService {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       throw { status: 400, message: 'Invalid credentials' };
+    }
+
+    // Check if 2FA is required for this user
+    if (user.twoFactorEnabled || (user.phoneVerified && user.smsNotifications)) {
+      const preAuthChallenge = jwt.sign(
+        { userId: user._id.toString(), email: user.email, type: '2fa_pre_auth' },
+        process.env.JWT_SECRET,
+        { algorithm: 'HS256', expiresIn: '10m' }
+      );
+
+      const otp = generateOTP();
+      user.twoFactorOtp = otp;
+      user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
+      user.twoFactorOtpAttempts = 0;
+      await user.save();
+
+      const preferredMethod = (user.phoneVerified && user.phoneNumber) ? 'sms' : 'email';
+      if (preferredMethod === 'sms') {
+        const sendSMS = require('../utils/sendSMS');
+        sendSMS(user.phoneNumber, `Your Alumnex Connect 2FA code is ${otp}. Valid for 15 mins.`).catch(() => {});
+      } else {
+        sendEmail({
+          email: user.email,
+          subject: 'Alumnex Connect - 2FA Login Verification',
+          message: `<p>Your secure verification code is: <strong>${otp}</strong></p>`
+        }).catch(() => {});
+      }
+
+      return {
+        requires2FA: true,
+        email: user.email,
+        preAuthChallenge,
+        availableMethods: user.phoneNumber ? ['email', 'sms'] : ['email'],
+        methodSent: preferredMethod,
+        message: '2FA verification code dispatched'
+      };
     }
 
     try {
@@ -418,7 +516,7 @@ class AuthService {
     let decoded;
     try {
       // First try to verify normally (token still valid)
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
         // Allow session restoration within 30 days of token expiration
@@ -446,6 +544,9 @@ class AuthService {
   }
 
   async changePassword(userId, currentPassword, newPassword) {
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+      throw { status: 400, message: 'Password must be at least 6 characters long' };
+    }
     const user = await User.findById(userId).select('+password');
     if (!user) {
       throw { status: 404, message: 'User not found' };
@@ -462,7 +563,7 @@ class AuthService {
   }
 
   async forgotPassword(email) {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+resetPasswordOtp +resetPasswordExpires +resetPasswordOtpAttempts');
     if (!user) {
       return { message: 'If an account with that email exists, an OTP has been sent.' };
     }
@@ -470,6 +571,7 @@ class AuthService {
     const otp = generateOTP();
     user.resetPasswordOtp = otp;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    user.resetPasswordOtpAttempts = 0;
     await user.save();
 
     const message = `
@@ -486,7 +588,7 @@ class AuthService {
         subject: 'Alumnex Connect - Password Reset Verification Code',
         message
       });
-      return { message: 'OTP sent to your email' };
+      return { message: 'If an account with that email exists, an OTP has been sent.' };
     } catch (err) {
       user.resetPasswordOtp = undefined;
       user.resetPasswordExpires = undefined;
@@ -496,30 +598,46 @@ class AuthService {
   }
 
   async resetPassword(email, otp, newPassword) {
-    const user = await User.findOne({
-      email,
-      resetPasswordOtp: otp,
-      resetPasswordExpires: { $gt: Date.now() }
-    });
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+      throw { status: 400, message: 'Password must be at least 6 characters long' };
+    }
+    const user = await User.findOne({ email }).select('+password +resetPasswordOtp +resetPasswordExpires +resetPasswordOtpAttempts');
 
     if (!user) {
       throw { status: 400, message: 'Invalid or expired OTP' };
     }
 
+    if (!user.resetPasswordOtp || !user.resetPasswordExpires || new Date(user.resetPasswordExpires).getTime() < Date.now()) {
+      throw { status: 400, message: 'Invalid or expired OTP' };
+    }
+
+    if ((user.resetPasswordOtpAttempts || 0) >= 5) {
+      user.resetPasswordOtp = undefined;
+      user.resetPasswordExpires = undefined;
+      user.resetPasswordOtpAttempts = 0;
+      await user.save();
+      throw { status: 400, message: 'Maximum failed verification attempts exceeded. Please request a new password reset.' };
+    }
+
+    if (String(user.resetPasswordOtp).trim() !== String(otp).trim()) {
+      user.resetPasswordOtpAttempts = (user.resetPasswordOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.resetPasswordOtpAttempts;
+      throw { status: 400, message: `Invalid OTP. ${remaining} attempt(s) remaining.` };
+    }
+
+    // One-time consumption
     user.password = newPassword;
     user.resetPasswordOtp = undefined;
     user.resetPasswordExpires = undefined;
+    user.resetPasswordOtpAttempts = 0;
     await user.save();
 
     return { message: 'Password reset successfully' };
   }
 
   async verifyEmail(email, otp) {
-    const user = await User.findOne({
-      email,
-      verificationOtp: otp,
-      verificationOtpExpires: { $gt: Date.now() }
-    });
+    const user = await User.findOne({ email }).select('+verificationOtp +verificationOtpExpires +verificationOtpAttempts');
 
     if (!user) {
       throw { status: 400, message: 'Invalid or expired OTP' };
@@ -529,9 +647,30 @@ class AuthService {
       throw { status: 400, message: 'Email already verified' };
     }
 
+    if (!user.verificationOtp || !user.verificationOtpExpires || new Date(user.verificationOtpExpires).getTime() < Date.now()) {
+      throw { status: 400, message: 'Invalid or expired OTP' };
+    }
+
+    if ((user.verificationOtpAttempts || 0) >= 5) {
+      user.verificationOtp = undefined;
+      user.verificationOtpExpires = undefined;
+      user.verificationOtpAttempts = 0;
+      await user.save();
+      throw { status: 400, message: 'Maximum failed verification attempts exceeded. Please request a new code.' };
+    }
+
+    if (String(user.verificationOtp).trim() !== String(otp).trim()) {
+      user.verificationOtpAttempts = (user.verificationOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.verificationOtpAttempts;
+      throw { status: 400, message: `Invalid OTP. ${remaining} attempt(s) remaining.` };
+    }
+
+    // One-time consumption
     user.isVerified = true;
     user.verificationOtp = undefined;
     user.verificationOtpExpires = undefined;
+    user.verificationOtpAttempts = 0;
     await user.save();
 
     try {
@@ -570,7 +709,7 @@ class AuthService {
   }
 
   async resendVerification(email) {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+verificationOtp +verificationOtpExpires +verificationOtpAttempts');
 
     if (!user) {
       return { message: 'If an account exists, a new OTP has been sent.' };
@@ -607,33 +746,47 @@ class AuthService {
       console.error('Resend verification email error:', err);
     }
 
-    return { message: 'A new verification OTP has been sent to your email.' };
+    return { message: 'If an account exists, a new OTP has been sent.' };
   }
 
-  async send2FA(email, method) {
-    const user = await User.findOne({ email });
+  async send2FA(email, method, preAuthChallenge) {
+    if (!preAuthChallenge) {
+      throw { status: 401, message: 'Pre-authentication challenge is required to request a 2FA code.' };
+    }
 
+    let decoded;
+    try {
+      decoded = jwt.verify(preAuthChallenge, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      if (decoded.email !== email || decoded.type !== '2fa_pre_auth') {
+        throw new Error('Identity mismatch');
+      }
+    } catch (err) {
+      throw { status: 401, message: 'Invalid or expired 2FA pre-authentication challenge. Please log in again.' };
+    }
+
+    const user = await User.findOne({ email }).select('+twoFactorOtp +twoFactorOtpExpires +twoFactorOtpAttempts');
     if (!user) {
       throw { status: 404, message: 'User not found' };
     }
-    
-    if (!user.twoFactorOtp || user.twoFactorOtpExpires < Date.now()) {
-      user.twoFactorOtp = generateOTP();
-      user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
-      await user.save();
-    }
+
+    const otp = generateOTP();
+    user.twoFactorOtp = otp;
+    user.twoFactorOtpExpires = Date.now() + 15 * 60 * 1000;
+    user.twoFactorOtpAttempts = 0;
+    await user.save();
 
     if (method === 'sms') {
       if (!user.phoneNumber) {
         throw { status: 400, message: 'No phone number associated with this account' };
       }
-      console.log(`[SMS OTP SIMULATION] Sending OTP ${user.twoFactorOtp} to ${user.phoneNumber}`);
+      const sendSMS = require('../utils/sendSMS');
+      await sendSMS(user.phoneNumber, `Your Alumnex Connect 2FA code is ${otp}. Valid for 15 mins.`).catch(e => console.error('2FA SMS dispatch error:', e.message));
     } else {
       try {
         await sendEmail({
           email: user.email,
           subject: 'Alumnex Connect - 2FA Login Verification',
-          message: `<p>Your secure verification code is: <strong>${user.twoFactorOtp}</strong></p>`
+          message: `<p>Your secure verification code is: <strong>${otp}</strong></p><p>This code is valid for 15 minutes.</p>`
         });
       } catch (err) {
         throw { status: 500, message: 'Failed to send OTP via email' };
@@ -643,21 +796,52 @@ class AuthService {
     return { message: `2FA OTP sent via ${method}` };
   }
 
-  async verify2FA(email, otp) {
-    const user = await User.findOne({
-      email,
-      twoFactorOtp: otp,
-      twoFactorOtpExpires: { $gt: Date.now() }
-    });
+  async verify2FA(email, otp, preAuthChallenge) {
+    if (!preAuthChallenge) {
+      throw { status: 401, message: 'Pre-authentication challenge is required for 2FA verification. Please log in first.' };
+    }
 
+    let decoded;
+    try {
+      decoded = jwt.verify(preAuthChallenge, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      if (decoded.email !== email || decoded.type !== '2fa_pre_auth') {
+        throw new Error('Identity mismatch');
+      }
+    } catch (err) {
+      throw { status: 401, message: 'Invalid or expired 2FA pre-authentication challenge. Please log in again.' };
+    }
+
+    const user = await User.findOne({ email }).select('+twoFactorOtp +twoFactorOtpExpires +twoFactorOtpAttempts');
     if (!user) {
+      throw { status: 404, message: 'User not found' };
+    }
+
+    if (!user.twoFactorOtp || !user.twoFactorOtpExpires || new Date(user.twoFactorOtpExpires).getTime() < Date.now()) {
       throw { status: 400, message: 'Invalid or expired OTP' };
     }
 
+    if ((user.twoFactorOtpAttempts || 0) >= 5) {
+      user.twoFactorOtp = undefined;
+      user.twoFactorOtpExpires = undefined;
+      user.twoFactorOtpAttempts = 0;
+      await user.save();
+      throw { status: 400, message: 'Maximum failed verification attempts exceeded. This OTP has been invalidated.' };
+    }
+
+    if (String(user.twoFactorOtp).trim() !== String(otp).trim()) {
+      user.twoFactorOtpAttempts = (user.twoFactorOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.twoFactorOtpAttempts;
+      throw { status: 400, message: `Invalid OTP. ${remaining} attempt(s) remaining.` };
+    }
+
+    // One-time consumption: immediately clear OTP and attempts
     user.twoFactorOtp = undefined;
     user.twoFactorOtpExpires = undefined;
+    user.twoFactorOtpAttempts = 0;
+    await user.updateLastActive().catch(() => {});
     await user.save();
-    
+
     const token = generateToken(user._id);
     let userResponse;
     try {

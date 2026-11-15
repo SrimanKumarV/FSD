@@ -12,13 +12,18 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@capacitor/android": "^8.4.1",
+    "@capacitor/android": "^8.6.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/browser": "^8.0.4",
-    "@capacitor/core": "^8.4.1",
+    "@capacitor/core": "^8.6.2",
     "@capacitor/push-notifications": "^8.1.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.4.1"
+    "@capacitor/cli": "^8.6.2"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "^0.9.12",
+    "tar": "^7.5.23",
+    "brace-expansion": "^5.0.13"
   }
 }

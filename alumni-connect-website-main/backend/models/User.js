@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Role is required'],
     default: 'student'
   },
-  
+
   // Profile Information
   photo: {
     type: String,
@@ -77,7 +77,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
-  
+
   // Student-specific fields
   studentInfo: {
     course: {
@@ -92,7 +92,7 @@ const userSchema = new mongoose.Schema({
       trim: true
     }
   },
-  
+
   // Alumni-specific fields
   alumniInfo: {
     graduationYear: {
@@ -157,7 +157,7 @@ const userSchema = new mongoose.Schema({
       default: 0
     }
   },
-  
+
   // College-specific fields
   collegeInfo: {
     establishedYear: {
@@ -208,7 +208,7 @@ const userSchema = new mongoose.Schema({
       image: String
     }
   },
-  
+
   // Social Links
   socialLinks: {
     linkedin: String,
@@ -220,7 +220,7 @@ const userSchema = new mongoose.Schema({
     leetcode: String,
     codolio: String
   },
-  
+
   // Rewards & Gamification
   rewardPoints: {
     type: Number,
@@ -242,7 +242,7 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   },
-  
+
   // Account Status
   status: {
     type: String,
@@ -261,7 +261,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  
+
   // Statistics
   connections: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -279,7 +279,7 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  
+
   // Timestamps
   lastActive: {
     type: Date,
@@ -288,13 +288,13 @@ const userSchema = new mongoose.Schema({
   lastEngagementEmailSent: {
     type: Date
   },
-  
+
   // Tasks completed by the user
   completedTasks: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Task'
   }],
-  
+
   // Forum interactions
   savedPosts: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -304,22 +304,27 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ForumPost'
   }],
-  
+
   // Password Reset
-  resetPasswordOtp: String,
-  resetPasswordExpires: Date,
-  
+  resetPasswordOtp: { type: String, select: false },
+  resetPasswordExpires: { type: Date, select: false },
+  resetPasswordOtpAttempts: { type: Number, default: 0, select: false },
+
   // Email Verification OTP
-  verificationOtp: String,
-  verificationOtpExpires: Date,
-  
+  verificationOtp: { type: String, select: false },
+  verificationOtpExpires: { type: Date, select: false },
+  verificationOtpAttempts: { type: Number, default: 0, select: false },
+
   // Account Deletion OTP
-  deleteAccountOtp: String,
-  deleteAccountExpires: Date,
-  
-  // 2FA OTP fields
-  twoFactorOtp: String,
-  twoFactorOtpExpires: Date
+  deleteAccountOtp: { type: String, select: false },
+  deleteAccountExpires: { type: Date, select: false },
+  deleteAccountOtpAttempts: { type: Number, default: 0, select: false },
+
+  // 2FA OTP & Security fields
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorOtp: { type: String, select: false },
+  twoFactorOtpExpires: { type: Date, select: false },
+  twoFactorOtpAttempts: { type: Number, default: 0, select: false }
 }, {
   timestamps: true
 });
@@ -329,9 +334,9 @@ userSchema.index({ 'alumniInfo.company': 1 });
 userSchema.index({ skills: 1 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  
+
   try {
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
@@ -342,12 +347,12 @@ userSchema.pre('save', async function(next) {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Update last active timestamp
-userSchema.methods.updateLastActive = function() {
+userSchema.methods.updateLastActive = function () {
   this.lastActive = new Date();
   return this.constructor.updateOne(
     { _id: this._id },
@@ -355,21 +360,98 @@ userSchema.methods.updateLastActive = function() {
   );
 };
 
-// Get public profile (without sensitive information)
-userSchema.methods.getPublicProfile = function() {
+// Get public profile using an explicit allowlist of safe fields
+userSchema.methods.getPublicProfile = function () {
+  const alumni = this.alumniInfo ? {
+    graduationYear: this.alumniInfo.graduationYear,
+    company: this.alumniInfo.company,
+    position: this.alumniInfo.position,
+    industry: this.alumniInfo.industry,
+    experience: this.alumniInfo.experience,
+    studentsPlaced: this.alumniInfo.studentsPlaced,
+    adminVerifiedMentor: this.alumniInfo.adminVerifiedMentor,
+    availableForMentorship: this.alumniInfo.availableForMentorship,
+    mentorshipAreas: this.alumniInfo.mentorshipAreas || [],
+    maxMentees: this.alumniInfo.maxMentees,
+    preferredBatches: this.alumniInfo.preferredBatches || [],
+    mentorRating: this.alumniInfo.mentorRating,
+    mentorReviewCount: this.alumniInfo.mentorReviewCount,
+    mentorshipHours: this.alumniInfo.mentorshipHours
+    // employmentProofUrl is private verification evidence and strictly excluded from public profiles
+  } : undefined;
+
+  const student = this.studentInfo ? {
+    course: this.studentInfo.course,
+    year: this.studentInfo.year,
+    university: this.studentInfo.university
+  } : undefined;
+
+  const college = this.collegeInfo ? {
+    establishedYear: this.collegeInfo.establishedYear,
+    accreditation: this.collegeInfo.accreditation,
+    officialUrl: this.collegeInfo.officialUrl,
+    extractedProfile: this.collegeInfo.extractedProfile,
+    websiteMetadata: this.collegeInfo.websiteMetadata
+  } : undefined;
+
+  return {
+    _id: this._id,
+    name: this.name,
+    email: this.email,
+    role: this.role,
+    photo: this.photo,
+    bio: this.bio,
+    skills: this.skills || [],
+    interests: this.interests || [],
+    location: this.location,
+    country: this.country,
+    college: this.college,
+    department: this.department,
+    studentInfo: student,
+    alumniInfo: alumni,
+    collegeInfo: college,
+    socialLinks: this.socialLinks || {},
+    rewardPoints: this.rewardPoints || 0,
+    status: this.status,
+    isVerified: this.isVerified,
+    isApproved: this.isApproved,
+    isActive: this.isActive,
+    connections: this.connections || [],
+    followers: this.followers || [],
+    following: this.following || [],
+    lastActive: this.lastActive,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt
+  };
+};
+
+// Get authenticated private profile for the account owner (includes preferences and contact info, strips secrets)
+userSchema.methods.getPrivateProfile = function () {
   const userObject = this.toObject();
   delete userObject.password;
+  delete userObject.resetPasswordOtp;
+  delete userObject.resetPasswordExpires;
+  delete userObject.resetPasswordOtpAttempts;
+  delete userObject.verificationOtp;
+  delete userObject.verificationOtpExpires;
+  delete userObject.verificationOtpAttempts;
+  delete userObject.deleteAccountOtp;
+  delete userObject.deleteAccountExpires;
+  delete userObject.deleteAccountOtpAttempts;
+  delete userObject.twoFactorOtp;
+  delete userObject.twoFactorOtpExpires;
+  delete userObject.twoFactorOtpAttempts;
   delete userObject.__v;
   return userObject;
 };
 
 // Virtual for full name
-userSchema.virtual('fullName').get(function() {
+userSchema.virtual('fullName').get(function () {
   return this.name;
 });
 
 // Virtual for isOnline
-userSchema.virtual('isOnline').get(function() {
+userSchema.virtual('isOnline').get(function () {
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
   return this.lastActive > fiveMinutesAgo;
 });
@@ -380,31 +462,31 @@ userSchema.index({ 'alumniInfo.industry': 1 });
 userSchema.index({ location: 1 });
 
 // Cascade delete related documents when user is deleted
-userSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+userSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
   try {
     const userId = this._id;
-    
+
     // Delete all forum posts authored by user
     await mongoose.model('ForumPost').deleteMany({ author: userId });
-    
+
     // Remove user from likes and comments in other posts
-    await mongoose.model('ForumPost').updateMany({}, { 
-      $pull: { 
-        likes: userId, 
+    await mongoose.model('ForumPost').updateMany({}, {
+      $pull: {
+        likes: userId,
         dislikes: userId,
-        comments: { author: userId } 
-      } 
+        comments: { author: userId }
+      }
     });
-    
+
     // Delete messages
     await mongoose.model('Message').deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
-    
+
     // Delete mentorships
     await mongoose.model('Mentorship').deleteMany({ $or: [{ mentor: userId }, { student: userId }] });
-    
+
     // Delete notifications
     await mongoose.model('Notification').deleteMany({ $or: [{ sender: userId }, { recipient: userId }] });
-    
+
     // Delete jobs posted by user
     await mongoose.model('Job').deleteMany({ postedBy: userId });
 

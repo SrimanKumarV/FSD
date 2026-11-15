@@ -22,6 +22,14 @@ allprojects {
         google()
         mavenCentral()
     }
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'io.netty') {
+                details.useVersion '4.1.118.Final'
+                details.because 'Patch known Netty vulnerabilities across all Android modules'
+            }
+        }
+    }
 }
 
 task clean(type: Delete) {

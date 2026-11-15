@@ -1,33 +1,46 @@
 const webpush = require('web-push');
 const NotificationDevice = require('../models/NotificationDevice');
 
-// Standard VAPID credentials
-const DEFAULT_VAPID_PUBLIC = 'BB4GQdXt_2Zh6UtcNI4hakKYtAKXzjHDTIqyn7UzxLTxPf_sHunFQ9cn-JerqeTb4df0F9IWBFa2K9cEAuADp1Y';
-const DEFAULT_VAPID_PRIVATE = 'A25DaMua84sNKE29lJAoqk2hlVuaaGyY48vl7R4fp9s';
-const DEFAULT_VAPID_SUBJECT = 'mailto:support@alumnex.com';
-
 class WebPushService {
   constructor() {
-    this.publicKey = process.env.VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC;
-    this.privateKey = process.env.VAPID_PRIVATE_KEY || DEFAULT_VAPID_PRIVATE;
-    this.subject = process.env.VAPID_SUBJECT || DEFAULT_VAPID_SUBJECT;
+    this.publicKey = process.env.VAPID_PUBLIC_KEY ? process.env.VAPID_PUBLIC_KEY.trim() : null;
+    this.privateKey = process.env.VAPID_PRIVATE_KEY ? process.env.VAPID_PRIVATE_KEY.trim() : null;
+    this.subject = process.env.VAPID_SUBJECT ? process.env.VAPID_SUBJECT.trim() : 'mailto:support@alumnex.com';
     this.initialized = false;
+    this.isAvailable = false;
 
     this.init();
   }
 
   init() {
+    if (!this.publicKey || !this.privateKey) {
+      if (process.env.NODE_ENV === 'production' && process.env.REQUIRE_PUSH_NOTIFICATIONS === 'true') {
+        throw new Error('[WebPushService] Missing required VAPID configuration in production. VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set.');
+      }
+      this.initialized = false;
+      this.isAvailable = false;
+      console.warn('[WebPushService] Note: VAPID keys not configured in environment. Web Push notifications are safely disabled.');
+      return;
+    }
+
     try {
       webpush.setVapidDetails(this.subject, this.publicKey, this.privateKey);
       this.initialized = true;
+      this.isAvailable = true;
       console.log('[WebPushService] VAPID details initialized successfully.');
     } catch (err) {
+      this.initialized = false;
+      this.isAvailable = false;
       console.error('[WebPushService] Failed to set VAPID details:', err.message);
     }
   }
 
+  isConfigured() {
+    return Boolean(this.initialized && this.isAvailable && this.publicKey);
+  }
+
   getPublicKey() {
-    return this.publicKey;
+    return this.isConfigured() ? this.publicKey : null;
   }
 
   /**
@@ -37,12 +50,12 @@ class WebPushService {
    * @returns {Promise<{ success: boolean, statusCode?: number, error?: string, expired?: boolean }>}
    */
   async sendPushNotification(subscription, payload) {
-    if (!subscription || !subscription.endpoint) {
-      return { success: false, error: 'Invalid subscription object' };
+    if (!this.isConfigured()) {
+      return { success: false, disabled: true, error: 'Web Push notifications are not configured on this server.' };
     }
 
-    if (!this.initialized) {
-      this.init();
+    if (!subscription || !subscription.endpoint) {
+      return { success: false, error: 'Invalid subscription object' };
     }
 
     const notificationPayload = JSON.stringify({

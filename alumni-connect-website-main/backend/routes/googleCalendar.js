@@ -279,7 +279,7 @@ router.get('/callback', async (req, res) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(state, process.env.JWT_SECRET);
+    decoded = jwt.verify(state, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     if (decoded.type !== 'google_calendar_oauth') {
       throw new Error('Invalid state token type');
     }
@@ -889,7 +889,7 @@ router.post('/webhook', async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(channelToken, process.env.JWT_SECRET);
+    const decoded = jwt.verify(channelToken, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     const { userId, calendarId } = decoded;
 
     if (userId) {

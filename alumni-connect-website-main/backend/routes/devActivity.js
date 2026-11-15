@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const DevProfile = require('../models/DevProfile');
 const { protect } = require('../middleware/auth');
 const {
@@ -47,6 +48,11 @@ router.get('/public/:userId', protect, async (req, res) => {
 router.get('/:email', protect, async (req, res) => {
   try {
     const { email } = req.params;
+
+    // IDOR / BOLA Authorization: user can only access their own developer profile unless admin
+    if (req.user.email !== email && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to access this developer profile' });
+    }
     
     // Find or create profile
     let profile = await DevProfile.findOne({ email });
@@ -67,6 +73,7 @@ router.get('/:email', protect, async (req, res) => {
         stats: profile.stats,
         lastUpdated: profile.lastUpdated,
         alumnexScore: profile.alumnexScore,
+        verificationCode: profile.verificationCode,
         fromCache: true
       });
     }
@@ -280,8 +287,8 @@ router.post('/generate-code', protect, async (req, res) => {
       });
     }
 
-    // Generate random 8-char code
-    const code = 'ALUMNEX_VERIFY_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    // Generate cryptographically random code
+    const code = 'ALUMNEX_VERIFY_' + crypto.randomBytes(6).toString('hex').toUpperCase();
     
     profile.verificationCode = code;
     profile.verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours

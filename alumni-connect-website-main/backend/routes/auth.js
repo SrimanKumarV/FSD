@@ -6,6 +6,13 @@ const axios = require('axios');
 const { body, validationResult } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const authService = require('../services/authService');
+const {
+  loginLimiter,
+  registerLimiter,
+  otpSendLimiter,
+  otpVerifyLimiter,
+  passwordResetLimiter
+} = require('../middleware/rateLimiters');
 
 const setTokenCookie = (res, token) => {
   res.cookie('token', token, {
@@ -77,7 +84,7 @@ router.post('/oauth-complete', [
   }
 });
 
-router.post('/register', [
+router.post('/register', registerLimiter, [
   body('name', 'Name is required').notEmpty().trim().isLength({ min: 2, max: 50 }),
   body('email', 'Please include a valid email').isEmail().normalizeEmail(),
   body('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
@@ -113,7 +120,7 @@ router.post('/register', [
   }
 });
 
-router.post('/login', [
+router.post('/login', loginLimiter, [
   body('email', 'Please include a valid email').isEmail().normalizeEmail(),
   body('password', 'Password is required').exists()
 ], async (req, res) => {
@@ -123,6 +130,16 @@ router.post('/login', [
 
     const { email, password } = req.body;
     const result = await authService.login(email, password);
+
+    if (result.requires2FA) {
+      res.cookie('pre_auth_challenge', result.preAuthChallenge, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 10 * 60 * 1000
+      });
+      return res.json({ success: true, ...result });
+    }
     
     setTokenCookie(res, result.token);
     res.json({ success: true, ...result });
@@ -141,7 +158,7 @@ router.get('/me', protect, async (req, res) => {
     const User = require('../models/User');
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ success: true, user: user.getPublicProfile() });
+    res.json({ success: true, user: typeof user.getPrivateProfile === 'function' ? user.getPrivateProfile() : user.getPublicProfile() });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -184,7 +201,7 @@ router.post('/change-password', [
   }
 });
 
-router.post('/forgot-password', [
+router.post('/forgot-password', passwordResetLimiter, [
   body('email', 'Please include a valid email').isEmail().normalizeEmail()
 ], async (req, res) => {
   try {
@@ -200,7 +217,7 @@ router.post('/forgot-password', [
   }
 });
 
-router.post('/reset-password', [
+router.post('/reset-password', otpVerifyLimiter, [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('otp', 'OTP is required').exists(),
   body('newPassword', 'New password must be at least 6 characters').isLength({ min: 6 })
@@ -218,15 +235,31 @@ router.post('/reset-password', [
   }
 });
 
-router.post('/logout', protect, async (req, res) => {
+router.post('/logout', async (req, res) => {
   try {
-    await req.user.updateLastActive();
-    res.cookie('token', '', { 
-      httpOnly: true, 
-      expires: new Date(0),
+    const headerToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer')
+      ? req.headers.authorization.split(' ')[1]
+      : null;
+    const cookieToken = req.cookies?.token || null;
+    const token = headerToken || cookieToken;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+        const User = require('../models/User');
+        await User.updateOne({ _id: decoded.id }, { $set: { lastActive: new Date() } });
+      } catch (err) {
+        // Token might already be expired; proceed with clearing cookies
+      }
+    }
+
+    const cookieOptions = {
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    });
+    };
+    res.clearCookie('token', cookieOptions);
+    res.clearCookie('pre_auth_challenge', cookieOptions);
     res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
@@ -234,7 +267,7 @@ router.post('/logout', protect, async (req, res) => {
   }
 });
 
-router.post('/verify-email', [
+router.post('/verify-email', otpVerifyLimiter, [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('otp', 'OTP is required').exists()
 ], async (req, res) => {
@@ -253,7 +286,7 @@ router.post('/verify-email', [
   }
 });
 
-router.post('/resend-verification', [
+router.post('/resend-verification', otpSendLimiter, [
   body('email', 'Valid email is required').isEmail().normalizeEmail()
 ], async (req, res) => {
   try {
@@ -269,7 +302,7 @@ router.post('/resend-verification', [
   }
 });
 
-router.post('/send-2fa', [
+router.post('/send-2fa', otpSendLimiter, [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('method', 'Method must be email or sms').isIn(['email', 'sms'])
 ], async (req, res) => {
@@ -278,7 +311,8 @@ router.post('/send-2fa', [
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, method } = req.body;
-    const result = await authService.send2FA(email, method);
+    const preAuthChallenge = req.body.preAuthChallenge || req.headers['x-pre-auth-challenge'] || req.cookies?.pre_auth_challenge;
+    const result = await authService.send2FA(email, method, preAuthChallenge);
     res.json({ success: true, ...result });
   } catch (error) {
     console.error('Send 2FA error:', error);
@@ -286,7 +320,7 @@ router.post('/send-2fa', [
   }
 });
 
-router.post('/verify-2fa', [
+router.post('/verify-2fa', otpVerifyLimiter, [
   body('email', 'Valid email is required').isEmail().normalizeEmail(),
   body('otp', 'OTP is required').exists()
 ], async (req, res) => {
@@ -295,8 +329,10 @@ router.post('/verify-2fa', [
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { email, otp } = req.body;
-    const result = await authService.verify2FA(email, otp);
+    const preAuthChallenge = req.body.preAuthChallenge || req.headers['x-pre-auth-challenge'] || req.cookies?.pre_auth_challenge;
+    const result = await authService.verify2FA(email, otp, preAuthChallenge);
     
+    res.clearCookie('pre_auth_challenge');
     setTokenCookie(res, result.token);
     res.json({ success: true, ...result });
   } catch (error) {
@@ -514,7 +550,7 @@ router.get('/mobile/google/callback', async (req, res) => {
     }
 
     try {
-      const decoded = jwt.verify(state, process.env.JWT_SECRET);
+      const decoded = jwt.verify(state, process.env.JWT_SECRET, { algorithms: ['HS256'] });
       if (decoded.type !== 'mobile_google_oauth') {
         throw new Error('Invalid state type');
       }

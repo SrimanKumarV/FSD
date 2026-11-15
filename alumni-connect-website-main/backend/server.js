@@ -16,6 +16,10 @@ const hpp = require('hpp');
 // Load environment variables
 dotenv.config();
 
+// Validate critical security environment variables on startup
+const validateEnv = require('./config/validateEnv');
+validateEnv();
+
 const app = express();
 app.set('trust proxy', 1);
 const server = http.createServer(app);
@@ -153,9 +157,9 @@ if (process.env.NODE_ENV !== 'test') {
 
       // Google Calendar Configuration & Encryption Key Startup Validation (Step 20)
       try {
-        const encryptionKey = process.env.GOOGLE_CALENDAR_ENCRYPTION_KEY || process.env.JWT_SECRET;
+        const encryptionKey = process.env.ENCRYPTION_KEY || process.env.GOOGLE_CALENDAR_ENCRYPTION_KEY;
         if (!encryptionKey) {
-          console.warn('[Startup] [GoogleCalendar] Warning: Neither GOOGLE_CALENDAR_ENCRYPTION_KEY nor JWT_SECRET is configured. Calendar token encryption requires a secure 32-byte secret.');
+          console.warn('[Startup] [GoogleCalendar] Warning: Neither ENCRYPTION_KEY nor GOOGLE_CALENDAR_ENCRYPTION_KEY is configured. Dedicated encryption requires a secure 32-byte secret.');
         } else {
           console.log('[Startup] [GoogleCalendar] Token encryption engine validated.');
         }

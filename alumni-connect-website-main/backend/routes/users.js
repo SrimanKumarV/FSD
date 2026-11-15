@@ -1,7 +1,9 @@
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const { protect, verified, approved, canAccessResource } = require('../middleware/auth');
+const { protect, optionalAuth, verified, approved, canAccessResource } = require('../middleware/auth');
+const { otpSendLimiter, otpVerifyLimiter } = require('../middleware/rateLimiters');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Mentorship = require('../models/Mentorship');
@@ -162,9 +164,10 @@ router.get('/search', protect, async (req, res) => {
       .sort({ name: 1 });
 
     const total = await User.countDocuments(query);
+    const sanitizedUsers = users.map(u => (typeof u.getPublicProfile === 'function' ? u.getPublicProfile() : u));
 
     res.json({
-      users,
+      users: sanitizedUsers,
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
@@ -182,7 +185,7 @@ router.get('/search', protect, async (req, res) => {
 // @desc    Get user profile by ID
 // @route   GET /api/users/:id
 // @access  Public (for basic info), Private (for detailed info)
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
     
@@ -190,18 +193,19 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // If requesting user is authenticated, return detailed profile
-    if (req.user) {
-      const isOwnProfile = req.user.id === req.params.id;
-      const isConnected = user.connections.includes(req.user.id);
-      
-      if (isOwnProfile || isConnected) {
-        return res.json({ user: user.toObject() });
-      }
+    // If requesting user is the profile owner or admin, return private profile
+    const isOwnProfile = req.user && (
+      req.user.id === req.params.id ||
+      req.user._id?.toString() === req.params.id ||
+      req.user.role === 'admin'
+    );
+
+    if (isOwnProfile) {
+      return res.json({ user: typeof user.getPrivateProfile === 'function' ? user.getPrivateProfile() : user.toObject() });
     }
 
-    // Return public profile for unauthenticated users
-    const publicProfile = user.getPublicProfile();
+    // Return explicit allowlist public profile for all other users
+    const publicProfile = typeof user.getPublicProfile === 'function' ? user.getPublicProfile() : user.toObject();
     res.json({ user: publicProfile });
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -257,7 +261,7 @@ router.put('/profile', protect, [
 
     await User.updateOne({ _id: user._id }, { $set: updateData });
     const updatedUser = await User.findById(req.user.id);
-    res.json({ user: updatedUser.toObject() });
+    res.json({ user: typeof updatedUser.getPrivateProfile === 'function' ? updatedUser.getPrivateProfile() : updatedUser.toObject() });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({ message: 'Server error' });
@@ -326,7 +330,7 @@ router.put('/profile/:role', protect, async (req, res) => {
     }
 
     await user.save();
-    res.json({ user: user.toObject() });
+    res.json({ user: typeof user.getPrivateProfile === 'function' ? user.getPrivateProfile() : user.toObject() });
   } catch (error) {
     console.error('Error updating role profile:', error);
     res.status(500).json({ message: 'Server error' });
@@ -350,7 +354,7 @@ router.post('/photo', protect, async (req, res) => {
     user.photo = photoUrl;
     await user.save();
 
-    res.json({ user: user.toObject() });
+    res.json({ user: typeof user.getPrivateProfile === 'function' ? user.getPrivateProfile() : user.toObject() });
   } catch (error) {
     console.error('Error uploading photo:', error);
     res.status(500).json({ message: 'Server error' });
@@ -360,22 +364,22 @@ router.post('/photo', protect, async (req, res) => {
 // @desc    Send Phone Verification OTP
 // @route   POST /api/users/profile/phone/send-otp
 // @access  Private
-router.post('/profile/phone/send-otp', protect, async (req, res) => {
+router.post('/profile/phone/send-otp', protect, otpSendLimiter, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user.phoneNumber) {
       return res.status(400).json({ message: 'No phone number associated with this account' });
     }
     
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 1000000).toString();
     const expires = new Date(Date.now() + 15 * 60 * 1000);
     await User.updateOne(
       { _id: user._id }, 
-      { $set: { twoFactorOtp: otp, twoFactorOtpExpires: expires } }
+      { $set: { twoFactorOtp: otp, twoFactorOtpExpires: expires, twoFactorOtpAttempts: 0 } }
     );
     
-    // Simulate SMS sending by logging, AND try to send actual SMS
-    console.log(`[SMS VERIFICATION] Sending OTP ${otp} to ${user.phoneNumber}`);
+    // Safe logging without exposing OTP in cleartext
+    console.log(`[SMS VERIFICATION] Dispatched phone verification code to user ${user._id}`);
     
     const sendSMS = require('../utils/sendSMS');
     const smsSent = await sendSMS(user.phoneNumber, `Your Alumnex Connect verification OTP is ${otp}. Valid for 15 mins.`);
@@ -407,7 +411,7 @@ router.post('/profile/phone/send-otp', protect, async (req, res) => {
 // @desc    Verify Phone OTP
 // @route   POST /api/users/profile/phone/verify-otp
 // @access  Private
-router.post('/profile/phone/verify-otp', protect, [
+router.post('/profile/phone/verify-otp', protect, otpVerifyLimiter, [
   body('otp', 'OTP is required').exists()
 ], async (req, res) => {
   try {
@@ -415,26 +419,37 @@ router.post('/profile/phone/verify-otp', protect, [
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { otp } = req.body;
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('+twoFactorOtp +twoFactorOtpExpires +twoFactorOtpAttempts');
 
-    if (!user || !user.twoFactorOtp || String(user.twoFactorOtp).trim() !== String(otp).trim()) {
-      return res.status(400).json({ message: 'Invalid OTP' });
+    if (!user || !user.twoFactorOtp || !user.twoFactorOtpExpires || new Date(user.twoFactorOtpExpires).getTime() < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
-    
-    if (new Date(user.twoFactorOtpExpires).getTime() < Date.now()) {
-      return res.status(400).json({ message: 'Expired OTP' });
+
+    if ((user.twoFactorOtpAttempts || 0) >= 5) {
+      user.twoFactorOtp = undefined;
+      user.twoFactorOtpExpires = undefined;
+      user.twoFactorOtpAttempts = 0;
+      await user.save();
+      return res.status(400).json({ message: 'Maximum failed verification attempts exceeded. Please request a new OTP.' });
+    }
+
+    if (String(user.twoFactorOtp).trim() !== String(otp).trim()) {
+      user.twoFactorOtpAttempts = (user.twoFactorOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.twoFactorOtpAttempts;
+      return res.status(400).json({ message: `Invalid OTP. ${remaining} attempt(s) remaining.` });
     }
 
     await User.updateOne(
       { _id: user._id },
       { 
-        $set: { phoneVerified: true, smsNotifications: true }, // Enable sms forward by default upon verification
-        $unset: { twoFactorOtp: "", twoFactorOtpExpires: "" }
+        $set: { phoneVerified: true, smsNotifications: true },
+        $unset: { twoFactorOtp: "", twoFactorOtpExpires: "", twoFactorOtpAttempts: "" }
       }
     );
 
     const updatedUser = await User.findById(req.user.id);
-    res.json({ message: 'Phone number verified successfully', user: updatedUser.toObject() });
+    res.json({ message: 'Phone number verified successfully', user: typeof updatedUser.getPrivateProfile === 'function' ? updatedUser.getPrivateProfile() : updatedUser.toObject() });
   } catch (error) {
     console.error('Error verifying phone:', error);
     res.status(500).json({ message: 'Server error' });
@@ -529,11 +544,12 @@ router.get('/:id/connections', protect, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const isOwnerOrAdmin = req.user.id === req.params.id || req.user._id?.toString() === req.params.id || req.user.role === 'admin';
     res.json({ 
       connections: user.connections,
       followers: user.followers,
       following: user.following,
-      followRequests: user.followRequests
+      followRequests: isOwnerOrAdmin ? user.followRequests : []
     });
   } catch (error) {
     console.error('Error fetching connections:', error);
@@ -801,10 +817,11 @@ router.post('/delete-request', protect, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit cryptographic OTP
+    const otp = crypto.randomInt(100000, 1000000).toString();
     user.deleteAccountOtp = otp;
     user.deleteAccountExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+    user.deleteAccountOtpAttempts = 0;
     await user.save();
 
     const message = `
@@ -840,12 +857,27 @@ router.delete('/me', [
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { otp } = req.body;
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('+deleteAccountOtp +deleteAccountExpires +deleteAccountOtpAttempts');
 
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    if (user.deleteAccountOtp !== otp || user.deleteAccountExpires < Date.now()) {
+    if (!user.deleteAccountOtp || !user.deleteAccountExpires || user.deleteAccountExpires < Date.now()) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    if ((user.deleteAccountOtpAttempts || 0) >= 5) {
+      user.deleteAccountOtp = undefined;
+      user.deleteAccountExpires = undefined;
+      user.deleteAccountOtpAttempts = 0;
+      await user.save();
+      return res.status(400).json({ message: 'Maximum failed verification attempts exceeded. This OTP has been invalidated.' });
+    }
+
+    if (String(user.deleteAccountOtp).trim() !== String(otp).trim()) {
+      user.deleteAccountOtpAttempts = (user.deleteAccountOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.deleteAccountOtpAttempts;
+      return res.status(400).json({ message: `Invalid OTP. ${remaining} attempt(s) remaining.` });
     }
 
     const userId = user._id;

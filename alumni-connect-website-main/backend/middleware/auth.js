@@ -19,7 +19,7 @@ const protect = async (req, res, next) => {
 
   for (const token of candidateTokens) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
       const user = await User.findById(decoded.id).select('-password');
 
       if (!user) {
@@ -32,7 +32,7 @@ const protect = async (req, res, next) => {
 
       req.user = user;
       // Update last active in background
-      user.updateLastActive().catch(() => {});
+      user.updateLastActive().catch(() => { });
       return next();
     } catch (err) {
       lastError = err;
@@ -44,6 +44,35 @@ const protect = async (req, res, next) => {
     message: isExpired ? 'Session expired, please refresh' : 'Not authorized, token failed',
     code: isExpired ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN'
   });
+};
+
+// Middleware for optional authentication (populates req.user if valid token present, never rejects)
+const optionalAuth = async (req, res, next) => {
+  const headerToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer')
+    ? req.headers.authorization.split(' ')[1]
+    : null;
+  const cookieToken = req.cookies?.token || null;
+  const candidateTokens = [headerToken, cookieToken].filter(Boolean);
+
+  if (candidateTokens.length === 0) {
+    return next();
+  }
+
+  for (const token of candidateTokens) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      const user = await User.findById(decoded.id).select('-password');
+      if (user && user.isActive) {
+        req.user = user;
+        user.updateLastActive().catch(() => { });
+        return next();
+      }
+    } catch (err) {
+      // Continue to next candidate or proceed as unauthenticated guest
+    }
+  }
+
+  return next();
 };
 
 // Middleware to check if user is admin
@@ -113,7 +142,7 @@ const approved = (req, res, next) => {
 const canAccessResource = (resourceField = 'userId') => {
   return (req, res, next) => {
     const resourceUserId = req.params[resourceField] || req.body[resourceField];
-    
+
     if (!resourceUserId) {
       return res.status(400).json({ message: 'Resource user ID not provided' });
     }
@@ -136,7 +165,7 @@ const canAccessResource = (resourceField = 'userId') => {
 const isResourceOwner = (resourceField = 'userId') => {
   return (req, res, next) => {
     const resourceUserId = req.params[resourceField] || req.body[resourceField];
-    
+
     if (!resourceUserId) {
       return res.status(400).json({ message: 'Resource user ID not provided' });
     }
@@ -240,7 +269,7 @@ const canPostInForum = (req, res, next) => {
 const canEditOwnContent = (contentField = 'author') => {
   return (req, res, next) => {
     const contentAuthorId = req.params[contentField] || req.body[contentField];
-    
+
     if (!contentAuthorId) {
       return res.status(400).json({ message: 'Content author ID not provided' });
     }
@@ -263,7 +292,7 @@ const canEditOwnContent = (contentField = 'author') => {
 const canDeleteOwnContent = (contentField = 'author') => {
   return (req, res, next) => {
     const contentAuthorId = req.params[contentField] || req.body[contentField];
-    
+
     if (!contentAuthorId) {
       return res.status(400).json({ message: 'Content author ID not provided' });
     }
@@ -284,6 +313,7 @@ const canDeleteOwnContent = (contentField = 'author') => {
 
 module.exports = {
   protect,
+  optionalAuth,
   admin,
   alumni,
   student,

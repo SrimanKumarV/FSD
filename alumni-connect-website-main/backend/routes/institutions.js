@@ -4,6 +4,9 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
+const { searchLimiter, extractionLimiter } = require('../middleware/rateLimiters');
+const { safeFetchHtml } = require('../utils/ssrfValidator');
+const escapeRegex = require('../utils/escapeRegex');
 
 let indianCollegesCache = null;
 let isFetchingColleges = false;
@@ -42,9 +45,9 @@ function fetchIndianColleges() {
 // Start fetching right away so it's ready when users need it
 fetchIndianColleges();
 
-router.get('/search', async (req, res) => {
-    const country = req.query.country || '';
-    const name = req.query.name || '';
+router.get('/search', searchLimiter, async (req, res) => {
+    const country = typeof req.query.country === 'string' ? req.query.country.slice(0, 100) : '';
+    const name = typeof req.query.name === 'string' ? req.query.name.slice(0, 100) : '';
     
     let results = [];
     
@@ -96,7 +99,7 @@ router.get('/search', async (req, res) => {
 // @route   POST /api/institutions/extract-profile
 // @desc    Extract college profile from officialUrl using Web Scraping + AI
 // @access  Private (College only)
-router.post('/extract-profile', protect, async (req, res) => {
+router.post('/extract-profile', protect, extractionLimiter, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         
@@ -110,20 +113,18 @@ router.post('/extract-profile', protect, async (req, res) => {
             return res.status(400).json({ message: 'No official URL found in your profile. Please update your profile first.' });
         }
         
-        // 1. Scrape the website
-        console.log(`[Institutions API] Scraping website: ${url}`);
+        // 1. Scrape the website securely via safeFetchHtml (SSRF protected)
+        console.log(`[Institutions API] Scraping website safely: ${url}`);
         let html;
         try {
-            const response = await axios.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                },
-                timeout: 10000 // 10 seconds timeout
+            const response = await safeFetchHtml(url, {
+                timeoutMs: 8000,
+                maxBytes: 3 * 1024 * 1024
             });
             html = response.data;
         } catch (err) {
             console.error('[Institutions API] Scrape Error:', err.message);
-            return res.status(400).json({ message: 'Could not access the college website. It may be protected or unreachable.' });
+            return res.status(400).json({ message: 'Could not access the college website. It may be protected, unreachable, or targeting an internal network.' });
         }
         
         // 2. Parse text with Cheerio

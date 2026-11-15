@@ -1,3 +1,4 @@
+const escapeRegex = require('../utils/escapeRegex');
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -78,12 +79,13 @@ router.get('/users', [protect, admin], async (req, res) => {
     if (isVerified !== undefined) query.isVerified = isVerified === 'true';
 
     // Search query
-    if (q) {
+    if (q && typeof q === 'string') {
+      const safeQ = escapeRegex(q.trim());
       query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { email: { $regex: q, $options: 'i' } },
-        { 'alumniInfo.company': { $regex: q, $options: 'i' } },
-        { 'alumniInfo.industry': { $regex: q, $options: 'i' } }
+        { name: { $regex: safeQ, $options: 'i' } },
+        { email: { $regex: safeQ, $options: 'i' } },
+        { 'alumniInfo.company': { $regex: safeQ, $options: 'i' } },
+        { 'alumniInfo.industry': { $regex: safeQ, $options: 'i' } }
       ];
     }
 

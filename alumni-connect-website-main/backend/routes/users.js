@@ -3,7 +3,9 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const { protect, optionalAuth, verified, approved, canAccessResource } = require('../middleware/auth');
-const { otpSendLimiter, otpVerifyLimiter } = require('../middleware/rateLimiters');
+const { otpSendLimiter, otpVerifyLimiter, searchLimiter } = require('../middleware/rateLimiters');
+const escapeRegex = require('../utils/escapeRegex');
+const { safeFetchHtml } = require('../utils/ssrfValidator');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Mentorship = require('../models/Mentorship');
@@ -111,11 +113,11 @@ router.get('/dashboard', protect, async (req, res) => {
 // @desc    Search users
 // @route   GET /api/users/search
 // @access  Private
-router.get('/search', protect, async (req, res) => {
+router.get('/search', protect, searchLimiter, async (req, res) => {
   try {
     const { q, role, industry, location, skills, company, country, college } = req.query;
-    const page = parseInt(req.query.page) || 1;
-    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 10), 50);
     const skip = (page - 1) * limit;
 
     let query = { 
@@ -123,37 +125,58 @@ router.get('/search', protect, async (req, res) => {
       isVerified: true 
     }; // Exclude current user and require verification
 
-    if (role) query.role = role;
-    if (industry) query['alumniInfo.industry'] = { $regex: industry, $options: 'i' };
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (company) query['alumniInfo.company'] = { $regex: company, $options: 'i' };
-    if (country) query.country = { $regex: country, $options: 'i' };
-    if (college) query.college = { $regex: college, $options: 'i' };
+    const ALLOWED_ROLES = ['alumni', 'student', 'faculty', 'college', 'admin'];
+    if (role && typeof role === 'string' && ALLOWED_ROLES.includes(role)) {
+      query.role = role;
+    }
 
-    if (q) {
+    if (industry && typeof industry === 'string') {
+      query['alumniInfo.industry'] = { $regex: escapeRegex(industry.trim()), $options: 'i' };
+    }
+    if (location && typeof location === 'string') {
+      query.location = { $regex: escapeRegex(location.trim()), $options: 'i' };
+    }
+    if (company && typeof company === 'string') {
+      query['alumniInfo.company'] = { $regex: escapeRegex(company.trim()), $options: 'i' };
+    }
+    if (country && typeof country === 'string') {
+      query.country = { $regex: escapeRegex(country.trim()), $options: 'i' };
+    }
+    if (college && typeof college === 'string') {
+      query.college = { $regex: escapeRegex(college.trim()), $options: 'i' };
+    }
+
+    if (q && typeof q === 'string') {
+      const safeQ = escapeRegex(q.trim());
       query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { email: { $regex: q, $options: 'i' } },
-        { bio: { $regex: q, $options: 'i' } },
-        { skills: { $in: [new RegExp(q, 'i')] } },
-        { country: { $regex: q, $options: 'i' } },
-        { college: { $regex: q, $options: 'i' } }
+        { name: { $regex: safeQ, $options: 'i' } },
+        { email: { $regex: safeQ, $options: 'i' } },
+        { bio: { $regex: safeQ, $options: 'i' } },
+        { skills: { $in: [new RegExp(safeQ, 'i')] } },
+        { country: { $regex: safeQ, $options: 'i' } },
+        { college: { $regex: safeQ, $options: 'i' } }
       ];
     }
 
-    if (skills) {
-      const skillArray = skills.split(',').map(skill => skill.trim());
-      if (query.$or) {
-        query.$and = [
-          { $or: query.$or },
-          { $or: [{ skills: { $in: skillArray } }, { interests: { $in: skillArray } }] }
-        ];
-        delete query.$or;
-      } else {
-        query.$or = [
-          { skills: { $in: skillArray } },
-          { interests: { $in: skillArray } }
-        ];
+    if (skills && typeof skills === 'string') {
+      const skillArray = skills
+        .split(',')
+        .map(skill => escapeRegex(skill.trim()))
+        .filter(Boolean)
+        .slice(0, 20);
+      if (skillArray.length > 0) {
+        if (query.$or) {
+          query.$and = [
+            { $or: query.$or },
+            { $or: [{ skills: { $in: skillArray } }, { interests: { $in: skillArray } }] }
+          ];
+          delete query.$or;
+        } else {
+          query.$or = [
+            { skills: { $in: skillArray } },
+            { interests: { $in: skillArray } }
+          ];
+        }
       }
     }
 
@@ -311,9 +334,9 @@ router.put('/profile/:role', protect, async (req, res) => {
       if (officialUrl && officialUrl !== user.collegeInfo.officialUrl) {
         user.collegeInfo.officialUrl = officialUrl;
         
-        // Fetch metadata
+        // Fetch metadata securely via safeFetchHtml (SSRF protected)
         try {
-          const response = await axios.get(officialUrl, { timeout: 5000 });
+          const response = await safeFetchHtml(officialUrl, { timeoutMs: 5000, maxBytes: 1024 * 1024 });
           const $ = cheerio.load(response.data);
           
           const title = $('meta[property="og:title"]').attr('content') || $('title').text() || '';

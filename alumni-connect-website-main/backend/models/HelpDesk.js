@@ -14,4 +14,8 @@ const helpDeskSchema = new mongoose.Schema({
   adminReply: { type: String, trim: true, default: null },
 }, { timestamps: true });
 
+// Compound and single-field performance and query security indexes
+helpDeskSchema.index({ status: 1, createdAt: -1 });
+helpDeskSchema.index({ user: 1 });
+
 module.exports = mongoose.model('HelpDesk', helpDeskSchema);

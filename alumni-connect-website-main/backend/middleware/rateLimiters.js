@@ -70,10 +70,66 @@ const passwordResetLimiter = rateLimit({
   }
 });
 
+// 6. File Upload Limiter: 30 uploads per 15 minutes per IP
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'File upload rate limit reached. Please wait before uploading more files.',
+    code: 'RATE_LIMIT_UPLOAD'
+  }
+});
+
+// 7. Public HelpDesk Submission Limiter: 10 inquiries per 15 minutes per IP
+const helpdeskLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many support submissions. Please wait 15 minutes before submitting another inquiry.',
+    code: 'RATE_LIMIT_HELPDESK'
+  }
+});
+
+// 8. Search Endpoint Limiter: 60 search queries per minute per IP
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Search query rate limit reached. Please slow down your requests.',
+    code: 'RATE_LIMIT_SEARCH'
+  }
+});
+
+// 9. Expensive External URL / Profile Extraction Limiter: 5 extractions per 15 minutes per IP
+const extractionLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Profile extraction rate limit reached. Please wait 15 minutes before extracting again.',
+    code: 'RATE_LIMIT_EXTRACTION'
+  }
+});
+
 module.exports = {
   loginLimiter,
   registerLimiter,
   otpSendLimiter,
   otpVerifyLimiter,
-  passwordResetLimiter
+  passwordResetLimiter,
+  uploadLimiter,
+  helpdeskLimiter,
+  searchLimiter,
+  extractionLimiter
 };

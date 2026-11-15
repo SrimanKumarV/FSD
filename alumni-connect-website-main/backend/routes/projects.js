@@ -1,3 +1,4 @@
+const escapeRegex = require('../utils/escapeRegex');
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
@@ -12,17 +13,19 @@ router.get('/', async (req, res) => {
     
     let query = {};
     
-    if (search) {
+    if (search && typeof search === 'string') {
+      const safeSearch = escapeRegex(search.trim());
       query = {
         $or: [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } }
+          { title: { $regex: safeSearch, $options: 'i' } },
+          { description: { $regex: safeSearch, $options: 'i' } }
         ]
       };
     }
     
-    if (tag) {
-      query.tags = { $in: [new RegExp(tag, 'i')] };
+    if (tag && typeof tag === 'string') {
+      const safeTag = escapeRegex(tag.trim());
+      query.tags = { $in: [new RegExp(safeTag, 'i')] };
     }
 
     const projects = await Project.find(query)

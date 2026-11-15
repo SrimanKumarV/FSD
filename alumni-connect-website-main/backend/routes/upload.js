@@ -1,13 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const { upload } = require('../config/cloudinary');
 const { protect } = require('../middleware/auth');
+const { uploadLimiter } = require('../middleware/rateLimiters');
 
 // @route   POST /api/upload
 // @desc    Upload a file to Cloudinary and return the URL
 // @access  Private
-router.post('/', protect, upload.single('file'), (req, res) => {
-  try {
+router.post('/', protect, uploadLimiter, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: 'File too large. Maximum size is 10MB.' });
+        }
+        return res.status(400).json({ message: `Upload error: ${err.message}` });
+      }
+      return res.status(400).json({ message: err.message || 'File upload failed validation.' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -18,10 +30,7 @@ router.post('/', protect, upload.single('file'), (req, res) => {
       fileName: req.file.originalname,
       fileSize: req.file.size
     });
-  } catch (error) {
-    console.error('Upload Error:', error);
-    res.status(500).json({ message: 'Failed to upload file' });
-  }
+  });
 });
 
 module.exports = router;

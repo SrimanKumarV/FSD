@@ -72,13 +72,49 @@ app.use(helmet({
   frameguard: {
     action: 'deny'
   },
+  xContentTypeOptions: true,
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin'
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
   contentSecurityPolicy: {
+    reportOnly: true,
     directives: {
       defaultSrc: ["'self'"],
-      frameAncestors: ["'none'"]
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://apis.google.com", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.googleusercontent.com", "https://images.unsplash.com"],
+      mediaSrc: ["'self'", "blob:", "https://res.cloudinary.com"],
+      connectSrc: [
+        "'self'",
+        "https://accounts.google.com",
+        "https://api.groq.com",
+        "https://res.cloudinary.com",
+        "https://*.firebaseio.com",
+        "https://identitytoolkit.googleapis.com",
+        "wss:",
+        "ws:"
+      ],
+      frameSrc: ["'self'", "https://accounts.google.com"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: []
     }
   }
 }));
+
+// Disable caching for sensitive API endpoints
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
 app.use(compression());
 app.use(morgan('combined'));
 const corsOptions = {

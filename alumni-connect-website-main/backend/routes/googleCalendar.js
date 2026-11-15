@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -883,25 +884,72 @@ router.post('/webhook', async (req, res) => {
     return;
   }
 
-  if (!channelToken) {
-    console.warn('[Google Calendar Webhook] Received webhook without channel token');
+  if (!channelToken || typeof channelToken !== 'string') {
+    console.warn('[Google Calendar Webhook] Received webhook without valid channel token');
+    return;
+  }
+
+  if (!channelId || typeof channelId !== 'string') {
+    console.warn('[Google Calendar Webhook] Received webhook without channel ID');
     return;
   }
 
   try {
     const decoded = jwt.verify(channelToken, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-    const { userId, calendarId } = decoded;
+    const { userId, calendarId, channelId: tokenChannelId } = decoded;
 
-    if (userId) {
-      const io = req.app.get('io');
-      // Trigger incremental delta sync for this user
-      calendarSyncService.syncUserCalendar(userId, {
-        calendarIds: calendarId ? [calendarId] : undefined,
-        io
-      }).catch(err => {
-        console.error('[Google Calendar Webhook] Async sync error:', err.message);
-      });
+    // Timing-safe comparison of channelId header and channelId embedded in token
+    if (tokenChannelId && typeof tokenChannelId === 'string') {
+      const bufA = Buffer.from(channelId, 'utf8');
+      const bufB = Buffer.from(tokenChannelId, 'utf8');
+      if (bufA.length !== bufB.length || !crypto.timingSafeEqual(bufA, bufB)) {
+        console.warn('[Google Calendar Webhook] Timing-safe channel ID mismatch:', channelId);
+        return;
+      }
     }
+
+    if (!userId) {
+      console.warn('[Google Calendar Webhook] Missing userId in verified token');
+      return;
+    }
+
+    // Verify channel and connection in database
+    const connection = await GoogleCalendarConnection.findOne({
+      userId,
+      'watchChannels.channelId': channelId
+    });
+
+    if (!connection) {
+      console.warn('[Google Calendar Webhook] No matching connection or active watch channel found for user:', userId);
+      return;
+    }
+
+    const channelRecord = connection.watchChannels.find(ch => ch.channelId === channelId);
+    if (!channelRecord) {
+      console.warn('[Google Calendar Webhook] Channel record not found in connection:', channelId);
+      return;
+    }
+
+    // Match resourceId if stored on the channel record
+    if (channelRecord.resourceId && resourceId && channelRecord.resourceId !== resourceId) {
+      console.warn('[Google Calendar Webhook] Resource ID mismatch for channel:', channelId);
+      return;
+    }
+
+    // Check expiration if channel recorded expiration
+    if (channelRecord.expiration && new Date(channelRecord.expiration).getTime() < Date.now()) {
+      console.warn('[Google Calendar Webhook] Channel expired:', channelId);
+      return;
+    }
+
+    const io = req.app.get('io');
+    // Trigger incremental delta sync for this user
+    calendarSyncService.syncUserCalendar(userId, {
+      calendarIds: calendarId ? [calendarId] : undefined,
+      io
+    }).catch(err => {
+      console.error('[Google Calendar Webhook] Async sync error:', err.message);
+    });
   } catch (err) {
     console.error('[Google Calendar Webhook] Token verification failed:', err.message);
   }

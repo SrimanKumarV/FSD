@@ -40,6 +40,10 @@ techAssistanceQuestionSchema.virtual('replies', {
   foreignField: 'questionId'
 });
 
+// Indexes for query performance and preventing collection scans
+techAssistanceQuestionSchema.index({ createdAt: -1 });
+techAssistanceQuestionSchema.index({ author: 1 });
+
 const TechAssistanceQuestion = mongoose.model('TechAssistanceQuestion', techAssistanceQuestionSchema);
 
 const techAssistanceReplySchema = new mongoose.Schema({
@@ -72,6 +76,9 @@ const techAssistanceReplySchema = new mongoose.Schema({
 techAssistanceReplySchema.virtual('upvoteCount').get(function() {
   return this.upvotes ? this.upvotes.length : 0;
 });
+
+// Compound index for replies sorted by time
+techAssistanceReplySchema.index({ questionId: 1, createdAt: 1 });
 
 const TechAssistanceReply = mongoose.model('TechAssistanceReply', techAssistanceReplySchema);
 

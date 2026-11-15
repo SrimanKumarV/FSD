@@ -1,3 +1,4 @@
+const escapeRegex = require('../utils/escapeRegex');
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -19,11 +20,12 @@ router.get('/', async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Search query
-    if (q) {
+    if (q && typeof q === 'string') {
+      const safeQ = escapeRegex(q.trim());
       query.$or = [
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } }
+        { title: { $regex: safeQ, $options: 'i' } },
+        { description: { $regex: safeQ, $options: 'i' } },
+        { tags: { $in: [new RegExp(safeQ, 'i')] } }
       ];
     }
 

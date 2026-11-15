@@ -9,10 +9,12 @@ async function getStandardString() {
     console.log("SRV Records found:");
     console.log(srvRecords);
 
-    // Construct the standard connection string
+    // Construct the standard connection string template without hardcoded credentials
     const hosts = srvRecords.map(record => `${record.name}:${record.port}`).join(',');
-    console.log("\nStandard Connection String:");
-    console.log(`mongodb://srimankumar06_db_user:Annavel2006@${hosts}/alumnex-connect?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority`);
+    const username = process.env.MONGO_USER || '<username>';
+    const password = process.env.MONGO_PASSWORD || '<password>';
+    console.log("\nStandard Connection String template:");
+    console.log(`mongodb://${username}:${password}@${hosts}/alumnex-connect?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority`);
 
   } catch (error) {
     console.error("DNS Resolution Failed:", error);

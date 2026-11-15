@@ -354,7 +354,11 @@ router.get('/mobile/github', (req, res) => {
 
 router.get('/mobile/github/callback', (req, res) => {
   const { code } = req.query;
-  if (!code) return res.status(400).send('No code received from GitHub');
+  const rawCode = typeof code === 'string' ? code.trim() : '';
+  if (!rawCode || !/^[a-zA-Z0-9_\-]+$/.test(rawCode)) {
+    return res.status(400).send('Invalid or missing authentication code');
+  }
+  const safeCode = encodeURIComponent(rawCode);
   res.send(`
     <html>
       <head>
@@ -368,9 +372,9 @@ router.get('/mobile/github/callback', (req, res) => {
       <body>
         <h3>Authentication Successful!</h3>
         <p>Returning to app...</p>
-        <a href="com.alumnex.connect://oauth/github?code=${code}">Click here if not redirected automatically</a>
+        <a href="com.alumnex.connect://oauth/github?code=${safeCode}">Click here if not redirected automatically</a>
         <script>
-          window.location.href = 'com.alumnex.connect://oauth/github?code=${code}';
+          window.location.href = 'com.alumnex.connect://oauth/github?code=${safeCode}';
         </script>
       </body>
     </html>

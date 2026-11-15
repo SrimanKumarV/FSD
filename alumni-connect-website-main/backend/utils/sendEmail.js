@@ -44,7 +44,7 @@ const sendEmail = async (options) => {
           pass: smtpKey
         },
         tls: {
-          rejectUnauthorized: false
+          rejectUnauthorized: process.env.SMTP_INSECURE_TLS === 'true' ? false : true
         }
       });
 

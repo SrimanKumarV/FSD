@@ -94,7 +94,7 @@ function decryptWithKey(parts, key) {
   const iv = Buffer.from(ivHex, 'hex');
   const authTag = Buffer.from(authTagHex, 'hex');
 
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv, { authTagLength: 16 });
   decipher.setAuthTag(authTag);
 
   let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
